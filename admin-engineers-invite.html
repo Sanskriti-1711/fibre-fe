@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invite Engineer | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --tm-red:#E31837;
+      --tm-dark:#1F2937;
+      --tm-gray:#6B7280;
+      --tm-light:#F9FAFB;
+      --tm-white:#FFFFFF;
+      --border:#E5E7EB;
+    }
+
+    * { box-sizing:border-box; font-family:system-ui; }
+
+    body {
+      margin:0;
+      background:var(--tm-light);
+      color:var(--tm-dark);
+    }
+
+    .container {
+      max-width:520px;
+      margin:60px auto;
+      background:var(--tm-white);
+      padding:32px;
+      border-radius:8px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      font-size:22px;
+      margin-bottom:8px;
+    }
+
+    p {
+      font-size:14px;
+      color:var(--tm-gray);
+      margin-bottom:24px;
+    }
+
+    label {
+      display:block;
+      font-size:14px;
+      margin-bottom:6px;
+    }
+
+    input, select {
+      width:100%;
+      padding:12px;
+      border-radius:6px;
+      border:1px solid var(--border);
+      font-size:14px;
+      margin-bottom:18px;
+    }
+
+    button {
+      width:100%;
+      background:var(--tm-red);
+      color:#fff;
+      padding:12px;
+      border:none;
+      border-radius:6px;
+      font-weight:600;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Invite Field Engineer</h1>
+  <p>An invite email will be sent with an activation link</p>
+
+  <form>
+    <label>Email Address</label>
+    <input type="email" placeholder="engineer@company.com" />
+
+    <label>Role</label>
+    <select>
+      <option>Field Engineer</option>
+    </select>
+
+    <button>Send Invite</button>
+  </form>
+</div>
+
+</body>
+</html>

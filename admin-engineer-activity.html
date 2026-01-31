@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Engineer Activity | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --tm-red:#E31837;
+      --tm-dark:#1F2937;
+      --tm-gray:#6B7280;
+      --tm-light:#F9FAFB;
+      --tm-white:#FFFFFF;
+      --green:#059669;
+      --amber:#D97706;
+      --border:#E5E7EB;
+    }
+
+    * { box-sizing:border-box; font-family:system-ui; }
+
+    body {
+      margin:0;
+      background:var(--tm-light);
+      color:var(--tm-dark);
+    }
+
+    .container {
+      max-width:1100px;
+      margin:40px auto;
+      background:var(--tm-white);
+      padding:28px;
+      border-radius:8px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      margin-bottom:6px;
+      font-size:24px;
+    }
+
+    p {
+      margin-bottom:20px;
+      font-size:14px;
+      color:var(--tm-gray);
+    }
+
+    table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:14px;
+    }
+
+    th, td {
+      padding:14px;
+      border-bottom:1px solid var(--border);
+    }
+
+    th {
+      color:var(--tm-gray);
+      font-size:13px;
+    }
+
+    .completed { color:var(--green); font-weight:600; }
+    .pending { color:var(--amber); font-weight:600; }
+    .failed { color:var(--tm-red); font-weight:600; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Arjun Patel</h1>
+  <p>Assigned projects & completion history</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Project</th>
+        <th>Assigned Features</th>
+        <th>Completed</th>
+        <th>Pending</th>
+        <th>Failed</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Fiber Rollout – Zone A</td>
+        <td>320</td>
+        <td class="completed">278</td>
+        <td class="pending">34</td>
+        <td class="failed">8</td>
+      </tr>
+
+      <tr>
+        <td>Metro Expansion – Phase 2</td>
+        <td>190</td>
+        <td class="completed">190</td>
+        <td class="pending">0</td>
+        <td class="failed">0</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>

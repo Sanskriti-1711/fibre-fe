@@ -5,6 +5,15 @@
   <title>Project Overview | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+
   <style>
     :root {
       --tm-red: #E31837;
@@ -29,13 +38,15 @@
     }
 
     .container {
-      max-width: 1200px;
-      margin: 32px auto;
-      padding: 0 24px;
+      padding: 32px;
+      max-width: 1400px;
+      margin: auto;
     }
 
+    /* ===== Header ===== */
+
     .header {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     .header h1 {
@@ -45,18 +56,20 @@
 
     .header p {
       margin-top: 6px;
-      font-size: 14px;
       color: var(--tm-gray);
+      font-size: 14px;
     }
 
-    .stats {
+    /* ===== KPI Row ===== */
+
+    .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
 
-    .stat-card {
+    .kpi-card {
       background: var(--tm-white);
       padding: 20px;
       border-radius: 8px;
@@ -64,33 +77,62 @@
       border-left: 4px solid var(--tm-red);
     }
 
-    .stat-title {
+    .kpi-title {
       font-size: 13px;
       color: var(--tm-gray);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
-    .stat-value {
+    .kpi-value {
       font-size: 26px;
       font-weight: 700;
     }
 
-    .map-card {
+    /* ===== Layout ===== */
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    .card {
       background: var(--tm-white);
+      padding: 20px;
       border-radius: 8px;
-      padding: 16px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
 
-    .map-placeholder {
-      height: 420px;
-      background: #E5E7EB;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--tm-gray);
+    .card h3 {
+      margin: 0 0 16px;
+      font-size: 18px;
+    }
+
+    /* ===== Status List ===== */
+
+    .status-list {
+      display: grid;
+      gap: 12px;
       font-size: 14px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .completed { color: var(--green); font-weight: 600; }
+    .pending { color: var(--amber); font-weight: 600; }
+    .failed { color: var(--tm-red); font-weight: 600; }
+
+    /* ===== Map ===== */
+
+    #map {
+      height: 420px;
+      border-radius: 8px;
+      overflow: hidden;
     }
   </style>
 </head>
@@ -98,42 +140,94 @@
 
 <div class="container">
 
+  <!-- Header -->
   <div class="header">
     <h1>Fiber Rollout – Zone A</h1>
-    <p>London North · Project Overview</p>
+    <p>Project overview powered by PostGIS</p>
   </div>
 
-  <!-- High-level stats -->
-  <div class="stats">
-    <div class="stat-card">
-      <div class="stat-title">Completion</div>
-      <div class="stat-value">78%</div>
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-title">Completion</div>
+      <div class="kpi-value">78%</div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-title">Total Assets</div>
-      <div class="stat-value">1,240</div>
+    <div class="kpi-card">
+      <div class="kpi-title">Total Features</div>
+      <div class="kpi-value">1,240</div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-title">Pending Audits</div>
-      <div class="stat-value">14</div>
+    <div class="kpi-card">
+      <div class="kpi-title">Completed</div>
+      <div class="kpi-value">968</div>
     </div>
 
-    <div class="stat-card">
-      <div class="stat-title">Failed Audits</div>
-      <div class="stat-value">3</div>
-    </div>
-  </div>
-
-  <!-- Map preview -->
-  <div class="map-card">
-    <div class="map-placeholder">
-      Map Preview (Leaflet)
+    <div class="kpi-card">
+      <div class="kpi-title">Pending / Failed</div>
+      <div class="kpi-value">272</div>
     </div>
   </div>
 
+  <!-- Main Grid -->
+  <div class="grid">
+
+    <!-- Map -->
+    <div class="card">
+      <h3>Map Preview</h3>
+      <div id="map"></div>
+    </div>
+
+    <!-- Status Summary -->
+    <div class="card">
+      <h3>Feature Status Breakdown</h3>
+
+      <div class="status-list">
+        <div class="status-item">
+          <span>Total Features</span>
+          <span>1,240</span>
+        </div>
+
+        <div class="status-item">
+          <span>Completed</span>
+          <span class="completed">968</span>
+        </div>
+
+        <div class="status-item">
+          <span>Pending</span>
+          <span class="pending">214</span>
+        </div>
+
+        <div class="status-item">
+          <span>Failed</span>
+          <span class="failed">58</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
+
+<script>
+  const map = L.map('map').setView([51.5074, -0.1278], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  // Placeholder – real data comes from PostGIS GeoJSON API
+  L.circleMarker([51.5074, -0.1278], {
+    radius: 6,
+    color: '#059669',
+    fillOpacity: 0.8
+  }).addTo(map).bindPopup("Completed Feature");
+
+  L.circleMarker([51.51, -0.12], {
+    radius: 6,
+    color: '#E31837',
+    fillOpacity: 0.8
+  }).addTo(map).bindPopup("Failed Feature");
+</script>
 
 </body>
 </html>

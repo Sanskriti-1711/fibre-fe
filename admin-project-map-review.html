@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Map Review | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --tm-red: #E31837;
+      --tm-dark: #1F2937;
+      --tm-gray: #6B7280;
+      --tm-light: #F9FAFB;
+      --tm-white: #FFFFFF;
+      --green: #059669;
+      --amber: #D97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--tm-light);
+      color: var(--tm-dark);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      height: 100vh;
+    }
+
+    .sidebar {
+      background: var(--tm-white);
+      padding: 20px;
+      border-right: 1px solid #E5E7EB;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+    }
+
+    .legend {
+      font-size: 14px;
+    }
+
+    .legend div {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .map-container {
+      position: relative;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Map Review</h2>
+
+    <div class="legend">
+      <div><span class="dot" style="background:#1F2937"></span> Design Features</div>
+      <div><span class="dot" style="background:#059669"></span> Completed</div>
+      <div><span class="dot" style="background:#E31837"></span> Failed / Missing</div>
+      <div><span class="dot" style="background:#D97706"></span> Needs Rework</div>
+    </div>
+  </aside>
+
+  <!-- Map -->
+  <main class="map-container">
+    <div id="map"></div>
+  </main>
+
+</div>
+
+<script>
+  const map = L.map('map').setView([51.5074, -0.1278], 12);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+
+  function openAudit(featureId) {
+    window.location.href = `/admin/projects/1/audit/${featureId}`;
+  }
+
+  // Example markers – replace with GeoJSON from PostGIS
+  L.circleMarker([51.5074, -0.1278], { color: '#059669', radius: 6 })
+    .addTo(map)
+    .on('click', () => openAudit(1021));
+
+  L.circleMarker([51.51, -0.12], { color: '#E31837', radius: 6 })
+    .addTo(map)
+    .on('click', () => openAudit(1022));
+</script>
+
+</body>
+</html>
