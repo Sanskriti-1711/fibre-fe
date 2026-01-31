@@ -37,10 +37,66 @@
       color: var(--tm-dark);
     }
 
-    .container {
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: var(--tm-dark);
+      color: var(--tm-white);
+      padding: 24px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 32px;
+      color: var(--tm-red);
+      font-size: 20px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-label {
+      color: #9CA3AF;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .nav a {
+      display: block;
+      color: #D1D5DB;
+      text-decoration: none;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color: var(--tm-white);
+    }
+
+    .content {
+      flex: 1;
       padding: 32px;
+    }
+
+    .container {
       max-width: 1400px;
-      margin: auto;
+      margin: 0 auto;
     }
 
     /* ===== Header ===== */
@@ -138,74 +194,114 @@
 </head>
 <body>
 
-<div class="container">
+<div class="layout">
 
-  <!-- Header -->
-  <div class="header">
-    <h1>Fiber Rollout – Zone A</h1>
-    <p>Project overview powered by PostGIS</p>
-  </div>
+  <aside class="sidebar">
+    <h2>Tech Mahindra</h2>
+    <nav class="nav">
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <a href="admin-dashboard.html">Dashboard</a>
+      </div>
 
-  <!-- KPI Cards -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-title">Completion</div>
-      <div class="kpi-value">78%</div>
-    </div>
+      <div class="nav-section">
+        <span class="nav-label">Projects</span>
+        <a href="admin-projects.html">Projects</a>
+        <a href="admin-project-create.html">Create Project</a>
+        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+        <a class="active" href="admin-project-overview.html">Project Overview</a>
+        <a href="admin-project-map-review.html">Map Review</a>
+        <a href="admin-audit-detail.html">Audit Detail</a>
+      </div>
 
-    <div class="kpi-card">
-      <div class="kpi-title">Total Features</div>
-      <div class="kpi-value">1,240</div>
-    </div>
+      <div class="nav-section">
+        <span class="nav-label">Engineers</span>
+        <a href="admin-engineers-list.html">Engineers</a>
+        <a href="admin-engineers-invite.html">Invite Engineer</a>
+        <a href="admin-engineer-activity.html">Engineer Activity</a>
+      </div>
 
-    <div class="kpi-card">
-      <div class="kpi-title">Completed</div>
-      <div class="kpi-value">968</div>
-    </div>
+      <div class="nav-section">
+        <span class="nav-label">Operations</span>
+        <a href="admin-reports.html">Reports & Exports</a>
+        <a href="admin-settings.html">Admin Settings</a>
+      </div>
+    </nav>
+  </aside>
 
-    <div class="kpi-card">
-      <div class="kpi-title">Pending / Failed</div>
-      <div class="kpi-value">272</div>
-    </div>
-  </div>
+  <main class="content">
+    <div class="container">
 
-  <!-- Main Grid -->
-  <div class="grid">
+      <!-- Header -->
+      <div class="header">
+        <h1>Fiber Rollout – Zone A</h1>
+        <p>Project overview powered by PostGIS</p>
+      </div>
 
-    <!-- Map -->
-    <div class="card">
-      <h3>Map Preview</h3>
-      <div id="map"></div>
-    </div>
-
-    <!-- Status Summary -->
-    <div class="card">
-      <h3>Feature Status Breakdown</h3>
-
-      <div class="status-list">
-        <div class="status-item">
-          <span>Total Features</span>
-          <span>1,240</span>
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Completion</div>
+          <div class="kpi-value">78%</div>
         </div>
 
-        <div class="status-item">
-          <span>Completed</span>
-          <span class="completed">968</span>
+        <div class="kpi-card">
+          <div class="kpi-title">Total Features</div>
+          <div class="kpi-value">1,240</div>
         </div>
 
-        <div class="status-item">
-          <span>Pending</span>
-          <span class="pending">214</span>
+        <div class="kpi-card">
+          <div class="kpi-title">Completed</div>
+          <div class="kpi-value">968</div>
         </div>
 
-        <div class="status-item">
-          <span>Failed</span>
-          <span class="failed">58</span>
+        <div class="kpi-card">
+          <div class="kpi-title">Pending / Failed</div>
+          <div class="kpi-value">272</div>
         </div>
       </div>
-    </div>
 
-  </div>
+      <!-- Main Grid -->
+      <div class="grid">
+
+        <!-- Map -->
+        <div class="card">
+          <h3>Map Preview</h3>
+          <div id="map"></div>
+        </div>
+
+        <!-- Status Summary -->
+        <div class="card">
+          <h3>Feature Status Breakdown</h3>
+
+          <div class="status-list">
+            <div class="status-item">
+              <span>Total Features</span>
+              <span>1,240</span>
+            </div>
+
+            <div class="status-item">
+              <span>Completed</span>
+              <span class="completed">968</span>
+            </div>
+
+            <div class="status-item">
+              <span>Pending</span>
+              <span class="pending">214</span>
+            </div>
+
+            <div class="status-item">
+              <span>Failed</span>
+              <span class="failed">58</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
 </div>
 
 <script>

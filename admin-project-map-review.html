@@ -32,24 +32,65 @@
     }
 
     .layout {
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      height: 100vh;
+      display: flex;
+      min-height: 100vh;
     }
 
     .sidebar {
-      background: var(--tm-white);
-      padding: 20px;
-      border-right: 1px solid #E5E7EB;
+      width: 240px;
+      background: var(--tm-dark);
+      color: var(--tm-white);
+      padding: 24px;
     }
 
     .sidebar h2 {
-      margin: 0 0 16px;
-      font-size: 18px;
+      margin: 0 0 32px;
+      color: var(--tm-red);
+      font-size: 20px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-label {
+      color: #9CA3AF;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .nav a {
+      display: block;
+      color: #D1D5DB;
+      text-decoration: none;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color: var(--tm-white);
     }
 
     .legend {
       font-size: 14px;
+      color: var(--tm-dark);
+      background: var(--tm-white);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
     }
 
     .legend div {
@@ -65,8 +106,25 @@
       margin-right: 8px;
     }
 
+    .content {
+      flex: 1;
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 24px;
+    }
+
+    .map-panel {
+      grid-column: span 2;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+    }
+
     .map-container {
       position: relative;
+      height: calc(100vh - 128px);
+      min-height: 520px;
     }
 
     #map {
@@ -81,19 +139,53 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
-    <h2>Map Review</h2>
+    <h2>Tech Mahindra</h2>
+    <nav class="nav">
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <a href="admin-dashboard.html">Dashboard</a>
+      </div>
 
+      <div class="nav-section">
+        <span class="nav-label">Projects</span>
+        <a href="admin-projects.html">Projects</a>
+        <a href="admin-project-create.html">Create Project</a>
+        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+        <a href="admin-project-overview.html">Project Overview</a>
+        <a class="active" href="admin-project-map-review.html">Map Review</a>
+        <a href="admin-audit-detail.html">Audit Detail</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Engineers</span>
+        <a href="admin-engineers-list.html">Engineers</a>
+        <a href="admin-engineers-invite.html">Invite Engineer</a>
+        <a href="admin-engineer-activity.html">Engineer Activity</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Operations</span>
+        <a href="admin-reports.html">Reports & Exports</a>
+        <a href="admin-settings.html">Admin Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <main class="content">
     <div class="legend">
+      <h3 style="margin-top:0;margin-bottom:12px;color:var(--tm-dark);">Map Layers</h3>
       <div><span class="dot" style="background:#1F2937"></span> Design Features</div>
       <div><span class="dot" style="background:#059669"></span> Completed</div>
       <div><span class="dot" style="background:#E31837"></span> Failed / Missing</div>
       <div><span class="dot" style="background:#D97706"></span> Needs Rework</div>
     </div>
-  </aside>
 
-  <!-- Map -->
-  <main class="map-container">
-    <div id="map"></div>
+    <div class="map-panel">
+      <div class="map-container">
+        <div id="map"></div>
+      </div>
+    </div>
   </main>
 
 </div>
@@ -106,7 +198,7 @@
   }).addTo(map);
 
   function openAudit(featureId) {
-    window.location.href = `/admin/projects/1/audit/${featureId}`;
+    window.location.href = `admin-audit-detail.html`;
   }
 
   // Example markers – replace with GeoJSON from PostGIS

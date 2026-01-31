@@ -26,9 +26,66 @@
       color: var(--tm-dark);
     }
 
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: var(--tm-dark);
+      color: var(--tm-white);
+      padding: 24px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 32px;
+      color: var(--tm-red);
+      font-size: 20px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-label {
+      color: #9CA3AF;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .nav a {
+      display: block;
+      color: #D1D5DB;
+      text-decoration: none;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color: var(--tm-white);
+    }
+
+    .content {
+      flex: 1;
+      padding: 32px;
+    }
+
     .container {
       max-width: 720px;
-      margin: 40px auto;
+      margin: 0 auto;
       background: var(--tm-white);
       padding: 32px;
       border-radius: 8px;
@@ -91,43 +148,80 @@
 </head>
 <body>
 
-  <div class="container">
-    <h1>Create New Project</h1>
-    <p>Define project details and link to QField Cloud</p>
-
-    <form>
-      <div class="form-group">
-        <label>Project Name</label>
-        <input type="text" placeholder="Fiber Rollout – Zone A" />
-      </div>
-
-      <div class="form-group">
-        <label>Description</label>
-        <textarea placeholder="Brief description of scope, region, and objectives"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>QField Cloud Project</label>
-        <select>
-          <option>Select QField project</option>
-          <option>TM-Fiber-London-North</option>
-          <option>TM-Metro-Expansion-Phase2</option>
-        </select>
-        <div class="hint">
-          This links field uploads directly to this project
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Tech Mahindra</h2>
+      <nav class="nav">
+        <div class="nav-section">
+          <span class="nav-label">Overview</span>
+          <a href="admin-dashboard.html">Dashboard</a>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label>Initial GeoPackage (.gpkg)</label>
-        <input type="file" accept=".gpkg" />
-        <div class="hint">
-          Base design data exported from QGIS
+        <div class="nav-section">
+          <span class="nav-label">Projects</span>
+          <a href="admin-projects.html">Projects</a>
+          <a class="active" href="admin-project-create.html">Create Project</a>
+          <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+          <a href="admin-project-overview.html">Project Overview</a>
+          <a href="admin-project-map-review.html">Map Review</a>
+          <a href="admin-audit-detail.html">Audit Detail</a>
         </div>
-      </div>
 
-      <button class="submit-btn">Create Project</button>
-    </form>
+        <div class="nav-section">
+          <span class="nav-label">Engineers</span>
+          <a href="admin-engineers-list.html">Engineers</a>
+          <a href="admin-engineers-invite.html">Invite Engineer</a>
+          <a href="admin-engineer-activity.html">Engineer Activity</a>
+        </div>
+
+        <div class="nav-section">
+          <span class="nav-label">Operations</span>
+          <a href="admin-reports.html">Reports & Exports</a>
+          <a href="admin-settings.html">Admin Settings</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="container">
+        <h1>Create New Project</h1>
+        <p>Define project details and link to QField Cloud</p>
+
+        <form>
+          <div class="form-group">
+            <label>Project Name</label>
+            <input type="text" placeholder="Fiber Rollout – Zone A" />
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea placeholder="Brief description of scope, region, and objectives"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>QField Cloud Project</label>
+            <select>
+              <option>Select QField project</option>
+              <option>TM-Fiber-London-North</option>
+              <option>TM-Metro-Expansion-Phase2</option>
+            </select>
+            <div class="hint">
+              This links field uploads directly to this project
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Initial GeoPackage (.gpkg)</label>
+            <input type="file" accept=".gpkg" />
+            <div class="hint">
+              Base design data exported from QGIS
+            </div>
+          </div>
+
+          <button class="submit-btn">Create Project</button>
+        </form>
+      </div>
+    </main>
   </div>
 
 </body>

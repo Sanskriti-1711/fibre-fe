@@ -23,9 +23,66 @@
       color:var(--tm-dark);
     }
 
+    .layout {
+      display:flex;
+      min-height:100vh;
+    }
+
+    .sidebar {
+      width:240px;
+      background:var(--tm-dark);
+      color:var(--tm-white);
+      padding:24px;
+    }
+
+    .sidebar h2 {
+      margin:0 0 32px;
+      color:var(--tm-red);
+      font-size:20px;
+    }
+
+    .nav {
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+
+    .nav-section {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .nav-label {
+      color:#9CA3AF;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      margin-bottom:4px;
+    }
+
+    .nav a {
+      display:block;
+      color:#D1D5DB;
+      text-decoration:none;
+      padding:6px 0;
+      font-size:14px;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color:var(--tm-white);
+    }
+
+    .content {
+      flex:1;
+      padding:32px;
+    }
+
     .container {
       max-width:900px;
-      margin:40px auto;
+      margin:0 auto;
       background:var(--tm-white);
       padding:32px;
       border-radius:8px;
@@ -92,48 +149,87 @@
 </head>
 <body>
 
-<div class="container">
-  <h1>Reports & Exports</h1>
-  <p>Generate audit-ready reports for compliance and review</p>
+<div class="layout">
 
-  <form>
-
-    <div class="grid">
-      <div>
-        <label>Project</label>
-        <select>
-          <option>All Projects</option>
-          <option>Fiber Rollout – Zone A</option>
-          <option>Metro Expansion – Phase 2</option>
-        </select>
+  <aside class="sidebar">
+    <h2>Tech Mahindra</h2>
+    <nav class="nav">
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <a href="admin-dashboard.html">Dashboard</a>
       </div>
 
-      <div>
-        <label>Engineer</label>
-        <select>
-          <option>All Engineers</option>
-          <option>Arjun Patel</option>
-          <option>Rahul Singh</option>
-        </select>
+      <div class="nav-section">
+        <span class="nav-label">Projects</span>
+        <a href="admin-projects.html">Projects</a>
+        <a href="admin-project-create.html">Create Project</a>
+        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+        <a href="admin-project-overview.html">Project Overview</a>
+        <a href="admin-project-map-review.html">Map Review</a>
+        <a href="admin-audit-detail.html">Audit Detail</a>
       </div>
 
-      <div>
-        <label>Start Date</label>
-        <input type="date" />
+      <div class="nav-section">
+        <span class="nav-label">Engineers</span>
+        <a href="admin-engineers-list.html">Engineers</a>
+        <a href="admin-engineers-invite.html">Invite Engineer</a>
+        <a href="admin-engineer-activity.html">Engineer Activity</a>
       </div>
 
-      <div>
-        <label>End Date</label>
-        <input type="date" />
+      <div class="nav-section">
+        <span class="nav-label">Operations</span>
+        <a class="active" href="admin-reports.html">Reports & Exports</a>
+        <a href="admin-settings.html">Admin Settings</a>
       </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="container">
+      <h1>Reports & Exports</h1>
+      <p>Generate audit-ready reports for compliance and review</p>
+
+      <form>
+
+        <div class="grid">
+          <div>
+            <label>Project</label>
+            <select>
+              <option>All Projects</option>
+              <option>Fiber Rollout – Zone A</option>
+              <option>Metro Expansion – Phase 2</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Engineer</label>
+            <select>
+              <option>All Engineers</option>
+              <option>Arjun Patel</option>
+              <option>Rahul Singh</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Start Date</label>
+            <input type="date" />
+          </div>
+
+          <div>
+            <label>End Date</label>
+            <input type="date" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn csv">Export CSV</button>
+          <button type="button" class="btn pdf">Export PDF (Audit)</button>
+        </div>
+
+      </form>
     </div>
+  </main>
 
-    <div class="actions">
-      <button type="button" class="btn csv">Export CSV</button>
-      <button type="button" class="btn pdf">Export PDF (Audit)</button>
-    </div>
-
-  </form>
 </div>
 
 </body>

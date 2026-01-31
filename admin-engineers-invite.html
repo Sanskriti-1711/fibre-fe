@@ -23,9 +23,69 @@
       color:var(--tm-dark);
     }
 
+    .layout {
+      display:flex;
+      min-height:100vh;
+    }
+
+    .sidebar {
+      width:240px;
+      background:var(--tm-dark);
+      color:var(--tm-white);
+      padding:24px;
+    }
+
+    .sidebar h2 {
+      margin:0 0 32px;
+      color:var(--tm-red);
+      font-size:20px;
+    }
+
+    .nav {
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+
+    .nav-section {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .nav-label {
+      color:#9CA3AF;
+      font-size:12px;
+      font-weight:600;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      margin-bottom:4px;
+    }
+
+    .nav a {
+      display:block;
+      color:#D1D5DB;
+      text-decoration:none;
+      padding:6px 0;
+      font-size:14px;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color:var(--tm-white);
+    }
+
+    .content {
+      flex:1;
+      padding:32px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
     .container {
+      width:100%;
       max-width:520px;
-      margin:60px auto;
       background:var(--tm-white);
       padding:32px;
       border-radius:8px;
@@ -72,21 +132,60 @@
 </head>
 <body>
 
-<div class="container">
-  <h1>Invite Field Engineer</h1>
-  <p>An invite email will be sent with an activation link</p>
+<div class="layout">
 
-  <form>
-    <label>Email Address</label>
-    <input type="email" placeholder="engineer@company.com" />
+  <aside class="sidebar">
+    <h2>Tech Mahindra</h2>
+    <nav class="nav">
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <a href="admin-dashboard.html">Dashboard</a>
+      </div>
 
-    <label>Role</label>
-    <select>
-      <option>Field Engineer</option>
-    </select>
+      <div class="nav-section">
+        <span class="nav-label">Projects</span>
+        <a href="admin-projects.html">Projects</a>
+        <a href="admin-project-create.html">Create Project</a>
+        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+        <a href="admin-project-overview.html">Project Overview</a>
+        <a href="admin-project-map-review.html">Map Review</a>
+        <a href="admin-audit-detail.html">Audit Detail</a>
+      </div>
 
-    <button>Send Invite</button>
-  </form>
+      <div class="nav-section">
+        <span class="nav-label">Engineers</span>
+        <a href="admin-engineers-list.html">Engineers</a>
+        <a class="active" href="admin-engineers-invite.html">Invite Engineer</a>
+        <a href="admin-engineer-activity.html">Engineer Activity</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Operations</span>
+        <a href="admin-reports.html">Reports & Exports</a>
+        <a href="admin-settings.html">Admin Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="container">
+      <h1>Invite Field Engineer</h1>
+      <p>An invite email will be sent with an activation link</p>
+
+      <form>
+        <label>Email Address</label>
+        <input type="email" placeholder="engineer@company.com" />
+
+        <label>Role</label>
+        <select>
+          <option>Field Engineer</option>
+        </select>
+
+        <button>Send Invite</button>
+      </form>
+    </div>
+  </main>
+
 </div>
 
 </body>
