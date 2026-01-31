@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Engineer Dashboard</title>
+
+  <style>
+    :root {
+      --tm-red:#E31837;
+      --dark:#1F2937;
+      --gray:#6B7280;
+      --light:#F9FAFB;
+      --white:#FFFFFF;
+      --green:#059669;
+    }
+
+    * { box-sizing:border-box; font-family:system-ui; }
+
+    body {
+      margin:0;
+      background:var(--light);
+      color:var(--dark);
+    }
+
+    .container {
+      padding:16px;
+      max-width:480px;
+      margin:auto;
+    }
+
+    h1 {
+      font-size:20px;
+      margin-bottom:16px;
+    }
+
+    .card {
+      background:var(--white);
+      border-radius:8px;
+      padding:16px;
+      margin-bottom:14px;
+      box-shadow:0 6px 16px rgba(0,0,0,0.05);
+    }
+
+    .project-title {
+      font-weight:600;
+      margin-bottom:6px;
+    }
+
+    .meta {
+      font-size:13px;
+      color:var(--gray);
+      margin-bottom:10px;
+    }
+
+    .progress {
+      height:8px;
+      background:#E5E7EB;
+      border-radius:4px;
+      overflow:hidden;
+    }
+
+    .progress span {
+      display:block;
+      height:100%;
+      background:var(--green);
+      width:72%;
+    }
+
+    a {
+      display:block;
+      margin-top:12px;
+      color:var(--tm-red);
+      font-weight:600;
+      text-decoration:none;
+      font-size:14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>My Projects</h1>
+
+  <div class="card">
+    <div class="project-title">Fiber Rollout – Zone A</div>
+    <div class="meta">Today: 12 tasks</div>
+    <div class="progress"><span></span></div>
+    <a href="/engineer/projects/1">View Tasks</a>
+  </div>
+
+  <div class="card">
+    <div class="project-title">Metro Expansion – Phase 2</div>
+    <div class="meta">Today: 4 tasks</div>
+    <div class="progress"><span style="width:90%"></span></div>
+    <a href="/engineer/projects/2">View Tasks</a>
+  </div>
+</div>
+
+</body>
+</html>

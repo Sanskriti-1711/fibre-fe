@@ -22,10 +22,43 @@
     body {
       margin: 0;
       background: var(--tm-light);
+      min-height: 100vh;
       display: flex;
-      height: 100vh;
+      flex-direction: column;
+    }
+
+    .top-bar {
+      background: var(--tm-dark);
+      color: var(--tm-white);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .top-bar h2 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--tm-red);
+    }
+
+    .top-links a {
+      color: #D1D5DB;
+      text-decoration: none;
+      font-size: 14px;
+      margin-left: 16px;
+    }
+
+    .top-links a:hover {
+      color: var(--tm-white);
+    }
+
+    .login-wrapper {
+      flex: 1;
+      display: flex;
       align-items: center;
       justify-content: center;
+      padding: 24px;
     }
 
     .login-card {
@@ -107,13 +140,22 @@
 </head>
 <body>
 
+  <div class="top-bar">
+    <h2>Tech Mahindra</h2>
+    <div class="top-links">
+      <a href="index.html">Admin Login</a>
+      <a href="admin-dashboard.html">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="login-wrapper">
   <div class="login-card">
     <div class="logo">
       <h1>Tech Mahindra</h1>
       <p>Admin Portal</p>
     </div>
 
-    <form>
+    <form onsubmit="handleLogin(event)">
       <div class="form-group">
         <label>Email</label>
         <input type="email" placeholder="admin@company.com" />
@@ -131,6 +173,13 @@
       © Tech Mahindra · Internal Access
     </div>
   </div>
+  </div>
+<script>
+  function handleLogin(event) {
+    event.preventDefault(); // stop form reload
+    window.location.href = "admin-dashboard.html";
+  }
+</script>
 
 </body>
 </html>

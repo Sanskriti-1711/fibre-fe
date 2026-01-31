@@ -48,11 +48,32 @@
       font-size: 20px;
     }
 
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-label {
+      color: #9CA3AF;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
     .nav a {
       display: block;
       color: #D1D5DB;
       text-decoration: none;
-      padding: 10px 0;
+      padding: 6px 0;
       font-size: 14px;
     }
 
@@ -162,12 +183,33 @@
   <aside class="sidebar">
     <h2>Tech Mahindra</h2>
     <nav class="nav">
-      <a href="#">Dashboard</a>
-      <a class="active" href="#">Projects</a>
-      <a href="#">Audits</a>
-      <a href="#">Field Engineers</a>
-      <a href="#">Uploads</a>
-      <a href="#">Settings</a>
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <a href="admin-dashboard.html">Dashboard</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Projects</span>
+        <a class="active" href="admin-projects.html">Projects</a>
+        <a href="admin-project-create.html">Create Project</a>
+        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+        <a href="admin-project-overview.html">Project Overview</a>
+        <a href="admin-project-map-review.html">Map Review</a>
+        <a href="admin-audit-detail.html">Audit Detail</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Engineers</span>
+        <a href="admin-engineers-list.html">Engineers</a>
+        <a href="admin-engineers-invite.html">Invite Engineer</a>
+        <a href="admin-engineer-activity.html">Engineer Activity</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Operations</span>
+        <a href="admin-reports.html">Reports & Exports</a>
+        <a href="admin-settings.html">Admin Settings</a>
+      </div>
     </nav>
   </aside>
 
@@ -179,7 +221,7 @@
         <h1>Projects</h1>
         <p>Manage and monitor all fiber rollout projects</p>
       </div>
-      <button class="create-btn">Create Project</button>
+      <a class="create-btn" href="admin-project-create.html">Create Project</a>
     </div>
 
     <div class="table-card">
@@ -201,7 +243,7 @@
             <td class="status in-progress">In Progress</td>
             <td>72%</td>
             <td>Today</td>
-            <td><a class="action-link" href="#">View</a></td>
+            <td><a class="action-link" href="admin-project-overview.html">View</a></td>
           </tr>
 
           <tr>
@@ -210,7 +252,7 @@
             <td class="status completed">Completed</td>
             <td>100%</td>
             <td>Yesterday</td>
-            <td><a class="action-link" href="#">View</a></td>
+            <td><a class="action-link" href="admin-project-overview.html">View</a></td>
           </tr>
 
           <tr>
@@ -219,7 +261,7 @@
             <td class="status archived">Archived</td>
             <td>100%</td>
             <td>2 weeks ago</td>
-            <td><a class="action-link" href="#">View</a></td>
+            <td><a class="action-link" href="admin-project-overview.html">View</a></td>
           </tr>
         </tbody>
       </table>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Create Project | Tech Mahindra</title>
+  <title>Import GeoPackage | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -13,6 +13,7 @@
       --tm-light: #F9FAFB;
       --tm-white: #FFFFFF;
       --border: #E5E7EB;
+      --green: #059669;
     }
 
     * {
@@ -84,7 +85,7 @@
     }
 
     .container {
-      max-width: 720px;
+      max-width: 900px;
       margin: 0 auto;
       background: var(--tm-white);
       padding: 32px;
@@ -93,18 +94,23 @@
     }
 
     h1 {
-      margin: 0 0 8px;
+      margin-bottom: 6px;
       font-size: 24px;
     }
 
     p {
-      margin: 0 0 24px;
-      color: var(--tm-gray);
+      margin-bottom: 24px;
       font-size: 14px;
+      color: var(--tm-gray);
     }
 
-    .form-group {
-      margin-bottom: 18px;
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section h3 {
+      margin-bottom: 12px;
+      font-size: 18px;
     }
 
     label {
@@ -114,35 +120,60 @@
       font-weight: 500;
     }
 
-    input, textarea, select {
+    input[type="file"], select {
       width: 100%;
       padding: 12px;
-      font-size: 14px;
       border-radius: 6px;
       border: 1px solid var(--border);
+      font-size: 14px;
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 90px;
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
     }
 
-    .hint {
-      font-size: 12px;
-      color: var(--tm-gray);
-      margin-top: 4px;
+    .checkbox-group {
+      margin-top: 8px;
     }
 
-    .submit-btn {
-      margin-top: 20px;
+    .checkbox-group label {
+      font-weight: 400;
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn {
       padding: 12px 18px;
-      background: var(--tm-red);
-      color: var(--tm-white);
-      border: none;
       border-radius: 6px;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+      border: none;
+    }
+
+    .btn.secondary {
+      background: #F3F4F6;
+      color: var(--tm-dark);
+    }
+
+    .btn.primary {
+      background: var(--tm-red);
+      color: var(--tm-white);
+    }
+
+    .status-box {
+      background: #ECFDF5;
+      border-left: 4px solid var(--green);
+      padding: 14px;
+      font-size: 13px;
+      margin-top: 16px;
     }
   </style>
 </head>
@@ -160,8 +191,8 @@
         <div class="nav-section">
           <span class="nav-label">Projects</span>
           <a href="admin-projects.html">Projects</a>
-          <a class="active" href="admin-project-create.html">Create Project</a>
-          <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+          <a href="admin-project-create.html">Create Project</a>
+          <a class="active" href="admin-project-gpkg-upload.html">GeoPackage Import</a>
           <a href="admin-project-overview.html">Project Overview</a>
           <a href="admin-project-map-review.html">Map Review</a>
           <a href="admin-audit-detail.html">Audit Detail</a>
@@ -184,41 +215,65 @@
 
     <main class="content">
       <div class="container">
-        <h1>Create New Project</h1>
-        <p>Define project details and link to QField Cloud</p>
+        <h1>Import GeoPackage</h1>
+        <p>Validate and import design layers into the compliance system</p>
 
         <form>
-          <div class="form-group">
-            <label>Project Name</label>
-            <input type="text" placeholder="Fiber Rollout – Zone A" />
-          </div>
 
-          <div class="form-group">
-            <label>Description</label>
-            <textarea placeholder="Brief description of scope, region, and objectives"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>QField Cloud Project</label>
-            <select>
-              <option>Select QField project</option>
-              <option>TM-Fiber-London-North</option>
-              <option>TM-Metro-Expansion-Phase2</option>
-            </select>
-            <div class="hint">
-              This links field uploads directly to this project
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Initial GeoPackage (.gpkg)</label>
+          <div class="section">
+            <h3>1. Upload GeoPackage</h3>
             <input type="file" accept=".gpkg" />
-            <div class="hint">
-              Base design data exported from QGIS
+          </div>
+
+          <div class="section">
+            <h3>2. Select Layers to Import</h3>
+
+            <div class="checkbox-group">
+              <label><input type="checkbox" /> poles_design</label><br />
+              <label><input type="checkbox" /> fiber_routes</label><br />
+              <label><input type="checkbox" /> chambers</label>
             </div>
           </div>
 
-          <button class="submit-btn">Create Project</button>
+          <div class="section">
+            <h3>3. Geometry & CRS</h3>
+
+            <div class="options">
+              <div>
+                <label>Geometry Type</label>
+                <select>
+                  <option>Point</option>
+                  <option>Line</option>
+                </select>
+              </div>
+
+              <div>
+                <label>CRS</label>
+                <select>
+                  <option>EPSG:27700 (British National Grid)</option>
+                  <option>EPSG:4326 (WGS84)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>4. Validation</h3>
+            <div class="status-box">
+              Dry-run validation passed.<br />
+              No geometry errors detected.
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn secondary" type="button">
+              Run Dry Validation
+            </button>
+            <button class="btn primary" type="submit">
+              Import Layers
+            </button>
+          </div>
+
         </form>
       </div>
     </main>

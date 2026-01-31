@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Map</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --tm-red:#E31837;
+      --green:#059669;
+      --amber:#D97706;
+    }
+
+    body {
+      margin:0;
+      height:100vh;
+    }
+
+    #map {
+      height:100vh;
+      width:100%;
+    }
+
+    .legend {
+      position:absolute;
+      bottom:16px;
+      left:16px;
+      background:#fff;
+      padding:12px;
+      border-radius:8px;
+      font-size:13px;
+      box-shadow:0 6px 16px rgba(0,0,0,0.15);
+    }
+
+    .legend div {
+      display:flex;
+      align-items:center;
+      margin-bottom:6px;
+    }
+
+    .dot {
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      margin-right:6px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="legend">
+  <div><span class="dot" style="background:#D97706"></span> Pending</div>
+  <div><span class="dot" style="background:#059669"></span> Completed</div>
+  <div><span class="dot" style="background:#E31837"></span> Rejected</div>
+</div>
+
+<script>
+  const map = L.map('map').setView([51.5074, -0.1278], 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+
+  function goToTask(featureId) {
+    window.location.href = `/engineer/projects/1/task/${featureId}`;
+  }
+
+  // Example features (replace with PostGIS GeoJSON)
+  L.circleMarker([51.5074, -0.1278], { color:'#D97706', radius:7 })
+    .addTo(map)
+    .on('click', () => goToTask(1021));
+
+  L.circleMarker([51.51, -0.12], { color:'#059669', radius:7 })
+    .addTo(map)
+    .on('click', () => goToTask(1022));
+</script>
+
+</body>
+</html>
