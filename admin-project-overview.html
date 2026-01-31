@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Overview | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --tm-red: #E31837;
+      --tm-dark: #1F2937;
+      --tm-gray: #6B7280;
+      --tm-light: #F9FAFB;
+      --tm-white: #FFFFFF;
+      --border: #E5E7EB;
+      --green: #059669;
+      --amber: #D97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--tm-light);
+      color: var(--tm-dark);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .header p {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--tm-gray);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: var(--tm-white);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--tm-red);
+    }
+
+    .stat-title {
+      font-size: 13px;
+      color: var(--tm-gray);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    .map-card {
+      background: var(--tm-white);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .map-placeholder {
+      height: 420px;
+      background: #E5E7EB;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--tm-gray);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>Fiber Rollout – Zone A</h1>
+    <p>London North · Project Overview</p>
+  </div>
+
+  <!-- High-level stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-title">Completion</div>
+      <div class="stat-value">78%</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Total Assets</div>
+      <div class="stat-value">1,240</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Pending Audits</div>
+      <div class="stat-value">14</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-title">Failed Audits</div>
+      <div class="stat-value">3</div>
+    </div>
+  </div>
+
+  <!-- Map preview -->
+  <div class="map-card">
+    <div class="map-placeholder">
+      Map Preview (Leaflet)
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

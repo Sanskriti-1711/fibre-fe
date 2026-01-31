@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Create Project | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --tm-red: #E31837;
+      --tm-dark: #1F2937;
+      --tm-gray: #6B7280;
+      --tm-light: #F9FAFB;
+      --tm-white: #FFFFFF;
+      --border: #E5E7EB;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--tm-light);
+      color: var(--tm-dark);
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 40px auto;
+      background: var(--tm-white);
+      padding: 32px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    p {
+      margin: 0 0 24px;
+      color: var(--tm-gray);
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--tm-gray);
+      margin-top: 4px;
+    }
+
+    .submit-btn {
+      margin-top: 20px;
+      padding: 12px 18px;
+      background: var(--tm-red);
+      color: var(--tm-white);
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Create New Project</h1>
+    <p>Define project details and link to QField Cloud</p>
+
+    <form>
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" placeholder="Fiber Rollout – Zone A" />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea placeholder="Brief description of scope, region, and objectives"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>QField Cloud Project</label>
+        <select>
+          <option>Select QField project</option>
+          <option>TM-Fiber-London-North</option>
+          <option>TM-Metro-Expansion-Phase2</option>
+        </select>
+        <div class="hint">
+          This links field uploads directly to this project
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Initial GeoPackage (.gpkg)</label>
+        <input type="file" accept=".gpkg" />
+        <div class="hint">
+          Base design data exported from QGIS
+        </div>
+      </div>
+
+      <button class="submit-btn">Create Project</button>
+    </form>
+  </div>
+
+</body>
+</html>

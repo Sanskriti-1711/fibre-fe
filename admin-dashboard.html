@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --tm-red: #E31837;
+      --tm-dark: #1F2937;
+      --tm-gray: #6B7280;
+      --tm-light: #F9FAFB;
+      --tm-white: #FFFFFF;
+      --border: #E5E7EB;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--tm-light);
+      color: var(--tm-dark);
+    }
+
+    /* ===== Layout ===== */
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: var(--tm-dark);
+      color: var(--tm-white);
+      padding: 24px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 32px;
+      color: var(--tm-red);
+      font-size: 20px;
+    }
+
+    .nav a {
+      display: block;
+      color: #D1D5DB;
+      text-decoration: none;
+      padding: 10px 0;
+      font-size: 14px;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color: var(--tm-white);
+    }
+
+    .content {
+      flex: 1;
+      padding: 32px;
+    }
+
+    /* ===== Header ===== */
+
+    .header {
+      margin-bottom: 32px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .header p {
+      margin-top: 6px;
+      color: var(--tm-gray);
+      font-size: 14px;
+    }
+
+    /* ===== KPI Cards ===== */
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+
+    .kpi-card {
+      background: var(--tm-white);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--tm-red);
+    }
+
+    .kpi-title {
+      font-size: 13px;
+      color: var(--tm-gray);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+    }
+
+    /* ===== Sections ===== */
+
+    .section {
+      background: var(--tm-white);
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .section h3 {
+      margin: 0 0 16px;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      color: var(--tm-gray);
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .status {
+      font-weight: 600;
+    }
+
+    .status.pending {
+      color: #D97706;
+    }
+
+    .status.completed {
+      color: #059669;
+    }
+
+    .status.failed {
+      color: var(--tm-red);
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>Tech Mahindra</h2>
+    <nav class="nav">
+      <a class="active" href="#">Dashboard</a>
+      <a href="#">Projects</a>
+      <a href="#">Audits</a>
+      <a href="#">Field Engineers</a>
+      <a href="#">Uploads</a>
+      <a href="#">Settings</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="content">
+
+    <div class="header">
+      <h1>Admin Dashboard</h1>
+      <p>Compliance & Audit Overview</p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-title">Total Projects</div>
+        <div class="kpi-value">48</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Overall Completion</div>
+        <div class="kpi-value">82%</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Pending / Failed Audits</div>
+        <div class="kpi-value">6</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-title">Engineers Active Today</div>
+        <div class="kpi-value">19</div>
+      </div>
+    </div>
+
+    <!-- Latest Uploads -->
+    <div class="section">
+      <h3>Latest Uploads</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Uploaded By</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Fiber Rollout – Zone A</td>
+            <td>FE1023</td>
+            <td>Today</td>
+            <td class="status pending">Pending Audit</td>
+          </tr>
+          <tr>
+            <td>Metro Expansion – Phase 2</td>
+            <td>FE0891</td>
+            <td>Yesterday</td>
+            <td class="status completed">Completed</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Latest Audits -->
+    <div class="section">
+      <h3>Recent Audits</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Auditor</th>
+            <th>Result</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Fiber Rollout – Zone C</td>
+            <td>Audit Team</td>
+            <td class="status failed">Failed</td>
+            <td>Today</td>
+          </tr>
+          <tr>
+            <td>City Core – Section 5</td>
+            <td>Audit Team</td>
+            <td class="status completed">Passed</td>
+            <td>Yesterday</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
