@@ -163,6 +163,7 @@
         <span class="nav-label">Operations</span>
         <a href="admin-reports.html">Reports & Exports</a>
         <a href="admin-settings.html">Admin Settings</a>
+        <a href="#" onclick="handleLogout(event)">Logout</a>
       </div>
     </nav>
   </aside>
@@ -172,9 +173,12 @@
       <h1>Invite Field Engineer</h1>
       <p>An invite email will be sent with an activation link</p>
 
-      <form>
+      <form onsubmit="handleInvite(event)">
         <label>Email Address</label>
-        <input type="email" placeholder="engineer@company.com" />
+        <input id="inviteEmail" type="email" placeholder="engineer@company.com" required />
+
+        <label>Temporary Password</label>
+        <input id="invitePassword" type="password" placeholder="Pass@12345" required />
 
         <label>Role</label>
         <select>
@@ -183,10 +187,51 @@
 
         <button>Send Invite</button>
       </form>
+
+      <div id="inviteMsg" style="display:none;margin-top:12px;font-size:13px;"></div>
     </div>
   </main>
 
 </div>
 
 </body>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  function handleLogout(e) {
+    if (e) e.preventDefault();
+    window.FiberAuth.clear();
+    window.location.href = "index.html";
+  }
+
+  function setInviteMsg(text, isError) {
+    const el = document.getElementById("inviteMsg");
+    if (!text) {
+      el.style.display = "none";
+      el.textContent = "";
+      return;
+    }
+    el.style.display = "block";
+    el.style.color = isError ? "#B91C1C" : "#059669";
+    el.textContent = text;
+  }
+
+  async function handleInvite(event) {
+    event.preventDefault();
+    setInviteMsg("", false);
+
+    const email = document.getElementById("inviteEmail").value.trim();
+    const password = document.getElementById("invitePassword").value;
+
+    try {
+      await window.FiberApi.createEngineer(email, password, "ENGINEER");
+      setInviteMsg("Engineer created successfully", false);
+      document.getElementById("inviteEmail").value = "";
+      document.getElementById("invitePassword").value = "";
+    } catch (e) {
+      setInviteMsg(e && e.message ? e.message : "Failed to create engineer", true);
+    }
+  }
+</script>
 </html>

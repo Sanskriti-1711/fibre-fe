@@ -215,6 +215,7 @@
         <span class="nav-label">Operations</span>
         <a href="admin-reports.html">Reports & Exports</a>
         <a href="admin-settings.html">Admin Settings</a>
+        <a href="#" onclick="handleLogout(event)">Logout</a>
       </div>
     </nav>
   </aside>
@@ -312,4 +313,14 @@
 </div>
 
 </body>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  function handleLogout(e) {
+    if (e) e.preventDefault();
+    window.FiberAuth.clear();
+    window.location.href = "index.html";
+  }
+</script>
 </html>
