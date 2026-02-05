@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Assign Engineers | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --tm-red: #E31837;
+      --tm-dark: #1F2937;
+      --tm-gray: #6B7280;
+      --tm-light: #F9FAFB;
+      --tm-white: #FFFFFF;
+      --border: #E5E7EB;
+      --green: #059669;
+      --amber: #D97706;
+      --blue: #0EA5E9;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--tm-light);
+      color: var(--tm-dark);
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 240px;
+      background: var(--tm-dark);
+      color: var(--tm-white);
+      padding: 24px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 32px;
+      color: var(--tm-red);
+      font-size: 20px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav-label {
+      color: #9CA3AF;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .nav a {
+      display: block;
+      color: #D1D5DB;
+      text-decoration: none;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color: var(--tm-white);
+    }
+
+    .content {
+      flex: 1;
+      padding: 32px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+
+    .header p {
+      margin-top: 6px;
+      color: var(--tm-gray);
+      font-size: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--tm-white);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+    }
+
+    .card h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--tm-gray);
+      margin-top: 4px;
+    }
+
+    .assignment-list {
+      display: grid;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .assignment-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: #F9FAFB;
+    }
+
+    .assignment-title {
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .assignment-meta {
+      color: var(--tm-gray);
+      font-size: 12px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: #EEF2FF;
+      color: #3730A3;
+      border: 1px solid #E0E7FF;
+    }
+
+    .btn {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      background: var(--tm-red);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h2>Tech Mahindra</h2>
+    <nav class="nav">
+      <div class="nav-section">
+        <span class="nav-label">Overview</span>
+        <a href="admin-dashboard.html">Dashboard</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Projects</span>
+        <a href="admin-projects.html">Projects</a>
+        <a href="project-approval-que.html">Approval Queue</a>
+        <a href="admin-project-create.html">Create Project</a>
+        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
+        <a href="admin-project-overview.html">Project Overview</a>
+        <a href="project-feature-management.html">Feature Management</a>
+        <a class="active" href="project-assign.html">Assign Engineers</a>
+        <a href="admin-project-map-review.html">Map Review</a>
+        <a href="admin-audit-detail.html">Audit Detail</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Engineers</span>
+        <a href="admin-engineers-list.html">Engineers</a>
+        <a href="admin-engineers-invite.html">Invite Engineer</a>
+        <a href="admin-engineer-activity.html">Engineer Activity</a>
+        <a href="engineer-dashboard.html">Engineer Dashboard</a>
+        <a href="engineer-project-details.html">Engineer Projects</a>
+        <a href="engineer-feature-submit.html">Feature Submit</a>
+        <a href="engineer-project-map.html">Engineer Map</a>
+        <a href="engineer-notifications.html">Engineer Notifications</a>
+        <a href="engineer-profile.html">Engineer Profile</a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-label">Operations</span>
+        <a href="admin-reports.html">Reports & Exports</a>
+        <a href="admin-settings.html">Admin Settings</a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <div class="container">
+      <div class="header">
+        <h1>Assign Engineers</h1>
+        <p>Assignments cascade from project → layer → feature. Feature overrides layer, layer overrides project.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Assignment Rules</h3>
+
+          <div class="field">
+            <label>Project</label>
+            <select id="projectSelect">
+              <option value="">Select Project</option>
+              <option value="Fiber Rollout – Zone A">Fiber Rollout – Zone A</option>
+              <option value="Metro Expansion – Phase 2">Metro Expansion – Phase 2</option>
+              <option value="City Core Upgrade">City Core Upgrade</option>
+            </select>
+            <div class="hint">Selecting a project applies to all layers/features unless overridden.</div>
+          </div>
+
+          <div class="field">
+            <label>Layer (optional override)</label>
+            <select id="layerSelect">
+              <option value="">All Layers</option>
+              <option value="Poles">Poles</option>
+              <option value="Handholes">Handholes</option>
+              <option value="Cabinets">Cabinets</option>
+              <option value="Trenches">Trenches</option>
+              <option value="Ducts">Ducts</option>
+            </select>
+            <div class="hint">Selecting a layer overrides project assignment for that layer.</div>
+          </div>
+
+          <div class="field">
+            <label>Feature (optional override)</label>
+            <select id="featureSelect">
+              <option value="">All Features in Layer</option>
+              <option value="Pole #A-19">Pole #A-19</option>
+              <option value="Pole #A-22">Pole #A-22</option>
+              <option value="Handhole #H-07">Handhole #H-07</option>
+              <option value="Cabinet #C-11">Cabinet #C-11</option>
+            </select>
+            <div class="hint">Selecting a feature overrides layer + project assignment.</div>
+          </div>
+
+          <div class="field">
+            <label>Assign Engineer</label>
+            <select id="engineerSelect">
+              <option value="">Select Engineer</option>
+              <option value="Priya K.">Priya K.</option>
+              <option value="Arjun R.">Arjun R.</option>
+              <option value="Jorge M.">Jorge M.</option>
+              <option value="Aanya S.">Aanya S.</option>
+              <option value="Vikram D.">Vikram D.</option>
+            </select>
+          </div>
+
+          <button class="btn" type="button" onclick="applyAssignment()">Apply Assignment</button>
+        </div>
+
+        <div class="card">
+          <h3>Current Assignments</h3>
+          <div id="assignmentList" class="assignment-list"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const assignmentList = document.getElementById('assignmentList');
+
+  const assignments = [
+    { scope: 'Project', name: 'Fiber Rollout – Zone A', engineer: 'Priya K.' },
+    { scope: 'Layer', name: 'Handholes', engineer: 'Jorge M.' },
+    { scope: 'Feature', name: 'Cabinet #C-11', engineer: 'Aanya S.' }
+  ];
+
+  function renderAssignments() {
+    assignmentList.innerHTML = '';
+    assignments.forEach(function (item) {
+      const row = document.createElement('div');
+      row.className = 'assignment-item';
+      row.innerHTML = ''
+        + '<div class="assignment-title">' + item.name + '</div>'
+        + '<div class="assignment-meta">'
+        + '<span class="badge">' + item.scope + '</span>'
+        + '<span>Engineer: ' + item.engineer + '</span>'
+        + '</div>';
+      assignmentList.appendChild(row);
+    });
+  }
+
+  function applyAssignment() {
+    const project = document.getElementById('projectSelect').value;
+    const layer = document.getElementById('layerSelect').value;
+    const feature = document.getElementById('featureSelect').value;
+    const engineer = document.getElementById('engineerSelect').value;
+
+    if (!project || !engineer) return;
+
+    let scope = 'Project';
+    let name = project;
+    if (layer) {
+      scope = 'Layer';
+      name = layer;
+    }
+    if (feature) {
+      scope = 'Feature';
+      name = feature;
+    }
+
+    assignments.unshift({ scope: scope, name: name, engineer: engineer });
+    renderAssignments();
+  }
+
+  renderAssignments();
+</script>
+
+</body>
+</html>
