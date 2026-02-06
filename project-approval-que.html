@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Approval Queue</title>
+
+  <style>
+    :root {
+      --tm-red:#E31837;
+      --dark:#0F172A;
+      --gray:#64748B;
+      --light:#F8FAFC;
+      --white:#FFFFFF;
+      --border:#E2E8F0;
+      --green:#059669;
+      --amber:#D97706;
+      --ink:#0B1020;
+      --accent:#0EA5E9;
+      --font-head:"Trebuchet MS", "Lucida Sans Unicode", sans-serif;
+      --font-body:"Verdana", "Geneva", sans-serif;
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      background:radial-gradient(1200px 600px at 20% -10%, #E0F2FE 0%, #F8FAFC 45%, #F1F5F9 100%);
+      color:var(--dark);
+      font-family:var(--font-body);
+    }
+
+    .container {
+      max-width:980px;
+      margin:0 auto;
+      padding:18px 14px 40px;
+    }
+
+    .hero {
+      background:linear-gradient(120deg, #0B1020 0%, #111827 55%, #0F172A 100%);
+      color:#E2E8F0;
+      padding:18px;
+      border-radius:14px;
+      margin-bottom:14px;
+      box-shadow:0 14px 30px rgba(2, 6, 23, 0.25);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero:after {
+      content:"";
+      position:absolute;
+      top:-40px;
+      right:-60px;
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(14,165,233,0.45), rgba(14,165,233,0));
+    }
+
+    .hero h1 {
+      font-family:var(--font-head);
+      font-size:20px;
+      margin:0 0 6px;
+      letter-spacing:0.4px;
+    }
+
+    .hero p {
+      margin:0;
+      color:#CBD5F5;
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .toolbar {
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .toolbar input, .toolbar select {
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      font-size:13px;
+      background:#fff;
+      font-family:var(--font-body);
+    }
+
+    .card {
+      background:var(--white);
+      border-radius:14px;
+      padding:16px;
+      margin-bottom:14px;
+      border:1px solid var(--border);
+      box-shadow:0 8px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .queue-header {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+
+    .queue-title {
+      font-family:var(--font-head);
+      font-size:16px;
+      margin:0;
+    }
+
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:700;
+      background:#F1F5F9;
+      color:#0F172A;
+      border:1px solid #E2E8F0;
+    }
+
+    .queue-item {
+      display:grid;
+      grid-template-columns:140px 1fr;
+      gap:14px;
+    }
+
+    .evidence {
+      width:100%;
+      height:100px;
+      border-radius:10px;
+      background:linear-gradient(135deg, #ECFEFF, #E0F2FE);
+      border:1px dashed #7DD3FC;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#0EA5E9;
+      font-size:12px;
+    }
+
+    .meta-row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      font-size:12px;
+      color:var(--gray);
+      margin-bottom:10px;
+    }
+
+    .status {
+      font-size:13px;
+      font-weight:700;
+      color:var(--amber);
+      margin-bottom:6px;
+    }
+
+    .actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .btn {
+      padding:10px 12px;
+      border:none;
+      border-radius:10px;
+      font-weight:700;
+      font-size:12px;
+      cursor:pointer;
+      font-family:var(--font-head);
+    }
+
+    .btn-primary { background:var(--tm-red); color:#fff; }
+    .btn-ghost { background:#F1F5F9; color:var(--dark); border:1px solid #E2E8F0; }
+    .btn-approve { background:var(--green); color:#fff; }
+    .btn-redo { background:#FDE68A; color:#92400E; border:1px solid #FCD34D; }
+
+    .note {
+      font-size:12px;
+      color:var(--gray);
+      margin-top:8px;
+    }
+
+    @media (max-width:720px) {
+      .queue-item { grid-template-columns:1fr; }
+      .meta-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>Project Approval Queue</h1>
+    <p>Review engineer submissions that require approval. Approve when compliant or request a redo with notes.</p>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" placeholder="Search by project, feature, engineer" />
+    <select>
+      <option>All statuses</option>
+      <option>Pending Review</option>
+      <option>Approved</option>
+      <option>Redo Requested</option>
+    </select>
+    <select>
+      <option>Sort by latest</option>
+      <option>Sort by oldest</option>
+      <option>Sort by project</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <div class="queue-header">
+      <div class="queue-title">Pole #A-19</div>
+      <span class="pill">Pending Review</span>
+    </div>
+    <div class="queue-item">
+      <div class="evidence">Evidence</div>
+      <div>
+        <div class="status" id="status-1">Status: Pending Review</div>
+        <div class="meta-row">
+          <div>Project: Fiber Rollout - Zone A</div>
+          <div>Engineer: Priya K.</div>
+          <div>Submitted: 2 hours ago</div>
+          <div>GPS: Read from image</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-approve" type="button" onclick="setStatus('status-1','Approved')">Approve</button>
+          <button class="btn btn-redo" type="button" onclick="setStatus('status-1','Redo Requested')">Request Redo</button>
+          <button class="btn btn-ghost" type="button">Open Details</button>
+        </div>
+        <div class="note">Note: Tag number visible. Clearance is close to limit.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="queue-header">
+      <div class="queue-title">Handhole #H-07</div>
+      <span class="pill">Pending Review</span>
+    </div>
+    <div class="queue-item">
+      <div class="evidence">Evidence</div>
+      <div>
+        <div class="status" id="status-2">Status: Pending Review</div>
+        <div class="meta-row">
+          <div>Project: Metro Expansion - Phase 2</div>
+          <div>Engineer: Jorge M.</div>
+          <div>Submitted: 1 day ago</div>
+          <div>GPS: Browser fallback</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-approve" type="button" onclick="setStatus('status-2','Approved')">Approve</button>
+          <button class="btn btn-redo" type="button" onclick="setStatus('status-2','Redo Requested')">Request Redo</button>
+          <button class="btn btn-ghost" type="button">Open Details</button>
+        </div>
+        <div class="note">Note: Depth reading missing in image.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="queue-header">
+      <div class="queue-title">Cabinet #C-11</div>
+      <span class="pill">Pending Review</span>
+    </div>
+    <div class="queue-item">
+      <div class="evidence">Evidence</div>
+      <div>
+        <div class="status" id="status-3">Status: Pending Review</div>
+        <div class="meta-row">
+          <div>Project: City Core Upgrade</div>
+          <div>Engineer: Aanya S.</div>
+          <div>Submitted: 3 hours ago</div>
+          <div>GPS: Read from image</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-approve" type="button" onclick="setStatus('status-3','Approved')">Approve</button>
+          <button class="btn btn-redo" type="button" onclick="setStatus('status-3','Redo Requested')">Request Redo</button>
+          <button class="btn btn-ghost" type="button">Open Details</button>
+        </div>
+        <div class="note">Note: Door label visible. Confirm clearance.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setStatus(id, status) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = 'Status: ' + status;
+  }
+</script>
+
+</body>
+</html>
