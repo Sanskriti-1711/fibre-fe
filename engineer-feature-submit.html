@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Engineer Feature Submit</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js" defer></script>
+
+  <style>
+    :root {
+      --tm-red:#E31837;
+      --dark:#0F172A;
+      --gray:#64748B;
+      --light:#F8FAFC;
+      --white:#FFFFFF;
+      --border:#E2E8F0;
+      --green:#059669;
+      --amber:#D97706;
+      --ink:#0B1020;
+      --accent:#0EA5E9;
+      --font-head:"Trebuchet MS", "Lucida Sans Unicode", sans-serif;
+      --font-body:"Verdana", "Geneva", sans-serif;
+    }
+
+    * { box-sizing:border-box; }
+
+    body {
+      margin:0;
+      background:radial-gradient(1200px 600px at 20% -10%, #E0F2FE 0%, #F8FAFC 45%, #F1F5F9 100%);
+      color:var(--dark);
+      font-family:var(--font-body);
+    }
+
+    .container {
+      max-width:560px;
+      margin:0 auto;
+      padding:18px 14px 40px;
+    }
+
+    .hero {
+      background:linear-gradient(120deg, #0B1020 0%, #111827 55%, #0F172A 100%);
+      color:#E2E8F0;
+      padding:18px;
+      border-radius:14px;
+      margin-bottom:14px;
+      box-shadow:0 14px 30px rgba(2, 6, 23, 0.25);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero:after {
+      content:"";
+      position:absolute;
+      top:-40px;
+      right:-60px;
+      width:220px;
+      height:220px;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(14,165,233,0.45), rgba(14,165,233,0));
+    }
+
+    .hero h1 {
+      font-family:var(--font-head);
+      font-size:20px;
+      margin:0 0 6px;
+      letter-spacing:0.4px;
+    }
+
+    .hero p {
+      margin:0;
+      color:#CBD5F5;
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:14px;
+    }
+
+    @media (min-width:980px) {
+      .container { max-width:980px; padding:20px 16px 48px; }
+      .grid { grid-template-columns:1.1fr 0.9fr; gap:16px; }
+      .hero h1 { font-size:22px; }
+      .hero p { font-size:13px; }
+    }
+
+    .card {
+      background:var(--white);
+      border-radius:14px;
+      padding:16px;
+      margin-bottom:14px;
+      border:1px solid var(--border);
+      box-shadow:0 8px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .section-title {
+      font-family:var(--font-head);
+      font-size:15px;
+      margin:0 0 10px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .step {
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:700;
+      color:#0B1020;
+      background:#E0F2FE;
+      border:1px solid #BAE6FD;
+    }
+
+    label {
+      font-size:12px;
+      display:block;
+      margin-bottom:6px;
+      color:var(--gray);
+    }
+
+    input, select, textarea {
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      font-size:14px;
+      margin-bottom:12px;
+      font-family:var(--font-body);
+      background:#fff;
+    }
+
+    textarea { min-height:90px; resize:vertical; }
+
+    .row {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    @media (max-width:520px) {
+      .row { grid-template-columns:1fr; }
+    }
+
+    .geo-actions {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .btn {
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      font-weight:700;
+      font-size:13px;
+      cursor:pointer;
+      font-family:var(--font-head);
+    }
+
+    .btn-primary { background:var(--tm-red); color:#fff; }
+    .btn-ghost { background:#F1F5F9; color:var(--dark); border:1px solid #E2E8F0; }
+
+    .geo-status {
+      font-size:12px;
+      color:var(--gray);
+      margin-top:-6px;
+      margin-bottom:10px;
+    }
+
+    .upload-preview {
+      border:1px dashed #CBD5F5;
+      border-radius:10px;
+      padding:10px;
+      background:#F8FAFC;
+      margin-bottom:12px;
+    }
+
+    .upload-preview img {
+      width:100%;
+      border-radius:8px;
+      display:block;
+      margin-bottom:8px;
+    }
+
+    .upload-meta {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      font-size:12px;
+      color:var(--gray);
+    }
+
+    .map-preview {
+      height:120px;
+      background:linear-gradient(135deg, #ECFEFF, #E0F2FE);
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#0EA5E9;
+      font-size:12px;
+      border:1px dashed #7DD3FC;
+      margin-bottom:12px;
+    }
+
+    .camera-preview {
+      background:#0B1020;
+      border-radius:10px;
+      padding:10px;
+      margin-bottom:12px;
+      border:1px solid #1F2937;
+    }
+
+    .camera-preview video,
+    .camera-preview canvas {
+      width:100%;
+      border-radius:6px;
+      background:#0B1020;
+      display:block;
+    }
+
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:700;
+      background:#F1F5F9;
+      color:#0F172A;
+      border:1px solid #E2E8F0;
+    }
+
+    .success { color:var(--green); font-weight:700; }
+    .review { color:var(--amber); font-weight:700; }
+
+    .storyline {
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin:8px 0 2px;
+    }
+
+    .storyline-item {
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+    }
+
+    .storyline-dot {
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#38BDF8;
+      margin-top:6px;
+    }
+
+    .result-card {
+      background:linear-gradient(135deg, #0B1020, #111827);
+      color:#E2E8F0;
+      border-radius:14px;
+      padding:16px;
+      border:1px solid #1F2937;
+    }
+
+    .result-card h3 {
+      font-family:var(--font-head);
+      margin:0 0 8px;
+      font-size:15px;
+    }
+
+    .result-status {
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .result-meta {
+      font-size:12px;
+      color:#94A3B8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="hero">
+    <h1>Capture In The Field</h1>
+    <p>Upload evidence, capture GPS, add measurements, and submit for compliance results.</p>
+    <div class="storyline">
+      <div class="storyline-item"><span class="storyline-dot"></span><span>Feature selected from Project Details</span></div>
+      <div class="storyline-item"><span class="storyline-dot"></span><span>Upload photo/video and read GPS from image</span></div>
+      <div class="storyline-item"><span class="storyline-dot"></span><span>Confirm measurements, submit, and wait for Pass or Review</span></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <div class="section-title"><span class="step">1</span>Feature Summary</div>
+        <label>Assigned Project</label>
+        <input id="projectName" type="text" placeholder="--" readonly />
+
+        <label>Selected Feature</label>
+        <input id="featureName" type="text" placeholder="--" readonly />
+
+        <div class="row">
+          <div>
+            <label>Feature Type</label>
+            <input id="featureTypeInput" type="text" placeholder="--" readonly />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span class="step">2</span>Upload Evidence + Geo Tags</div>
+        <div class="pill">We prioritize GPS from image metadata. Browser location is the fallback.</div>
+        <label>Upload Image</label>
+        <input id="fileUpload" type="file" accept="image/*" onchange="handleMediaUpload(event)" />
+        <div class="geo-status">Only images are accepted. Upload or capture in the field.</div>
+
+        <div class="geo-status">Live camera preview is available below for quick captures.</div>
+        <div class="camera-preview">
+          <video id="liveVideo" autoplay playsinline muted></video>
+          <canvas id="snapshotCanvas" style="display:none;"></canvas>
+        </div>
+        <div class="geo-actions">
+          <button class="btn btn-ghost" type="button" onclick="startLiveCamera()">Start Camera</button>
+          <button class="btn btn-ghost" type="button" onclick="stopLiveCamera()">Stop Camera</button>
+          <button class="btn btn-ghost" type="button" onclick="captureSnapshot()">Capture Frame</button>
+        </div>
+        <div id="cameraStatus" class="geo-status">Camera is idle.</div>
+        <div id="uploadPreview" class="upload-preview" style="display:none;">
+          <img id="uploadPreviewImg" alt="Uploaded preview" />
+          <div class="upload-meta">
+            <span id="uploadMetaText">No file selected.</span>
+            <button class="btn btn-ghost" type="button" onclick="clearUploadedImage()">Remove</button>
+          </div>
+        </div>
+
+        <div class="map-preview">Geo tag preview</div>
+
+        <div class="row">
+          <div>
+            <label>Latitude</label>
+            <input id="lat" type="text" placeholder="--" />
+          </div>
+          <div>
+            <label>Longitude</label>
+            <input id="lng" type="text" placeholder="--" />
+          </div>
+        </div>
+
+        <div class="geo-actions">
+          <button class="btn btn-ghost" type="button" onclick="getLocation()">Use Current Location</button>
+          <button class="btn btn-ghost" type="button" onclick="clearLocation()">Clear</button>
+        </div>
+        <div id="geoStatus" class="geo-status">Waiting for image GPS.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="section-title"><span class="step">4</span>Measurement</div>
+        <label>Measurement</label>
+        <!-- Manual measurements required until AI is available. -->
+        <div id="measurementModeRow" class="row" style="display:none;">
+          <div>
+            <label>Measurement Mode</label>
+            <select id="measurementMode" onchange="handleMeasurementModeChange()"></select>
+          </div>
+        </div>
+        <div id="engFields"></div>
+        <div class="geo-status">Enter measurements captured on site. Submit to send for review.</div>
+
+        <label>Notes</label>
+        <textarea placeholder="Add any observations or issues"></textarea>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><span class="step">5</span>Submit + Compliance Result</div>
+        <button class="btn btn-primary" type="button" onclick="submitFeature()">Submit Feature</button>
+        <div id="submitStatus" class="geo-status">Status will update after submission.</div>
+        <div class="geo-status"><span class="success">Tip:</span> Ensure the pole base and tag number are visible.</div>
+
+        <div class="result-card" style="margin-top:12px;">
+          <h3>Compliance Platform</h3>
+          <div id="complianceStatus" class="result-status">Awaiting submission.</div>
+          <div class="result-meta" id="complianceMeta">Upload evidence to receive Pass or Review.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setGeoStatus(message) {
+    document.getElementById('geoStatus').textContent = message;
+  }
+
+  var hasImageGps = false;
+  var fallbackLocation = null;
+  var currentUpload = null;
+
+  function handleMediaUpload(event, fileOverride) {
+    var file = fileOverride || (event && event.target && event.target.files ? event.target.files[0] : null);
+    if (!file) return;
+    currentUpload = file;
+    renderUploadPreview(file);
+    setGeoStatus('Reading GPS from image metadata...');
+    extractImageGps(file);
+  }
+
+  function extractImageGps(file) {
+    if (!window.EXIF) {
+      hasImageGps = false;
+      setGeoStatus('EXIF parser unavailable. Using browser location if available.');
+      if (fallbackLocation) setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        EXIF.getData(img, function () {
+          var lat = EXIF.getTag(this, 'GPSLatitude');
+          var latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+          var lng = EXIF.getTag(this, 'GPSLongitude');
+          var lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+          if (lat && lng && latRef && lngRef) {
+            var decLat = gpsToDecimal(lat, latRef);
+            var decLng = gpsToDecimal(lng, lngRef);
+            hasImageGps = true;
+            setLatLng(decLat, decLng, 'image');
+            return;
+          }
+
+          hasImageGps = false;
+          setGeoStatus('No GPS in image. Using browser location if available.');
+          if (fallbackLocation) {
+            setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+          }
+        });
+      };
+      img.onerror = function () {
+        hasImageGps = false;
+        setGeoStatus('Unable to read image metadata. Using browser location if available.');
+        if (fallbackLocation) setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function gpsToDecimal(gpsArray, ref) {
+    var d = gpsArray[0];
+    var m = gpsArray[1];
+    var s = gpsArray[2];
+    var dec = d + (m / 60) + (s / 3600);
+    if (ref === 'S' || ref === 'W') dec = -dec;
+    return dec;
+  }
+
+  function renderUploadPreview(file) {
+    var preview = document.getElementById('uploadPreview');
+    var img = document.getElementById('uploadPreviewImg');
+    var meta = document.getElementById('uploadMetaText');
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      img.src = e.target.result;
+      preview.style.display = 'block';
+      meta.textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearUploadedImage() {
+    currentUpload = null;
+    document.getElementById('fileUpload').value = '';
+    document.getElementById('uploadPreview').style.display = 'none';
+    document.getElementById('uploadPreviewImg').src = '';
+    document.getElementById('uploadMetaText').textContent = 'No file selected.';
+    setGeoStatus('Waiting for image GPS.');
+  }
+
+  function setLatLng(lat, lng, source) {
+    document.getElementById('lat').value = lat.toFixed(6);
+    document.getElementById('lng').value = lng.toFixed(6);
+    if (source === 'image') {
+      hasImageGps = true;
+      setGeoStatus('Geo tag read from image metadata.');
+    } else if (source === 'browser') {
+      if (!hasImageGps) {
+        setGeoStatus('Geo tag captured from browser location.');
+      }
+    }
+  }
+
+  function getLocation(quiet) {
+    if (!navigator.geolocation) {
+      setGeoStatus('Geolocation not supported on this device.');
+      return;
+    }
+
+    if (!quiet) {
+      setGeoStatus('Fetching location...');
+    }
+    navigator.geolocation.getCurrentPosition(function (position) {
+      fallbackLocation = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      if (!hasImageGps) {
+        setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+      }
+      if (!quiet) {
+        setGeoStatus('Geo tag captured just now.');
+      }
+    }, function () {
+      if (!quiet) {
+        setGeoStatus('Unable to fetch location. Please enter manually.');
+      }
+    }, { enableHighAccuracy:true, timeout:8000 });
+  }
+
+  function clearLocation() {
+    document.getElementById('lat').value = '';
+    document.getElementById('lng').value = '';
+    hasImageGps = false;
+    setGeoStatus('Geo tag cleared.');
+  }
+
+  var measurementConfigs = {
+    Pole: {
+      fields: [
+        { key: 'height', label: 'Height (m)' },
+        { key: 'offset', label: 'Offset (m)' },
+        { key: 'span', label: 'Span (m)' },
+        { key: 'clearance', label: 'Clearance (m)' }
+      ]
+    },
+    Manhole: {
+      modes: {
+        rect: { label: 'Length + Width + Depth' },
+        circ: { label: 'Circumference + Depth' }
+      },
+      fieldsByMode: {
+        rect: [
+          { key: 'length', label: 'Length (m)' },
+          { key: 'width', label: 'Width (m)' },
+          { key: 'depth', label: 'Depth (m)' }
+        ],
+        circ: [
+          { key: 'circumference', label: 'Circumference (m)' },
+          { key: 'depth', label: 'Depth (m)' }
+        ]
+      }
+    },
+    Cabinet: {
+      fields: [
+        { key: 'height', label: 'Height (m)' },
+        { key: 'width', label: 'Width (m)' },
+        { key: 'depth', label: 'Depth (m)' }
+      ]
+    },
+    Trench: {
+      fields: [
+        { key: 'depth', label: 'Depth (m)' },
+        { key: 'width', label: 'Width (m)' }
+      ]
+    },
+    Duct: {
+      fields: [
+        { key: 'circumference', label: 'Circumference (m)' }
+      ]
+    },
+    Handhole: {
+      modes: {
+        rect: { label: 'Length + Width + Depth' },
+        circ: { label: 'Circumference + Depth' }
+      },
+      fieldsByMode: {
+        rect: [
+          { key: 'length', label: 'Length (m)' },
+          { key: 'width', label: 'Width (m)' },
+          { key: 'depth', label: 'Depth (m)' }
+        ],
+        circ: [
+          { key: 'circumference', label: 'Circumference (m)' },
+          { key: 'depth', label: 'Depth (m)' }
+        ]
+      }
+    }
+  };
+
+  var currentMeasurementFields = [];
+
+  var selectedFeatureType = 'Pole';
+  var selectedFeatureName = '';
+  var selectedProjectName = '';
+
+  function inferTypeFromFeatureName(name) {
+    if (!name) return 'Pole';
+    var keys = Object.keys(measurementConfigs);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      if (name.toLowerCase().indexOf(key.toLowerCase()) > -1) {
+        return key;
+      }
+    }
+    return 'Pole';
+  }
+
+  function getCurrentFeatureType() {
+    return selectedFeatureType || 'Pole';
+  }
+
+  function applyFeatureContext() {
+    var projectInput = document.getElementById('projectName');
+    var featureInput = document.getElementById('featureName');
+    var typeInput = document.getElementById('featureTypeInput');
+
+    if (projectInput) projectInput.value = selectedProjectName || '';
+    if (featureInput) featureInput.value = selectedFeatureName || '';
+    if (typeInput) typeInput.value = selectedFeatureType || '';
+
+    renderMeasurementFields();
+  }
+
+  function handleMeasurementModeChange() {
+    renderMeasurementFields();
+  }
+
+  function buildRows(fields, prefix, readOnly) {
+    var html = '';
+    for (var i = 0; i < fields.length; i += 2) {
+      html += '<div class="row">';
+      for (var j = i; j < i + 2 && j < fields.length; j++) {
+        var field = fields[j];
+        var id = prefix + '_' + field.key;
+        html += '<div>';
+        html += '<label>' + field.label + '</label>';
+        html += '<input id="' + id + '" type="' + (readOnly ? 'text' : 'number') + '" step="0.01" placeholder="--"' + (readOnly ? ' readonly' : '') + ' />';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    return html;
+  }
+
+  function getFieldsForType(type) {
+    var config = measurementConfigs[type] || measurementConfigs.Pole;
+    if (!config.modes) {
+      return config.fields;
+    }
+
+    var modeSelect = document.getElementById('measurementMode');
+    var currentMode = modeSelect && modeSelect.value ? modeSelect.value : 'rect';
+    return config.fieldsByMode[currentMode] || config.fieldsByMode.rect;
+  }
+
+  function renderMeasurementMode(type) {
+    var config = measurementConfigs[type] || measurementConfigs.Pole;
+    var row = document.getElementById('measurementModeRow');
+    var select = document.getElementById('measurementMode');
+    if (!config.modes) {
+      row.style.display = 'none';
+      select.innerHTML = '';
+      return;
+    }
+
+    row.style.display = 'block';
+    var options = '';
+    for (var key in config.modes) {
+      if (Object.prototype.hasOwnProperty.call(config.modes, key)) {
+        options += '<option value="' + key + '">' + config.modes[key].label + '</option>';
+      }
+    }
+    select.innerHTML = options;
+  }
+
+  function renderMeasurementFields() {
+    var type = getCurrentFeatureType();
+    renderMeasurementMode(type);
+    var fields = getFieldsForType(type);
+    currentMeasurementFields = fields.map(function (field) { return field.key; });
+
+    document.getElementById('engFields').innerHTML = buildRows(fields, 'eng', false);
+  }
+
+  function submitFeature() {
+    var submitStatus = document.getElementById('submitStatus');
+    submitStatus.textContent = 'Status: Submitted for review.';
+    submitStatus.classList.remove('success');
+    setComplianceStatus('Submitted. Awaiting compliance response.', 'Expected result: Pass or Review.', 'review');
+  }
+
+  var liveStream = null;
+
+  function setCameraStatus(message) {
+    document.getElementById('cameraStatus').textContent = message;
+  }
+
+  function startLiveCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setCameraStatus('Live camera not supported on this device.');
+      return;
+    }
+
+    setCameraStatus('Starting camera...');
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+      .then(function (stream) {
+        liveStream = stream;
+        var video = document.getElementById('liveVideo');
+        video.srcObject = stream;
+        setCameraStatus('Camera is live.');
+      })
+      .catch(function () {
+        setCameraStatus('Unable to access camera. Check permissions.');
+      });
+  }
+
+  function stopLiveCamera() {
+    if (liveStream) {
+      liveStream.getTracks().forEach(function (track) { track.stop(); });
+      liveStream = null;
+      document.getElementById('liveVideo').srcObject = null;
+      setCameraStatus('Camera stopped.');
+    } else {
+      setCameraStatus('Camera is not running.');
+    }
+  }
+
+  function captureSnapshot() {
+    var video = document.getElementById('liveVideo');
+    if (!video.srcObject) {
+      setCameraStatus('Start the camera before capturing.');
+      return;
+    }
+
+    var canvas = document.getElementById('snapshotCanvas');
+    canvas.style.display = 'block';
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(function (blob) {
+      if (!blob) {
+        setCameraStatus('Snapshot failed. Try again.');
+        return;
+      }
+      var file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+      handleMediaUpload(null, file);
+      setCameraStatus('Snapshot captured and attached.');
+    }, 'image/jpeg', 0.92);
+  }
+
+  (function setFeatureFromQuery() {
+    var params = new URLSearchParams(window.location.search);
+    selectedProjectName = params.get('project') || '';
+    selectedFeatureName = params.get('feature') || '';
+    selectedFeatureType = params.get('type') || inferTypeFromFeatureName(selectedFeatureName);
+    applyFeatureContext();
+  })();
+
+  (function requestLocationOnLoad() {
+    getLocation(true);
+  })();
+
+</script>
+
+</body>
+</html>
