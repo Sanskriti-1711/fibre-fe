@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Login | Tech Mahindra</title>
+  <title>Engineer Login | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -142,23 +142,19 @@
 
   <div class="top-bar">
     <h2>Tech Mahindra</h2>
-    <div class="top-links">
-      <a href="index.html">Admin Login</a>
-      <a href="admin-dashboard.html">Back to Dashboard</a>
-    </div>
   </div>
 
   <div class="login-wrapper">
   <div class="login-card">
     <div class="logo">
       <h1>Tech Mahindra</h1>
-      <p>Admin Portal</p>
+      <p>Engineer Portal</p>
     </div>
 
     <form onsubmit="handleLogin(event)">
       <div class="form-group">
         <label>Email</label>
-        <input id="loginEmail" type="email" placeholder="admin@company.com" required />
+        <input id="loginEmail" type="email" placeholder="engineer@company.com" required />
       </div>
 
       <div class="form-group">
@@ -176,7 +172,8 @@
     </div>
   </div>
   </div>
-<script src="fiber-api.js"></script>
+
+<script src="../fiber-api.js"></script>
 <script>
   async function handleLogin(event) {
     event.preventDefault(); // stop form reload
@@ -191,13 +188,13 @@
     try {
       const response = await window.FiberApi.login(email, password);
       const role = response && response.user && response.user.role ? response.user.role : null;
-      if (role === "ENGINEER") {
+      if (role !== "ENGINEER") {
         if (window.FiberAuth && typeof window.FiberAuth.clear === "function") {
           window.FiberAuth.clear();
         }
-        throw new Error("Engineer accounts must login from Engineer Login page");
+        throw new Error("Not an engineer account");
       }
-      window.location.href = "admin-dashboard.html";
+      window.location.href = "engineer-dashboard.html";
     } catch (e) {
       errorEl.textContent = e && e.message ? e.message : "Login failed";
       errorEl.style.display = "block";
