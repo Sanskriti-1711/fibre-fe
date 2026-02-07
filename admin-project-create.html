@@ -196,20 +196,25 @@
         <h1>Create New Project</h1>
         <p>Define project details and link to QField Cloud</p>
 
-        <form>
+        <form onsubmit="handleCreateProject(event)">
           <div class="form-group">
             <label>Project Name</label>
-            <input type="text" placeholder="Fiber Rollout – Zone A" />
+            <input id="projectName" type="text" placeholder="Fiber Rollout – Zone A" />
           </div>
 
           <div class="form-group">
             <label>Description</label>
-            <textarea placeholder="Brief description of scope, region, and objectives"></textarea>
+            <textarea id="projectDescription" placeholder="Brief description of scope, region, and objectives"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Region</label>
+            <input id="projectRegion" type="text" placeholder="London" />
           </div>
 
           <div class="form-group">
             <label>QField Cloud Project</label>
-            <select>
+            <select id="qfieldProject">
               <option>Select QField project</option>
               <option>TM-Fiber-London-North</option>
               <option>TM-Metro-Expansion-Phase2</option>
@@ -228,10 +233,72 @@
           </div>
 
           <button class="submit-btn">Create Project</button>
+          <div id="createProjectMsg" style="display:none;margin-top:12px;font-size:13px;"></div>
         </form>
       </div>
     </main>
   </div>
 
 </body>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  function setCreateProjectMsg(text, isError) {
+    const el = document.getElementById('createProjectMsg');
+    if (!el) return;
+    if (!text) {
+      el.style.display = 'none';
+      el.textContent = '';
+      return;
+    }
+    el.style.display = 'block';
+    el.style.color = isError ? '#B91C1C' : '#059669';
+    el.textContent = text;
+  }
+
+  async function handleCreateProject(event) {
+    event.preventDefault();
+    setCreateProjectMsg('', false);
+
+    const name = document.getElementById('projectName').value.trim();
+    const description = document.getElementById('projectDescription').value.trim();
+    const region = document.getElementById('projectRegion').value.trim();
+    const qfield = document.getElementById('qfieldProject').value;
+
+    if (!name) {
+      setCreateProjectMsg('Project name is required.', true);
+      return;
+    }
+    if (!region) {
+      setCreateProjectMsg('Region is required.', true);
+      return;
+    }
+
+    const payload = {
+      name: name,
+      description: description || '',
+      region: region
+    };
+    if (qfield && qfield !== 'Select QField project') {
+      payload.qfield_project = qfield;
+    }
+
+    try {
+      const created = await window.FiberApi.createProject(payload);
+      setCreateProjectMsg('Project created successfully.', false);
+      document.getElementById('projectName').value = '';
+      document.getElementById('projectDescription').value = '';
+      document.getElementById('projectRegion').value = '';
+      document.getElementById('qfieldProject').selectedIndex = 0;
+
+      const newId = created && (created.uuid || created.id || created.project_uuid || created.pk);
+      if (newId) {
+        window.location.href = 'admin-project-overview.html?id=' + encodeURIComponent(newId);
+      }
+    } catch (e) {
+      setCreateProjectMsg(e && e.message ? e.message : 'Failed to create project.', true);
+    }
+  }
+</script>
 </html>

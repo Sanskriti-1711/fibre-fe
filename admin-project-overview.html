@@ -228,30 +228,30 @@
 
       <!-- Header -->
       <div class="header">
-        <h1>Fiber Rollout – Zone A</h1>
-        <p>Project overview powered by PostGIS</p>
+        <h1 id="projectTitle">Fiber Rollout – Zone A</h1>
+        <p id="projectSubtitle">Project overview powered by PostGIS</p>
       </div>
 
       <!-- KPI Cards -->
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-title">Completion</div>
-          <div class="kpi-value">78%</div>
+          <div id="kpiCompletion" class="kpi-value">78%</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-title">Total Features</div>
-          <div class="kpi-value">1,240</div>
+          <div id="kpiTotal" class="kpi-value">1,240</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-title">Completed</div>
-          <div class="kpi-value">968</div>
+          <div id="kpiCompleted" class="kpi-value">968</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-title">Pending / Failed</div>
-          <div class="kpi-value">272</div>
+          <div id="kpiPending" class="kpi-value">272</div>
         </div>
       </div>
 
@@ -265,22 +265,22 @@
           <div class="status-list">
             <div class="status-item">
               <span>Total Features</span>
-              <span>1,240</span>
+              <span id="statusTotal">1,240</span>
             </div>
 
             <div class="status-item">
               <span>Completed</span>
-              <span class="completed">968</span>
+              <span id="statusCompleted" class="completed">968</span>
             </div>
 
             <div class="status-item">
               <span>Pending</span>
-              <span class="pending">214</span>
+              <span id="statusPending" class="pending">214</span>
             </div>
 
             <div class="status-item">
               <span>Failed</span>
-              <span class="failed">58</span>
+              <span id="statusFailed" class="failed">58</span>
             </div>
           </div>
         </div>
@@ -293,4 +293,91 @@
 </div>
 
 </body>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = value;
+  }
+
+  function pickProjectId(p) {
+    return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
+  }
+
+  function pickProjectName(p) {
+    return (p && (p.name || p.title || p.project_name)) || 'Project Overview';
+  }
+
+  function pickProjectSubtitle(p) {
+    const region = (p && (p.region || p.location || p.area)) || '';
+    const desc = (p && (p.description || p.summary)) || '';
+    if (desc && region) return desc + ' · ' + region;
+    return desc || region || 'Project overview powered by PostGIS';
+  }
+
+  function pickNumber(p, keys) {
+    for (var i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (p && p[key] !== undefined && p[key] !== null && p[key] !== '') {
+        return p[key];
+      }
+    }
+    return null;
+  }
+
+  function formatNumber(v) {
+    const num = Number(v);
+    if (!isNaN(num)) return num.toLocaleString();
+    return String(v);
+  }
+
+  function formatPercent(v) {
+    const num = Number(v);
+    if (!isNaN(num)) return Math.round(num) + '%';
+    return String(v);
+  }
+
+  async function loadProjectOverview() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) return;
+
+    try {
+      const project = await window.FiberApi.getProject(id);
+      const name = pickProjectName(project);
+      const subtitle = pickProjectSubtitle(project);
+
+      setText('projectTitle', name);
+      setText('projectSubtitle', subtitle);
+
+      const total = pickNumber(project, ['total_features', 'feature_total', 'total']);
+      const completed = pickNumber(project, ['completed_features', 'completed', 'done']);
+      const pending = pickNumber(project, ['pending_features', 'pending']);
+      const failed = pickNumber(project, ['failed_features', 'failed']);
+      const completion = pickNumber(project, ['completion', 'completion_percent', 'progress', 'progress_percent']);
+
+      if (completion !== null) setText('kpiCompletion', formatPercent(completion));
+      if (total !== null) {
+        setText('kpiTotal', formatNumber(total));
+        setText('statusTotal', formatNumber(total));
+      }
+      if (completed !== null) {
+        setText('kpiCompleted', formatNumber(completed));
+        setText('statusCompleted', formatNumber(completed));
+      }
+      if (pending !== null) {
+        setText('kpiPending', formatNumber(pending));
+        setText('statusPending', formatNumber(pending));
+      }
+      if (failed !== null) {
+        setText('statusFailed', formatNumber(failed));
+      }
+    } catch (_) {}
+  }
+
+  loadProjectOverview();
+</script>
 </html>
