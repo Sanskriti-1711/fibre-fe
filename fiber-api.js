@@ -181,6 +181,46 @@
     return apiFetch("/api/users/engineers/", { method: "GET" });
   }
 
+  async function listProjects() {
+    return apiFetch("/api/projects/", { method: "GET" });
+  }
+
+  async function listProjectLatest(params) {
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/projects/latest/?${query}` : "/api/projects/latest/";
+    return apiFetch(path, { method: "GET" });
+  }
+
+  async function listProjectsFiltered(params) {
+    if (!params || typeof params !== "object") {
+      return listProjects();
+    }
+    const query = Object.keys(params)
+      .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+      .join("&");
+    const path = query ? `/api/projects/?${query}` : "/api/projects/";
+    return apiFetch(path, { method: "GET" });
+  }
+
+  async function getProject(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/`, { method: "GET" });
+  }
+
+  async function createProject(payload) {
+    return apiFetch("/api/projects/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
   async function createEngineer(email, password, role) {
     return apiFetch("/api/users/", {
       method: "POST",
@@ -214,6 +254,11 @@
     login,
     refreshAccessToken,
     listEngineers,
+    listProjects,
+    listProjectLatest,
+    listProjectsFiltered,
+    getProject,
+    createProject,
     createEngineer,
     deleteEngineer,
     apiFetch,

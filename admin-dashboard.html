@@ -375,22 +375,22 @@
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-title">Total Projects</div>
-        <div class="kpi-value">48</div>
+        <div id="kpiTotalProjects" class="kpi-value">48</div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-title">Overall Completion</div>
-        <div class="kpi-value">82%</div>
+        <div id="kpiOverallCompletion" class="kpi-value">82%</div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-title">Pending / Failed Audits</div>
-        <div class="kpi-value">6</div>
+        <div id="kpiPendingFailed" class="kpi-value">6</div>
       </div>
 
       <div class="kpi-card">
         <div class="kpi-title">Engineers Active Today</div>
-        <div class="kpi-value">19</div>
+        <div id="kpiEngineersActive" class="kpi-value">19</div>
       </div>
     </div>
 
@@ -406,7 +406,7 @@
             <th>Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="latestUploadsBody">
           <tr>
             <td>Fiber Rollout – Zone A</td>
             <td>FE1023</td>
@@ -542,5 +542,123 @@
       }
     });
   })();
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = value;
+  }
+
+  function pickProjectName(p) {
+    return (p && (p.name || p.title || p.project_name)) || "-";
+  }
+
+  function pickCompletion(p) {
+    const v = (p && (p.completion || p.completion_percent || p.progress || p.progress_percent)) || null;
+    if (v === null || v === undefined || v === "") return null;
+    const num = Number(v);
+    if (!isNaN(num)) return num;
+    return null;
+  }
+
+  function formatPercent(v) {
+    const num = Number(v);
+    if (!isNaN(num)) return Math.round(num) + "%";
+    return String(v);
+  }
+
+  function formatDate(value) {
+    if (!value) return "-";
+    try {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) return d.toLocaleString();
+    } catch (_) {}
+    return String(value);
+  }
+
+  function statusClass(status) {
+    const s = String(status || "").toLowerCase();
+    if (s.includes("fail")) return "failed";
+    if (s.includes("complete") || s.includes("pass")) return "completed";
+    return "pending";
+  }
+
+  function normalizeLatest(item) {
+    if (!item || typeof item !== "object") return null;
+    return {
+      project: item.project_name || item.project || item.name || item.title,
+      uploader: item.uploaded_by || item.uploader || item.engineer || item.user || item.user_id,
+      date: item.date || item.created_at || item.updated_at || item.timestamp,
+      status: item.status || item.audit_status || item.result || "Pending"
+    };
+  }
+
+  async function loadDashboardData() {
+    try {
+      const projectsData = await window.FiberApi.listProjects();
+      const projects = Array.isArray(projectsData)
+        ? projectsData
+        : (projectsData && Array.isArray(projectsData.results) ? projectsData.results : []);
+
+      if (projects.length) {
+        setText("kpiTotalProjects", projects.length.toString());
+
+        const completionValues = projects
+          .map(pickCompletion)
+          .filter((v) => typeof v === "number");
+        if (completionValues.length) {
+          const avg = completionValues.reduce((a, b) => a + b, 0) / completionValues.length;
+          setText("kpiOverallCompletion", formatPercent(avg));
+        }
+      }
+    } catch (_) {}
+
+    try {
+      const latestData = await window.FiberApi.listProjectLatest();
+      const latestList = Array.isArray(latestData)
+        ? latestData
+        : (latestData && Array.isArray(latestData.results) ? latestData.results : []);
+
+      if (!latestList.length) return;
+
+      let pendingFailedCount = 0;
+      const tbody = document.getElementById("latestUploadsBody");
+      if (tbody) tbody.innerHTML = "";
+
+      latestList.slice(0, 8).forEach(function (item) {
+        const row = normalizeLatest(item);
+        if (!row) return;
+        const status = row.status || "Pending";
+        const statusLower = String(status).toLowerCase();
+        if (statusLower.includes("pending") || statusLower.includes("fail")) {
+          pendingFailedCount += 1;
+        }
+
+        if (!tbody) return;
+        const tr = document.createElement("tr");
+        tr.innerHTML = ""
+          + "<td>" + escapeHtml(row.project || "-") + "</td>"
+          + "<td>" + escapeHtml(row.uploader || "-") + "</td>"
+          + "<td>" + escapeHtml(formatDate(row.date)) + "</td>"
+          + "<td class=\"status " + statusClass(status) + "\">" + escapeHtml(status) + "</td>";
+        tbody.appendChild(tr);
+      });
+
+      if (pendingFailedCount) {
+        setText("kpiPendingFailed", pendingFailedCount.toString());
+      }
+    } catch (_) {}
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  loadDashboardData();
 </script>
 </html>

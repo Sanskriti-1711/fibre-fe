@@ -233,6 +233,27 @@
       <a class="create-btn" href="admin-project-create.html">Create Project</a>
     </div>
 
+    <div class="table-card" style="margin-bottom:16px;">
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+        <div style="min-width:200px;">
+          <label for="filterStatus" style="font-size:12px;font-weight:600;color:#6B7280;display:block;margin-bottom:6px;">Status</label>
+          <select id="filterStatus" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);">
+            <option value="">All</option>
+            <option value="draft">Draft</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+        <div style="min-width:220px;">
+          <label for="filterRegion" style="font-size:12px;font-weight:600;color:#6B7280;display:block;margin-bottom:6px;">Region</label>
+          <input id="filterRegion" type="text" placeholder="London" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);" />
+        </div>
+        <button id="applyFilters" class="create-btn" type="button">Apply Filters</button>
+        <button id="clearFilters" class="create-btn" type="button" style="background:#374151;">Clear</button>
+      </div>
+    </div>
+
     <div class="table-card">
       <table>
         <thead>
@@ -245,7 +266,7 @@
             <th></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="projectsTbody">
           <tr>
             <td>Fiber Rollout – Zone A</td>
             <td>London North</td>
@@ -280,4 +301,150 @@
 </div>
 
 </body>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  function setProjectsError(message) {
+    let el = document.getElementById('projectsError');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'projectsError';
+      el.style.cssText = 'display:none;margin:0 0 14px;color:#B91C1C;font-size:13px;';
+      const header = document.querySelector('.header');
+      if (header && header.parentNode) header.parentNode.insertBefore(el, header.nextSibling);
+    }
+
+    if (!message) {
+      el.style.display = 'none';
+      el.textContent = '';
+      return;
+    }
+    el.textContent = message;
+    el.style.display = 'block';
+  }
+
+  function pickProjectId(p) {
+    return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
+  }
+
+  function pickProjectName(p) {
+    return (p && (p.name || p.title || p.project_name)) || '-';
+  }
+
+  function pickProjectRegion(p) {
+    return (p && (p.region || p.location || p.area)) || '-';
+  }
+
+  function pickProjectStatus(p) {
+    const v = (p && (p.status || p.state)) || '';
+    if (!v) return 'In Progress';
+    return String(v).replace(/_/g, ' ').replace(/\b\w/g, function (m) { return m.toUpperCase(); });
+  }
+
+  function pickProjectCompletion(p) {
+    const v = (p && (p.completion || p.completion_percent || p.progress || p.progress_percent)) || null;
+    if (v === null || v === undefined || v === '') return '-';
+    const num = Number(v);
+    if (!isNaN(num)) return Math.round(num) + '%';
+    return String(v);
+  }
+
+  function pickProjectLastActivity(p) {
+    const v = (p && (p.last_activity || p.lastActivity || p.updated_at || p.updatedAt)) || null;
+    if (!v) return '-';
+    try {
+      const d = new Date(v);
+      if (!isNaN(d.getTime())) return d.toLocaleString();
+    } catch (_) {}
+    return String(v);
+  }
+
+  function statusClass(status) {
+    const s = String(status || '').toLowerCase();
+    if (s.includes('complete')) return 'completed';
+    if (s.includes('archive')) return 'archived';
+    return 'in-progress';
+  }
+
+  async function loadProjects(params) {
+    setProjectsError('');
+    const tbody = document.getElementById('projectsTbody');
+    if (!tbody) return;
+
+    try {
+      const data = params
+        ? await window.FiberApi.listProjectsFiltered(params)
+        : await window.FiberApi.listProjects();
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
+
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:#6B7280;">No projects found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      list.forEach(function (p) {
+        const id = pickProjectId(p);
+        const name = pickProjectName(p);
+        const region = pickProjectRegion(p);
+        const status = pickProjectStatus(p);
+        const completion = pickProjectCompletion(p);
+        const lastActivity = pickProjectLastActivity(p);
+        const link = id ? ('admin-project-overview.html?id=' + encodeURIComponent(id)) : 'admin-project-overview.html';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = ''
+          + '<td>' + escapeHtml(name) + '</td>'
+          + '<td>' + escapeHtml(region) + '</td>'
+          + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
+          + '<td>' + escapeHtml(completion) + '</td>'
+          + '<td>' + escapeHtml(lastActivity) + '</td>'
+          + '<td><a class="action-link" href="' + link + '">View</a></td>';
+        tbody.appendChild(tr);
+      });
+    } catch (e) {
+      setProjectsError(e && e.message ? e.message : 'Failed to load projects');
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function getFilterParams() {
+    const status = document.getElementById('filterStatus');
+    const region = document.getElementById('filterRegion');
+    return {
+      status: status ? status.value : '',
+      region: region ? region.value.trim() : ''
+    };
+  }
+
+  const applyBtn = document.getElementById('applyFilters');
+  const clearBtn = document.getElementById('clearFilters');
+
+  if (applyBtn) {
+    applyBtn.addEventListener('click', function () {
+      loadProjects(getFilterParams());
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () {
+      const status = document.getElementById('filterStatus');
+      const region = document.getElementById('filterRegion');
+      if (status) status.value = '';
+      if (region) region.value = '';
+      loadProjects();
+    });
+  }
+
+  loadProjects();
+</script>
 </html>

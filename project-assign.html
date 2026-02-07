@@ -304,6 +304,8 @@
             </select>
           </div>
 
+          <div id="assignStatus" class="hint" style="margin-top:6px;"></div>
+
           <button class="btn" type="button" onclick="applyAssignment()">Apply Assignment</button>
         </div>
 
@@ -316,8 +318,12 @@
   </main>
 </div>
 
+<script src="fiber-api.js"></script>
 <script>
+  window.FiberAuth.requireLogin();
+
   const assignmentList = document.getElementById('assignmentList');
+  const assignStatus = document.getElementById('assignStatus');
 
   const assignments = [
     { scope: 'Project', name: 'Fiber Rollout – Zone A', engineer: 'Priya K.' },
@@ -340,16 +346,117 @@
     });
   }
 
+  function setAssignStatus(message, isError) {
+    if (!assignStatus) return;
+    if (!message) {
+      assignStatus.textContent = '';
+      assignStatus.style.color = '';
+      return;
+    }
+    assignStatus.textContent = message;
+    assignStatus.style.color = isError ? '#B91C1C' : '#6B7280';
+  }
+
+  function pickId(u) {
+    return (u && (u.uuid || u.id || u.user_uuid || u.pk)) || null;
+  }
+
+  function pickName(u) {
+    const first = (u && (u.first_name || u.firstName)) || '';
+    const last = (u && (u.last_name || u.lastName)) || '';
+    const full = (first + ' ' + last).trim();
+    return full || (u && (u.name || u.username)) || '';
+  }
+
+  function pickEmail(u) {
+    return (u && u.email) || '';
+  }
+
+  function pickProjectId(p) {
+    return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
+  }
+
+  function pickProjectName(p) {
+    return (p && (p.name || p.title || p.project_name)) || '';
+  }
+
+  async function loadEngineersForAssign() {
+    const select = document.getElementById('engineerSelect');
+    if (!select) return;
+
+    const data = await window.FiberApi.listEngineers();
+    const list = Array.isArray(data)
+      ? data
+      : (data && Array.isArray(data.results) ? data.results : []);
+
+    if (!list.length) return;
+
+    const current = select.value;
+    select.innerHTML = '<option value="">Select Engineer</option>';
+
+    list.forEach(function (u) {
+      const id = pickId(u);
+      const name = pickName(u);
+      const email = pickEmail(u);
+      const label = name || email || 'Engineer';
+      const value = id || email || label;
+
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = email && label !== email ? (label + ' (' + email + ')') : label;
+      select.appendChild(opt);
+    });
+
+    if (current) select.value = current;
+  }
+
+  async function loadProjectsForAssign() {
+    const select = document.getElementById('projectSelect');
+    if (!select) return;
+
+    const data = await window.FiberApi.listProjects();
+    const list = Array.isArray(data)
+      ? data
+      : (data && Array.isArray(data.results) ? data.results : []);
+
+    if (!list.length) return;
+
+    const current = select.value;
+    select.innerHTML = '<option value="">Select Project</option>';
+
+    list.forEach(function (p) {
+      const id = pickProjectId(p);
+      const name = pickProjectName(p);
+      const label = name || (id ? ('Project ' + id) : 'Project');
+      const value = id || label;
+
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = label;
+      select.appendChild(opt);
+    });
+
+    if (current) select.value = current;
+  }
+
   function applyAssignment() {
-    const project = document.getElementById('projectSelect').value;
+    const projectSelect = document.getElementById('projectSelect');
+    const project = projectSelect.value;
+    const projectLabel = projectSelect.selectedIndex >= 0
+      ? projectSelect.options[projectSelect.selectedIndex].textContent
+      : project;
     const layer = document.getElementById('layerSelect').value;
     const feature = document.getElementById('featureSelect').value;
-    const engineer = document.getElementById('engineerSelect').value;
+    const engineerSelect = document.getElementById('engineerSelect');
+    const engineer = engineerSelect.value;
+    const engineerLabel = engineerSelect.selectedIndex >= 0
+      ? engineerSelect.options[engineerSelect.selectedIndex].textContent
+      : engineer;
 
     if (!project || !engineer) return;
 
     let scope = 'Project';
-    let name = project;
+    let name = projectLabel || project;
     if (layer) {
       scope = 'Layer';
       name = layer;
@@ -359,11 +466,19 @@
       name = feature;
     }
 
-    assignments.unshift({ scope: scope, name: name, engineer: engineer });
+    assignments.unshift({ scope: scope, name: name, engineer: engineerLabel || engineer });
     renderAssignments();
   }
 
   renderAssignments();
+  (function bootstrapAssign() {
+    setAssignStatus('Loading engineers and projects...');
+    Promise.all([loadEngineersForAssign(), loadProjectsForAssign()])
+      .then(function () { setAssignStatus(''); })
+      .catch(function (e) {
+        setAssignStatus(e && e.message ? e.message : 'Failed to load assignments data.', true);
+      });
+  })();
 </script>
 
 </body>

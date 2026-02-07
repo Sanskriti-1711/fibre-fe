@@ -363,7 +363,10 @@
 
 </div>
 
+<script src="fiber-api.js"></script>
 <script>
+  window.FiberAuth.requireLogin();
+
   const map = L.map('map').setView([51.5074, -0.1278], 12);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -441,6 +444,41 @@
       }
     ]
   };
+
+  function pickProjectId(p) {
+    return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
+  }
+
+  function pickProjectName(p) {
+    return (p && (p.name || p.title || p.project_name)) || '';
+  }
+
+  async function loadProjectsForFeatures() {
+    if (!projectSelect || !window.FiberApi || !window.FiberApi.listProjects) return;
+
+    try {
+      const data = await window.FiberApi.listProjects();
+      const list = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
+      if (!list.length) return;
+
+      const current = projectSelect.value;
+      projectSelect.innerHTML = '<option value="">Choose a project</option>';
+
+      list.forEach(function (p) {
+        const id = pickProjectId(p);
+        const name = pickProjectName(p);
+        const label = name || (id ? ('Project ' + id) : 'Project');
+        const value = name || id || label;
+
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = label;
+        projectSelect.appendChild(opt);
+      });
+
+      if (current) projectSelect.value = current;
+    } catch (_) {}
+  }
 
   function highlightFeature(layer, baseColor) {
     if (!layer || !layer.setStyle) return;
@@ -562,6 +600,8 @@
   projectSelect.addEventListener('change', function (event) {
     renderProject(event.target.value);
   });
+
+  loadProjectsForFeatures();
 </script>
 
 </body>
