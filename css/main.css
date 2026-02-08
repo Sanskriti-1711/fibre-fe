@@ -5,6 +5,8 @@
   --tm-light: #F9FAFB;
   --tm-white: #FFFFFF;
   --border: #E5E7EB;
+  --green: #059669;
+  --amber: #D97706;
 }
 
 * {
@@ -80,7 +82,10 @@ body {
 /* ===== Header ===== */
 
 .header {
-  margin-bottom: 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
 
 .header h1 {
@@ -91,8 +96,19 @@ body {
 
 .header p {
   margin-top: 6px;
-  color: var(--tm-gray);
   font-size: 14px;
+  color: var(--tm-gray);
+}
+
+.create-btn {
+  padding: 10px 16px;
+  background: var(--tm-red);
+  color: var(--tm-white);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 /* ===== KPI Cards ===== */
@@ -138,6 +154,13 @@ body {
   font-size: 18px;
 }
 
+.table-card {
+  background: var(--tm-white);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -145,31 +168,51 @@ table {
 }
 
 th, td {
-  padding: 12px;
+  padding: 14px;
   border-bottom: 1px solid var(--border);
   text-align: left;
 }
 
 th {
+  font-size: 13px;
   color: var(--tm-gray);
   font-weight: 600;
-  font-size: 13px;
+}
+
+tr:hover {
+  background: #F9FAFB;
 }
 
 .status {
   font-weight: 600;
+  font-size: 13px;
 }
 
 .status.pending {
-  color: #D97706;
+  color: var(--amber);
 }
 
 .status.completed {
-  color: #059669;
+  color: var(--green);
 }
 
 .status.failed {
   color: var(--tm-red);
+}
+
+.status.in-progress {
+  color: var(--amber);
+}
+
+.status.archived {
+  color: var(--tm-gray);
+}
+
+.action-link {
+  color: var(--tm-red);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
 }
 
 .notif-fab {
@@ -305,3 +348,43 @@ th {
   font-size: 13px;
   line-height: 1.35;
 }
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.card {
+  background: var(--tm-white);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.status-list {
+  display: grid;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.text-completed { color: var(--green); font-weight: 600; }
+.text-pending { color: var(--amber); font-weight: 600; }
+.text-failed { color: var(--tm-red); font-weight: 600; }
