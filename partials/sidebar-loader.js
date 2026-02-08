@@ -1,6 +1,15 @@
 (function() {
   'use strict';
 
+  // Global logout handler for sidebar
+  window.handleLogout = function(e) {
+    if (e) e.preventDefault();
+    if (window.FiberAuth && window.FiberAuth.clear) {
+      window.FiberAuth.clear();
+    }
+    window.location.href = "index.html";
+  };
+
   function getCurrentPageName() {
     const path = window.location.pathname;
     const filename = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
