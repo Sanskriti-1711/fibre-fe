@@ -319,49 +319,7 @@
 
 <div class="layout">
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <h2>Tech Mahindra</h2>
-    <nav class="nav">
-      <div class="nav-section">
-        <span class="nav-label">Overview</span>
-        <a class="active" href="admin-dashboard.html">Dashboard</a>
-      </div>
-
-      <div class="nav-section">
-        <span class="nav-label">Projects</span>
-        <a href="admin-projects.html">Projects</a>
-        <a href="project-approval-que.html">Approval Queue</a>
-        <a href="project-create.html">Create Project</a>
-        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
-        <a href="admin-project-overview.html">Project Overview</a>
-        <a href="project-feature-management.html">Feature Management</a>
-        <a href="project-assign.html">Assign Engineers</a>
-        <a href="admin-project-map-review.html">Map Review</a>
-        <a href="admin-audit-detail.html">Audit Detail</a>
-      </div>
-
-      <div class="nav-section">
-        <span class="nav-label">Engineers</span>
-        <a href="admin-engineers-list.html">Engineers</a>
-        <a href="admin-engineers-invite.html">Invite Engineer</a>
-        <a href="admin-engineer-activity.html">Engineer Activity</a>
-        <a href="engineer-dashboard.html">Engineer Dashboard</a>
-        <a href="engineer-project-details.html">Engineer Projects</a>
-        <a href="engineer-feature-submit.html">Feature Submit</a>
-        <a href="engineer-project-map.html">Engineer Map</a>
-        <a href="engineer-notifications.html">Engineer Notifications</a>
-        <a href="engineer-profile.html">Engineer Profile</a>
-      </div>
-
-      <div class="nav-section">
-        <span class="nav-label">Operations</span>
-        <a href="admin-reports.html">Reports & Exports</a>
-        <a href="admin-settings.html">Admin Settings</a>
-        <a href="#" onclick="handleLogout(event)">Logout</a>
-      </div>
-    </nav>
-  </aside>
+  <div id="sidebarContainer"></div>
 
   <!-- Main Content -->
   <main class="content">
@@ -491,6 +449,7 @@
 </aside>
 
 </body>
+<script src="partials/sidebar-loader.js"></script>
 <script src="fiber-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
