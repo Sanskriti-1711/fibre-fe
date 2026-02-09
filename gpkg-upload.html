@@ -256,7 +256,7 @@
 
         <div class="nav-section">
           <span class="nav-label">Projects</span>
-          <a href="admin-projects.html">Projects</a>
+          <a href="projects.html">Projects</a>
           <a href="project-approval-que.html">Approval Queue</a>
           <a href="project-create.html">Create Project</a>
           <a class="active" href="gpkg-upload.html">GeoPackage Import</a>
@@ -334,7 +334,7 @@
           <button class="btn primary" id="importBtn" onclick="handleImport()">
             Finish Import
           </button>
-          <a href="admin-projects.html" class="btn secondary" style="text-decoration:none; display:inline-block; text-align:center;">Skip & Go to Projects</a>
+          <a href="projects.html" class="btn secondary" style="text-decoration:none; display:inline-block; text-align:center;">Skip & Go to Projects</a>
         </div>
 
         <div id="importStatus" class="status-box hidden" style="margin-top:16px;"></div>
@@ -514,7 +514,7 @@
       await window.FiberApi.importLayers(projectId, selectedLayers);
       showStatus('importStatus', `Successfully imported ${selectedLayers.length} layer(s).`, false);
       setTimeout(() => {
-        window.location.href = 'admin-projects.html';
+        window.location.href = 'projects.html';
       }, 1500);
     } catch (e) {
       showStatus('importStatus', e && e.message ? e.message : 'Failed to import layers.', true);
