@@ -97,6 +97,7 @@ function renderGeoJSONFeature(feature, layerInfo, layerGroup, allLayers) {
       fillOpacity: 0.85
     });
     layer.featureData = {
+      id: properties.ID || feature.id,
       name: properties.ID || properties.NAME || `Feature #${feature.id}`,
       status: properties.status || 'Pending',
       engineer: properties.engineer || '--',
@@ -113,6 +114,7 @@ function renderGeoJSONFeature(feature, layerInfo, layerGroup, allLayers) {
       opacity: 0.8
     });
     layer.featureData = {
+      id: properties.ID || feature.id,
       name: properties.ID || properties.NAME || `Feature #${feature.id}`,
       status: properties.status || 'Pending',
       engineer: properties.engineer || '--',
@@ -194,29 +196,24 @@ async function loadAndRenderProject() {
         + '<td><a href="feature-details/?fid=' + firstFeatureId + '" class="btn btn-details">View</a></td>';
       layerBasicsBody.appendChild(row);
 
-      // Render GeoJSON features for this layer
+      // Render GeoJSON features for this layer and build feature list
       const layerGeoJSON = geojsonData[layerInfo.name];
       if (layerGeoJSON && layerGeoJSON.features) {
-        layerGeoJSON.features.forEach(function (feature) {
-          renderGeoJSONFeature(feature, layerInfo, group, allMapLayers);
+        layerGeoJSON.features.forEach(function (geoFeature) {
+          const layer = renderGeoJSONFeature(geoFeature, layerInfo, group, allMapLayers);
+          
+          // Add to feature list if layer was created
+          if (layer && layer.featureData) {
+            const label = `${layerInfo.name} #${layer.featureData.id} • ${geoFeature.geometry.type}`;
+            addFeatureListItem(label, layer, color, {
+              id: layer.featureData.id,
+              type: geoFeature.geometry.type,
+              layer: layerInfo.name,
+              status: 'Pending'
+            });
+          }
         });
       }
-
-      // Add features to feature list
-      layerFeatures.forEach(function (feature) {
-        // Match by ID from properties since that's what we set in featureData
-        const featureId = feature.id || '0';
-        const layerFeature = allMapLayers.find(l => 
-          l.featureData && l.featureData.name.includes(`#${featureId}`)
-        ) || allMapLayers.find(l => l.featureData && l.featureData.layer === layerInfo.name);
-        addFeatureListItem(feature.name, layerFeature || null, color, {
-          name: feature.name,
-          status: feature.status,
-          engineer: '--',
-          completion: '--',
-          layer: feature.layer
-        });
-      });
 
       group.addTo(map);
       layerControl.addOverlay(group, layerInfo.name);
@@ -265,7 +262,9 @@ function highlightFeature(layer, baseColor) {
 
 function setFeatureDetails(feature) {
   if (!feature) return;
-  detailName.textContent = feature.name || '--';
+  // Build display name from id, type, layer since name field was removed from API
+  const displayName = feature.id ? `${feature.layer || ''} #${feature.id}` : (feature.name || '--');
+  detailName.textContent = displayName;
   detailStatus.textContent = feature.status || '--';
   detailEngineer.textContent = feature.engineer || '--';
   detailCompletion.textContent = feature.completion || '--';

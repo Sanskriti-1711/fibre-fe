@@ -33,6 +33,9 @@
       padding: 0;
       color: #be5251;
     }
+    .t-30{
+      margin-top: 30px !important;
+    }
   </style>
 </head>
 <body>
@@ -53,7 +56,7 @@
         <a href="project-approval-que.html">Approval Queue</a>
         <a href="project-create.html">Create Project</a>
         <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
-        <a href="admin-project-overview.html">Project Overview</a>
+        <a href="project-overview.html">Project Overview</a>
         <a class="active" href="feature-management.html">Feature Management</a>
         <a href="admin-project-map-review.html">Map Review</a>
         <a href="admin-audit-detail.html">Audit Detail</a>
@@ -115,14 +118,14 @@
 
       <div class="grid">
         <div class="card">
-          <h3>Layer Preview</h3>
+          <h3>Project Map View</h3>
           <div id="map" class="large"></div>
         </div>
 
         <div>
           
           <div class="card">
-            <h3>Layer Basics</h3>
+            <h3>Layer List</h3>
             <table class="layer-table">
               <thead>
                 <tr>
@@ -134,14 +137,12 @@
               </thead>
               <tbody id="layerBasicsBody"></tbody>
             </table>
-          </div>
-
-          <div class="card">
-            <h3>Feature List</h3>
+          
+            <h3 class="t-30">Feature List</h3>
             <div class="status-list" style="margin-bottom:12px;">
               <div class="status-item">
                 <span>Tip</span>
-                <span>Click a feature to zoom + highlight</span>
+                <span>Click to zoom & highlight</span>
               </div>
             </div>
             <div id="featureList" class="feature-list"></div>
