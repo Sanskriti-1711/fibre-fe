@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Features | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+  <link rel="stylesheet" href="css/main.css" />
+  <!-- Proj4js for coordinate transformation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+  <style>
+    #kpiSection {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    #kpiSection .kpi-card.overview {
+      min-width: 0;
+    }
+    #kpiSection .kpi-title {
+      font-size: 0.75rem;
+    }
+    #kpiSection .kpi-value {
+      font-size: 1.25rem;
+    }
+    .btn-details{
+      padding: 0;
+      color: #be5251;
+    }
+    .t-30{
+      margin-top: 30px !important;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+<div id="sidebarContainer"></div>
+
+  <main class="content">
+    <div class="container">
+            <!-- Header -->
+      <div class="header" style="display: block;">
+        <h1 id="projectTitle">Project Overview</h1>
+        <p id="projectDescription" class="project-description">Loading project details...</p>
+        
+        <!-- Loading Spinner -->
+        <div id="mapLoader" class="kpi-grid overview" style="padding: 40px; text-align: center;">
+          <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #0EA5E9; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p style="margin-top: 12px; color: #6b7280;">Loading map data...</p>
+        </div>
+        
+        <div class="kpi-grid overview" id="kpiSection" style="display: none;">
+          <div class="kpi-card overview">
+            <div class="kpi-title">Region</div>
+            <div id="projectRegion" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Total Layers</div>
+            <div id="projectTotalLayers" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Total Features</div>
+            <div id="projectTotalFeatures" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Completion</div>
+            <div id="projectCompletion" class="kpi-value">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Project Map View</h3>
+          <div id="map" class="large"></div>
+        </div>
+
+        <div>
+          
+          <div class="card">
+            <h3>Layer List</h3>
+            <table class="layer-table">
+              <thead>
+                <tr>
+                  <th>Layer</th>
+                  <th>Type</th>
+                  <th>Show</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="layerBasicsBody"></tbody>
+            </table>
+          
+            <h3 class="t-30">Feature List</h3>
+            <div class="status-list" style="margin-bottom:12px;">
+              <div class="status-item">
+                <span>Tip</span>
+                <span>Click to zoom & highlight</span>
+              </div>
+            </div>
+            <div id="featureList" class="feature-list"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script src="fiber-api.js"></script>
+<script src="js/project-details.js"></script>
+
+</body>
+</html>

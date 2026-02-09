@@ -134,6 +134,8 @@
     }
 
     .submit-btn {
+      display: block; 
+      margin-left: auto;
       margin-top: 20px;
       padding: 12px 18px;
       background: var(--tm-red);
@@ -149,52 +151,12 @@
 <body>
 
   <div class="layout">
-    <aside class="sidebar">
-      <h2>Tech Mahindra</h2>
-      <nav class="nav">
-        <div class="nav-section">
-          <span class="nav-label">Overview</span>
-          <a href="admin-dashboard.html">Dashboard</a>
-        </div>
-
-        <div class="nav-section">
-          <span class="nav-label">Projects</span>
-          <a href="admin-projects.html">Projects</a>
-        <a href="project-approval-que.html">Approval Queue</a>
-          <a class="active" href="admin-project-create.html">Create Project</a>
-          <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
-          <a href="admin-project-overview.html">Project Overview</a>
-        <a href="project-feature-management.html">Feature Management</a>
-        <a href="project-assign.html">Assign Engineers</a>
-          <a href="admin-project-map-review.html">Map Review</a>
-          <a href="admin-audit-detail.html">Audit Detail</a>
-        </div>
-
-        <div class="nav-section">
-          <span class="nav-label">Engineers</span>
-          <a href="admin-engineers-list.html">Engineers</a>
-          <a href="admin-engineers-invite.html">Invite Engineer</a>
-          <a href="admin-engineer-activity.html">Engineer Activity</a>
-          <a href="engineer-dashboard.html">Engineer Dashboard</a>
-          <a href="engineer-project-details.html">Engineer Projects</a>
-          <a href="engineer-feature-submit.html">Feature Submit</a>
-          <a href="engineer-project-map.html">Engineer Map</a>
-          <a href="engineer-notifications.html">Engineer Notifications</a>
-          <a href="engineer-profile.html">Engineer Profile</a>
-        </div>
-
-        <div class="nav-section">
-          <span class="nav-label">Operations</span>
-          <a href="admin-reports.html">Reports & Exports</a>
-          <a href="admin-settings.html">Admin Settings</a>
-        </div>
-      </nav>
-    </aside>
+  <div id="sidebarContainer"></div>
 
     <main class="content">
       <div class="container">
         <h1>Create New Project</h1>
-        <p>Define project details and link to QField Cloud</p>
+        <p>Define project details</p>
 
         <form onsubmit="handleCreateProject(event)">
           <div class="form-group">
@@ -212,27 +174,7 @@
             <input id="projectRegion" type="text" placeholder="London" />
           </div>
 
-          <div class="form-group">
-            <label>QField Cloud Project</label>
-            <select id="qfieldProject">
-              <option>Select QField project</option>
-              <option>TM-Fiber-London-North</option>
-              <option>TM-Metro-Expansion-Phase2</option>
-            </select>
-            <div class="hint">
-              This links field uploads directly to this project
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Initial GeoPackage (.gpkg)</label>
-            <input type="file" accept=".gpkg" />
-            <div class="hint">
-              Base design data exported from QGIS
-            </div>
-          </div>
-
-          <button class="submit-btn">Create Project</button>
+          <button class="submit-btn">Next</button>
           <div id="createProjectMsg" style="display:none;margin-top:12px;font-size:13px;"></div>
         </form>
       </div>
@@ -240,6 +182,7 @@
   </div>
 
 </body>
+<script src="partials/sidebar-loader.js"></script>
 <script src="fiber-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -264,7 +207,6 @@
     const name = document.getElementById('projectName').value.trim();
     const description = document.getElementById('projectDescription').value.trim();
     const region = document.getElementById('projectRegion').value.trim();
-    const qfield = document.getElementById('qfieldProject').value;
 
     if (!name) {
       setCreateProjectMsg('Project name is required.', true);
@@ -280,9 +222,6 @@
       description: description || '',
       region: region
     };
-    if (qfield && qfield !== 'Select QField project') {
-      payload.qfield_project = qfield;
-    }
 
     try {
       const created = await window.FiberApi.createProject(payload);
@@ -290,11 +229,10 @@
       document.getElementById('projectName').value = '';
       document.getElementById('projectDescription').value = '';
       document.getElementById('projectRegion').value = '';
-      document.getElementById('qfieldProject').selectedIndex = 0;
 
       const newId = created && (created.uuid || created.id || created.project_uuid || created.pk);
       if (newId) {
-        window.location.href = 'admin-project-overview.html?id=' + encodeURIComponent(newId);
+        window.location.href = 'gpkg-upload.html?project_id=' + encodeURIComponent(newId);
       }
     } catch (e) {
       setCreateProjectMsg(e && e.message ? e.message : 'Failed to create project.', true);

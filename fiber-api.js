@@ -126,7 +126,9 @@
     }
 
     if (!headers.has("Content-Type") && options && options.body) {
-      headers.set("Content-Type", "application/json");
+      if (!(options.body instanceof FormData)) {
+        headers.set("Content-Type", "application/json");
+      }
     }
 
     const response = await rawFetch(path, { ...options, headers });
@@ -229,9 +231,32 @@
     });
   }
 
-  async function deleteEngineer(engineerUuid) {
+   async function deleteEngineer(engineerUuid) {
     const id = encodeURIComponent(engineerUuid);
     return apiFetch(`/api/users/${id}/`, { method: "DELETE" });
+   }
+  async function uploadGpkg(projectId, file) {
+    const id = encodeURIComponent(projectId);
+    const formData = new FormData();
+    formData.append("file", file);
+    return apiFetch(`/api/projects/${id}/import/upload/`, {
+      method: "POST",
+      body: formData,
+    });
+  }
+
+  async function discoverLayers(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/import/discover/`, { method: "POST" });
+  }
+
+  async function importLayers(projectId, selectedLayers) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/import/import/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selected_layers: selectedLayers }),
+    });
   }
 
   const FiberAuth = {
@@ -261,6 +286,9 @@
     createProject,
     createEngineer,
     deleteEngineer,
+    uploadGpkg,
+    discoverLayers,
+    importLayers,
     apiFetch,
   };
 
