@@ -13,208 +13,25 @@
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
   </script>
-
+  <link rel="stylesheet" href="css/main.css" />
+  <!-- Proj4js for coordinate transformation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
   <style>
-    :root {
-      --tm-red: #E31837;
-      --tm-dark: #1F2937;
-      --tm-gray: #6B7280;
-      --tm-light: #F9FAFB;
-      --tm-white: #FFFFFF;
-      --border: #E5E7EB;
-      --green: #059669;
-      --amber: #D97706;
-      --blue: #0EA5E9;
+    #kpiSection {
+      grid-template-columns: repeat(4, 1fr);
     }
-
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    #kpiSection .kpi-card.overview {
+      min-width: 0;
     }
-
-    body {
-      margin: 0;
-      background: var(--tm-light);
-      color: var(--tm-dark);
+    #kpiSection .kpi-title {
+      font-size: 0.75rem;
     }
-
-    .layout {
-      display: flex;
-      min-height: 100vh;
+    #kpiSection .kpi-value {
+      font-size: 1.25rem;
     }
-
-    .sidebar {
-      width: 240px;
-      background: var(--tm-dark);
-      color: var(--tm-white);
-      padding: 24px;
-    }
-
-    .sidebar h2 {
-      margin: 0 0 32px;
-      color: var(--tm-red);
-      font-size: 20px;
-    }
-
-    .nav {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-    }
-
-    .nav-section {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .nav-label {
-      color: #9CA3AF;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .nav a {
-      display: block;
-      color: #D1D5DB;
-      text-decoration: none;
-      padding: 6px 0;
-      font-size: 14px;
-    }
-
-    .nav a.active,
-    .nav a:hover {
-      color: var(--tm-white);
-    }
-
-    .content {
-      flex: 1;
-      padding: 32px;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .header {
-      margin-bottom: 24px;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 26px;
-    }
-
-    .header p {
-      margin-top: 6px;
-      color: var(--tm-gray);
-      font-size: 14px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 24px;
-    }
-
-    .card {
-      background: var(--tm-white);
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-    }
-
-    .card h3 {
-      margin: 0 0 16px;
-      font-size: 18px;
-    }
-
-    #map {
-      height: 520px;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .feature-list {
-      max-height: 280px;
-      overflow: auto;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px;
-      background: #F9FAFB;
-      font-size: 13px;
-    }
-
-    .feature-item {
-      padding: 8px 6px;
-      border-bottom: 1px solid var(--border);
-      cursor: pointer;
-    }
-
-    .feature-item:last-child {
-      border-bottom: none;
-    }
-
-    .feature-item:hover {
-      background: #EEF2FF;
-    }
-
-    .layer-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 12px;
-    }
-
-    .layer-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: #EEF2FF;
-      border: 1px solid #E0E7FF;
-      color: #3730A3;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .status-list {
-      display: grid;
-      gap: 10px;
-      font-size: 13px;
-      color: var(--tm-gray);
-    }
-
-    .status-item {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 6px;
-    }
-
-    .layer-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .layer-table th, .layer-table td {
-      text-align: left;
-      padding: 8px 6px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .layer-table th {
-      color: var(--tm-gray);
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+    .btn-details{
+      padding: 0;
+      color: #be5251;
     }
   </style>
 </head>
@@ -265,20 +82,33 @@
 
   <main class="content">
     <div class="container">
-      <div class="header">
-        <h1 id="projectTitle">Select a Project</h1>
-        <p>Layer and feature management for the selected project</p>
-        <div class="status-list" style="margin-top:12px;">
-          <div class="status-item">
-            <span>Project</span>
-            <span>
-              <select id="projectSelect" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border);">
-                <option value="">Choose a project</option>
-                <option value="Fiber Rollout – Zone A">Fiber Rollout – Zone A</option>
-                <option value="Metro Expansion – Phase 2">Metro Expansion – Phase 2</option>
-                <option value="City Core Upgrade">City Core Upgrade</option>
-              </select>
-            </span>
+            <!-- Header -->
+      <div class="header" style="display: block;">
+        <h1 id="projectTitle">Project Overview</h1>
+        <p id="projectDescription" class="project-description">Loading project details...</p>
+        
+        <!-- Loading Spinner -->
+        <div id="mapLoader" class="kpi-grid overview" style="padding: 40px; text-align: center;">
+          <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #0EA5E9; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p style="margin-top: 12px; color: #6b7280;">Loading map data...</p>
+        </div>
+        
+        <div class="kpi-grid overview" id="kpiSection" style="display: none;">
+          <div class="kpi-card overview">
+            <div class="kpi-title">Region</div>
+            <div id="projectRegion" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Total Layers</div>
+            <div id="projectTotalLayers" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Total Features</div>
+            <div id="projectTotalFeatures" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Completion</div>
+            <div id="projectCompletion" class="kpi-value">--</div>
           </div>
         </div>
       </div>
@@ -286,29 +116,11 @@
       <div class="grid">
         <div class="card">
           <h3>Layer Preview</h3>
-          <div id="map"></div>
+          <div id="map" class="large"></div>
         </div>
 
         <div>
-          <div class="card">
-            <h3>Layers</h3>
-            <div id="layerList" class="layer-list"></div>
-            <div class="status-list">
-              <div class="status-item">
-                <span>Tip</span>
-                <span>Toggle layers on the map</span>
-              </div>
-              <div class="status-item">
-                <span>Total Layers</span>
-                <span id="layerCount">0</span>
-              </div>
-              <div class="status-item">
-                <span>Total Features</span>
-                <span id="featureCount">0</span>
-              </div>
-            </div>
-          </div>
-
+          
           <div class="card">
             <h3>Layer Basics</h3>
             <table class="layer-table">
@@ -316,8 +128,8 @@
                 <tr>
                   <th>Layer</th>
                   <th>Type</th>
-                  <th>Source</th>
                   <th>Show</th>
+                  <th>Details</th>
                 </tr>
               </thead>
               <tbody id="layerBasicsBody"></tbody>
@@ -335,27 +147,6 @@
             <div id="featureList" class="feature-list"></div>
           </div>
 
-          <div class="card">
-            <h3>Feature Details</h3>
-            <div class="status-list">
-              <div class="status-item">
-                <span>Feature</span>
-                <span id="detailName">Select a feature</span>
-              </div>
-              <div class="status-item">
-                <span>Status</span>
-                <span id="detailStatus">--</span>
-              </div>
-              <div class="status-item">
-                <span>Assigned Engineer</span>
-                <span id="detailEngineer">--</span>
-              </div>
-              <div class="status-item">
-                <span>Completion</span>
-                <span id="detailCompletion">--</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -364,245 +155,7 @@
 </div>
 
 <script src="fiber-api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
-
-  const map = L.map('map').setView([51.5074, -0.1278], 12);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  const featureList = document.getElementById('featureList');
-  const layerList = document.getElementById('layerList');
-  const layerCount = document.getElementById('layerCount');
-  const featureCount = document.getElementById('featureCount');
-  const projectSelect = document.getElementById('projectSelect');
-  const projectTitle = document.getElementById('projectTitle');
-  const detailName = document.getElementById('detailName');
-  const detailStatus = document.getElementById('detailStatus');
-  const detailEngineer = document.getElementById('detailEngineer');
-  const detailCompletion = document.getElementById('detailCompletion');
-  const layerBasicsBody = document.getElementById('layerBasicsBody');
-  const layerControl = L.control.layers(null, null, { collapsed: false }).addTo(map);
-
-  const layerPalette = ['#0EA5E9', '#10B981', '#F59E0B', '#6366F1', '#EF4444', '#14B8A6'];
-
-  const projectData = {
-    'Fiber Rollout – Zone A': [
-      {
-        name: 'Poles',
-        color: layerPalette[0],
-        geometryType: 'Point',
-        source: 'GPKG: poles.gpkg',
-        features: [
-          { name: 'Pole #A-19', status: 'Completed', completion: '100%', engineer: 'Priya K.', coords: [51.5074, -0.1278] },
-          { name: 'Pole #A-22', status: 'Pending', completion: '65%', engineer: 'Arjun R.', coords: [51.5092, -0.1188] }
-        ]
-      },
-      {
-        name: 'Handholes',
-        color: layerPalette[1],
-        geometryType: 'Point',
-        source: 'GPKG: handholes.gpkg',
-        features: [
-          { name: 'Handhole #H-07', status: 'Pending', completion: '48%', engineer: 'Jorge M.', coords: [51.5039, -0.1262] },
-          { name: 'Handhole #H-08', status: 'Failed', completion: '80%', engineer: 'Jorge M.', coords: [51.5121, -0.1215] }
-        ]
-      }
-    ],
-    'Metro Expansion – Phase 2': [
-      {
-        name: 'Cabinets',
-        color: layerPalette[2],
-        geometryType: 'Point',
-        source: 'GPKG: cabinets.gpkg',
-        features: [
-          { name: 'Cabinet #C-11', status: 'Completed', completion: '100%', engineer: 'Aanya S.', coords: [51.5056, -0.1342] },
-          { name: 'Cabinet #C-14', status: 'Pending', completion: '52%', engineer: 'Aanya S.', coords: [51.5082, -0.1321] }
-        ]
-      },
-      {
-        name: 'Trenches',
-        color: layerPalette[3],
-        geometryType: 'Line',
-        source: 'GPKG: trenches.gpkg',
-        features: [
-          { name: 'Trench #T-05', status: 'Failed', completion: '70%', engineer: 'Vikram D.', coords: [51.5121, -0.1215] }
-        ]
-      }
-    ],
-    'City Core Upgrade': [
-      {
-        name: 'Ducts',
-        color: layerPalette[4],
-        geometryType: 'Line',
-        source: 'GPKG: ducts.gpkg',
-        features: [
-          { name: 'Duct #D-01', status: 'Completed', completion: '100%', engineer: 'Sara P.', coords: [51.5094, -0.1283] }
-        ]
-      }
-    ]
-  };
-
-  function pickProjectId(p) {
-    return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
-  }
-
-  function pickProjectName(p) {
-    return (p && (p.name || p.title || p.project_name)) || '';
-  }
-
-  async function loadProjectsForFeatures() {
-    if (!projectSelect || !window.FiberApi || !window.FiberApi.listProjects) return;
-
-    try {
-      const data = await window.FiberApi.listProjects();
-      const list = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
-      if (!list.length) return;
-
-      const current = projectSelect.value;
-      projectSelect.innerHTML = '<option value="">Choose a project</option>';
-
-      list.forEach(function (p) {
-        const id = pickProjectId(p);
-        const name = pickProjectName(p);
-        const label = name || (id ? ('Project ' + id) : 'Project');
-        const value = name || id || label;
-
-        const opt = document.createElement('option');
-        opt.value = value;
-        opt.textContent = label;
-        projectSelect.appendChild(opt);
-      });
-
-      if (current) projectSelect.value = current;
-    } catch (_) {}
-  }
-
-  function highlightFeature(layer, baseColor) {
-    if (!layer || !layer.setStyle) return;
-    layer.setStyle({ color: '#E31837', weight: 3, fillOpacity: 0.35 });
-    setTimeout(function () {
-      layer.setStyle({ color: baseColor || '#0EA5E9', weight: 2, fillOpacity: 0.25 });
-    }, 1200);
-  }
-
-  function setFeatureDetails(feature) {
-    if (!feature) return;
-    detailName.textContent = feature.name || '--';
-    detailStatus.textContent = feature.status || '--';
-    detailEngineer.textContent = feature.engineer || '--';
-    detailCompletion.textContent = feature.completion || '--';
-  }
-
-  function addFeatureListItem(label, layer, baseColor, feature) {
-    const item = document.createElement('div');
-    item.className = 'feature-item';
-    item.textContent = label;
-    item.addEventListener('click', function () {
-      if (layer.getLatLng) {
-        map.setView(layer.getLatLng(), 18);
-      }
-      if (layer.openPopup) layer.openPopup();
-      highlightFeature(layer, baseColor);
-      setFeatureDetails(feature);
-    });
-    featureList.appendChild(item);
-  }
-
-  function addLayerPill(label) {
-    const pill = document.createElement('span');
-    pill.className = 'layer-pill';
-    pill.textContent = label;
-    layerList.appendChild(pill);
-  }
-
-  let overlayGroups = [];
-
-  function clearView() {
-    overlayGroups.forEach(function (group) {
-      map.removeLayer(group);
-    });
-    overlayGroups = [];
-    featureList.innerHTML = '';
-    layerList.innerHTML = '';
-    layerBasicsBody.innerHTML = '';
-    layerCount.textContent = '0';
-    featureCount.textContent = '0';
-  }
-
-  function renderProject(projectName) {
-    clearView();
-    if (!projectName || !projectData[projectName]) {
-      projectTitle.textContent = 'Select a Project';
-      return;
-    }
-
-    projectTitle.textContent = projectName;
-    const layers = projectData[projectName];
-    const markers = [];
-    let totalFeatures = 0;
-
-    layers.forEach(function (layerInfo) {
-      addLayerPill(layerInfo.name);
-      const group = L.layerGroup();
-      const row = document.createElement('tr');
-      row.innerHTML = ''
-        + '<td>' + layerInfo.name + '</td>'
-        + '<td>' + (layerInfo.geometryType || '--') + '</td>'
-        + '<td>' + (layerInfo.source || '--') + '</td>'
-        + '<td><input type="checkbox" checked data-layer="' + layerInfo.name + '" /></td>';
-      layerBasicsBody.appendChild(row);
-
-      layerInfo.features.forEach(function (feature) {
-        totalFeatures += 1;
-        const marker = L.circleMarker(feature.coords, {
-          radius: 6,
-          color: layerInfo.color,
-          fillOpacity: 0.85
-        }).addTo(group);
-      marker.bindPopup('<strong>' + feature.name + '</strong><br/>Status: ' + feature.status);
-      marker.on('click', function () {
-        highlightFeature(marker, layerInfo.color);
-        setFeatureDetails(feature);
-      });
-      addFeatureListItem(feature.name + ' • ' + feature.status, marker, layerInfo.color, feature);
-      markers.push(marker);
-    });
-
-      group.addTo(map);
-      layerControl.addOverlay(group, layerInfo.name);
-      overlayGroups.push(group);
-    });
-
-    layerBasicsBody.querySelectorAll('input[type=\"checkbox\"]').forEach(function (checkbox, index) {
-      checkbox.addEventListener('change', function () {
-        const group = overlayGroups[index];
-        if (!group) return;
-        if (checkbox.checked) {
-          group.addTo(map);
-        } else {
-          map.removeLayer(group);
-        }
-      });
-    });
-
-    layerCount.textContent = layers.length;
-    featureCount.textContent = totalFeatures;
-
-    if (markers.length) {
-      const groupBounds = L.featureGroup(markers).getBounds();
-      map.fitBounds(groupBounds, { padding: [20, 20] });
-    }
-  }
-
-  projectSelect.addEventListener('change', function (event) {
-    renderProject(event.target.value);
-  });
-
-  loadProjectsForFeatures();
-</script>
+<script src="js/project-details.js"></script>
 
 </body>
 </html>
