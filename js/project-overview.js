@@ -85,7 +85,7 @@ function updateLayerDetails() {
 
   if (currentProject) {
     const projectId = pickProjectId(currentProject);
-    viewAllBtn.href = 'feature-management.htmldashboard.html?project=' + encodeURIComponent(projectId || '');
+    viewAllBtn.href = 'feature-management.html?project=' + encodeURIComponent(projectId || '');
   }
 }
 
