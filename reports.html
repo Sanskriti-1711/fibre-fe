@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Invite Engineer | Tech Mahindra</title>
+  <title>Reports | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
@@ -78,14 +78,11 @@
     .content {
       flex:1;
       padding:32px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
     }
 
     .container {
-      width:100%;
-      max-width:520px;
+      max-width:900px;
+      margin:0 auto;
       background:var(--tm-white);
       padding:32px;
       border-radius:8px;
@@ -93,7 +90,7 @@
     }
 
     h1 {
-      font-size:22px;
+      font-size:24px;
       margin-bottom:8px;
     }
 
@@ -101,6 +98,13 @@
       font-size:14px;
       color:var(--tm-gray);
       margin-bottom:24px;
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:20px;
+      margin-bottom:28px;
     }
 
     label {
@@ -115,18 +119,31 @@
       border-radius:6px;
       border:1px solid var(--border);
       font-size:14px;
-      margin-bottom:18px;
     }
 
-    button {
-      width:100%;
-      background:var(--tm-red);
-      color:#fff;
-      padding:12px;
-      border:none;
+    .actions {
+      display:flex;
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .btn {
+      padding:12px 16px;
       border-radius:6px;
+      border:none;
       font-weight:600;
       cursor:pointer;
+      font-size:14px;
+    }
+
+    .csv {
+      background:#F3F4F6;
+      color:var(--tm-dark);
+    }
+
+    .pdf {
+      background:var(--tm-red);
+      color:#fff;
     }
   </style>
 </head>
@@ -151,15 +168,15 @@
         <a href="project-overview.html">Project Overview</a>
         <a href="feature-management.html">Feature Management</a>
         <a href="project-assign.html">Assign Engineers</a>
-        <a href="admin-project-map-review.html">Map Review</a>
-        <a href="admin-audit-detail.html">Audit Detail</a>
+        <a href="project-map-review.html">Map Review</a>
+        <a href="audit-detail.html">Audit Detail</a>
       </div>
 
       <div class="nav-section">
         <span class="nav-label">Engineers</span>
-        <a href="admin-engineers-list.html">Engineers</a>
-        <a class="active" href="admin-engineers-invite.html">Invite Engineer</a>
-        <a href="admin-engineer-activity.html">Engineer Activity</a>
+        <a href="engineers-list.html">Engineers</a>
+        <a href="engineers-invite.html">Invite Engineer</a>
+        <a href="engineer-activity.html">Engineer Activity</a>
         <a href="engineer-dashboard.html">Engineer Dashboard</a>
         <a href="engineer-project-details.html">Engineer Projects</a>
         <a href="engineer-feature-submit.html">Feature Submit</a>
@@ -170,77 +187,59 @@
 
       <div class="nav-section">
         <span class="nav-label">Operations</span>
-        <a href="admin-reports.html">Reports & Exports</a>
+        <a class="active" href="reports.html">Reports & Exports</a>
         <a href="admin-settings.html">Admin Settings</a>
-        <a href="#" onclick="handleLogout(event)">Logout</a>
       </div>
     </nav>
   </aside>
 
   <main class="content">
     <div class="container">
-      <h1>Invite Field Engineer</h1>
-      <p>An invite email will be sent with an activation link</p>
+      <h1>Reports & Exports</h1>
+      <p>Generate audit-ready reports for compliance and review</p>
 
-      <form onsubmit="handleInvite(event)">
-        <label>Email Address</label>
-        <input id="inviteEmail" type="email" placeholder="engineer@company.com" required />
+      <form>
 
-        <label>Temporary Password</label>
-        <input id="invitePassword" type="password" placeholder="Pass@12345" required />
+        <div class="grid">
+          <div>
+            <label>Project</label>
+            <select>
+              <option>All Projects</option>
+              <option>Fiber Rollout – Zone A</option>
+              <option>Metro Expansion – Phase 2</option>
+            </select>
+          </div>
 
-        <label>Role</label>
-        <select>
-          <option>Field Engineer</option>
-        </select>
+          <div>
+            <label>Engineer</label>
+            <select>
+              <option>All Engineers</option>
+              <option>Arjun Patel</option>
+              <option>Rahul Singh</option>
+            </select>
+          </div>
 
-        <button>Send Invite</button>
+          <div>
+            <label>Start Date</label>
+            <input type="date" />
+          </div>
+
+          <div>
+            <label>End Date</label>
+            <input type="date" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn csv">Export CSV</button>
+          <button type="button" class="btn pdf">Export PDF (Audit)</button>
+        </div>
+
       </form>
-
-      <div id="inviteMsg" style="display:none;margin-top:12px;font-size:13px;"></div>
     </div>
   </main>
 
 </div>
 
 </body>
-<script src="fiber-api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
-
-  function handleLogout(e) {
-    if (e) e.preventDefault();
-    window.FiberAuth.clear();
-    window.location.href = "index.html";
-  }
-
-  function setInviteMsg(text, isError) {
-    const el = document.getElementById("inviteMsg");
-    if (!text) {
-      el.style.display = "none";
-      el.textContent = "";
-      return;
-    }
-    el.style.display = "block";
-    el.style.color = isError ? "#B91C1C" : "#059669";
-    el.textContent = text;
-  }
-
-  async function handleInvite(event) {
-    event.preventDefault();
-    setInviteMsg("", false);
-
-    const email = document.getElementById("inviteEmail").value.trim();
-    const password = document.getElementById("invitePassword").value;
-
-    try {
-      await window.FiberApi.createEngineer(email, password, "ENGINEER");
-      setInviteMsg("Engineer created successfully", false);
-      document.getElementById("inviteEmail").value = "";
-      document.getElementById("invitePassword").value = "";
-    } catch (e) {
-      setInviteMsg(e && e.message ? e.message : "Failed to create engineer", true);
-    }
-  }
-</script>
 </html>

@@ -32,6 +32,17 @@
     });
   }
 
+  function getSidebarBase() {
+    var script = document.querySelector('script[data-sidebar-base]');
+    if (script) return script.getAttribute('data-sidebar-base') || '';
+
+    if (document.body && document.body.dataset && document.body.dataset.sidebarBase) {
+      return document.body.dataset.sidebarBase;
+    }
+
+    return '';
+  }
+
   function injectSidebar() {
     const sidebarContainer = document.getElementById('sidebarContainer');
     if (!sidebarContainer) {
@@ -39,7 +50,8 @@
       return;
     }
 
-    fetch('partials/sidebar.html')
+    var base = getSidebarBase();
+    fetch(base + 'partials/sidebar.html')
       .then(function(response) {
         if (!response.ok) throw new Error('Failed to load sidebar: ' + response.status);
         return response.text();
