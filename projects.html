@@ -158,7 +158,7 @@
         const status = pickProjectStatus(p);
         const completion = pickProjectCompletion(p);
         const lastActivity = pickProjectLastActivity(p);
-        const link = id ? ('project-overview.html?id=' + encodeURIComponent(id)) : 'project-overview.html';
+        const link = id ? ('project-details.html?project_id=' + encodeURIComponent(id)) : 'project-overview.html';
 
         const tr = document.createElement('tr');
         tr.innerHTML = ''
@@ -167,8 +167,18 @@
           + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
           + '<td>' + escapeHtml(completion) + '</td>'
           + '<td>' + escapeHtml(lastActivity) + '</td>'
-          + '<td><a class="action-link" href="' + link + '">View</a></td>';
+          + '<td><a class="action-link" href="' + link + '">View</a><a class="action-link" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left: 15px;">Delete</button></td>';
         tbody.appendChild(tr);
+      });
+
+      // Attach delete handlers
+      tbody.querySelectorAll('.delete-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          const projectId = e.target.getAttribute('data-id');
+          if (projectId && confirm('Are you sure you want to delete this project?')) {
+            handleDeleteProject(projectId);
+          }
+        });
       });
     } catch (e) {
       setProjectsError(e && e.message ? e.message : 'Failed to load projects');
@@ -210,6 +220,15 @@
       if (region) region.value = '';
       loadProjects();
     });
+  }
+
+  async function handleDeleteProject(projectId) {
+    try {
+      await window.FiberApi.deleteProject(projectId);
+      loadProjects(getFilterParams());
+    } catch (e) {
+      setProjectsError(e && e.message ? e.message : 'Failed to delete project');
+    }
   }
 
   loadProjects();

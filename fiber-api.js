@@ -223,6 +223,11 @@
     });
   }
 
+  async function deleteProject(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/`, { method: "DELETE" });
+  }
+
   async function createEngineer(email, password, role) {
     return apiFetch("/api/users/", {
       method: "POST",
@@ -286,6 +291,7 @@
     createProject,
     createEngineer,
     deleteEngineer,
+    deleteProject,
     uploadGpkg,
     discoverLayers,
     importLayers,
