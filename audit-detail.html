@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Audit Review | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body class="audit-detail">
+
+<div class="layout">
+  <div id="sidebarContainer"></div>
+
+  <main class="content">
+    <div class="container">
+
+      <h1>Audit Review - Feature #1021</h1>
+
+      <!-- Images -->
+      <div class="grid">
+        <div class="card">
+          <h3>Expected (Design)</h3>
+          <div class="image-box">Design Image</div>
+        </div>
+
+        <div class="card">
+          <h3>Actual (Field Upload)</h3>
+          <div class="image-box">Captured Image</div>
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <div class="card">
+        <h3>Metadata Comparison</h3>
+        <table>
+          <tr><td>Filename</td><td>IMG_1021.jpg</td></tr>
+          <tr><td>Latitude / Longitude</td><td>51.5074, -0.1278</td></tr>
+          <tr><td>Timestamp</td><td>2026-01-30 14:12</td></tr>
+        </table>
+
+        <textarea placeholder="Comments for field engineer (optional)"></textarea>
+
+        <div class="actions">
+          <button class="btn approve">Approve</button>
+          <button class="btn reject">Reject</button>
+          <button class="btn rework">Needs Rework</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+</body>
+<script src="partials/sidebar-loader.js"></script>
+</html>

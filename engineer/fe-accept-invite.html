@@ -4,150 +4,52 @@
   <meta charset="UTF-8" />
   <title>Activate Account | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <style>
-    :root {
-      --tm-red: #E31837;
-      --tm-dark: #1F2937;
-      --tm-gray: #6B7280;
-      --tm-light: #F9FAFB;
-      --tm-white: #FFFFFF;
-    }
-
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    body {
-      margin: 0;
-      background: var(--tm-light);
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 460px;
-      background: var(--tm-white);
-      padding: 32px;
-      border-radius: 8px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--tm-red);
-    }
-
-    .header p {
-      margin-top: 6px;
-      font-size: 14px;
-      color: var(--tm-gray);
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--tm-dark);
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: 1px solid #D1D5DB;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--tm-red);
-    }
-
-    input[readonly] {
-      background: #F3F4F6;
-      cursor: not-allowed;
-    }
-
-    .submit-btn {
-      width: 100%;
-      padding: 12px;
-      margin-top: 8px;
-      background: var(--tm-red);
-      color: var(--tm-white);
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .submit-btn:hover {
-      opacity: 0.95;
-    }
-
-    .footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--tm-gray);
-    }
-  </style>
+  <link rel="stylesheet" href="../css/main.css" />
 </head>
-<body>
+<body class="fe-accept-invite">
 
-  <div class="card">
-    <div class="header">
-      <h1>Tech Mahindra</h1>
-      <p>Activate Field Engineer Account</p>
-    </div>
+  <div class="layout">
 
-    <form>
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" value="Field Engineer Name" readonly />
+    <main class="content">
+      <div class="card">
+        <div class="header">
+          <h1>Tech Mahindra</h1>
+          <p>Activate Field Engineer Account</p>
+        </div>
+
+        <form>
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" value="Field Engineer Name" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" value="engineer@company.com" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Create Password</label>
+            <input type="password" placeholder="Enter password" />
+          </div>
+
+          <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" placeholder="Confirm password" />
+          </div>
+
+          <button class="submit-btn">
+            Activate Account
+          </button>
+        </form>
+
+        <div class="footer">
+          This invite is for authorized personnel only
+        </div>
       </div>
-
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" value="engineer@company.com" readonly />
-      </div>
-
-      <div class="form-group">
-        <label>Create Password</label>
-        <input type="password" placeholder="Enter password" />
-      </div>
-
-      <div class="form-group">
-        <label>Confirm Password</label>
-        <input type="password" placeholder="Confirm password" />
-      </div>
-
-      <button class="submit-btn">
-        Activate Account
-      </button>
-    </form>
-
-    <div class="footer">
-      This invite is for authorized personnel only
-    </div>
+    </main>
   </div>
 
 </body>
 </html>
+

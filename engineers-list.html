@@ -169,15 +169,15 @@
         <a href="project-overview.html">Project Overview</a>
         <a href="feature-management.html">Feature Management</a>
         <a href="project-assign.html">Assign Engineers</a>
-        <a href="admin-project-map-review.html">Map Review</a>
-        <a href="admin-audit-detail.html">Audit Detail</a>
+        <a href="project-map-review.html">Map Review</a>
+        <a href="audit-detail.html">Audit Detail</a>
       </div>
 
       <div class="nav-section">
         <span class="nav-label">Engineers</span>
-        <a class="active" href="admin-engineers-list.html">Engineers</a>
-        <a href="admin-engineers-invite.html">Invite Engineer</a>
-        <a href="admin-engineer-activity.html">Engineer Activity</a>
+        <a class="active" href="engineers-list.html">Engineers</a>
+        <a href="engineers-invite.html">Invite Engineer</a>
+        <a href="engineer-activity.html">Engineer Activity</a>
         <a href="engineer-dashboard.html">Engineer Dashboard</a>
         <a href="engineer-project-details.html">Engineer Projects</a>
         <a href="engineer-feature-submit.html">Feature Submit</a>
@@ -188,7 +188,7 @@
 
       <div class="nav-section">
         <span class="nav-label">Operations</span>
-        <a href="admin-reports.html">Reports & Exports</a>
+        <a href="reports.html">Reports & Exports</a>
         <a href="admin-settings.html">Admin Settings</a>
         <a href="#" onclick="handleLogout(event)">Logout</a>
       </div>
@@ -200,7 +200,7 @@
 
       <div class="header">
         <h1>Field Engineers</h1>
-        <a href="admin-engineers-invite.html" class="btn">Invite Engineer</a>
+        <a href="engineers-invite.html" class="btn">Invite Engineer</a>
       </div>
 
       <div id="engineersError" style="display:none;margin:0 0 14px;color:#B91C1C;font-size:13px;"></div>
@@ -309,7 +309,7 @@
           <td class="status ${active ? "active" : "inactive"}">${active ? "Active" : "Inactive"}</td>
           <td>${escapeHtml(lastActive)}</td>
           <td>
-            <a href="admin-engineer-activity.html">View Activity</a>
+            <a href="engineer-activity.html">View Activity</a>
             ${id ? `&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" data-id="${encodeURIComponent(id)}" class="deleteLink">Remove</a>` : ""}
           </td>
         `;

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Engineer Project Details</title>
+  <link rel="stylesheet" href="../css/main.css" />
+</head>
+<body class="engineer-project-details">
+
+<div class="layout">
+
+  <main class="content">
+    <div class="container">
+      <a class="action" href="engineer-dashboard.html">Back to My Projects</a>
+      <h1>My Projects</h1>
+      <div class="subtitle">Projects assigned to you and their features</div>
+
+      <div id="project-fiber-rollout-zone-a" class="card">
+        <div class="project-title">Fiber Rollout - Zone A</div>
+        <div class="meta">Assigned: 24 features | Due: Feb 12</div>
+        <div class="progress"><span style="width:78%"></span></div>
+        <div class="meta">Progress: 78%</div>
+
+        <div class="stat-grid">
+          <div class="stat"><strong>18</strong>Completed</div>
+          <div class="stat"><strong>4</strong>Pending</div>
+          <div class="stat"><strong>2</strong>Failed</div>
+        </div>
+
+        <div class="section-title">Features</div>
+
+        <button class="feature feature-link" type="button" data-project="Fiber Rollout - Zone A" data-feature="Pole #1022" data-type="Pole" data-status="Pending">
+          <div>
+            <strong>Pole #1022</strong>
+            <div class="meta">Last update: Today 10:12 AM</div>
+          </div>
+          <span class="badge pending">Pending</span>
+        </button>
+
+        <button class="feature feature-link" type="button" data-project="Fiber Rollout - Zone A" data-feature="Chamber #204" data-type="Manhole" data-status="Completed">
+          <div>
+            <strong>Chamber #204</strong>
+            <div class="meta">Last update: Yesterday 4:45 PM</div>
+          </div>
+          <span class="badge complete">Completed</span>
+        </button>
+
+        <button class="feature feature-link" type="button" data-project="Fiber Rollout - Zone A" data-feature="Fiber Joint #88" data-type="Duct" data-status="Failed">
+          <div>
+            <strong>Fiber Joint #88</strong>
+            <div class="meta">Last update: Feb 2 2:30 PM</div>
+          </div>
+          <span class="badge failed">Failed</span>
+        </button>
+
+        <div class="action">Select a feature above to submit an update.</div>
+      </div>
+
+      <div id="project-metro-expansion-phase-2" class="card">
+        <div class="project-title">Metro Expansion - Phase 2</div>
+        <div class="meta">Assigned: 9 features | Due: Feb 20</div>
+        <div class="progress"><span style="width:54%"></span></div>
+        <div class="meta">Progress: 54%</div>
+
+        <div class="stat-grid">
+          <div class="stat"><strong>4</strong>Completed</div>
+          <div class="stat"><strong>3</strong>Pending</div>
+          <div class="stat"><strong>2</strong>Failed</div>
+        </div>
+
+        <div class="section-title">Features</div>
+
+        <button class="feature feature-link" type="button" data-project="Metro Expansion - Phase 2" data-feature="Manhole #221" data-type="Manhole" data-status="Pending">
+          <div>
+            <strong>Manhole #221</strong>
+            <div class="meta">Last update: Today 9:10 AM</div>
+          </div>
+          <span class="badge pending">Pending</span>
+        </button>
+
+        <button class="feature feature-link" type="button" data-project="Metro Expansion - Phase 2" data-feature="Cabinet #14" data-type="Cabinet" data-status="Completed">
+          <div>
+            <strong>Cabinet #14</strong>
+            <div class="meta">Last update: Feb 3 1:05 PM</div>
+          </div>
+          <span class="badge complete">Completed</span>
+        </button>
+
+        <button class="feature feature-link" type="button" data-project="Metro Expansion - Phase 2" data-feature="Trench #5" data-type="Trench" data-status="Failed">
+          <div>
+            <strong>Trench #5</strong>
+            <div class="meta">Last update: Feb 1 3:30 PM</div>
+          </div>
+          <span class="badge failed">Failed</span>
+        </button>
+
+        <div class="action">Select a feature above to submit an update.</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var project = params.get('project');
+    if (!project) return;
+    var targetId = 'project-' + project;
+    var cards = document.querySelectorAll('[id^="project-"]');
+    cards.forEach(function (card) {
+      if (card.id !== targetId) {
+        card.style.display = 'none';
+      }
+    });
+    var target = document.getElementById(targetId);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  })();
+
+  (function () {
+    var featureLinks = document.querySelectorAll('.feature-link');
+    featureLinks.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var params = new URLSearchParams();
+        if (btn.dataset.project) params.set('project', btn.dataset.project);
+        if (btn.dataset.feature) params.set('feature', btn.dataset.feature);
+        if (btn.dataset.type) params.set('type', btn.dataset.type);
+        if (btn.dataset.status) params.set('status', btn.dataset.status);
+        window.location.href = 'engineer-feature-submit.html?' + params.toString();
+      });
+    });
+  })();
+</script>
+</body>
+</html>
+
