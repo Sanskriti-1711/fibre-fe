@@ -250,6 +250,17 @@
     });
   }
 
+  async function listProjectLayers(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/layers/`, { method: "GET" });
+  }
+
+  async function getProjectLayerDetails(projectId, layerId) {
+    const id = encodeURIComponent(projectId);
+    const lid = encodeURIComponent(layerId);
+    return apiFetch(`/api/projects/${id}/layers/${lid}/`, { method: "GET" });
+  }
+
   async function discoverLayers(projectId) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/import/discover/`, { method: "POST" });
@@ -293,6 +304,8 @@
     deleteEngineer,
     deleteProject,
     uploadGpkg,
+    listProjectLayers,
+    getProjectLayerDetails,
     discoverLayers,
     importLayers,
     apiFetch,
