@@ -275,6 +275,35 @@
     });
   }
 
+  async function listAssignments(params) {
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/assignments/?${query}` : "/api/assignments/";
+    return apiFetch(path, { method: "GET" });
+  }
+
+  async function createAssignment(payload) {
+    return apiFetch("/api/assignments/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async function getAssignment(assignmentId) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, { method: "GET" });
+  }
+
+  async function deleteAssignment(assignmentId) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, { method: "DELETE" });
+  }
+
   const FiberAuth = {
     getAccess,
     getRefresh,
@@ -308,6 +337,10 @@
     getProjectLayerDetails,
     discoverLayers,
     importLayers,
+    listAssignments,
+    createAssignment,
+    getAssignment,
+    deleteAssignment,
     apiFetch,
   };
 

@@ -46,6 +46,129 @@ function toDisplayStatus(status) {
     .replace(/\b\w/g, function (m) { return m.toUpperCase(); });
 }
 
+function normStatus(status) {
+  return String(status || '').trim().toLowerCase();
+}
+
+function setElDisplay(el, show, displayValue) {
+  if (!el) return;
+  el.style.display = show ? (displayValue || '') : 'none';
+}
+
+function setStatusPill(status, assignment) {
+  const pill = qs('featureStatusPill');
+  if (!pill) return;
+
+  const s = normStatus(status);
+  const hasAssignment = Boolean(assignment);
+
+  let label = '';
+  let bg = '#F9FAFB';
+  let color = '#374151';
+  let border = '1px solid rgba(55,65,81,0.18)';
+  let dotBg = '#6B7280';
+  let icon = '';
+
+  if (s === 'approved') {
+    label = 'Approved';
+    bg = '#ECFDF5';
+    color = '#065F46';
+    border = '1px solid rgba(6,95,70,0.18)';
+    dotBg = '#10B981';
+    icon = '✓';
+  } else if (s === 'rejected') {
+    label = 'Rejected';
+    bg = '#FEF2F2';
+    color = '#991B1B';
+    border = '1px solid rgba(153,27,27,0.18)';
+    dotBg = '#EF4444';
+    icon = '!';
+  } else if (hasAssignment || s === 'assigned') {
+    label = 'Assigned';
+    bg = '#EFF6FF';
+    color = '#1D4ED8';
+    border = '1px solid rgba(29,78,216,0.18)';
+    dotBg = '#3B82F6';
+    icon = '↗';
+  } else {
+    label = 'Pending';
+    bg = '#FFFBEB';
+    color = '#92400E';
+    border = '1px solid rgba(146,64,14,0.18)';
+    dotBg = '#F59E0B';
+    icon = '…';
+  }
+
+  pill.style.background = bg;
+  pill.style.color = color;
+  pill.style.border = border;
+  pill.innerHTML =
+    '<span aria-hidden="true" style="display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:999px; background:' + dotBg + '; color:#FFFFFF; font-size:12px; line-height:1;">'
+    + escapeHtml(icon)
+    + '</span>'
+    + '<span>' + escapeHtml(label) + '</span>';
+}
+
+function ensureAssignmentCard() {
+  let el = qs('assignmentCard');
+  if (el) return el;
+
+  const breadcrumb = qs('breadcrumb');
+  if (!breadcrumb) return null;
+
+  el = document.createElement('div');
+  el.id = 'assignmentCard';
+  el.style.margin = '10px 0 0';
+  el.style.padding = '10px 12px';
+  el.style.border = '1px solid rgba(0,0,0,0.10)';
+  el.style.borderRadius = '10px';
+  el.style.background = '#FFFFFF';
+  el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+  el.style.display = 'none';
+
+  breadcrumb.parentNode.insertBefore(el, breadcrumb.nextSibling);
+  return el;
+}
+
+function renderAssignmentCard(assignment) {
+  const card = ensureAssignmentCard();
+  if (!card) return;
+
+  if (!assignment) {
+    setElDisplay(card, false);
+    card.innerHTML = '';
+    return;
+  }
+
+  const assignee = assignment.assignee || {};
+  const name = assignee.email || (assignee.id ? ('Engineer ' + assignee.id) : 'Engineer');
+  const email = assignee.email || '';
+  const scope = assignment.scope || 'layer';
+
+  card.innerHTML =
+    '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">'
+      + '<div style="min-width:0;">'
+        + '<div style="font-size:12px; color:#6B7280; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;">Job Assigned</div>'
+        + '<div style="font-size:14px; font-weight:800; color:#111827; margin-top:2px;">' + escapeHtml(name) + '</div>'
+        + (email ? ('<div style="font-size:13px; color:#6B7280; margin-top:2px;">' + escapeHtml(email) + '</div>') : '')
+      + '</div>'
+      + '<div style="flex-shrink:0; display:flex; align-items:center; gap:8px;">'
+        + '<span style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:#F3F4F6; color:#374151; border:1px solid rgba(55,65,81,0.14); font-size:12px; font-weight:700;">' + escapeHtml(scope) + '</span>'
+      + '</div>'
+    + '</div>';
+
+  setElDisplay(card, true, 'block');
+}
+
+async function loadLayerAssignment(projectId, layerId) {
+  if (!projectId || !layerId || !window.FiberApi || !window.FiberApi.listAssignments) return null;
+  const data = await window.FiberApi.listAssignments({ project: projectId, layer_id: layerId });
+  const list = Array.isArray(data)
+    ? data
+    : (data && Array.isArray(data.results) ? data.results : []);
+  return list && list.length ? list[0] : null;
+}
+
 function transformCoords(x, y) {
   const transformed = proj4('EPSG:25833', 'WGS84', [x, y]);
   return [transformed[1], transformed[0]];
@@ -310,20 +433,36 @@ async function loadPage() {
   try {
     const results = await Promise.all([
       window.FiberApi.getProject(params.projectId),
-      getFeatureDetails(params.projectId, params.featureId)
+      getFeatureDetails(params.projectId, params.featureId),
+      loadLayerAssignment(params.projectId, params.layerId)
     ]);
 
     const project = results[0];
     const featureDetails = results[1];
+    const assignment = results[2];
 
     console.log('[feature-details] Feature Details response:', featureDetails);
 
     bindFeatureDetails(params, featureDetails);
     bindBreadcrumb(params, project, featureDetails);
 
+    const feature = featureDetails && featureDetails.feature ? featureDetails.feature : null;
+    const status = feature && feature.status ? feature.status : '';
+
+    setStatusPill(status, assignment);
+    renderAssignmentCard(assignment);
+
+    const isApproved = normStatus(status) === 'approved';
+    const isRejected = normStatus(status) === 'rejected';
+    const isAssigned = Boolean(assignment) || normStatus(status) === 'assigned';
+    const assignBtn = qs('assignJobBtn');
+    if (assignBtn) {
+      const canAssign = !isApproved && !isRejected && !isAssigned;
+      setElDisplay(assignBtn, canAssign, '');
+    }
+
     if (map && featureDetails && featureDetails.geojson) {
       const rendered = renderGeojsonFeature(map, featureDetails.geojson);
-      const feature = featureDetails && featureDetails.feature ? featureDetails.feature : null;
       const props = feature && feature.properties ? feature.properties : {};
       const plannedId = props.id || props.ID || '';
       const name = props.name || props.NAME || '';
