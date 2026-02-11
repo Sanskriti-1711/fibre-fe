@@ -269,10 +269,28 @@ function bindFeatureDetails(params, data) {
   setText('detectedEnd', '--');
 }
 
+function bindAssignJobLink(params) {
+  const btn = qs('assignJobBtn');
+  if (!btn) return;
+
+  const projectId = params && params.projectId ? params.projectId : '';
+  const layerId = params && params.layerId ? params.layerId : '';
+  const featureId = params && params.featureId ? params.featureId : '';
+
+  const qsParts = [];
+  if (projectId) qsParts.push('project_id=' + encodeURIComponent(projectId));
+  if (layerId) qsParts.push('layer_id=' + encodeURIComponent(layerId));
+  if (featureId) qsParts.push('feature_id=' + encodeURIComponent(featureId));
+
+  btn.href = qsParts.length ? ('project-assign.html?' + qsParts.join('&')) : 'project-assign.html';
+}
+
 async function loadPage() {
   const params = getParams();
 
   console.log('[feature-details] query params:', params);
+
+  bindAssignJobLink(params);
 
   if (!params.projectId || !params.featureId) {
     setText('featureTitle', 'Feature Details');
