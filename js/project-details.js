@@ -156,6 +156,26 @@ async function loadAndRenderProject() {
       fetchProjectMapData(projectId)
     ]);
 
+    let apiLayers = null;
+    try {
+      apiLayers = await window.FiberApi.listProjectLayers(projectId);
+      console.log('listProjectLayers response:', apiLayers);
+    } catch (e) {
+      console.log('listProjectLayers failed:', e);
+      apiLayers = null;
+    }
+
+    const apiLayerList = (apiLayers && Array.isArray(apiLayers.layers)) ? apiLayers.layers : [];
+    const apiLayerIdByName = {};
+    apiLayerList.forEach(function (l) {
+      if (!l) return;
+      const lname = l.layer_name;
+      const lid = l.layer_id;
+      if (lname && lid && apiLayerIdByName[lname] === undefined) {
+        apiLayerIdByName[lname] = lid;
+      }
+    });
+
     clearView();
 
     // Update project header with details from API
@@ -185,15 +205,13 @@ async function loadAndRenderProject() {
       // Add layer basics row
       const row = document.createElement('tr');
       
-      // Get first feature ID for this layer for the view link
-      const layerFeatures = mapData.features.filter(f => f.layer === layerInfo.name);
-      const firstFeatureId = layerFeatures.length > 0 ? layerFeatures[0].id : '';
+      const layerId = apiLayerIdByName[layerInfo.name] || '';
       
       row.innerHTML = ''
         + '<td>' + layerInfo.name + '</td>'
         + '<td>' + (layerInfo.type || '--') + '</td>'
         + '<td><input type="checkbox" checked data-layer="' + layerInfo.name + '" /></td>'
-        + '<td><a href="feature-details/?fid=' + firstFeatureId + '" class="btn btn-details">View</a></td>';
+        + '<td><a href="layer-details.html?project_id=' + encodeURIComponent(projectId) + '&layer_id=' + encodeURIComponent(layerId) + '" class="btn btn-details">View</a></td>';
       layerBasicsBody.appendChild(row);
 
       // Render GeoJSON features for this layer and build feature list
@@ -281,7 +299,7 @@ function addFeatureListItem(label, layer, baseColor, feature) {
     if (layer.getLatLng) {
       map.setView(layer.getLatLng(), 18);
     } else if (layer.getBounds) {
-      map.fitBounds(layer.getBounds(), { maxZoom: 18, padding: [50, 50] });
+      map.fitBounds(layer.getBounds(), { padding: [50, 50] });
     }
     
     if (layer.openPopup) layer.openPopup();

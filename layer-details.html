@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Layer Details | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    #kpiSection {
+      grid-template-columns: repeat(6, 1fr);
+    }
+    #kpiSection .kpi-card.overview {
+      min-width: 0;
+    }
+    #kpiSection .kpi-title {
+      font-size: 0.75rem;
+    }
+    #kpiSection .kpi-value {
+      font-size: 1.25rem;
+    }
+    .muted {
+      color: var(--tm-gray);
+      font-size: 13px;
+    }
+    .page-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .btn-secondary {
+      background: #fff;
+      color: var(--tm-dark);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background: #F9FAFB;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <div id="sidebarContainer"></div>
+
+  <main class="content">
+    <div class="container">
+      <div class="header" style="display: block;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
+          <div>
+            <h1 id="layerTitle">Layer Details</h1>
+            <p id="layerSubtitle" class="project-description">Loading layer details...</p>
+          </div>
+          <div class="page-actions">
+            <a id="backToProjectBtn" class="btn btn-secondary" href="projects.html">Back to Project</a>
+          </div>
+        </div>
+
+        <div id="layerError" style="display:none;margin:12px 0 0;color:#B91C1C;font-size:13px;"></div>
+
+        <div id="pageLoader" class="kpi-grid overview" style="padding: 40px; text-align: center;">
+          <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #0EA5E9; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+          <p style="margin-top: 12px; color: #6b7280;">Loading layer data...</p>
+        </div>
+
+        <div class="kpi-grid overview" id="kpiSection" style="display: none;">
+          <div class="kpi-card overview">
+            <div class="kpi-title">Total Features</div>
+            <div id="kpiFeatureCount" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Pending</div>
+            <div id="kpiPending" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Assigned</div>
+            <div id="kpiAssigned" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Under Review</div>
+            <div id="kpiUnderReview" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Approved</div>
+            <div id="kpiApproved" class="kpi-value">--</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Redo</div>
+            <div id="kpiRedo" class="kpi-value">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <h3 style="margin:0;">Features</h3>
+          <div id="featureMeta" class="muted"></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Feature ID</th>
+              <th>Status</th>
+              <th>Assigned To</th>
+              <th>Planned<br>Measurements</th>
+              <th>Detected Measurements</th>
+              <th>Updated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="featuresBody">
+            <tr>
+              <td colspan="7" style="padding:16px;color:#6B7280;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script src="fiber-api.js"></script>
+<script src="js/layer-details.js"></script>
+
+</body>
+</html>

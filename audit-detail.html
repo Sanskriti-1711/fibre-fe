@@ -4,7 +4,17 @@
   <meta charset="UTF-8" />
   <title>Audit Review | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="css/main.css" />
+  <style>
+    #auditMap {
+      height: 240px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #E5E7EB;
+    }
+  </style>
 </head>
 <body class="audit-detail">
 
@@ -20,13 +30,32 @@
       <div class="grid">
         <div class="card">
           <h3>Expected (Design)</h3>
-          <div class="image-box">Design Image</div>
+          <div id="auditMap" aria-label="Map placeholder"></div>
         </div>
 
         <div class="card">
           <h3>Actual (Field Upload)</h3>
           <div class="image-box">Captured Image</div>
         </div>
+      </div>
+
+      <div class="card">
+        <h3>Measurements &amp; Geometry</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Measurement</th>
+              <th>Planned</th>
+              <th>Detected / As-Built</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Length (L)</td><td>540 m</td><td>--</td></tr>
+            <tr><td>Diameter/Depth (D)</td><td>200 mm</td><td>--</td></tr>
+            <tr><td>Start (SX, SY)</td><td>13.36677, 52.44604</td><td>--</td></tr>
+            <tr><td>End (EX, EY)</td><td>13.37325, 52.44753</td><td>--</td></tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Metadata -->
@@ -54,4 +83,18 @@
 
 </body>
 <script src="partials/sidebar-loader.js"></script>
+<script>
+  (function () {
+    if (!window.L) return;
+    var el = document.getElementById('auditMap');
+    if (!el) return;
+
+    var map = L.map('auditMap', { zoomControl: false }).setView([51.5074, -0.1278], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // TODO: Wire to audit feature geometry later
+  })();
+</script>
 </html>

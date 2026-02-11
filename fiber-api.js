@@ -223,6 +223,11 @@
     });
   }
 
+  async function deleteProject(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/`, { method: "DELETE" });
+  }
+
   async function createEngineer(email, password, role) {
     return apiFetch("/api/users/", {
       method: "POST",
@@ -245,6 +250,17 @@
     });
   }
 
+  async function listProjectLayers(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/layers/`, { method: "GET" });
+  }
+
+  async function getProjectLayerDetails(projectId, layerId) {
+    const id = encodeURIComponent(projectId);
+    const lid = encodeURIComponent(layerId);
+    return apiFetch(`/api/projects/${id}/layers/${lid}/`, { method: "GET" });
+  }
+
   async function discoverLayers(projectId) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/import/discover/`, { method: "POST" });
@@ -257,6 +273,35 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ selected_layers: selectedLayers }),
     });
+  }
+
+  async function listAssignments(params) {
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/assignments/?${query}` : "/api/assignments/";
+    return apiFetch(path, { method: "GET" });
+  }
+
+  async function createAssignment(payload) {
+    return apiFetch("/api/assignments/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async function getAssignment(assignmentId) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, { method: "GET" });
+  }
+
+  async function deleteAssignment(assignmentId) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, { method: "DELETE" });
   }
 
   const FiberAuth = {
@@ -286,9 +331,16 @@
     createProject,
     createEngineer,
     deleteEngineer,
+    deleteProject,
     uploadGpkg,
+    listProjectLayers,
+    getProjectLayerDetails,
     discoverLayers,
     importLayers,
+    listAssignments,
+    createAssignment,
+    getAssignment,
+    deleteAssignment,
     apiFetch,
   };
 

@@ -198,6 +198,49 @@
       background: var(--tm-red);
       color: #fff;
     }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 9999;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 520px;
+      background: var(--tm-white);
+      border-radius: 10px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+      padding: 18px;
+    }
+
+    .modal h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .modal p {
+      margin: 0 0 14px;
+      color: var(--tm-gray);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .modal .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-secondary {
+      background: #111827;
+    }
   </style>
 </head>
 <body>
@@ -231,11 +274,6 @@
             <label>Layer (optional override)</label>
             <select id="layerSelect">
               <option value="">All Layers</option>
-              <option value="Poles">Poles</option>
-              <option value="Handholes">Handholes</option>
-              <option value="Cabinets">Cabinets</option>
-              <option value="Trenches">Trenches</option>
-              <option value="Ducts">Ducts</option>
             </select>
             <div class="hint">Selecting a layer overrides project assignment for that layer.</div>
           </div>
@@ -244,10 +282,6 @@
             <label>Feature (optional override)</label>
             <select id="featureSelect">
               <option value="">All Features in Layer</option>
-              <option value="Pole #A-19">Pole #A-19</option>
-              <option value="Pole #A-22">Pole #A-22</option>
-              <option value="Handhole #H-07">Handhole #H-07</option>
-              <option value="Cabinet #C-11">Cabinet #C-11</option>
             </select>
             <div class="hint">Selecting a feature overrides layer + project assignment.</div>
           </div>
@@ -268,43 +302,45 @@
 
           <button class="btn" type="button" onclick="applyAssignment()">Apply Assignment</button>
         </div>
-
-        <div class="card">
-          <h3>Current Assignments</h3>
-          <div id="assignmentList" class="assignment-list"></div>
-        </div>
       </div>
     </div>
   </main>
+</div>
+
+<div id="successModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="successTitle">
+  <div class="modal">
+    <h3 id="successTitle">Assignment created</h3>
+    <p id="successMessage">Success.</p>
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" onclick="closeSuccessModal()">Close</button>
+    </div>
+  </div>
 </div>
 
 <script src="partials/sidebar-loader.js"></script>
 <script src="fiber-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
-
-  const assignmentList = document.getElementById('assignmentList');
   const assignStatus = document.getElementById('assignStatus');
 
-  const assignments = [
-    { scope: 'Project', name: 'Fiber Rollout – Zone A', engineer: 'Priya K.' },
-    { scope: 'Layer', name: 'Handholes', engineer: 'Jorge M.' },
-    { scope: 'Feature', name: 'Cabinet #C-11', engineer: 'Aanya S.' }
-  ];
+  function getParams() {
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get('project_id') || params.get('proj_id') || params.get('project');
+    const layerId = params.get('layer_id') || params.get('layer');
+    const featureId = params.get('feature_id') || params.get('fid') || params.get('id');
+    return { projectId, layerId, featureId };
+  }
 
-  function renderAssignments() {
-    assignmentList.innerHTML = '';
-    assignments.forEach(function (item) {
-      const row = document.createElement('div');
-      row.className = 'assignment-item';
-      row.innerHTML = ''
-        + '<div class="assignment-title">' + item.name + '</div>'
-        + '<div class="assignment-meta">'
-        + '<span class="badge">' + item.scope + '</span>'
-        + '<span>Engineer: ' + item.engineer + '</span>'
-        + '</div>';
-      assignmentList.appendChild(row);
-    });
+  function showSuccessModal(message) {
+    const el = document.getElementById('successModal');
+    const msg = document.getElementById('successMessage');
+    if (msg) msg.textContent = message || 'Success.';
+    if (el) el.style.display = 'flex';
+  }
+
+  function closeSuccessModal() {
+    const el = document.getElementById('successModal');
+    if (el) el.style.display = 'none';
   }
 
   function setAssignStatus(message, isError) {
@@ -341,6 +377,10 @@
     return (p && (p.name || p.title || p.project_name)) || '';
   }
 
+  function pickLayerId(l) {
+    return (l && (l.id || l.layer_id || l.name)) || null;
+  }
+
   async function loadEngineersForAssign() {
     const select = document.getElementById('engineerSelect');
     if (!select) return;
@@ -365,6 +405,34 @@
       const opt = document.createElement('option');
       opt.value = value;
       opt.textContent = email && label !== email ? (label + ' (' + email + ')') : label;
+      select.appendChild(opt);
+    });
+
+    if (current) select.value = current;
+  }
+
+  async function loadLayersForProject(projectId) {
+    const select = document.getElementById('layerSelect');
+    if (!select) return;
+
+    if (!projectId) {
+      select.innerHTML = '<option value="">All Layers</option>';
+      return;
+    }
+
+    const data = await window.FiberApi.listProjectLayers(projectId);
+    const list = Array.isArray(data)
+      ? data
+      : (data && Array.isArray(data.results) ? data.results : []);
+
+    const current = select.value;
+    select.innerHTML = '<option value="">All Layers</option>';
+    list.forEach(function (l) {
+      const id = pickLayerId(l);
+      if (!id) return;
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = id;
       select.appendChild(opt);
     });
 
@@ -403,38 +471,73 @@
   function applyAssignment() {
     const projectSelect = document.getElementById('projectSelect');
     const project = projectSelect.value;
-    const projectLabel = projectSelect.selectedIndex >= 0
-      ? projectSelect.options[projectSelect.selectedIndex].textContent
-      : project;
     const layer = document.getElementById('layerSelect').value;
     const feature = document.getElementById('featureSelect').value;
     const engineerSelect = document.getElementById('engineerSelect');
     const engineer = engineerSelect.value;
-    const engineerLabel = engineerSelect.selectedIndex >= 0
-      ? engineerSelect.options[engineerSelect.selectedIndex].textContent
-      : engineer;
 
-    if (!project || !engineer) return;
-
-    let scope = 'Project';
-    let name = projectLabel || project;
-    if (layer) {
-      scope = 'Layer';
-      name = layer;
-    }
-    if (feature) {
-      scope = 'Feature';
-      name = feature;
+    if (!project) {
+      setAssignStatus('Select a project.', true);
+      return;
     }
 
-    assignments.unshift({ scope: scope, name: name, engineer: engineerLabel || engineer });
-    renderAssignments();
+    if (!engineer) {
+      setAssignStatus('Select an engineer.', true);
+      return;
+    }
+
+    const scope = feature ? 'feature' : (layer ? 'layer' : 'project');
+    const payload = {
+      project: project,
+      scope: scope,
+      layer_id: layer || null,
+      feature: feature || null,
+      assignee: engineer,
+    };
+
+    setAssignStatus('Creating assignment...');
+
+    window.FiberApi.createAssignment(payload)
+      .then(function (res) {
+        const assigned = res && res.id ? ('Assignment ID: ' + res.id) : 'Assignment created.';
+        setAssignStatus('');
+        showSuccessModal(assigned);
+      })
+      .catch(function (e) {
+        setAssignStatus(e && e.message ? e.message : 'Failed to create assignment.', true);
+      });
   }
 
-  renderAssignments();
+  function bindProjectChange() {
+    const projectSelect = document.getElementById('projectSelect');
+    if (!projectSelect) return;
+    projectSelect.addEventListener('change', function () {
+      loadLayersForProject(projectSelect.value).catch(function (e) {
+        setAssignStatus(e && e.message ? e.message : 'Failed to load layers.', true);
+      });
+    });
+  }
+
   (function bootstrapAssign() {
+    const params = getParams();
     setAssignStatus('Loading engineers and projects...');
+
     Promise.all([loadEngineersForAssign(), loadProjectsForAssign()])
+      .then(function () {
+        bindProjectChange();
+
+        const projectSelect = document.getElementById('projectSelect');
+        const layerSelect = document.getElementById('layerSelect');
+        const featureSelect = document.getElementById('featureSelect');
+
+        if (params.projectId && projectSelect) projectSelect.value = params.projectId;
+
+        return loadLayersForProject(params.projectId || (projectSelect ? projectSelect.value : ''))
+          .then(function () {
+            if (params.layerId && layerSelect) layerSelect.value = params.layerId;
+            if (params.featureId && featureSelect) featureSelect.value = params.featureId;
+          });
+      })
       .then(function () { setAssignStatus(''); })
       .catch(function (e) {
         setAssignStatus(e && e.message ? e.message : 'Failed to load assignments data.', true);
