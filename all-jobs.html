@@ -292,16 +292,16 @@
     // Update filter dropdown (keep "All Engineers" option)
     const filterOptions = ['<option value="">All Engineers</option>'];
     engineersList.forEach(eng => {
-      const name = eng.name || eng.email || eng.uuid;
-      filterOptions.push(`<option value="${eng.uuid}">${name}</option>`);
+      const name = eng.name || eng.email || eng.id;
+      filterOptions.push(`<option value="${eng.id}">${name}</option>`);
     });
     engineerFilter.innerHTML = filterOptions.join('');
 
     // Update reassign dropdown
     const reassignOptions = ['<option value="">Select Engineer</option>'];
     engineersList.forEach(eng => {
-      const name = eng.name || eng.email || eng.uuid;
-      reassignOptions.push(`<option value="${eng.uuid}">${name}</option>`);
+      const name = eng.name || eng.email || eng.id;
+      reassignOptions.push(`<option value="${eng.id}">${name}</option>`);
     });
     reassignSelect.innerHTML = reassignOptions.join('');
   }
@@ -600,7 +600,7 @@
     if (search) params.search = search;
     if (project) params.project = project;
     if (status) params.status = status;
-    if (engineer) params.assignee = engineer;
+    if (engineer) params.engineer = engineer;
     if (scope) params.scope = scope;
 
     currentPage = 1;

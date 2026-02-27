@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Engineer Activity | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body class="engineer-activity-admin">
+
+<div class="layout">
+  <div id="sidebarContainer"></div>
+
+  <main class="content">
+    <div class="container">
+      <!-- Engineer Selector Header -->
+      <div class="header">
+        <div>
+          <h1 id="engineerName">Engineer Activity</h1>
+          <p id="engineerSubtitle">Select an engineer to view their activity</p>
+        </div>
+        <div class="header-controls">
+          <select id="engineerSelect" class="engineer-select">
+            <option value="">Select Engineer...</option>
+          </select>
+          <button id="refreshBtn" class="btn btn-secondary">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Global Error -->
+      <div id="errorMessage" class="error-banner" style="display:none;"></div>
+
+      <!-- Engineer Selected Content -->
+      <div id="activityContent" class="activity-content" style="display:none;">
+
+        <!-- KPI Cards Row -->
+        <div class="kpi-grid overview">
+          <div class="kpi-card overview">
+            <div class="kpi-title">Assigned Projects</div>
+            <div class="kpi-value" id="statProjects">0</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Total Layers</div>
+            <div class="kpi-value" id="statLayers">0</div>
+          </div>
+          <div class="kpi-card overview">
+            <div class="kpi-title">Total Features</div>
+            <div class="kpi-value" id="statFeatures">0</div>
+          </div>
+        </div>
+
+        <!-- Status Breakdown -->
+        <div class="section">
+          <h3>Status Breakdown</h3>
+          <div class="status-breakdown">
+            <div class="status-stat">
+              <span class="status-dot pending"></span>
+              <span class="status-label">Pending</span>
+              <span class="status-count" id="statusPending">0</span>
+            </div>
+            <div class="status-stat">
+              <span class="status-dot assigned"></span>
+              <span class="status-label">Assigned</span>
+              <span class="status-count" id="statusAssigned">0</span>
+            </div>
+            <div class="status-stat">
+              <span class="status-dot review"></span>
+              <span class="status-label">Under Review</span>
+              <span class="status-count" id="statusReview">0</span>
+            </div>
+            <div class="status-stat">
+              <span class="status-dot approved"></span>
+              <span class="status-label">Approved</span>
+              <span class="status-count" id="statusApproved">0</span>
+            </div>
+            <div class="status-stat">
+              <span class="status-dot redo"></span>
+              <span class="status-label">Redo</span>
+              <span class="status-count" id="statusRedo">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="grid activity-grid">
+          <!-- Left Column: Assignments & Work Queue -->
+          <div class="left-column">
+            <!-- Work Queue -->
+            <div class="section">
+              <div class="section-header">
+                <h3>Work Queue</h3>
+                <div class="tab-buttons">
+                  <button class="tab-btn active" data-queue="ready">Ready to Work</button>
+                  <button class="tab-btn" data-queue="review">Awaiting Review</button>
+                  <button class="tab-btn" data-queue="redo">Needs Redo</button>
+                </div>
+              </div>
+              <div id="workQueueList" class="work-queue-list">
+                <div class="empty-state">No items in this queue</div>
+              </div>
+            </div>
+
+            <!-- Assignments List -->
+            <div class="section">
+              <div class="section-header">
+                <h3>Assignments</h3>
+                <div class="filters">
+                  <select id="filterProject">
+                    <option value="">All Projects</option>
+                  </select>
+                  <select id="filterScope">
+                    <option value="">All Scopes</option>
+                    <option value="project">Project</option>
+                    <option value="layer">Layer</option>
+                    <option value="feature">Feature</option>
+                  </select>
+                  <select id="filterStatus">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="ASSIGNED">Assigned</option>
+                    <option value="UNDER_REVIEW">Under Review</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="REDO">Redo</option>
+                  </select>
+                  <input type="text" id="searchAssignments" placeholder="Search by project, feature ID, or layer..." />
+                </div>
+              </div>
+              <div id="assignmentsTable" class="assignments-table-wrapper">
+                <table class="assignments-table">
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Scope</th>
+                      <th>Status</th>
+                      <th>Assigned Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="assignmentsTbody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Analytics, Timeline, Projects -->
+          <div class="right-column">
+            <!-- Performance Analytics -->
+            <div class="section">
+              <h3>Performance Analytics</h3>
+              <div class="analytics-period">
+                <button class="period-btn active" data-period="week">Weekly</button>
+                <button class="period-btn" data-period="month">Monthly</button>
+              </div>
+              <div class="analytics-grid">
+                <div class="analytics-item">
+                  <span class="analytics-label">Features Completed</span>
+                  <span class="analytics-value" id="analyticsCompleted">0</span>
+                </div>
+                <div class="analytics-item">
+                  <span class="analytics-label">Approval Rate</span>
+                  <span class="analytics-value" id="analyticsApprovalRate">0%</span>
+                </div>
+                <div class="analytics-item">
+                  <span class="analytics-label">Redo Rate</span>
+                  <span class="analytics-value" id="analyticsRedoRate">0%</span>
+                </div>
+                <div class="analytics-item">
+                  <span class="analytics-label">Velocity</span>
+                  <span class="analytics-value" id="analyticsVelocity">0/day</span>
+                </div>
+              </div>
+              <div class="project-contribution">
+                <h4>Project Contribution</h4>
+                <div id="projectContribution" class="contribution-list"></div>
+              </div>
+            </div>
+
+            <!-- Project Overview -->
+            <div class="section">
+              <h3>Project Overview</h3>
+              <div id="projectOverviewList" class="project-overview-list"></div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="section">
+              <h3>Activity Timeline</h3>
+              <div id="activityTimeline" class="activity-timeline"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Engineer Selected State -->
+      <div id="noSelectionState" class="empty-state-large">
+        <p>Select an engineer from the dropdown above to view their activity</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Field Work Modal -->
+<div id="fieldWorkModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Field Work - Feature <span id="modalFeatureId"></span></h3>
+      <button class="modal-close" id="closeModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Field Measurements (JSON)</label>
+        <textarea id="fieldMeasurements" rows="6" placeholder='{"length": 100, "depth": 2.5, ...}'></textarea>
+      </div>
+      <div class="form-group">
+        <label>Comparison Notes</label>
+        <textarea id="comparisonNotes" rows="4" placeholder="Add comparison notes..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Properties</label>
+        <div id="propertiesEditor" class="properties-editor"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="saveFieldWork" class="btn btn-primary">Save Changes</button>
+      <button id="submitForReview" class="btn btn-success">Submit for Review</button>
+    </div>
+  </div>
+</div>
+
+<script src="fiber-api.js"></script>
+<script src="partials/sidebar-loader.js"></script>
+<script src="js/engineer-activity.js"></script>
+</body>
+</html>
