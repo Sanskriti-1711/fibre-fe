@@ -83,23 +83,8 @@
 
         <!-- Two Column Layout -->
         <div class="grid activity-grid">
-          <!-- Left Column: Assignments & Work Queue -->
+          <!-- Left Column: Assignments -->
           <div class="left-column">
-            <!-- Work Queue -->
-            <div class="section">
-              <div class="section-header">
-                <h3>Work Queue</h3>
-                <div class="tab-buttons">
-                  <button class="tab-btn active" data-queue="ready">Ready to Work</button>
-                  <button class="tab-btn" data-queue="review">Awaiting Review</button>
-                  <button class="tab-btn" data-queue="redo">Needs Redo</button>
-                </div>
-              </div>
-              <div id="workQueueList" class="work-queue-list">
-                <div class="empty-state">No items in this queue</div>
-              </div>
-            </div>
-
             <!-- Assignments List -->
             <div class="section">
               <div class="section-header">
@@ -143,39 +128,8 @@
             </div>
           </div>
 
-          <!-- Right Column: Analytics, Timeline, Projects -->
+          <!-- Right Column: Timeline, Projects -->
           <div class="right-column">
-            <!-- Performance Analytics -->
-            <div class="section">
-              <h3>Performance Analytics</h3>
-              <div class="analytics-period">
-                <button class="period-btn active" data-period="week">Weekly</button>
-                <button class="period-btn" data-period="month">Monthly</button>
-              </div>
-              <div class="analytics-grid">
-                <div class="analytics-item">
-                  <span class="analytics-label">Features Completed</span>
-                  <span class="analytics-value" id="analyticsCompleted">0</span>
-                </div>
-                <div class="analytics-item">
-                  <span class="analytics-label">Approval Rate</span>
-                  <span class="analytics-value" id="analyticsApprovalRate">0%</span>
-                </div>
-                <div class="analytics-item">
-                  <span class="analytics-label">Redo Rate</span>
-                  <span class="analytics-value" id="analyticsRedoRate">0%</span>
-                </div>
-                <div class="analytics-item">
-                  <span class="analytics-label">Velocity</span>
-                  <span class="analytics-value" id="analyticsVelocity">0/day</span>
-                </div>
-              </div>
-              <div class="project-contribution">
-                <h4>Project Contribution</h4>
-                <div id="projectContribution" class="contribution-list"></div>
-              </div>
-            </div>
-
             <!-- Project Overview -->
             <div class="section">
               <h3>Project Overview</h3>
