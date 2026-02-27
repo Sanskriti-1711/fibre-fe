@@ -2154,16 +2154,19 @@ tr:hover {
 }
 
 .engineers-list .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
   background: var(--tm-red);
-  color: #fff;
+  color: var(--tm-white);
   border: none;
-  padding: 10px 14px;
   border-radius: 6px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 14px;
   text-decoration: none;
-  display: inline-block;
 }
 
 .engineers-list .status.active {
