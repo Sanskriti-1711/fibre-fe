@@ -2137,3 +2137,42 @@ tr:hover {
   text-align: center;
 }
 
+/* ===== Engineers List Page Specific ===== */
+
+.engineers-list .container {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--tm-white);
+  padding: 28px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.engineers-list h1 {
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.engineers-list .btn {
+  background: var(--tm-red);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.engineers-list .status.active {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.engineers-list .status.inactive {
+  color: var(--tm-gray);
+  font-weight: 600;
+}
+
