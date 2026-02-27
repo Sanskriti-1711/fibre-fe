@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>All Jobs | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+  <script src="fiber-api.js"></script>
+</head>
+<body class="all-jobs">
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<div class="layout">
+  <div id="sidebarContainer"></div>
+
+  <!-- Main Content -->
+  <main class="content">
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <div>
+          <h1>All Jobs</h1>
+          <p>Manage and track all job assignments across projects</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-outline" onclick="exportData()">Export</button>
+          <button class="btn btn-primary" onclick="openCreateJob()">+ New Job</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card total">
+          <div class="stat-value" id="statTotal">0</div>
+          <div class="stat-label">Total Jobs Assigned</div>
+        </div>
+        <div class="stat-card pending">
+          <div class="stat-value" id="statUnderReview">0</div>
+          <div class="stat-label">Under Review</div>
+        </div>
+        <div class="stat-card completed">
+          <div class="stat-value" id="statApproved">0</div>
+          <div class="stat-label">Approved</div>
+        </div>
+        <div class="stat-card inprogress">
+          <div class="stat-value" id="statRedo">0</div>
+          <div class="stat-label">Redo</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" placeholder="Job ID, project, or engineer..." id="searchInput">
+        </div>
+        <div class="filter-group">
+          <label>Project</label>
+          <select id="projectFilter">
+            <option value="">All Projects</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="statusFilter">
+            <option value="">All Status</option>
+            <option value="under_review">Under Review</option>
+            <option value="approved">Approved</option>
+            <option value="redo">Redo</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Engineer</label>
+          <select id="engineerFilter">
+            <option value="">All Engineers</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Scope</label>
+          <select id="scopeFilter">
+            <option value="">All Scopes</option>
+            <option value="project">Project</option>
+            <option value="layer">Layer</option>
+            <option value="feature">Feature</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container">
+        <div class="table-header">
+          <span class="table-title">Job Assignments</span>
+          <button class="btn btn-outline" onclick="refreshTable()">Refresh</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>Assignment Details</th>
+              <th>Scope</th>
+              <th>Assigned To</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="jobsTableBody">
+            <tr id="loadingRow">
+              <td colspan="7" class="text-center">Loading jobs...</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span class="pagination-info" id="paginationInfo">Loading...</span>
+          <div class="pagination-buttons" id="paginationButtons"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal-backdrop">
+  <div class="modal">
+    <h3>Delete Job Assignment?</h3>
+    <p>Are you sure you want to delete job #<span id="deleteJobId"></span>? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Details Modal -->
+<div id="viewModal" class="modal-backdrop">
+  <div class="modal modal-large">
+    <h3>Job Details</h3>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Job ID</span>
+        <span class="detail-value" id="detailJobId">-</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Status</span>
+        <span class="detail-value" id="detailStatus">-</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Project</span>
+        <span class="detail-value" id="detailProject">-</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Scope Level</span>
+        <span class="detail-value" id="detailScope">-</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Layer</span>
+        <span class="detail-value" id="detailLayer">-</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Feature</span>
+        <span class="detail-value" id="detailFeature">-</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Assigned Engineer</span>
+        <span class="detail-value" id="detailEngineer">-</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Created Date</span>
+        <span class="detail-value" id="detailCreated">-</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeViewModal()">Close</button>
+      <button class="btn btn-primary" onclick="editCurrentJob()">Edit Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reassign Engineer Modal -->
+<div id="reassignModal" class="modal-backdrop">
+  <div class="modal">
+    <h3>Reassign Engineer</h3>
+    <p>Reassign job #<span id="reassignJobId"></span> to a different engineer.</p>
+    <div class="form-group" style="margin: 16px 0;">
+      <label>Select Engineer</label>
+      <select id="reassignEngineerSelect" class="form-select" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px;">
+        <option value="">Loading engineers...</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeReassignModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmReassign()">Reassign</button>
+    </div>
+  </div>
+</div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script>
+  // State
+  let currentJobId = null;
+  let allJobs = [];
+  let engineersList = [];
+  let projectsList = [];
+  let currentPage = 1;
+  const pageSize = 10;
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    FiberAuth.requireLogin();
+    loadProjects();
+    loadEngineers();
+    loadJobs();
+    setupEventListeners();
+  });
+
+  // Show/hide loading overlay
+  function showLoading(show) {
+    document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+  }
+
+  // Load projects for filter dropdown
+  async function loadProjects() {
+    try {
+      const response = await FiberApi.listProjects();
+      projectsList = Array.isArray(response) ? response : (response.results || response.data || []);
+      updateProjectFilter();
+    } catch (err) {
+      console.error('Failed to load projects:', err);
+    }
+  }
+
+  // Update project filter dropdown
+  function updateProjectFilter() {
+    const projectFilter = document.getElementById('projectFilter');
+    const options = ['<option value="">All Projects</option>'];
+    projectsList.forEach(proj => {
+      const id = proj.uuid || proj.id;
+      const name = proj.name || 'Unnamed Project';
+      options.push(`<option value="${id}">${escapeHtml(name)}</option>`);
+    });
+    projectFilter.innerHTML = options.join('');
+  }
+
+  // Load jobs from API
+  async function loadJobs(params = {}) {
+    try {
+      showLoading(true);
+      const response = await FiberApi.listJobs(params);
+      allJobs = response.results || [];
+      totalJobsCount = response.count || allJobs.length;
+      // Update stats from response if available
+      if (response.stats) {
+        updateStatsFromResponse(response.stats);
+      }
+      renderJobs();
+      renderPagination(totalJobsCount);
+    } catch (err) {
+      console.error('Failed to load jobs:', err);
+      document.getElementById('jobsTableBody').innerHTML = '<tr><td colspan="7" class="text-center">Failed to load jobs. Please try again.</td></tr>';
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  // Update stats cards from API response stats
+  function updateStatsFromResponse(stats) {
+    document.getElementById('statTotal').textContent = stats.assigned || 0;
+    document.getElementById('statUnderReview').textContent = stats.under_review || 0;
+    document.getElementById('statApproved').textContent = stats.approved || 0;
+    document.getElementById('statRedo').textContent = stats.redo || 0;
+  }
+
+  // Load engineers for reassign dropdown
+  async function loadEngineers() {
+    try {
+      const response = await FiberApi.listEngineers();
+      engineersList = Array.isArray(response) ? response : (response.results || response.data || []);
+      updateEngineerFilters();
+    } catch (err) {
+      console.error('Failed to load engineers:', err);
+    }
+  }
+
+  // Update engineer filter dropdowns
+  function updateEngineerFilters() {
+    const engineerFilter = document.getElementById('engineerFilter');
+    const reassignSelect = document.getElementById('reassignEngineerSelect');
+
+    // Update filter dropdown (keep "All Engineers" option)
+    const filterOptions = ['<option value="">All Engineers</option>'];
+    engineersList.forEach(eng => {
+      const name = eng.name || eng.email || eng.id;
+      filterOptions.push(`<option value="${eng.id}">${name}</option>`);
+    });
+    engineerFilter.innerHTML = filterOptions.join('');
+
+    // Update reassign dropdown
+    const reassignOptions = ['<option value="">Select Engineer</option>'];
+    engineersList.forEach(eng => {
+      const name = eng.name || eng.email || eng.id;
+      reassignOptions.push(`<option value="${eng.id}">${name}</option>`);
+    });
+    reassignSelect.innerHTML = reassignOptions.join('');
+  }
+
+  // Render jobs table
+  function renderJobs() {
+    const tbody = document.getElementById('jobsTableBody');
+
+    if (allJobs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No jobs found</td></tr>';
+      return;
+    }
+
+    // Pagination
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const jobsToShow = allJobs.slice(start, end);
+
+    tbody.innerHTML = jobsToShow.map(job => renderJobRow(job)).join('');
+  }
+
+  // Render single job row
+  function renderJobRow(job) {
+    const jobId = job.id || job.uuid || job.job_id;
+    // Handle nested project object
+    const project = job.project?.name || job.project_name || job.project || 'N/A';
+    // API now includes layer_name inside feature object
+    const feature = job.feature?.name || job.feature_name || (job.feature?.id ? 'Feature ' + job.feature.id.slice(0, 8) : '-');
+    const layer = job.feature?.layer_name || job.layer?.name || job.layer_name || '-';
+    const scope = job.scope || 'Project';
+    // Handle nested assignee object
+    const assignee = job.assignee || {};
+    const engineer = assignee.email || job.assignee_name || job.engineer || 'Unassigned';
+    const initials = assignee.initials || engineer.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const status = job.status || 'under_review';
+    const created = formatDate(job.created_at || job.created || new Date());
+
+    const statusBadgeClass = {
+      'under_review': 'badge-pending',
+      'approved': 'badge-completed',
+      'redo': 'badge-inprogress'
+    }[status] || 'badge-pending';
+
+    const statusLabel = status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+    let hierarchyHtml = `<div class="hierarchy">
+      <div class="hierarchy-item">
+        <svg class="hierarchy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M3 7l9-4 9 4M3 7l9 4 9-4"/></svg>
+        <strong>${escapeHtml(project)}</strong>
+      </div>`;
+
+    if (scope === 'layer' || scope === 'feature') {
+      hierarchyHtml += `<div class="hierarchy-item">
+        <svg class="hierarchy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        ${escapeHtml(layer)}
+      </div>`;
+    }
+
+    if (scope === 'feature' && feature !== '-') {
+      hierarchyHtml += `<div class="hierarchy-item">
+        <svg class="hierarchy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        ${escapeHtml(feature)}
+      </div>`;
+    }
+
+    hierarchyHtml += '</div>';
+
+    return `<tr>
+      <td><span class="job-id">#${jobId.slice(0, 12)}</span></td>
+      <td>${hierarchyHtml}</td>
+      <td><span class="badge badge-scope">${scope.charAt(0).toUpperCase() + scope.slice(1)}</span></td>
+      <td>
+        <div class="engineer">
+          <div class="engineer-avatar">${initials}</div>
+          <div class="engineer-info">
+            <span class="engineer-name">${escapeHtml(engineer)}</span>
+          </div>
+        </div>
+      </td>
+      <td><span class="badge ${statusBadgeClass}">${statusLabel}</span></td>
+      <td>${created}</td>
+      <td>
+        <div class="actions">
+          <button class="action-btn" onclick="viewJob('${jobId}')">View</button>
+          <button class="action-btn" onclick="openReassign('${jobId}')">Reassign</button>
+          <button class="action-btn" onclick="deleteJob('${jobId}')">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }
+
+  // Render pagination with server-side count
+  function renderPagination(totalCount) {
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const info = document.getElementById('paginationInfo');
+    const buttons = document.getElementById('paginationButtons');
+
+    if (allJobs.length === 0) {
+      info.textContent = 'No jobs';
+      buttons.innerHTML = '';
+      return;
+    }
+
+    const start = (currentPage - 1) * pageSize + 1;
+    const end = Math.min(currentPage * pageSize, totalCount);
+    info.textContent = `Showing ${start}-${end} of ${totalCount} jobs`;
+
+    let html = '';
+    if (currentPage > 1) {
+      html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})">Previous</button>`;
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+        html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+      } else if (i === currentPage - 2 || i === currentPage + 2) {
+        html += `<span class="page-btn">...</span>`;
+      }
+    }
+
+    if (currentPage < totalPages) {
+      html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})">Next</button>`;
+    }
+
+    buttons.innerHTML = html;
+  }
+
+  // Track total count for pagination
+  let totalJobsCount = 0;
+
+  function goToPage(page) {
+    currentPage = page;
+    renderJobs();
+    renderPagination(totalJobsCount);
+  }
+
+  // Utility functions
+  function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function escapeHtml(str) {
+    if (str == null || typeof str !== 'string') return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Actions
+  function openCreateJob() {
+    window.location.href = 'create-job.html';
+  }
+
+  function exportData() {
+    alert('Export functionality would download CSV here');
+  }
+
+  function refreshTable() {
+    currentPage = 1;
+    loadJobs();
+  }
+
+  async function viewJob(jobId) {
+    try {
+      const job = await FiberApi.getAssignment(jobId);
+      if (!job) return;
+
+      document.getElementById('detailJobId').textContent = jobId;
+      // Handle nested project object
+      const project = job.project?.name || job.project_name || job.project || 'N/A';
+      document.getElementById('detailProject').textContent = project;
+      // API now includes layer_name inside feature object
+      const layer = job.feature?.layer_name || job.layer?.name || job.layer_name || '-';
+      document.getElementById('detailLayer').textContent = layer;
+      const feature = job.feature?.name || job.feature_name || (job.feature?.id ? 'Feature ' + job.feature.id.slice(0, 8) : '-');
+      document.getElementById('detailFeature').textContent = feature;
+      document.getElementById('detailScope').textContent = (job.scope || 'Project').charAt(0).toUpperCase() + (job.scope || 'Project').slice(1);
+      // Handle nested assignee object
+      const assignee = job.assignee || {};
+      const engineer = assignee.email || job.assignee_name || job.engineer || 'Unassigned';
+      document.getElementById('detailEngineer').textContent = engineer;
+      document.getElementById('detailStatus').textContent = (job.status || 'under_review').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+      document.getElementById('detailCreated').textContent = formatDate(job.created_at || job.created);
+
+      currentJobId = jobId;
+      document.getElementById('viewModal').style.display = 'flex';
+    } catch (err) {
+      alert('Failed to load job details: ' + err.message);
+    }
+  }
+
+  function closeViewModal() {
+    document.getElementById('viewModal').style.display = 'none';
+    currentJobId = null;
+  }
+
+  function editCurrentJob() {
+    closeViewModal();
+    if (currentJobId) {
+      openReassign(currentJobId);
+    }
+  }
+
+  function openReassign(jobId) {
+    currentJobId = jobId;
+    document.getElementById('reassignJobId').textContent = jobId.slice(0, 12);
+    document.getElementById('reassignEngineerSelect').value = '';
+    document.getElementById('reassignModal').style.display = 'flex';
+  }
+
+  function closeReassignModal() {
+    document.getElementById('reassignModal').style.display = 'none';
+    currentJobId = null;
+  }
+
+  async function confirmReassign() {
+    const newEngineerId = document.getElementById('reassignEngineerSelect').value;
+    if (!newEngineerId) {
+      alert('Please select an engineer');
+      return;
+    }
+
+    try {
+      showLoading(true);
+      await FiberApi.updateAssignment(currentJobId, { assignee: newEngineerId });
+      closeReassignModal();
+      alert('Engineer reassigned successfully');
+      refreshTable();
+    } catch (err) {
+      alert('Failed to reassign: ' + err.message);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  function deleteJob(jobId) {
+    currentJobId = jobId;
+    document.getElementById('deleteJobId').textContent = jobId.slice(0, 12);
+    document.getElementById('deleteModal').style.display = 'flex';
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    currentJobId = null;
+  }
+
+  async function confirmDelete() {
+    try {
+      showLoading(true);
+      await FiberApi.deleteAssignment(currentJobId);
+      closeDeleteModal();
+      alert('Job deleted successfully');
+      refreshTable();
+    } catch (err) {
+      alert('Failed to delete: ' + err.message);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  // Event listeners
+  function setupEventListeners() {
+    // Filter changes
+    document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
+    document.getElementById('projectFilter').addEventListener('change', applyFilters);
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('engineerFilter').addEventListener('change', applyFilters);
+    document.getElementById('scopeFilter').addEventListener('change', applyFilters);
+
+    // Modal backdrop clicks
+    document.querySelectorAll('.modal-backdrop').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.style.display = 'none';
+        }
+      });
+    });
+  }
+
+  function debounce(fn, delay) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value;
+    const project = document.getElementById('projectFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const engineer = document.getElementById('engineerFilter').value;
+    const scope = document.getElementById('scopeFilter').value;
+
+    const params = {};
+    if (search) params.search = search;
+    if (project) params.project = project;
+    if (status) params.status = status;
+    if (engineer) params.engineer = engineer;
+    if (scope) params.scope = scope;
+
+    currentPage = 1;
+    loadJobs(params);
+  }
+</script>
+
+</body>
+</html>

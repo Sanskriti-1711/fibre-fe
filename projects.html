@@ -167,7 +167,7 @@
           + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
           + '<td>' + escapeHtml(completion) + '</td>'
           + '<td>' + escapeHtml(lastActivity) + '</td>'
-          + '<td><a class="action-link" href="' + link + '">View</a><a class="action-link" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left: 15px;">Delete</button></td>';
+          + '<td><a class="action-link" href="' + link + '">View</a><button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button></td>';
         tbody.appendChild(tr);
       });
 
@@ -225,7 +225,7 @@
   async function handleDeleteProject(projectId) {
     try {
       await window.FiberApi.deleteProject(projectId);
-      loadProjects(getFilterParams());
+      window.location.reload();
     } catch (e) {
       setProjectsError(e && e.message ? e.message : 'Failed to delete project');
     }

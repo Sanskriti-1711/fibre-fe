@@ -79,7 +79,6 @@
       flex:1;
       padding:32px;
       display:flex;
-      align-items:center;
       justify-content:center;
     }
 
@@ -134,48 +133,7 @@
 
 <div class="layout">
 
-  <aside class="sidebar">
-    <h2>Tech Mahindra</h2>
-    <nav class="nav">
-      <div class="nav-section">
-        <span class="nav-label">Overview</span>
-        <a href="dashboard.html">Dashboard</a>
-      </div>
-
-      <div class="nav-section">
-        <span class="nav-label">Projects</span>
-        <a href="projects.html">Projects</a>
-        <a href="project-approval-que.html">Approval Queue</a>
-        <a href="project-create.html">Create Project</a>
-        <a href="admin-project-gpkg-upload.html">GeoPackage Import</a>
-        <a href="project-overview.html">Project Overview</a>
-        <a href="feature-management.html">Feature Management</a>
-        <a href="project-assign.html">Assign Engineers</a>
-        <a href="project-map-review.html">Map Review</a>
-        <a href="audit-detail.html">Audit Detail</a>
-      </div>
-
-      <div class="nav-section">
-        <span class="nav-label">Engineers</span>
-        <a href="engineers-list.html">Engineers</a>
-        <a class="active" href="engineers-invite.html">Invite Engineer</a>
-        <a href="engineer-activity.html">Engineer Activity</a>
-        <a href="engineer-dashboard.html">Engineer Dashboard</a>
-        <a href="engineer-project-details.html">Engineer Projects</a>
-        <a href="engineer-feature-submit.html">Feature Submit</a>
-        <a href="engineer-project-map.html">Engineer Map</a>
-        <a href="engineer-notifications.html">Engineer Notifications</a>
-        <a href="engineer-profile.html">Engineer Profile</a>
-      </div>
-
-      <div class="nav-section">
-        <span class="nav-label">Operations</span>
-        <a href="reports.html">Reports & Exports</a>
-        <a href="admin-settings.html">Admin Settings</a>
-        <a href="#" onclick="handleLogout(event)">Logout</a>
-      </div>
-    </nav>
-  </aside>
+    <div id="sidebarContainer"></div>
 
   <main class="content">
     <div class="container">
@@ -205,6 +163,7 @@
 
 </body>
 <script src="fiber-api.js"></script>
+<script src="partials/sidebar-loader.js"></script>
 <script>
   window.FiberAuth.requireLogin();
 

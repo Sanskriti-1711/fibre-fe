@@ -167,12 +167,20 @@ async function loadAndRenderProject() {
 
     const apiLayerList = (apiLayers && Array.isArray(apiLayers.layers)) ? apiLayers.layers : [];
     const apiLayerIdByName = {};
+    const apiLayerIdByNameNormalized = {};
     apiLayerList.forEach(function (l) {
       if (!l) return;
       const lname = l.layer_name;
       const lid = l.layer_id;
-      if (lname && lid && apiLayerIdByName[lname] === undefined) {
-        apiLayerIdByName[lname] = lid;
+      if (lname && lid) {
+        if (apiLayerIdByName[lname] === undefined) {
+          apiLayerIdByName[lname] = lid;
+        }
+        // Also store normalized version (lowercase, underscores to spaces) for fuzzy matching
+        const normalized = lname.toLowerCase().replace(/_/g, ' ').trim();
+        if (normalized && apiLayerIdByNameNormalized[normalized] === undefined) {
+          apiLayerIdByNameNormalized[normalized] = lid;
+        }
       }
     });
 
@@ -205,7 +213,14 @@ async function loadAndRenderProject() {
       // Add layer basics row
       const row = document.createElement('tr');
       
-      const layerId = apiLayerIdByName[layerInfo.name] || '';
+      // Try exact match first, then normalized match
+      let layerId = apiLayerIdByName[layerInfo.name] || '';
+      if (!layerId) {
+        const normalizedMapName = (layerInfo.name || '').toLowerCase().replace(/_/g, ' ').trim();
+        layerId = apiLayerIdByNameNormalized[normalizedMapName] || '';
+      }
+      
+      console.log('Layer mapping:', { mapName: layerInfo.name, resolvedId: layerId });
       
       row.innerHTML = ''
         + '<td>' + layerInfo.name + '</td>'

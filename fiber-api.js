@@ -275,6 +275,17 @@
     });
   }
 
+  async function listJobs(params) {
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/assignments/jobs/?${query}` : "/api/assignments/jobs/";
+    return apiFetch(path, { method: "GET" });
+  }
+
   async function listAssignments(params) {
     const query = params && typeof params === "object"
       ? Object.keys(params)
@@ -299,9 +310,72 @@
     return apiFetch(`/api/assignments/${id}/`, { method: "GET" });
   }
 
+  async function updateAssignment(assignmentId, payload) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
   async function deleteAssignment(assignmentId) {
     const id = encodeURIComponent(assignmentId);
     return apiFetch(`/api/assignments/${id}/`, { method: "DELETE" });
+  }
+
+  async function getAssignmentsSummary(params) {
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/assignments/summary/?${query}` : "/api/assignments/summary/";
+    return apiFetch(path, { method: "GET" });
+  }
+
+  // Engineer Activity APIs
+  async function getEngineerActivity(engineerId, params) {
+    const id = encodeURIComponent(engineerId);
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/engineer/${id}/activity/?${query}` : `/api/engineer/${id}/activity/`;
+    return apiFetch(path, { method: "GET" });
+  }
+
+  async function getEngineerStats(engineerId, params) {
+    const id = encodeURIComponent(engineerId);
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/engineer/${id}/stats/?${query}` : `/api/engineer/${id}/stats/`;
+    return apiFetch(path, { method: "GET" });
+  }
+
+  async function updateFeatureFieldData(featureId, payload) {
+    const id = encodeURIComponent(featureId);
+    return apiFetch(`/api/features/${id}/field-measurements/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async function submitFeatureForReview(featureId) {
+    const id = encodeURIComponent(featureId);
+    return apiFetch(`/api/features/${id}/submit/`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
   }
 
   const FiberAuth = {
@@ -337,10 +411,17 @@
     getProjectLayerDetails,
     discoverLayers,
     importLayers,
+    listJobs,
     listAssignments,
     createAssignment,
     getAssignment,
+    updateAssignment,
     deleteAssignment,
+    getAssignmentsSummary,
+    getEngineerActivity,
+    getEngineerStats,
+    updateFeatureFieldData,
+    submitFeatureForReview,
     apiFetch,
   };
 
