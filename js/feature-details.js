@@ -55,12 +55,11 @@ function setElDisplay(el, show, displayValue) {
   el.style.display = show ? (displayValue || '') : 'none';
 }
 
-function setStatusPill(status, assignment) {
+function setStatusPill(status) {
   const pill = qs('featureStatusPill');
   if (!pill) return;
 
   const s = normStatus(status);
-  const hasAssignment = Boolean(assignment);
 
   let label = '';
   let bg = '#F9FAFB';
@@ -83,13 +82,20 @@ function setStatusPill(status, assignment) {
     border = '1px solid rgba(153,27,27,0.18)';
     dotBg = '#EF4444';
     icon = '!';
-  } else if (hasAssignment || s === 'assigned') {
+  } else if (s === 'assigned') {
     label = 'Assigned';
     bg = '#EFF6FF';
     color = '#1D4ED8';
     border = '1px solid rgba(29,78,216,0.18)';
     dotBg = '#3B82F6';
     icon = '↗';
+  } else if (s === 'under_review') {
+    label = 'Under Review';
+    bg = '#F3E8FF';
+    color = '#7C3AED';
+    border = '1px solid rgba(124,58,237,0.18)';
+    dotBg = '#8B5CF6';
+    icon = '👁';
   } else {
     label = 'Pending';
     bg = '#FFFBEB';
@@ -160,9 +166,17 @@ function renderAssignmentCard(assignment) {
   setElDisplay(card, true, 'block');
 }
 
-async function loadLayerAssignment(projectId, layerId) {
-  if (!projectId || !layerId || !window.FiberApi || !window.FiberApi.listAssignments) return null;
-  const data = await window.FiberApi.listAssignments({ project: projectId, layer_id: layerId });
+async function getFeatureDetails(projectId, featureId) {
+  const pid = encodeURIComponent(projectId);
+  const fid = encodeURIComponent(featureId);
+  const path = `/api/projects/${pid}/features/${fid}/`;
+  console.log('[feature-details] Feature Details API:', path);
+  return window.FiberApi.apiFetch(path, { method: 'GET' });
+}
+
+async function loadFeatureAssignment(projectId, featureId) {
+  if (!projectId || !featureId || !window.FiberApi || !window.FiberApi.listAssignments) return null;
+  const data = await window.FiberApi.listAssignments({ project: projectId, feature: featureId, scope: 'feature' });
   const list = Array.isArray(data)
     ? data
     : (data && Array.isArray(data.results) ? data.results : []);
@@ -434,7 +448,7 @@ async function loadPage() {
     const results = await Promise.all([
       window.FiberApi.getProject(params.projectId),
       getFeatureDetails(params.projectId, params.featureId),
-      loadLayerAssignment(params.projectId, params.layerId)
+      params.featureId ? loadFeatureAssignment(params.projectId, params.featureId) : null
     ]);
 
     const project = results[0];
@@ -449,15 +463,18 @@ async function loadPage() {
     const feature = featureDetails && featureDetails.feature ? featureDetails.feature : null;
     const status = feature && feature.status ? feature.status : '';
 
-    setStatusPill(status, assignment);
-    renderAssignmentCard(assignment);
+    setStatusPill(status);
+    // Only show assignment card if feature is actually assigned (not pending)
+    const isPending = normStatus(status) === 'pending';
+    renderAssignmentCard(isPending ? null : assignment);
 
     const isApproved = normStatus(status) === 'approved';
     const isRejected = normStatus(status) === 'rejected';
-    const isAssigned = Boolean(assignment) || normStatus(status) === 'assigned';
+    const isAssigned = normStatus(status) === 'assigned';
+    const isUnderReview = normStatus(status) === 'under_review';
     const assignBtn = qs('assignJobBtn');
     if (assignBtn) {
-      const canAssign = !isApproved && !isRejected && !isAssigned;
+      const canAssign = !isApproved && !isRejected && !isAssigned && !isUnderReview;
       setElDisplay(assignBtn, canAssign, '');
     }
 
