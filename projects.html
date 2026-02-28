@@ -52,7 +52,8 @@
             <th>Project Name</th>
             <th>Region</th>
             <th>Status</th>
-            <th>Completion</th>
+            <th style="min-width: 160px;">Standard</th>
+            <th style="min-width: 160px;">Dynamic</th>
             <th>Last Activity</th>
             <th></th>
           </tr>
@@ -69,6 +70,8 @@
 </body>
 <script src="partials/sidebar-loader.js"></script>
 <script src="fiber-api.js"></script>
+<script src="js/components/progress-bar.js"></script>
+<script src="js/components/completion-card.js"></script>
 <script>
   window.FiberAuth.requireLogin();
 
@@ -146,28 +149,79 @@
       const list = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
 
       if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:#6B7280;">No projects found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">No projects found</td></tr>';
         return;
       }
 
       tbody.innerHTML = '';
-      list.forEach(function (p) {
+      
+      // Fetch completion data for all projects in parallel
+      const projectsWithCompletion = await Promise.all(
+        list.map(async function(p) {
+          const id = pickProjectId(p);
+          if (!id) return { project: p, completion: null };
+          try {
+            const completion = await window.FiberApi.getProjectCompletion(id);
+            return { project: p, completion };
+          } catch (err) {
+            return { project: p, completion: null };
+          }
+        })
+      );
+      
+      projectsWithCompletion.forEach(function(item) {
+        const p = item.project;
+        const completion = item.completion;
         const id = pickProjectId(p);
         const name = pickProjectName(p);
         const region = pickProjectRegion(p);
         const status = pickProjectStatus(p);
-        const completion = pickProjectCompletion(p);
         const lastActivity = pickProjectLastActivity(p);
         const link = id ? ('project-details.html?project_id=' + encodeURIComponent(id)) : 'project-overview.html';
+        
+        // Build completion cells
+        let standardCell = '<td>-</td>';
+        let dynamicCell = '<td>-</td>';
+        
+        if (completion) {
+          const standard = Number(completion.standard_completion).toFixed(1);
+          const dynamic = Number(completion.dynamic_completion).toFixed(1);
+          const hasWeights = completion.weights_defined;
+          
+          standardCell = `
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">
+                  <div style="height: 100%; width: ${standard}%; background: #3B82F6; border-radius: 3px;"></div>
+                </div>
+                <span style="font-size: 11px; font-weight: 600; color: #374151; min-width: 35px;">${standard}%</span>
+              </div>
+            </td>
+          `;
+          
+          dynamicCell = `
+            <td>
+              ${hasWeights ? `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">
+                    <div style="height: 100%; width: ${dynamic}%; background: #10B981; border-radius: 3px;"></div>
+                  </div>
+                  <span style="font-size: 11px; font-weight: 600; color: #10B981; min-width: 35px;">${dynamic}%</span>
+                </div>
+              ` : '<span style="font-size: 11px; color: #9CA3AF;">No weights</span>'}
+            </td>
+          `;
+        }
 
         const tr = document.createElement('tr');
         tr.innerHTML = ''
           + '<td>' + escapeHtml(name) + '</td>'
           + '<td>' + escapeHtml(region) + '</td>'
           + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
-          + '<td>' + escapeHtml(completion) + '</td>'
+          + standardCell
+          + dynamicCell
           + '<td>' + escapeHtml(lastActivity) + '</td>'
-          + '<td><a class="action-link" href="' + link + '">View</a><button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button></td>';
+          + '<td><a class="action-link" href="projects-completion.html?project_id=' + encodeURIComponent(id || '') + '">Details</a><button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button></td>';
         tbody.appendChild(tr);
       });
 

@@ -374,6 +374,51 @@
     });
   }
 
+  // Completion Rate APIs
+  async function getProjectCompletion(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/completion/`, { method: "GET" });
+  }
+
+  async function getLayerWeights(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/layers/weights/`, { method: "GET" });
+  }
+
+  async function updateLayerWeights(projectId, weights) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/layers/weights/`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ weights }),
+    });
+  }
+
+  // Feature Workflow APIs
+  async function submitFeatures(featureIds, engineerId) {
+    return apiFetch(`/api/features/submit/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feature_ids: featureIds, engineer: engineerId }),
+    });
+  }
+
+  async function approveFeatures(featureIds, reviewerId, notes) {
+    return apiFetch(`/api/features/approve/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feature_ids: featureIds, reviewer: reviewerId, notes }),
+    });
+  }
+
+  async function rejectFeatures(featureIds, reviewerId, rejectionReason) {
+    return apiFetch(`/api/features/reject/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ feature_ids: featureIds, reviewer: reviewerId, rejection_reason: rejectionReason }),
+    });
+  }
+
   const FiberAuth = {
     getAccess,
     getRefresh,
@@ -418,6 +463,14 @@
     getEngineerStats,
     updateFeatureFieldData,
     submitFeatureForReview,
+    // Completion APIs
+    getProjectCompletion,
+    getLayerWeights,
+    updateLayerWeights,
+    // Feature Workflow APIs
+    submitFeatures,
+    approveFeatures,
+    rejectFeatures,
     apiFetch,
   };
 
