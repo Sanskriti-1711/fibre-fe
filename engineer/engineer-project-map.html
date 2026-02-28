@@ -15,6 +15,11 @@
 <div class="layout">
 
   <main class="content">
+    <div class="container">
+      <h1>Project Map</h1>
+      <div class="subtitle">View your assigned features on the map</div>
+    </div>
+
     <div id="map"></div>
 
     <div class="legend">
@@ -25,25 +30,116 @@
   </main>
 </div>
 
+<script src="../fiber-api.js"></script>
 <script>
-  const map = L.map('map').setView([51.5074, -0.1278], 13);
+  window.FiberAuth.requireLogin();
+
+  var map = L.map('map').setView([51.5074, -0.1278], 13);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  function goToTask(featureId) {
-    window.location.href = `/engineer/projects/1/task/${featureId}`;
+  var statusColors = {
+    'PENDING': '#D97706',
+    'SUBMITTED': '#D97706',
+    'COMPLETED': '#059669',
+    'APPROVED': '#059669',
+    'REJECTED': '#DC2626',
+    'FAILED': '#DC2626'
+  };
+
+  function goToTask(projectName, featureName, featureType, status) {
+    var params = new URLSearchParams();
+    params.set('project', projectName);
+    params.set('feature', featureName);
+    params.set('type', featureType);
+    params.set('status', status);
+    window.location.href = 'engineer-feature-submit.html?' + params.toString();
   }
 
-  // Example features (replace with PostGIS GeoJSON)
-  L.circleMarker([51.5074, -0.1278], { color:'#D97706', radius:7 })
-    .addTo(map)
-    .on('click', () => goToTask(1021));
+  async function loadFeaturesOnMap() {
+    try {
+      var user = window.FiberAuth.getUser();
+      var engineerId = user && user.id ? user.id : null;
 
-  L.circleMarker([51.51, -0.12], { color:'#059669', radius:7 })
-    .addTo(map)
-    .on('click', () => goToTask(1022));
+      if (!engineerId) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      var assignments = await window.FiberApi.listAssignments({ engineer: engineerId });
+
+      if (!assignments || !assignments.results || assignments.results.length === 0) {
+        console.log('No assignments found');
+        return;
+      }
+
+      var featuresWithCoords = [];
+
+      for (var i = 0; i < assignments.results.length; i++) {
+        var assignment = assignments.results[i];
+        var project = assignment.project || {};
+        var projectName = project.name || 'Unnamed Project';
+        var features = assignment.features || [];
+
+        for (var j = 0; j < features.length; j++) {
+          var feature = features[j];
+          var lat = feature.latitude || feature.lat;
+          var lng = feature.longitude || feature.lng || feature.lon;
+
+          if (lat && lng) {
+            featuresWithCoords.push({
+              lat: parseFloat(lat),
+              lng: parseFloat(lng),
+              name: feature.name || feature.feature_name || 'Feature',
+              type: feature.type || feature.feature_type || 'Pole',
+              status: feature.status || 'PENDING',
+              projectName: projectName
+            });
+          }
+        }
+      }
+
+      if (featuresWithCoords.length === 0) {
+        console.log('No features with coordinates found');
+        return;
+      }
+
+      var bounds = L.latLngBounds();
+
+      for (var k = 0; k < featuresWithCoords.length; k++) {
+        var f = featuresWithCoords[k];
+        var color = statusColors[f.status.toUpperCase()] || '#6B7280';
+
+        var marker = L.circleMarker([f.lat, f.lng], {
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.7,
+          radius: 8
+        }).addTo(map);
+
+        marker.bindPopup('<strong>' + f.name + '</strong><br/>' + f.projectName + '<br/>Status: ' + f.status);
+
+        marker.on('click', (function(feature) {
+          return function() {
+            goToTask(feature.projectName, feature.name, feature.type, feature.status);
+          };
+        })(f));
+
+        bounds.extend([f.lat, f.lng]);
+      }
+
+      if (featuresWithCoords.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+
+    } catch (error) {
+      console.error('Error loading features:', error);
+    }
+  }
+
+  loadFeaturesOnMap();
 </script>
 
 </body>

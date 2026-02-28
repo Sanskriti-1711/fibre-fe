@@ -18,10 +18,13 @@
 
   <div class="card">
     <label>Name</label>
-    <input type="text" value="Arjun Patel" disabled />
+    <input type="text" id="profileName" disabled />
 
     <label>Email</label>
-    <input type="email" value="arjun.p@company.com" disabled />
+    <input type="email" id="profileEmail" disabled />
+
+    <label>Role</label>
+    <input type="text" id="profileRole" disabled />
   </div>
 
   <div class="card">
@@ -78,11 +81,24 @@
 <script>
   window.FiberAuth.requireLogin();
 
+  function loadProfile() {
+    var user = window.FiberAuth.getUser();
+    if (user) {
+      document.getElementById('profileName').value = user.full_name || user.name || user.email || 'Unknown';
+      document.getElementById('profileEmail').value = user.email || '';
+      document.getElementById('profileRole').value = user.role || 'Engineer';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+
   function handleLogout(e) {
     if (e) e.preventDefault();
     window.FiberAuth.clear();
     window.location.href = "index.html";
   }
+
+  loadProfile();
 </script>
 
 </body>

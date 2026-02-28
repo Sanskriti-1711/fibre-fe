@@ -1,0 +1,136 @@
+/* ===== Engineer Login Page Specific ===== */
+
+:root {
+  --tm-red: #E31837;
+  --tm-dark: #1F2937;
+  --tm-gray: #6B7280;
+  --tm-light: #F9FAFB;
+  --tm-white: #FFFFFF;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+.engineer-login {
+  background: var(--tm-light);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.engineer-login .layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.engineer-login .top-bar {
+  background: var(--tm-dark);
+  color: var(--tm-white);
+  padding: 16px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.engineer-login .top-bar h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--tm-red);
+}
+
+.engineer-login .content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.engineer-login .login-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.engineer-login .login-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--tm-white);
+  padding: 32px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.engineer-login .logo {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.engineer-login .logo h1 {
+  color: var(--tm-red);
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.engineer-login .logo p {
+  color: var(--tm-gray);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.engineer-login .form-group {
+  margin-bottom: 16px;
+}
+
+.engineer-login label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: var(--tm-dark);
+  font-weight: 500;
+}
+
+.engineer-login input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.engineer-login input:focus {
+  outline: none;
+  border-color: var(--tm-red);
+}
+
+.engineer-login .login-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--tm-red);
+  color: var(--tm-white);
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.engineer-login .login-btn:hover {
+  opacity: 0.95;
+}
+
+.engineer-login .footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--tm-gray);
+}

@@ -44,8 +44,7 @@
             <option value="redo">Redo Requested</option>
           </select>
         </div>
-        <button id="applyFilters" class="create-btn" type="button">Apply Filters</button>
-        <button id="clearFilters" class="create-btn" type="button" style="background: #374151;">Clear</button>
+        <button id="clearFilters" class="create-btn" type="button" style="background: #DC2626;">Clear</button>
       </div>
     </div>
 
@@ -99,7 +98,7 @@
               <input type="checkbox" id="selectAll" style="cursor: pointer;">
             </th>
             <th>Feature</th>
-            <th>Project / Layer</th>
+            <th>Project</th>
             <th>Engineer</th>
             <th style="width: 140px;">Status</th>
             <th style="width: 180px;">Actions</th>
@@ -264,7 +263,7 @@
 
       tr.innerHTML = `
         <td>
-          <input type="checkbox" class="feature-checkbox" data-feature-id="${feature.id}" 
+          <input type="checkbox" class="feature-checkbox" data-feature-id="${feature.feature?.id || feature.id}" 
             ${isSelected ? 'checked' : ''} 
             ${feature.status !== 'under_review' ? 'disabled' : ''}
             style="cursor: ${feature.status === 'under_review' ? 'pointer' : 'not-allowed'};">
@@ -295,11 +294,11 @@
         <td>
           ${feature.status === 'under_review' ? `
             <div style="display: flex; gap: 8px;">
-              <button onclick="approveFeature('${feature.id}')" 
+              <button onclick="approveFeature('${feature.feature?.id || feature.id}')" 
                 style="padding: 6px 12px; font-size: 12px; background: #10B981; color: white; border: none; border-radius: 4px; cursor: pointer;">
                 Approve
               </button>
-              <button onclick="openRejectModal('${feature.id}')" 
+              <button onclick="openRejectModal('${feature.feature?.id || feature.id}')" 
                 style="padding: 6px 12px; font-size: 12px; background: #F59E0B; color: white; border: none; border-radius: 4px; cursor: pointer;">
                 Redo
               </button>
@@ -469,8 +468,13 @@
     }
   });
 
-  // Filter handlers
-  document.getElementById('applyFilters').addEventListener('click', () => {
+  // Filter change handlers (auto-update)
+  filterProject.addEventListener('change', () => {
+    currentPage = 1;
+    loadFeatures();
+  });
+
+  filterStatus.addEventListener('change', () => {
     currentPage = 1;
     loadFeatures();
   });

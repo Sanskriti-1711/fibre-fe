@@ -124,7 +124,10 @@
   </main>
 </div>
 
+<script src="../fiber-api.js"></script>
 <script>
+  window.FiberAuth.requireLogin();
+
   function setGeoStatus(message) {
     document.getElementById('geoStatus').textContent = message;
   }
@@ -422,11 +425,79 @@
     document.getElementById('engFields').innerHTML = buildRows(fields, 'eng', false);
   }
 
-  function submitFeature() {
+  async function submitFeature() {
     var submitStatus = document.getElementById('submitStatus');
-    submitStatus.textContent = 'Status: Submitted for review.';
-    submitStatus.classList.remove('success');
-    setComplianceStatus('Submitted. Awaiting compliance response.', 'Expected result: Pass or Review.', 'review');
+    var complianceStatus = document.getElementById('complianceStatus');
+    var complianceMeta = document.getElementById('complianceMeta');
+
+    try {
+      submitStatus.textContent = 'Submitting...';
+      submitStatus.classList.remove('success');
+
+      var user = window.FiberAuth.getUser();
+      var engineerId = user && user.id ? user.id : null;
+
+      if (!engineerId) {
+        throw new Error('User not authenticated. Please login again.');
+      }
+
+      var imageFile = currentUpload;
+      if (!imageFile) {
+        throw new Error('Please upload an image before submitting.');
+      }
+
+      var lat = document.getElementById('lat').value;
+      var lng = document.getElementById('lng').value;
+      if (!lat || !lng) {
+        throw new Error('GPS coordinates required. Please capture location or upload an image with GPS metadata.');
+      }
+
+      var measurements = {};
+      for (var i = 0; i < currentMeasurementFields.length; i++) {
+        var key = currentMeasurementFields[i];
+        var input = document.getElementById('eng_' + key);
+        if (input && input.value) {
+          measurements[key] = parseFloat(input.value);
+        }
+      }
+
+      var notes = document.querySelector('textarea') ? document.querySelector('textarea').value : '';
+
+      var formData = new FormData();
+      formData.append('image', imageFile);
+      formData.append('latitude', lat);
+      formData.append('longitude', lng);
+      formData.append('measurements', JSON.stringify(measurements));
+      formData.append('notes', notes);
+      formData.append('project_name', selectedProjectName || '');
+      formData.append('feature_name', selectedFeatureName || '');
+      formData.append('feature_type', selectedFeatureType || 'Pole');
+      formData.append('engineer', engineerId);
+
+      var response = await window.FiberApi.apiFetch('/api/features/submit/', {
+        method: 'POST',
+        body: formData
+      });
+
+      submitStatus.textContent = 'Status: Submitted for review.';
+      submitStatus.classList.add('success');
+      setComplianceStatus('Submitted successfully!', 'Awaiting compliance review. Result: Pass or Review.', 'review');
+
+    } catch (error) {
+      submitStatus.textContent = 'Error: ' + (error.message || 'Failed to submit feature.');
+      submitStatus.classList.remove('success');
+      setComplianceStatus('Submission failed.', error.message || 'Please try again.', 'failed');
+    }
+  }
+
+  function setComplianceStatus(status, meta, type) {
+    var complianceStatus = document.getElementById('complianceStatus');
+    var complianceMeta = document.getElementById('complianceMeta');
+    if (complianceStatus) complianceStatus.textContent = status;
+    if (complianceMeta) complianceMeta.textContent = meta;
+    if (complianceStatus) {
+      complianceStatus.className = 'result-status ' + (type || '');
+    }
   }
 
   var liveStream = null;
