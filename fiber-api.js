@@ -228,11 +228,11 @@
     return apiFetch(`/api/projects/${id}/`, { method: "DELETE" });
   }
 
-  async function createEngineer(email, password, role) {
+  async function createEngineer(email, password, role, fullName) {
     return apiFetch("/api/users/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, role: role || "ENGINEER" }),
+      body: JSON.stringify({ email, password, role: role || "ENGINEER", full_name: fullName }),
     });
   }
 
@@ -337,26 +337,22 @@
 
   // Engineer Activity APIs
   async function getEngineerActivity(engineerId, params) {
-    const id = encodeURIComponent(engineerId);
-    const query = params && typeof params === "object"
-      ? Object.keys(params)
-          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
-          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-          .join("&")
-      : "";
-    const path = query ? `/api/engineer/${id}/activity/?${query}` : `/api/engineer/${id}/activity/`;
+    const queryParams = { engineer: engineerId, ...params };
+    const query = Object.keys(queryParams)
+      .filter((k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== "")
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
+      .join("&");
+    const path = query ? `/api/engineer/activity/?${query}` : `/api/engineer/activity/`;
     return apiFetch(path, { method: "GET" });
   }
 
   async function getEngineerStats(engineerId, params) {
-    const id = encodeURIComponent(engineerId);
-    const query = params && typeof params === "object"
-      ? Object.keys(params)
-          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
-          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-          .join("&")
-      : "";
-    const path = query ? `/api/engineer/${id}/stats/?${query}` : `/api/engineer/${id}/stats/`;
+    const queryParams = { engineer: engineerId, ...params };
+    const query = Object.keys(queryParams)
+      .filter((k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== "")
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
+      .join("&");
+    const path = query ? `/api/engineer/stats/?${query}` : `/api/engineer/stats/`;
     return apiFetch(path, { method: "GET" });
   }
 

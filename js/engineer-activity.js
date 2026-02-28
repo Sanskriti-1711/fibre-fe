@@ -45,6 +45,10 @@ function showError(message) {
   setTimeout(() => showError(''), 5000);
 }
 
+function showLoading(show) {
+  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -78,7 +82,7 @@ function getStatusClass(status) {
 
 function getStatusLabel(status) {
   const labelMap = {
-    'PENDING': 'Pending',
+    'PENDING': 'Assigned',
     'ASSIGNED': 'Assigned',
     'UNDER_REVIEW': 'Under Review',
     'APPROVED': 'Approved',
@@ -96,7 +100,7 @@ async function loadEngineers() {
     engineerSelect.innerHTML = '<option value="">Select Engineer...</option>';
     engineersList.forEach(eng => {
       const id = eng.uuid || eng.id || eng.user_uuid || eng.pk;
-      const name = `${eng.first_name || ''} ${eng.last_name || ''}`.trim() || eng.name || eng.username || eng.email;
+      const name = eng.full_name || `${eng.first_name || ''} ${eng.last_name || ''}`.trim() || eng.name || eng.username || eng.email;
       const option = document.createElement('option');
       option.value = id;
       option.textContent = `${name} (${eng.email})`;
@@ -120,7 +124,7 @@ async function loadEngineerActivity(engineerId) {
   );
 
   if (currentEngineer) {
-    const name = `${currentEngineer.first_name || ''} ${currentEngineer.last_name || ''}`.trim() || 
+    const name = currentEngineer.full_name || `${currentEngineer.first_name || ''} ${currentEngineer.last_name || ''}`.trim() || 
                  currentEngineer.name || currentEngineer.username || currentEngineer.email;
     engineerName.textContent = name;
     engineerSubtitle.textContent = currentEngineer.email;

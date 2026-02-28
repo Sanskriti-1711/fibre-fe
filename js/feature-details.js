@@ -147,7 +147,7 @@ function renderAssignmentCard(assignment) {
   }
 
   const assignee = assignment.assignee || {};
-  const name = assignee.email || (assignee.id ? ('Engineer ' + assignee.id) : 'Engineer');
+  const name = assignee.full_name || assignee.name || (assignee.email ? assignee.email.split('@')[0] : '') || (assignee.id ? ('Engineer ' + assignee.id) : 'Engineer');
   const email = assignee.email || '';
   const scope = assignment.scope || 'layer';
 
