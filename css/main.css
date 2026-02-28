@@ -2850,4 +2850,201 @@ tr:hover {
   }
 }
 
+/* ===== Activity Overview Section ===== */
+
+.engineer-activity-admin .activity-overview-section {
+  background: var(--tm-white);
+  border-radius: 8px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+}
+
+.engineer-activity-admin .activity-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.engineer-activity-admin .activity-overview-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--tm-dark);
+  margin: 0 0 4px;
+}
+
+.engineer-activity-admin .section-subtitle {
+  font-size: 13px;
+  color: var(--tm-gray);
+  margin: 0;
+}
+
+/* Overview metrics on the right */
+.engineer-activity-admin .overview-metrics {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.engineer-activity-admin .overview-metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.engineer-activity-admin .overview-metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--tm-dark);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.engineer-activity-admin .overview-metric-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--tm-gray);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.engineer-activity-admin .overview-metric-divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+}
+
+/* Status Section */
+.engineer-activity-admin .status-section {
+  background: var(--tm-white);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border: 1px solid var(--border);
+}
+
+.engineer-activity-admin .status-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tm-dark);
+  margin: 0 0 16px;
+}
+
+.engineer-activity-admin .status-metrics-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.engineer-activity-admin .status-metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  padding: 8px 4px;
+}
+
+.engineer-activity-admin .status-metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--tm-dark);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.engineer-activity-admin .status-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tm-gray);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.engineer-activity-admin .status-metric-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.engineer-activity-admin .status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.engineer-activity-admin .status-dot.pending {
+  background: #F59E0B;
+}
+
+.engineer-activity-admin .status-dot.assigned {
+  background: #0EA5E9;
+}
+
+.engineer-activity-admin .status-dot.review {
+  background: #8B5CF6;
+}
+
+.engineer-activity-admin .status-dot.approved {
+  background: #10B981;
+}
+
+.engineer-activity-admin .status-dot.redo {
+  background: #EF4444;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+  .engineer-activity-admin .activity-overview-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .engineer-activity-admin .overview-metrics {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .engineer-activity-admin .status-metrics-row {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .engineer-activity-admin .status-metric-divider {
+    display: none;
+  }
+  
+  .engineer-activity-admin .status-metric-item {
+    min-width: calc(33.333% - 16px);
+    flex: 0 0 auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .engineer-activity-admin .overview-metrics {
+    gap: 12px;
+  }
+  
+  .engineer-activity-admin .overview-metric-value {
+    font-size: 22px;
+  }
+  
+  .engineer-activity-admin .status-metric-item {
+    min-width: calc(50% - 16px);
+  }
+  
+  .engineer-activity-admin .status-metric-value {
+    font-size: 24px;
+  }
+}
 

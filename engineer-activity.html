@@ -26,67 +26,66 @@
           <button id="refreshBtn" class="btn btn-secondary">Refresh</button>
         </div>
       </div>
-
+      <!-- No Engineer Selected State -->
+      <div id="noSelectionState" class="empty-state-large">
+        <p>Select an engineer from the dropdown above to view their activity</p>
+      </div>
       <!-- Global Error -->
       <div id="errorMessage" class="error-banner" style="display:none;"></div>
 
       <!-- Engineer Selected Content -->
       <div id="activityContent" class="activity-content" style="display:none;">
 
-        <!-- KPI Cards Row -->
-        <div class="kpi-grid overview">
-          <div class="kpi-card overview">
-            <div class="kpi-title">Assigned Projects</div>
-            <div class="kpi-value" id="statProjects">0</div>
+        <!-- Activity Overview -->
+        <div class="section activity-overview-section">
+          <div class="activity-overview-header">
+            <div>
+              <h2>Activity Overview</h2>
+              <p class="section-subtitle">Real-time project and assignment metrics</p>
+            </div>
+            <div class="overview-metrics">
+              <div class="overview-metric-item">
+                <div class="overview-metric-value" id="statProjects">0</div>
+                <div class="overview-metric-label">PROJECTS</div>
+              </div>
+              <div class="overview-metric-divider"></div>
+              <div class="overview-metric-item">
+                <div class="overview-metric-value" id="statLayers">0</div>
+                <div class="overview-metric-label">LAYERS</div>
+              </div>
+              <div class="overview-metric-divider"></div>
+              <div class="overview-metric-item">
+                <div class="overview-metric-value" id="statFeatures">0</div>
+                <div class="overview-metric-label">FEATURES</div>
+              </div>
+            </div>
           </div>
-          <div class="kpi-card overview">
-            <div class="kpi-title">Total Layers</div>
-            <div class="kpi-value" id="statLayers">0</div>
-          </div>
-          <div class="kpi-card overview">
-            <div class="kpi-title">Total Features</div>
-            <div class="kpi-value" id="statFeatures">0</div>
+          <hr class="activity-divider">
+          <div class="status-metrics-row">
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusAssigned">0</div>
+              <div class="status-metric-label"><span class="status-dot assigned"></span>ASSIGNED</div>
+            </div>
+            <div class="status-metric-divider"></div>
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusReview">0</div>
+              <div class="status-metric-label"><span class="status-dot review"></span>UNDER REVIEW</div>
+            </div>
+            <div class="status-metric-divider"></div>
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusApproved">0</div>
+              <div class="status-metric-label"><span class="status-dot approved"></span>APPROVED</div>
+            </div>
+            <div class="status-metric-divider"></div>
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusRedo">0</div>
+              <div class="status-metric-label"><span class="status-dot redo"></span>REDO</div>
+            </div>
           </div>
         </div>
 
-        <!-- Status Breakdown -->
-        <div class="section">
-          <h3>Status Breakdown</h3>
-          <div class="status-breakdown">
-            <div class="status-stat">
-              <span class="status-dot pending"></span>
-              <span class="status-label">Pending</span>
-              <span class="status-count" id="statusPending">0</span>
-            </div>
-            <div class="status-stat">
-              <span class="status-dot assigned"></span>
-              <span class="status-label">Assigned</span>
-              <span class="status-count" id="statusAssigned">0</span>
-            </div>
-            <div class="status-stat">
-              <span class="status-dot review"></span>
-              <span class="status-label">Under Review</span>
-              <span class="status-count" id="statusReview">0</span>
-            </div>
-            <div class="status-stat">
-              <span class="status-dot approved"></span>
-              <span class="status-label">Approved</span>
-              <span class="status-count" id="statusApproved">0</span>
-            </div>
-            <div class="status-stat">
-              <span class="status-dot redo"></span>
-              <span class="status-label">Redo</span>
-              <span class="status-count" id="statusRedo">0</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Two Column Layout -->
-        <div class="grid activity-grid">
-          <!-- Left Column: Assignments -->
-          <div class="left-column">
-            <!-- Assignments List -->
-            <div class="section">
+        <!-- Assignments Section -->
+        <div class="section assignments-section">
               <div class="section-header">
                 <h3>Assignments</h3>
                 <div class="filters">
@@ -101,7 +100,6 @@
                   </select>
                   <select id="filterStatus">
                     <option value="">All Statuses</option>
-                    <option value="PENDING">Pending</option>
                     <option value="ASSIGNED">Assigned</option>
                     <option value="UNDER_REVIEW">Under Review</option>
                     <option value="APPROVED">Approved</option>
@@ -127,28 +125,9 @@
               </div>
             </div>
           </div>
-
-          <!-- Right Column: Timeline, Projects -->
-          <div class="right-column">
-            <!-- Project Overview -->
-            <div class="section">
-              <h3>Project Overview</h3>
-              <div id="projectOverviewList" class="project-overview-list"></div>
-            </div>
-
-            <!-- Activity Timeline -->
-            <div class="section">
-              <h3>Activity Timeline</h3>
-              <div id="activityTimeline" class="activity-timeline"></div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <!-- No Engineer Selected State -->
-      <div id="noSelectionState" class="empty-state-large">
-        <p>Select an engineer from the dropdown above to view their activity</p>
-      </div>
     </div>
   </main>
 </div>
