@@ -155,19 +155,25 @@
 
       tbody.innerHTML = '';
       
-      // Fetch completion data for all projects in parallel
-      const projectsWithCompletion = await Promise.all(
-        list.map(async function(p) {
-          const id = pickProjectId(p);
-          if (!id) return { project: p, completion: null };
-          try {
-            const completion = await window.FiberApi.getProjectCompletion(id);
-            return { project: p, completion };
-          } catch (err) {
-            return { project: p, completion: null };
-          }
-        })
-      );
+      // Fetch completion data for all projects sequentially to avoid overwhelming the API
+      const projectsWithCompletion = [];
+      for (const p of list) {
+        const id = pickProjectId(p);
+        if (!id) {
+          projectsWithCompletion.push({ project: p, completion: null });
+          continue;
+        }
+        try {
+          const completion = await window.FiberApi.getProjectCompletion(id);
+          projectsWithCompletion.push({ project: p, completion });
+        } catch (err) {
+          projectsWithCompletion.push({ project: p, completion: null });
+        }
+        // Small delay between requests to prevent overwhelming the server
+        if (list.length > 5) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      }
       
       projectsWithCompletion.forEach(function(item) {
         const p = item.project;
@@ -221,7 +227,7 @@
           + standardCell
           + dynamicCell
           + '<td>' + escapeHtml(lastActivity) + '</td>'
-          + '<td><a class="action-link" href="projects-completion.html?project_id=' + encodeURIComponent(id || '') + '">Details</a><button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button></td>';
+          + '<td><a class="action-link" href="' + link + '">View</a><button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button></td>';
         tbody.appendChild(tr);
       });
 

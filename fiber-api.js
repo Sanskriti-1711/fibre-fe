@@ -261,6 +261,12 @@
     return apiFetch(`/api/projects/${id}/layers/${lid}/`, { method: "GET" });
   }
 
+  async function getFeature(projectId, featureId) {
+    const pid = encodeURIComponent(projectId);
+    const fid = encodeURIComponent(featureId);
+    return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: "GET" });
+  }
+
   async function discoverLayers(projectId) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/import/discover/`, { method: "POST" });
@@ -450,6 +456,7 @@
     uploadGpkg,
     listProjectLayers,
     getProjectLayerDetails,
+    getFeature,
     discoverLayers,
     importLayers,
     listJobs,

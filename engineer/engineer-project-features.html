@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Features | Tech Mahindra</title>
+
+  <style>
+    :root {
+      --tm-red:#E31837;
+      --dark:#1F2937;
+      --gray:#6B7280;
+      --light:#F9FAFB;
+      --white:#FFFFFF;
+      --green:#059669;
+      --amber:#F59E0B;
+      --blue:#3B82F6;
+      --red:#DC2626;
+    }
+
+    * { box-sizing:border-box; font-family:system-ui, -apple-system, sans-serif; }
+
+    body {
+      margin:0;
+      background:var(--light);
+      color:var(--dark);
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1100;
+      background: var(--dark);
+      color: var(--white);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top-bar .back-btn {
+      background: none;
+      border: none;
+      color: var(--white);
+      cursor: pointer;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .top-bar .brand {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tm-red);
+      letter-spacing: 0.2px;
+    }
+
+    .container {
+      padding:16px;
+      max-width:600px;
+      margin:auto;
+    }
+
+    h1 {
+      font-size:20px;
+      margin-bottom:4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--gray);
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background:var(--white);
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid #E5E7EB;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 10px 6px;
+      background: #F9FAFB;
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .stat-value.assigned { color: var(--blue); }
+    .stat-value.under_review { color: var(--amber); }
+    .stat-value.approved { color: var(--green); }
+    .stat-value.redo { color: var(--red); }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--gray);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .feature-list {
+      margin-top: 12px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 12px;
+      background: #F9FAFB;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .feature-item:hover {
+      background: #F3F4F6;
+    }
+
+    .feature-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .feature-icon.pole { background: #3B82F6; }
+    .feature-icon.cable { background: #8B5CF6; }
+    .feature-icon.cabinet { background: #F59E0B; }
+    .feature-icon.joint { background: #10B981; }
+    .feature-icon.default { background: #6B7280; }
+
+    .feature-details {
+      flex: 1;
+    }
+
+    .feature-name {
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 2px;
+    }
+
+    .feature-meta {
+      font-size: 12px;
+      color: var(--gray);
+    }
+
+    .feature-status {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .status-assigned { background: #DBEAFE; color: #1E40AF; }
+    .status-under_review { background: #FEF3C7; color: #92400E; }
+    .status-approved { background: #D1FAE5; color: #065F46; }
+    .status-redo { background: #FEE2E2; color: #991B1B; }
+    .status-pending { background: #F3F4F6; color: var(--gray); }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .filter-tab {
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      background: var(--white);
+      border: 1px solid #E5E7EB;
+      color: var(--gray);
+    }
+
+    .filter-tab.active {
+      background: var(--dark);
+      color: var(--white);
+      border-color: var(--dark);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .progress-section {
+      margin-top: 12px;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .progress {
+      height: 6px;
+      background: #E5E7EB;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--green);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray);
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--red);
+    }
+
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-bar" role="banner">
+  <button class="back-btn" onclick="goBack()" aria-label="Go back">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  </button>
+  <h2 class="brand">Tech Mahindra</h2>
+</header>
+
+<div class="container">
+  <h1 id="projectName">Loading...</h1>
+  <div class="subtitle" id="projectMeta">Loading project details...</div>
+
+  <!-- Stats Card -->
+  <div class="card">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value assigned" id="statAssigned">0</div>
+        <div class="stat-label">Assigned</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value under_review" id="statUnderReview">0</div>
+        <div class="stat-label">Under Review</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value approved" id="statApproved">0</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value redo" id="statRedo">0</div>
+        <div class="stat-label">Redo</div>
+      </div>
+    </div>
+    <div class="progress-section">
+      <div class="progress-header">
+        <span>Completion Progress</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" data-filter="all" onclick="filterFeatures('all')">All</button>
+    <button class="filter-tab" data-filter="assigned" onclick="filterFeatures('assigned')">Assigned</button>
+    <button class="filter-tab" data-filter="under_review" onclick="filterFeatures('under_review')">Under Review</button>
+    <button class="filter-tab" data-filter="redo" onclick="filterFeatures('redo')">Redo</button>
+    <button class="filter-tab" data-filter="approved" onclick="filterFeatures('approved')">Approved</button>
+  </div>
+
+  <!-- Features List -->
+  <div id="featuresContainer">
+    <div class="loading-state">Loading features...</div>
+  </div>
+</div>
+
+<script src="../fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+  const engineerId = window.FiberAuth.getUser()?.id;
+
+  let allFeatures = [];
+  let projectInfo = null;
+
+  if (!projectId) {
+    document.getElementById('featuresContainer').innerHTML = 
+      '<div class="error-state">No project specified</div>';
+  }
+
+  function goBack() {
+    window.location.href = 'engineer-dashboard.html';
+  }
+
+  function getFeatureIcon(type) {
+    const typeMap = {
+      'pole': 'P',
+      'cable': 'C',
+      'cabinet': 'CB',
+      'joint': 'J',
+      'manhole': 'M',
+      'handhole': 'H'
+    };
+    return typeMap[type?.toLowerCase()] || type?.charAt(0).toUpperCase() || 'F';
+  }
+
+  function getFeatureIconClass(type) {
+    const classMap = {
+      'pole': 'pole',
+      'cable': 'cable',
+      'cabinet': 'cabinet',
+      'joint': 'joint'
+    };
+    return classMap[type?.toLowerCase()] || 'default';
+  }
+
+  function getStatusText(status) {
+    const statusMap = {
+      'assigned': 'Assigned',
+      'under_review': 'Under Review',
+      'approved': 'Approved',
+      'redo': 'Redo',
+      'pending': 'Pending'
+    };
+    return statusMap[status] || status;
+  }
+
+  function getStatusClass(status) {
+    return `status-${status}`;
+  }
+
+  async function loadProjectFeatures() {
+    if (!projectId || !engineerId) return;
+
+    try {
+      // Load project details
+      projectInfo = await window.FiberApi.getProject(projectId);
+      document.getElementById('projectName').textContent = projectInfo.name || 'Unknown Project';
+      document.getElementById('projectMeta').textContent = 
+        `${projectInfo.location || 'No location'} | ${projectInfo.description || ''}`.substring(0, 60);
+
+      // Load engineer's assignments for this project
+      const jobs = await window.FiberApi.listJobs({ 
+        engineer: engineerId, 
+        project: projectId,
+        page_size: 100 
+      });
+
+      allFeatures = (jobs.results || [])
+        .filter(job => job.feature)
+        .map(job => ({
+          ...job.feature,
+          assignmentId: job.id,
+          projectId: projectId,
+          projectName: projectInfo.name
+        }));
+
+      updateStats();
+      renderFeatures(allFeatures);
+    } catch (err) {
+      console.error('Failed to load features:', err);
+      document.getElementById('featuresContainer').innerHTML = 
+        `<div class="error-state">Failed to load features: ${err.message}</div>`;
+    }
+  }
+
+  function updateStats() {
+    const counts = { assigned: 0, under_review: 0, approved: 0, redo: 0, pending: 0 };
+    allFeatures.forEach(f => {
+      counts[f.status] = (counts[f.status] || 0) + 1;
+    });
+
+    document.getElementById('statAssigned').textContent = counts.assigned;
+    document.getElementById('statUnderReview').textContent = counts.under_review;
+    document.getElementById('statApproved').textContent = counts.approved;
+    document.getElementById('statRedo').textContent = counts.redo;
+
+    const total = allFeatures.length;
+    const completed = counts.approved;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    document.getElementById('progressPercent').textContent = `${percent}%`;
+    document.getElementById('progressBar').style.width = `${percent}%`;
+  }
+
+  function filterFeatures(filter) {
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.filter === filter);
+    });
+
+    // Filter and render
+    const filtered = filter === 'all' 
+      ? allFeatures 
+      : allFeatures.filter(f => f.status === filter);
+    renderFeatures(filtered);
+  }
+
+  function renderFeatures(features) {
+    const container = document.getElementById('featuresContainer');
+
+    if (!features.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div>No features found</div>
+          <div style="font-size: 13px; margin-top: 8px;">Try a different filter</div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = features.map(feature => `
+      <a href="engineer-feature-detail.html?project_id=${encodeURIComponent(projectId)}&feature_id=${encodeURIComponent(feature.id)}" 
+         class="feature-item">
+        <div class="feature-info">
+          <div class="feature-icon ${getFeatureIconClass(feature.feature_type || feature.type)}">
+            ${getFeatureIcon(feature.feature_type || feature.type)}
+          </div>
+          <div class="feature-details">
+            <div class="feature-name">${escapeHtml(feature.layer_name || feature.name || 'Unknown Feature')}</div>
+            <div class="feature-meta">
+              ${feature.feature_type || feature.type || 'Feature'} • ${feature.id?.slice(0, 8) || ''}
+              ${feature.latitude ? `• ${feature.latitude.toFixed(4)}, ${feature.longitude?.toFixed(4)}` : ''}
+            </div>
+          </div>
+        </div>
+        <span class="feature-status ${getStatusClass(feature.status)}">${getStatusText(feature.status)}</span>
+      </a>
+    `).join('');
+  }
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Initialize
+  loadProjectFeatures();
+</script>
+
+</body>
+</html>

@@ -399,11 +399,38 @@ function bindFeatureDetails(params, data) {
   setText('plannedStart', (sx !== null && sy !== null) ? `${sx}, ${sy}` : '--');
   setText('plannedEnd', (ex !== null && ey !== null) ? `${ex}, ${ey}` : '--');
 
-  // Detected/as-built not available from this endpoint in the provided payload
-  setText('detectedLength', '--');
-  setText('detectedDiameter', '--');
+  // Display detected/as-built from field_measurements if available
+  const fm = feature && feature.field_measurements ? feature.field_measurements : {};
+  setText('detectedLength', fm.length ? `${fm.length.value || fm.length} ${fm.length.unit || 'm'}` : '--');
+  setText('detectedDiameter', fm.diameter ? `${fm.diameter.value || fm.diameter} ${fm.diameter.unit || 'mm'}` : '--');
   setText('detectedStart', '--');
   setText('detectedEnd', '--');
+
+  // Display uploaded photo if available
+  const photoUrl = feature && feature.photo_url ? feature.photo_url : null;
+  renderFieldPhoto(photoUrl, feature && feature.updated_at);
+}
+
+function renderFieldPhoto(photoUrl, uploadedAt) {
+  const photoEl = qs('fieldPhoto');
+  const placeholderEl = qs('fieldPhotoPlaceholder');
+  const infoEl = qs('photoUploadInfo');
+
+  if (!photoEl || !placeholderEl) return;
+
+  if (photoUrl) {
+    photoEl.src = photoUrl;
+    photoEl.style.display = 'block';
+    placeholderEl.style.display = 'none';
+    if (infoEl) {
+      infoEl.textContent = uploadedAt ? `Uploaded: ${formatDate(uploadedAt)}` : '';
+    }
+  } else {
+    photoEl.style.display = 'none';
+    photoEl.src = '';
+    placeholderEl.style.display = '';
+    if (infoEl) infoEl.textContent = '';
+  }
 }
 
 function bindAssignJobLink(params) {

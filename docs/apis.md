@@ -524,7 +524,68 @@ This is the new assignment job system with scope.
 
 ---
 
-## 10. Feature Submit API
+## 10. Feature Photo Upload API
+
+### Upload Feature Photo
+
+**POST** `/api/features/{feature_id}/upload-photo/`
+
+**Description:** Upload a site photo for a feature. Photos are stored with the feature and can be retrieved via the photo_url.
+
+**Form Data:**
+- `photo`: Image file (JPEG, PNG)
+
+**Request Headers:**
+```
+Content-Type: multipart/form-data
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+
+```json
+{
+  "id": "feature_uuid",
+  "photo_url": "http://server.com/media/feature_photos/2026/02/28/photo.jpg",
+  "uploaded_at": "2026-02-28T12:00:00Z"
+}
+```
+
+**Error Responses:**
+
+```json
+{
+  "detail": "Feature not found"
+}
+```
+
+```json
+{
+  "detail": "No photo provided"
+}
+```
+
+```json
+{
+  "detail": "Invalid file type. Only JPEG and PNG are allowed."
+}
+```
+
+```json
+{
+  "detail": "File too large. Maximum size is 10MB."
+}
+```
+
+**Notes:**
+- Maximum file size: 10MB
+- Allowed formats: JPEG, PNG
+- Photos are stored in `media/feature_photos/YYYY/MM/DD/` directory
+- Previous photo is overwritten on new upload
+
+---
+
+## 11. Feature Submit API
 
 ### Submit Features for Review
 

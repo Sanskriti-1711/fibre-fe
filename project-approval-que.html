@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="css/main.css" />
+  
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -139,6 +143,19 @@
   </div>
 </div>
 
+<!-- View Feature Modal -->
+<div id="viewModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 12px; max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 18px; font-weight: 600;">Feature Details</h3>
+      <button onclick="closeViewModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6B7280;">×</button>
+    </div>
+    <div id="viewModalContent" style="padding: 24px;">
+      <!-- Content loaded dynamically -->
+    </div>
+  </div>
+</div>
+
 </body>
 <script src="partials/sidebar-loader.js"></script>
 <script src="fiber-api.js"></script>
@@ -162,6 +179,7 @@
   const filterProject = document.getElementById('filterProject');
   const filterStatus = document.getElementById('filterStatus');
   const rejectModal = document.getElementById('rejectModal');
+  const viewModal = document.getElementById('viewModal');
 
   // Load projects for filter
   async function loadProjects() {
@@ -292,8 +310,12 @@
           ">${escapeHtml(feature.status_display || feature.status)}</span>
         </td>
         <td>
-          ${feature.status === 'under_review' ? `
-            <div style="display: flex; gap: 8px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button onclick="viewFeature('${feature.feature?.id || feature.id}')" 
+              style="padding: 6px 12px; font-size: 12px; background: #3B82F6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              View
+            </button>
+            ${feature.status === 'under_review' ? `
               <button onclick="approveFeature('${feature.feature?.id || feature.id}')" 
                 style="padding: 6px 12px; font-size: 12px; background: #10B981; color: white; border: none; border-radius: 4px; cursor: pointer;">
                 Approve
@@ -302,10 +324,8 @@
                 style="padding: 6px 12px; font-size: 12px; background: #F59E0B; color: white; border: none; border-radius: 4px; cursor: pointer;">
                 Redo
               </button>
-            </div>
-          ` : `
-            <span style="font-size: 12px; color: #9CA3AF;">${feature.status_display}</span>
-          `}
+            ` : ''}
+          </div>
         </td>
       `;
       
@@ -488,14 +508,257 @@
 
   document.getElementById('refreshBtn').addEventListener('click', loadFeatures);
 
+  // View feature modal
+  async function viewFeature(featureId) {
+    const contentDiv = document.getElementById('viewModalContent');
+    contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;">Loading feature details...</div>';
+    viewModal.style.display = 'flex';
+
+    try {
+      const jobData = currentFeatures.find(f => (f.feature?.id || f.id) === featureId);
+      const projectId = jobData?.project?.id;
+      
+      let featureDetail = null;
+      
+      // Fetch detailed feature data if we have project ID
+      if (projectId) {
+        try {
+          featureDetail = await window.FiberApi.getFeature(projectId, featureId);
+        } catch (e) {
+          console.log('Could not fetch feature detail:', e);
+        }
+      }
+      
+      const feature = featureDetail || jobData?.feature || {};
+      
+      // API returns data in specific structure: geojson for geometry, feature for attributes
+      const geojson = featureDetail?.geojson || {};
+      const featureAttrs = featureDetail?.feature || feature;
+      
+      // Geometry is in geojson.geometry
+      const geometry = geojson.geometry || null;
+      
+      // Properties for map display are in geojson.properties (has WGS84 x, y)
+      const props = geojson.properties || {};
+      
+      // Other attributes are in feature object
+      const photoUrl = featureAttrs.photo || featureAttrs.photo_url || null;
+      const fieldMeasurements = featureAttrs.field_measurements || null;
+      const comparisonNotes = featureAttrs.comparison_notes || null;
+      
+      let html = `
+        <div style="display: grid; gap: 20px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Feature Name</label>
+              <div style="font-size: 14px; font-weight: 500; color: #374151;">${escapeHtml(featureAttrs.layer_name || jobData?.feature?.layer_name || 'Unknown')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Feature ID</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(featureAttrs.id || featureId)}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Project</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(jobData?.project?.name || 'Unknown')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Layer ID</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(featureAttrs.layer_id || jobData?.feature?.layer_id || 'N/A')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Engineer</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(jobData?.assignee?.full_name || jobData?.assignee?.email || 'Unknown')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Status</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(jobData?.status_display || jobData?.status || feature.status || 'Unknown')}</div>
+            </div>
+          </div>
+      `;
+
+      // Map section with Leaflet
+      html += `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Map View</label>
+            <div id="featureMap" style="width: 100%; height: 300px; background: #F3F4F6; border-radius: 8px; overflow: hidden;"></div>
+          </div>
+      `;
+
+      // Images section with photo from API
+      html += `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Uploaded Photo</label>
+            <div id="featureImages">
+              ${renderPhotoContent(photoUrl)}
+            </div>
+          </div>
+      `;
+
+      // Measurements section with field_measurements
+      html += `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Field Measurements</label>
+            <div id="featureMeasurements" style="background: #F9FAFB; border-radius: 8px; padding: 16px;">
+              ${renderMeasurementsContent(fieldMeasurements)}
+            </div>
+          </div>
+          
+          ${comparisonNotes ? `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Engineer Notes</label>
+            <div style="background: #FEF3C7; border-radius: 8px; padding: 16px; color: #92400E; font-size: 14px;">
+              ${escapeHtml(comparisonNotes)}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+
+      contentDiv.innerHTML = html;
+      
+      // Initialize map if geometry exists
+      if (geometry) {
+        initFeatureMap(geometry, props);
+      }
+
+    } catch (err) {
+      contentDiv.innerHTML = `<div style="color: #DC2626; text-align: center; padding: 40px;">Failed to load feature details: ${err.message}</div>`;
+    }
+  }
+
+  function initFeatureMap(geometry, props) {
+    const mapDiv = document.getElementById('featureMap');
+    if (!mapDiv || !geometry) return;
+    
+    // Clear previous content
+    mapDiv.innerHTML = '';
+    
+    // Use WGS84 coordinates from properties (x, y) instead of projected geometry coordinates
+    // geometry.coordinates are in EPSG:25833, but props.x and props.y are WGS84 lat/lng
+    const lat = parseFloat(props?.y || props?.latitude || props?.lat);
+    const lng = parseFloat(props?.x || props?.longitude || props?.lng || props?.lon);
+    
+    // Initialize Leaflet map
+    const map = L.map('featureMap').setView([lat || 0, lng || 0], 17);
+    
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    // If we have valid WGS84 coordinates, add a marker and render the actual feature shape
+    if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+      // Create WGS84 version of GeoJSON for Leaflet (original is in EPSG:25833)
+      const wgs84GeoJson = {
+        type: 'Feature',
+        geometry: {
+          type: geometry?.type || 'Point',
+          coordinates: geometry?.type === 'Point' ? [lng, lat] : (geometry?.coordinates || [lng, lat])
+        },
+        properties: props || {}
+      };
+      
+      // Render GeoJSON feature
+      if (wgs84GeoJson.geometry) {
+        const geoJsonLayer = L.geoJSON(wgs84GeoJson, {
+          style: {
+            color: '#DC2626',
+            fillColor: '#DC2626',
+            fillOpacity: 0.3,
+            weight: 3
+          },
+          pointToLayer: function(_feature, latlng) {
+            return L.circleMarker(latlng, {
+              radius: 8,
+              fillColor: '#DC2626',
+              color: '#DC2626',
+              weight: 2,
+              opacity: 1,
+              fillOpacity: 0.6
+            });
+          }
+        }).addTo(map);
+        
+        // Fit bounds for non-Point geometries
+        if (wgs84GeoJson.geometry.type !== 'Point') {
+          const bounds = geoJsonLayer.getBounds();
+          if (bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+          }
+        }
+      } else {
+        // Fallback to marker
+        L.marker([lat, lng]).addTo(map);
+      }
+    } else {
+      // No valid coordinates - show a placeholder message
+      mapDiv.innerHTML = `
+        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #6B7280;">
+          <div style="text-align: center;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🗺️</div>
+            <div>No valid location data</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function renderPhotoContent(photoUrl) {
+    if (!photoUrl) {
+      return `<div style="background: #F3F4F6; border-radius: 8px; padding: 40px; text-align: center; color: #6B7280;">
+        <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+        <div>No photo uploaded</div>
+      </div>`;
+    }
+    
+    return `
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+        <div style="background: #F3F4F6; border-radius: 8px; overflow: hidden; cursor: pointer; border: 1px solid #E5E7EB;" onclick="window.open('${escapeHtml(photoUrl)}', '_blank')">
+          <img src="${escapeHtml(photoUrl)}" alt="Feature photo" style="width: 100%; height: 200px; object-fit: cover; display: block;">
+          <div style="padding: 8px 12px; font-size: 12px; color: #6B7280; text-align: center;">Click to view full size</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMeasurementsContent(fieldMeasurements) {
+    if (!fieldMeasurements || Object.keys(fieldMeasurements).length === 0) {
+      return `<div style="color: #6B7280; font-size: 14px; text-align: center; padding: 20px;">No field measurements recorded</div>`;
+    }
+    
+    return `
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
+        ${Object.entries(fieldMeasurements).map(([key, value]) => {
+          // Handle both {value, unit} objects and primitive values
+          const displayValue = typeof value === 'object' && value !== null 
+            ? `${value.value} ${value.unit || ''}`
+            : String(value);
+          return `
+          <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #E5E7EB; text-align: center;">
+            <div style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">${escapeHtml(key)}</div>
+            <div style="font-size: 20px; font-weight: 700; color: #059669;">${escapeHtml(displayValue)}</div>
+          </div>
+        `}).join('')}
+      </div>
+    `;
+  }
+
+  function closeViewModal() {
+    viewModal.style.display = 'none';
+    document.getElementById('viewModalContent').innerHTML = '';
+  }
+
   // Close modal on backdrop click
-  rejectModal.addEventListener('click', (e) => {
-    if (e.target === rejectModal) closeRejectModal();
+  viewModal.addEventListener('click', (e) => {
+    if (e.target === viewModal) closeViewModal();
   });
 
   // Escape key to close modal
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeRejectModal();
+    if (e.key === 'Escape') {
+      closeRejectModal();
+      closeViewModal();
+    }
   });
 
   // Utility

@@ -471,6 +471,8 @@
 
       const card = document.createElement('div');
       card.className = 'card';
+      card.style.cursor = 'pointer';
+      card.onclick = () => window.location.href = `engineer-project-features.html?project_id=${encodeURIComponent(project.id)}`;
       card.innerHTML = `
         <div class="project-title">${escapeHtml(project.name || 'Unknown Project')}</div>
         <div class="meta">
