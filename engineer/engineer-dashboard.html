@@ -371,7 +371,8 @@
   </div>
 </div>
 
-<script src="../fiber-api.js"></script>
+<script src="js/fiber-api.js"></script>
+<script src="js/api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
 
@@ -628,9 +629,12 @@
     if (e.key === 'Escape') closeSubmitModal();
   });
 
-  // Initialize
-  loadStats();
-  loadAssignments();
+  // Initialize - load sequentially to avoid overwhelming the API
+  async function initialize() {
+    await loadStats();
+    await loadAssignments();
+  }
+  initialize();
 </script>
 
 </body>
