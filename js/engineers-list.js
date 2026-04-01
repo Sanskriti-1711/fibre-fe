@@ -16,10 +16,12 @@ function pickId(u) {
 }
 
 function pickName(u) {
+  const full = (u && u.full_name) || "";
+  if (full) return full;
   const first = (u && (u.first_name || u.firstName)) || "";
   const last = (u && (u.last_name || u.lastName)) || "";
-  const full = `${first} ${last}`.trim();
-  return full || (u && (u.name || u.username)) || "-";
+  const fullName = `${first} ${last}`.trim();
+  return fullName || (u && (u.name || u.username)) || "-";
 }
 
 function pickEmail(u) {

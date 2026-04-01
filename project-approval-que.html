@@ -2,302 +2,778 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Project Approval Queue | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Approval Queue</title>
 
-  <style>
-    :root {
-      --tm-red:#E31837;
-      --dark:#0F172A;
-      --gray:#64748B;
-      --light:#F8FAFC;
-      --white:#FFFFFF;
-      --border:#E2E8F0;
-      --green:#059669;
-      --amber:#D97706;
-      --ink:#0B1020;
-      --accent:#0EA5E9;
-      --font-head:"Trebuchet MS", "Lucida Sans Unicode", sans-serif;
-      --font-body:"Verdana", "Geneva", sans-serif;
-    }
-
-    * { box-sizing:border-box; }
-
-    body {
-      margin:0;
-      background:radial-gradient(1200px 600px at 20% -10%, #E0F2FE 0%, #F8FAFC 45%, #F1F5F9 100%);
-      color:var(--dark);
-      font-family:var(--font-body);
-    }
-
-    .container {
-      max-width:980px;
-      margin:0 auto;
-      padding:18px 14px 40px;
-    }
-
-    .hero {
-      background:linear-gradient(120deg, #0B1020 0%, #111827 55%, #0F172A 100%);
-      color:#E2E8F0;
-      padding:18px;
-      border-radius:14px;
-      margin-bottom:14px;
-      box-shadow:0 14px 30px rgba(2, 6, 23, 0.25);
-      position:relative;
-      overflow:hidden;
-    }
-
-    .hero:after {
-      content:"";
-      position:absolute;
-      top:-40px;
-      right:-60px;
-      width:220px;
-      height:220px;
-      border-radius:50%;
-      background:radial-gradient(circle, rgba(14,165,233,0.45), rgba(14,165,233,0));
-    }
-
-    .hero h1 {
-      font-family:var(--font-head);
-      font-size:20px;
-      margin:0 0 6px;
-      letter-spacing:0.4px;
-    }
-
-    .hero p {
-      margin:0;
-      color:#CBD5F5;
-      font-size:12px;
-      line-height:1.5;
-    }
-
-    .toolbar {
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-bottom:14px;
-    }
-
-    .toolbar input, .toolbar select {
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      font-size:13px;
-      background:#fff;
-      font-family:var(--font-body);
-    }
-
-    .card {
-      background:var(--white);
-      border-radius:14px;
-      padding:16px;
-      margin-bottom:14px;
-      border:1px solid var(--border);
-      box-shadow:0 8px 18px rgba(15, 23, 42, 0.06);
-    }
-
-    .queue-header {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-    }
-
-    .queue-title {
-      font-family:var(--font-head);
-      font-size:16px;
-      margin:0;
-    }
-
-    .pill {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:6px 10px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:700;
-      background:#F1F5F9;
-      color:#0F172A;
-      border:1px solid #E2E8F0;
-    }
-
-    .queue-item {
-      display:grid;
-      grid-template-columns:140px 1fr;
-      gap:14px;
-    }
-
-    .evidence {
-      width:100%;
-      height:100px;
-      border-radius:10px;
-      background:linear-gradient(135deg, #ECFEFF, #E0F2FE);
-      border:1px dashed #7DD3FC;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#0EA5E9;
-      font-size:12px;
-    }
-
-    .meta-row {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-      font-size:12px;
-      color:var(--gray);
-      margin-bottom:10px;
-    }
-
-    .status {
-      font-size:13px;
-      font-weight:700;
-      color:var(--amber);
-      margin-bottom:6px;
-    }
-
-    .actions {
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-
-    .btn {
-      padding:10px 12px;
-      border:none;
-      border-radius:10px;
-      font-weight:700;
-      font-size:12px;
-      cursor:pointer;
-      font-family:var(--font-head);
-    }
-
-    .btn-primary { background:var(--tm-red); color:#fff; }
-    .btn-ghost { background:#F1F5F9; color:var(--dark); border:1px solid #E2E8F0; }
-    .btn-approve { background:var(--green); color:#fff; }
-    .btn-redo { background:#FDE68A; color:#92400E; border:1px solid #FCD34D; }
-
-    .note {
-      font-size:12px;
-      color:var(--gray);
-      margin-top:8px;
-    }
-
-    @media (max-width:720px) {
-      .queue-item { grid-template-columns:1fr; }
-      .meta-row { grid-template-columns:1fr; }
-    }
-  </style>
+  <link rel="stylesheet" href="css/main.css" />
+  
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
-<div class="container">
-  <div class="hero">
-    <h1>Project Approval Queue</h1>
-    <p>Review engineer submissions that require approval. Approve when compliant or request a redo with notes.</p>
-  </div>
+<div class="layout">
 
-  <div class="toolbar">
-    <input type="text" placeholder="Search by project, feature, engineer" />
-    <select>
-      <option>All statuses</option>
-      <option>Pending Review</option>
-      <option>Approved</option>
-      <option>Redo Requested</option>
-    </select>
-    <select>
-      <option>Sort by latest</option>
-      <option>Sort by oldest</option>
-      <option>Sort by project</option>
-    </select>
-  </div>
+  <div id="sidebarContainer"></div>
 
-  <div class="card">
-    <div class="queue-header">
-      <div class="queue-title">Pole #A-19</div>
-      <span class="pill">Pending Review</span>
-    </div>
-    <div class="queue-item">
-      <div class="evidence">Evidence</div>
+  <!-- Main Content -->
+  <main class="content">
+
+    <div class="header">
       <div>
-        <div class="status" id="status-1">Status: Pending Review</div>
-        <div class="meta-row">
-          <div>Project: Fiber Rollout - Zone A</div>
-          <div>Engineer: Priya K.</div>
-          <div>Submitted: 2 hours ago</div>
-          <div>GPS: Read from image</div>
-        </div>
-        <div class="actions">
-          <button class="btn btn-approve" type="button" onclick="setStatus('status-1','Approved')">Approve</button>
-          <button class="btn btn-redo" type="button" onclick="setStatus('status-1','Redo Requested')">Request Redo</button>
-          <button class="btn btn-ghost" type="button">Open Details</button>
-        </div>
-        <div class="note">Note: Tag number visible. Clearance is close to limit.</div>
+        <h1>Project Approval Queue</h1>
+        <p>Review engineer submissions and approve features to count toward project completion</p>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button id="refreshBtn" class="create-btn" type="button" style="background: #374151;">Refresh</button>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="queue-header">
-      <div class="queue-title">Handhole #H-07</div>
-      <span class="pill">Pending Review</span>
-    </div>
-    <div class="queue-item">
-      <div class="evidence">Evidence</div>
-      <div>
-        <div class="status" id="status-2">Status: Pending Review</div>
-        <div class="meta-row">
-          <div>Project: Metro Expansion - Phase 2</div>
-          <div>Engineer: Jorge M.</div>
-          <div>Submitted: 1 day ago</div>
-          <div>GPS: Browser fallback</div>
+    <!-- Filters -->
+    <div class="table-card" style="margin-bottom: 16px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
+        <div style="min-width: 200px;">
+          <label for="filterProject" style="font-size: 12px; font-weight: 600; color: #6B7280; display: block; margin-bottom: 6px;">Project</label>
+          <select id="filterProject" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+            <option value="">All Projects</option>
+          </select>
         </div>
-        <div class="actions">
-          <button class="btn btn-approve" type="button" onclick="setStatus('status-2','Approved')">Approve</button>
-          <button class="btn btn-redo" type="button" onclick="setStatus('status-2','Redo Requested')">Request Redo</button>
-          <button class="btn btn-ghost" type="button">Open Details</button>
+        <div style="min-width: 180px;">
+          <label for="filterStatus" style="font-size: 12px; font-weight: 600; color: #6B7280; display: block; margin-bottom: 6px;">Status</label>
+          <select id="filterStatus" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+            <option value="">All Statuses</option>
+            <option value="under_review" selected>Pending Review</option>
+            <option value="approved">Approved</option>
+            <option value="redo">Redo Requested</option>
+          </select>
         </div>
-        <div class="note">Note: Depth reading missing in image.</div>
+        <button id="clearFilters" class="create-btn" type="button" style="background: #DC2626;">Clear</button>
       </div>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="queue-header">
-      <div class="queue-title">Cabinet #C-11</div>
-      <span class="pill">Pending Review</span>
+    <!-- Loading State -->
+    <div id="loadingState" style="display: none; text-align: center; padding: 40px;">
+      <div style="font-size: 16px; color: #6B7280;">Loading approval queue...</div>
     </div>
-    <div class="queue-item">
-      <div class="evidence">Evidence</div>
-      <div>
-        <div class="status" id="status-3">Status: Pending Review</div>
-        <div class="meta-row">
-          <div>Project: City Core Upgrade</div>
-          <div>Engineer: Aanya S.</div>
-          <div>Submitted: 3 hours ago</div>
-          <div>GPS: Read from image</div>
+
+    <!-- Stats Bar -->
+    <div id="statsBar" style="display: none; background: #F9FAFB; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; border: 1px solid #E5E7EB;">
+      <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+        <div>
+          <span style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Pending Review</span>
+          <div id="statUnderReview" style="font-size: 20px; font-weight: 700; color: #F59E0B;">0</div>
         </div>
-        <div class="actions">
-          <button class="btn btn-approve" type="button" onclick="setStatus('status-3','Approved')">Approve</button>
-          <button class="btn btn-redo" type="button" onclick="setStatus('status-3','Redo Requested')">Request Redo</button>
-          <button class="btn btn-ghost" type="button">Open Details</button>
+        <div>
+          <span style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Approved</span>
+          <div id="statApproved" style="font-size: 20px; font-weight: 700; color: #10B981;">0</div>
         </div>
-        <div class="note">Note: Door label visible. Confirm clearance.</div>
+        <div>
+          <span style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Redo</span>
+          <div id="statRedo" style="font-size: 20px; font-weight: 700; color: #EF4444;">0</div>
+        </div>
       </div>
+    </div>
+
+    <!-- Batch Actions -->
+    <div id="batchActions" style="display: none; background: white; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; border: 1px solid #E5E7EB; align-items: center; gap: 16px;">
+      <div style="font-size: 14px; font-weight: 500; color: #374151;">
+        <span id="selectedCount">0</span> features selected
+      </div>
+      <div style="display: flex; gap: 12px; margin-left: auto;">
+        <button id="batchApproveBtn" class="create-btn" type="button" style="background: #10B981;">
+          Approve Selected
+        </button>
+        <button id="batchRejectBtn" class="create-btn" type="button" style="background: #F59E0B;">
+          Request Redo
+        </button>
+        <button id="clearSelectionBtn" class="create-btn" type="button" style="background: #6B7280;">
+          Clear Selection
+        </button>
+      </div>
+    </div>
+
+    <!-- Features List -->
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40px;">
+              <input type="checkbox" id="selectAll" style="cursor: pointer;">
+            </th>
+            <th>Feature</th>
+            <th>Project</th>
+            <th>Engineer</th>
+            <th style="width: 140px;">Status</th>
+            <th style="width: 180px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="featuresTbody">
+          <tr>
+            <td colspan="6" style="padding: 40px; text-align: center; color: #6B7280;">
+              Loading features...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" style="display: none; margin-top: 20px; justify-content: center; align-items: center; gap: 12px;">
+      <button id="prevPage" class="create-btn" type="button" style="background: #374151;">Previous</button>
+      <span id="pageInfo" style="font-size: 14px; color: #6B7280;">Page 1 of 1</span>
+      <button id="nextPage" class="create-btn" type="button" style="background: #374151;">Next</button>
+    </div>
+
+  </main>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">
+    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Request Redo</h3>
+    <p style="margin: 0 0 16px 0; font-size: 14px; color: #6B7280;">
+      Provide feedback to the engineer about what needs to be corrected.
+    </p>
+    <textarea id="rejectReason" placeholder="Enter rejection reason..." style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px; min-height: 100px; resize: vertical;"></textarea>
+    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;">
+      <button onclick="closeRejectModal()" style="padding: 8px 16px; border: 1px solid #D1D5DB; background: white; border-radius: 6px; cursor: pointer;">Cancel</button>
+      <button id="confirmRejectBtn" style="padding: 8px 16px; background: #F59E0B; color: white; border: none; border-radius: 6px; cursor: pointer;">Confirm Redo</button>
     </div>
   </div>
 </div>
 
-<script>
-  function setStatus(id, status) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = 'Status: ' + status;
-  }
-</script>
+<!-- View Feature Modal -->
+<div id="viewModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 12px; max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto;">
+    <div style="padding: 20px 24px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 18px; font-weight: 600;">Feature Details</h3>
+      <button onclick="closeViewModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #6B7280;">×</button>
+    </div>
+    <div id="viewModalContent" style="padding: 24px;">
+      <!-- Content loaded dynamically -->
+    </div>
+  </div>
+</div>
 
 </body>
+<script src="partials/sidebar-loader.js"></script>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  // State
+  let currentPage = 1;
+  let totalPages = 1;
+  let allProjects = [];
+  let currentFeatures = [];
+  let selectedFeatures = new Set();
+  let pendingRejectFeatureId = null;
+
+  // DOM Elements
+  const featuresTbody = document.getElementById('featuresTbody');
+  const loadingState = document.getElementById('loadingState');
+  const statsBar = document.getElementById('statsBar');
+  const batchActions = document.getElementById('batchActions');
+  const selectAllCheckbox = document.getElementById('selectAll');
+  const filterProject = document.getElementById('filterProject');
+  const filterStatus = document.getElementById('filterStatus');
+  const rejectModal = document.getElementById('rejectModal');
+  const viewModal = document.getElementById('viewModal');
+
+  // Load projects for filter
+  async function loadProjects() {
+    try {
+      const data = await window.FiberApi.listProjects();
+      allProjects = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
+      
+      filterProject.innerHTML = '<option value="">All Projects</option>';
+      allProjects.forEach(p => {
+        const id = p.uuid || p.id || p.project_uuid || p.pk;
+        const name = p.name || p.title || p.project_name || 'Unnamed';
+        if (id) {
+          const option = document.createElement('option');
+          option.value = id;
+          option.textContent = name;
+          filterProject.appendChild(option);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to load projects:', err);
+    }
+  }
+
+  // Load features
+  async function loadFeatures() {
+    loadingState.style.display = 'block';
+    statsBar.style.display = 'none';
+    
+    const params = {
+      page: currentPage,
+      page_size: 20,
+      status: filterStatus.value || 'under_review'
+    };
+
+    if (filterProject.value) params.project = filterProject.value;
+
+    try {
+      const data = await window.FiberApi.listJobs(params);
+      currentFeatures = data.results || [];
+      currentPage = data.page || 1;
+      totalPages = Math.ceil((data.count || 0) / (data.page_size || 20));
+
+      // Update stats
+      if (data.stats) {
+        document.getElementById('statUnderReview').textContent = data.stats.under_review || 0;
+        document.getElementById('statApproved').textContent = data.stats.approved || 0;
+        document.getElementById('statRedo').textContent = data.stats.redo || 0;
+        statsBar.style.display = 'block';
+      }
+
+      renderFeatures();
+      updatePagination();
+    } catch (err) {
+      console.error('Failed to load features:', err);
+      featuresTbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding: 40px; text-align: center; color: #DC2626;">
+            Failed to load features: ${err.message}
+          </td>
+        </tr>
+      `;
+    } finally {
+      loadingState.style.display = 'none';
+    }
+  }
+
+  // Render features table
+  function renderFeatures() {
+    if (!currentFeatures.length) {
+      featuresTbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="padding: 40px; text-align: center; color: #6B7280;">
+            No features found matching your criteria
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    featuresTbody.innerHTML = '';
+    
+    currentFeatures.forEach(feature => {
+      const tr = document.createElement('tr');
+      const isSelected = selectedFeatures.has(feature.id);
+      
+      // Status badge color
+      let statusColor = '#6B7280';
+      let statusBg = '#F3F4F6';
+      if (feature.status === 'under_review') {
+        statusColor = '#F59E0B';
+        statusBg = '#FEF3C7';
+      } else if (feature.status === 'approved') {
+        statusColor = '#10B981';
+        statusBg = '#D1FAE5';
+      } else if (feature.status === 'redo') {
+        statusColor = '#EF4444';
+        statusBg = '#FEE2E2';
+      }
+
+      tr.innerHTML = `
+        <td>
+          <input type="checkbox" class="feature-checkbox" data-feature-id="${feature.feature?.id || feature.id}" 
+            ${isSelected ? 'checked' : ''} 
+            ${feature.status !== 'under_review' ? 'disabled' : ''}
+            style="cursor: ${feature.status === 'under_review' ? 'pointer' : 'not-allowed'};">
+        </td>
+        <td>
+          <div style="font-weight: 500; color: #374151;">${escapeHtml(feature.feature?.layer_name || 'Unknown')}</div>
+          <div style="font-size: 11px; color: #9CA3AF;">${escapeHtml(feature.feature?.id?.slice(0, 8) || '')}</div>
+        </td>
+        <td>
+          <div style="font-size: 13px; color: #374151;">${escapeHtml(feature.project?.name || 'Unknown')}</div>
+          <div style="font-size: 11px; color: #6B7280;">${escapeHtml(feature.feature?.layer_id || '')}</div>
+        </td>
+        <td>
+          <div style="font-size: 13px; color: #374151;">${escapeHtml(feature.assignee?.full_name || feature.assignee?.email || 'Unknown')}</div>
+          <div style="font-size: 11px; color: #6B7280;">${escapeHtml(feature.scope_display || '')}</div>
+        </td>
+        <td>
+          <span style="
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: ${statusColor};
+            background: ${statusBg};
+          ">${escapeHtml(feature.status_display || feature.status)}</span>
+        </td>
+        <td>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button onclick="viewFeature('${feature.feature?.id || feature.id}')" 
+              style="padding: 6px 12px; font-size: 12px; background: #3B82F6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              View
+            </button>
+            ${feature.status === 'under_review' ? `
+              <button onclick="approveFeature('${feature.feature?.id || feature.id}')" 
+                style="padding: 6px 12px; font-size: 12px; background: #10B981; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Approve
+              </button>
+              <button onclick="openRejectModal('${feature.feature?.id || feature.id}')" 
+                style="padding: 6px 12px; font-size: 12px; background: #F59E0B; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Redo
+              </button>
+            ` : ''}
+          </div>
+        </td>
+      `;
+      
+      featuresTbody.appendChild(tr);
+    });
+
+    // Attach checkbox handlers
+    document.querySelectorAll('.feature-checkbox').forEach(cb => {
+      cb.addEventListener('change', handleFeatureSelect);
+    });
+
+    updateBatchActions();
+  }
+
+  // Handle feature selection
+  function handleFeatureSelect(e) {
+    const featureId = e.target.dataset.featureId;
+    if (e.target.checked) {
+      selectedFeatures.add(featureId);
+    } else {
+      selectedFeatures.delete(featureId);
+    }
+    updateBatchActions();
+  }
+
+  // Update batch actions visibility
+  function updateBatchActions() {
+    const count = selectedFeatures.size;
+    if (count > 0) {
+      batchActions.style.display = 'flex';
+      document.getElementById('selectedCount').textContent = count;
+    } else {
+      batchActions.style.display = 'none';
+    }
+
+    // Update select all checkbox
+    const checkboxes = document.querySelectorAll('.feature-checkbox:not(:disabled)');
+    const checkedBoxes = document.querySelectorAll('.feature-checkbox:checked');
+    selectAllCheckbox.checked = checkboxes.length > 0 && checkboxes.length === checkedBoxes.length;
+  }
+
+  // Select all handler
+  selectAllCheckbox.addEventListener('change', (e) => {
+    const checkboxes = document.querySelectorAll('.feature-checkbox:not(:disabled)');
+    checkboxes.forEach(cb => {
+      cb.checked = e.target.checked;
+      const featureId = cb.dataset.featureId;
+      if (e.target.checked) {
+        selectedFeatures.add(featureId);
+      } else {
+        selectedFeatures.delete(featureId);
+      }
+    });
+    updateBatchActions();
+  });
+
+  // Approve single feature
+  async function approveFeature(featureId) {
+    try {
+      const user = window.FiberAuth.getUser();
+      await window.FiberApi.approveFeatures([featureId], user?.id, 'Approved via approval queue');
+      loadFeatures();
+    } catch (err) {
+      alert('Failed to approve feature: ' + err.message);
+    }
+  }
+
+  // Batch approve
+  document.getElementById('batchApproveBtn').addEventListener('click', async () => {
+    if (selectedFeatures.size === 0) return;
+    
+    try {
+      const user = window.FiberAuth.getUser();
+      await window.FiberApi.approveFeatures(Array.from(selectedFeatures), user?.id, 'Batch approved via approval queue');
+      
+      selectedFeatures.clear();
+      loadFeatures();
+    } catch (err) {
+      alert('Failed to approve features: ' + err.message);
+    }
+  });
+
+  // Open reject modal
+  function openRejectModal(featureId) {
+    pendingRejectFeatureId = featureId;
+    document.getElementById('rejectReason').value = '';
+    rejectModal.style.display = 'flex';
+  }
+
+  // Close reject modal
+  function closeRejectModal() {
+    rejectModal.style.display = 'none';
+    pendingRejectFeatureId = null;
+  }
+
+  // Confirm reject
+  document.getElementById('confirmRejectBtn').addEventListener('click', async () => {
+    const reason = document.getElementById('rejectReason').value.trim();
+    if (!reason) {
+      alert('Please provide a rejection reason');
+      return;
+    }
+
+    try {
+      const user = window.FiberAuth.getUser();
+      const featureIds = pendingRejectFeatureId ? [pendingRejectFeatureId] : Array.from(selectedFeatures);
+      
+      await window.FiberApi.rejectFeatures(featureIds, user?.id, reason);
+      
+      selectedFeatures.clear();
+      closeRejectModal();
+      loadFeatures();
+    } catch (err) {
+      alert('Failed to reject features: ' + err.message);
+    }
+  });
+
+  // Batch reject
+  document.getElementById('batchRejectBtn').addEventListener('click', () => {
+    if (selectedFeatures.size === 0) return;
+    pendingRejectFeatureId = null;
+    document.getElementById('rejectReason').value = '';
+    rejectModal.style.display = 'flex';
+  });
+
+  // Clear selection
+  document.getElementById('clearSelectionBtn').addEventListener('click', () => {
+    selectedFeatures.clear();
+    document.querySelectorAll('.feature-checkbox').forEach(cb => cb.checked = false);
+    selectAllCheckbox.checked = false;
+    updateBatchActions();
+  });
+
+  // Update pagination
+  function updatePagination() {
+    const paginationDiv = document.getElementById('pagination');
+    if (totalPages <= 1) {
+      paginationDiv.style.display = 'none';
+      return;
+    }
+    
+    paginationDiv.style.display = 'flex';
+    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById('prevPage').disabled = currentPage <= 1;
+    document.getElementById('nextPage').disabled = currentPage >= totalPages;
+  }
+
+  // Pagination handlers
+  document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 1) {
+      currentPage--;
+      loadFeatures();
+    }
+  });
+
+  document.getElementById('nextPage').addEventListener('click', () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      loadFeatures();
+    }
+  });
+
+  // Filter change handlers (auto-update)
+  filterProject.addEventListener('change', () => {
+    currentPage = 1;
+    loadFeatures();
+  });
+
+  filterStatus.addEventListener('change', () => {
+    currentPage = 1;
+    loadFeatures();
+  });
+
+  document.getElementById('clearFilters').addEventListener('click', () => {
+    filterProject.value = '';
+    filterStatus.value = 'under_review';
+    currentPage = 1;
+    loadFeatures();
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', loadFeatures);
+
+  // View feature modal
+  async function viewFeature(featureId) {
+    const contentDiv = document.getElementById('viewModalContent');
+    contentDiv.innerHTML = '<div style="text-align: center; padding: 40px;">Loading feature details...</div>';
+    viewModal.style.display = 'flex';
+
+    try {
+      const jobData = currentFeatures.find(f => (f.feature?.id || f.id) === featureId);
+      const projectId = jobData?.project?.id;
+      
+      let featureDetail = null;
+      
+      // Fetch detailed feature data if we have project ID
+      if (projectId) {
+        try {
+          featureDetail = await window.FiberApi.getFeature(projectId, featureId);
+        } catch (e) {
+          console.log('Could not fetch feature detail:', e);
+        }
+      }
+      
+      const feature = featureDetail || jobData?.feature || {};
+      
+      // API returns data in specific structure: geojson for geometry, feature for attributes
+      const geojson = featureDetail?.geojson || {};
+      const featureAttrs = featureDetail?.feature || feature;
+      
+      // Geometry is in geojson.geometry
+      const geometry = geojson.geometry || null;
+      
+      // Properties for map display are in geojson.properties (has WGS84 x, y)
+      const props = geojson.properties || {};
+      
+      // Other attributes are in feature object
+      const photoUrl = featureAttrs.photo || featureAttrs.photo_url || null;
+      const fieldMeasurements = featureAttrs.field_measurements || null;
+      const comparisonNotes = featureAttrs.comparison_notes || null;
+      
+      let html = `
+        <div style="display: grid; gap: 20px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Feature Name</label>
+              <div style="font-size: 14px; font-weight: 500; color: #374151;">${escapeHtml(featureAttrs.layer_name || jobData?.feature?.layer_name || 'Unknown')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Feature ID</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(featureAttrs.id || featureId)}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Project</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(jobData?.project?.name || 'Unknown')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Layer ID</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(featureAttrs.layer_id || jobData?.feature?.layer_id || 'N/A')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Engineer</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(jobData?.assignee?.full_name || jobData?.assignee?.email || 'Unknown')}</div>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600;">Status</label>
+              <div style="font-size: 14px; color: #374151;">${escapeHtml(jobData?.status_display || jobData?.status || feature.status || 'Unknown')}</div>
+            </div>
+          </div>
+      `;
+
+      // Map section with Leaflet
+      html += `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Map View</label>
+            <div id="featureMap" style="width: 100%; height: 300px; background: #F3F4F6; border-radius: 8px; overflow: hidden;"></div>
+          </div>
+      `;
+
+      // Images section with photo from API
+      html += `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Uploaded Photo</label>
+            <div id="featureImages">
+              ${renderPhotoContent(photoUrl)}
+            </div>
+          </div>
+      `;
+
+      // Measurements section with field_measurements
+      html += `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Field Measurements</label>
+            <div id="featureMeasurements" style="background: #F9FAFB; border-radius: 8px; padding: 16px;">
+              ${renderMeasurementsContent(fieldMeasurements)}
+            </div>
+          </div>
+          
+          ${comparisonNotes ? `
+          <div>
+            <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Engineer Notes</label>
+            <div style="background: #FEF3C7; border-radius: 8px; padding: 16px; color: #92400E; font-size: 14px;">
+              ${escapeHtml(comparisonNotes)}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `;
+
+      contentDiv.innerHTML = html;
+      
+      // Initialize map if geometry exists
+      if (geometry) {
+        initFeatureMap(geometry, props);
+      }
+
+    } catch (err) {
+      contentDiv.innerHTML = `<div style="color: #DC2626; text-align: center; padding: 40px;">Failed to load feature details: ${err.message}</div>`;
+    }
+  }
+
+  function initFeatureMap(geometry, props) {
+    const mapDiv = document.getElementById('featureMap');
+    if (!mapDiv || !geometry) return;
+    
+    // Clear previous content
+    mapDiv.innerHTML = '';
+    
+    // Use WGS84 coordinates from properties (x, y) instead of projected geometry coordinates
+    // geometry.coordinates are in EPSG:25833, but props.x and props.y are WGS84 lat/lng
+    const lat = parseFloat(props?.y || props?.latitude || props?.lat);
+    const lng = parseFloat(props?.x || props?.longitude || props?.lng || props?.lon);
+    
+    // Initialize Leaflet map
+    const map = L.map('featureMap').setView([lat || 0, lng || 0], 17);
+    
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    // If we have valid WGS84 coordinates, add a marker and render the actual feature shape
+    if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+      // Create WGS84 version of GeoJSON for Leaflet (original is in EPSG:25833)
+      const wgs84GeoJson = {
+        type: 'Feature',
+        geometry: {
+          type: geometry?.type || 'Point',
+          coordinates: geometry?.type === 'Point' ? [lng, lat] : (geometry?.coordinates || [lng, lat])
+        },
+        properties: props || {}
+      };
+      
+      // Render GeoJSON feature
+      if (wgs84GeoJson.geometry) {
+        const geoJsonLayer = L.geoJSON(wgs84GeoJson, {
+          style: {
+            color: '#DC2626',
+            fillColor: '#DC2626',
+            fillOpacity: 0.3,
+            weight: 3
+          },
+          pointToLayer: function(_feature, latlng) {
+            return L.circleMarker(latlng, {
+              radius: 8,
+              fillColor: '#DC2626',
+              color: '#DC2626',
+              weight: 2,
+              opacity: 1,
+              fillOpacity: 0.6
+            });
+          }
+        }).addTo(map);
+        
+        // Fit bounds for non-Point geometries
+        if (wgs84GeoJson.geometry.type !== 'Point') {
+          const bounds = geoJsonLayer.getBounds();
+          if (bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
+          }
+        }
+      } else {
+        // Fallback to marker
+        L.marker([lat, lng]).addTo(map);
+      }
+    } else {
+      // No valid coordinates - show a placeholder message
+      mapDiv.innerHTML = `
+        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #6B7280;">
+          <div style="text-align: center;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🗺️</div>
+            <div>No valid location data</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function renderPhotoContent(photoUrl) {
+    if (!photoUrl) {
+      return `<div style="background: #F3F4F6; border-radius: 8px; padding: 40px; text-align: center; color: #6B7280;">
+        <div style="font-size: 32px; margin-bottom: 8px;">📷</div>
+        <div>No photo uploaded</div>
+      </div>`;
+    }
+    
+    return `
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">
+        <div style="background: #F3F4F6; border-radius: 8px; overflow: hidden; cursor: pointer; border: 1px solid #E5E7EB;" onclick="window.open('${escapeHtml(photoUrl)}', '_blank')">
+          <img src="${escapeHtml(photoUrl)}" alt="Feature photo" style="width: 100%; height: 200px; object-fit: cover; display: block;">
+          <div style="padding: 8px 12px; font-size: 12px; color: #6B7280; text-align: center;">Click to view full size</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMeasurementsContent(fieldMeasurements) {
+    if (!fieldMeasurements || Object.keys(fieldMeasurements).length === 0) {
+      return `<div style="color: #6B7280; font-size: 14px; text-align: center; padding: 20px;">No field measurements recorded</div>`;
+    }
+    
+    return `
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
+        ${Object.entries(fieldMeasurements).map(([key, value]) => {
+          // Handle both {value, unit} objects and primitive values
+          const displayValue = typeof value === 'object' && value !== null 
+            ? `${value.value} ${value.unit || ''}`
+            : String(value);
+          return `
+          <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #E5E7EB; text-align: center;">
+            <div style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">${escapeHtml(key)}</div>
+            <div style="font-size: 20px; font-weight: 700; color: #059669;">${escapeHtml(displayValue)}</div>
+          </div>
+        `}).join('')}
+      </div>
+    `;
+  }
+
+  function closeViewModal() {
+    viewModal.style.display = 'none';
+    document.getElementById('viewModalContent').innerHTML = '';
+  }
+
+  // Close modal on backdrop click
+  viewModal.addEventListener('click', (e) => {
+    if (e.target === viewModal) closeViewModal();
+  });
+
+  // Escape key to close modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeRejectModal();
+      closeViewModal();
+    }
+  });
+
+  // Utility
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Initialize
+  loadProjects().then(() => {
+    loadFeatures();
+  });
+</script>
 </html>

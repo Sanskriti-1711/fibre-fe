@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Engineer Project Details</title>
-  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body class="engineer-project-details">
 
@@ -16,109 +16,107 @@
       <h1>My Projects</h1>
       <div class="subtitle">Projects assigned to you and their features</div>
 
-      <div id="project-fiber-rollout-zone-a" class="card">
-        <div class="project-title">Fiber Rollout - Zone A</div>
-        <div class="meta">Assigned: 24 features | Due: Feb 12</div>
-        <div class="progress"><span style="width:78%"></span></div>
-        <div class="meta">Progress: 78%</div>
-
-        <div class="stat-grid">
-          <div class="stat"><strong>18</strong>Completed</div>
-          <div class="stat"><strong>4</strong>Pending</div>
-          <div class="stat"><strong>2</strong>Failed</div>
-        </div>
-
-        <div class="section-title">Features</div>
-
-        <button class="feature feature-link" type="button" data-project="Fiber Rollout - Zone A" data-feature="Pole #1022" data-type="Pole" data-status="Pending">
-          <div>
-            <strong>Pole #1022</strong>
-            <div class="meta">Last update: Today 10:12 AM</div>
-          </div>
-          <span class="badge pending">Pending</span>
-        </button>
-
-        <button class="feature feature-link" type="button" data-project="Fiber Rollout - Zone A" data-feature="Chamber #204" data-type="Manhole" data-status="Completed">
-          <div>
-            <strong>Chamber #204</strong>
-            <div class="meta">Last update: Yesterday 4:45 PM</div>
-          </div>
-          <span class="badge complete">Completed</span>
-        </button>
-
-        <button class="feature feature-link" type="button" data-project="Fiber Rollout - Zone A" data-feature="Fiber Joint #88" data-type="Duct" data-status="Failed">
-          <div>
-            <strong>Fiber Joint #88</strong>
-            <div class="meta">Last update: Feb 2 2:30 PM</div>
-          </div>
-          <span class="badge failed">Failed</span>
-        </button>
-
-        <div class="action">Select a feature above to submit an update.</div>
-      </div>
-
-      <div id="project-metro-expansion-phase-2" class="card">
-        <div class="project-title">Metro Expansion - Phase 2</div>
-        <div class="meta">Assigned: 9 features | Due: Feb 20</div>
-        <div class="progress"><span style="width:54%"></span></div>
-        <div class="meta">Progress: 54%</div>
-
-        <div class="stat-grid">
-          <div class="stat"><strong>4</strong>Completed</div>
-          <div class="stat"><strong>3</strong>Pending</div>
-          <div class="stat"><strong>2</strong>Failed</div>
-        </div>
-
-        <div class="section-title">Features</div>
-
-        <button class="feature feature-link" type="button" data-project="Metro Expansion - Phase 2" data-feature="Manhole #221" data-type="Manhole" data-status="Pending">
-          <div>
-            <strong>Manhole #221</strong>
-            <div class="meta">Last update: Today 9:10 AM</div>
-          </div>
-          <span class="badge pending">Pending</span>
-        </button>
-
-        <button class="feature feature-link" type="button" data-project="Metro Expansion - Phase 2" data-feature="Cabinet #14" data-type="Cabinet" data-status="Completed">
-          <div>
-            <strong>Cabinet #14</strong>
-            <div class="meta">Last update: Feb 3 1:05 PM</div>
-          </div>
-          <span class="badge complete">Completed</span>
-        </button>
-
-        <button class="feature feature-link" type="button" data-project="Metro Expansion - Phase 2" data-feature="Trench #5" data-type="Trench" data-status="Failed">
-          <div>
-            <strong>Trench #5</strong>
-            <div class="meta">Last update: Feb 1 3:30 PM</div>
-          </div>
-          <span class="badge failed">Failed</span>
-        </button>
-
-        <div class="action">Select a feature above to submit an update.</div>
+      <div id="projects-container">
+        <div class="geo-status">Loading your assigned projects...</div>
       </div>
     </div>
   </main>
 </div>
 
+<script src="js/fiber-api.js"></script>
+<script src="js/api.js"></script>
 <script>
-  (function () {
-    var params = new URLSearchParams(window.location.search);
-    var project = params.get('project');
-    if (!project) return;
-    var targetId = 'project-' + project;
-    var cards = document.querySelectorAll('[id^="project-"]');
-    cards.forEach(function (card) {
-      if (card.id !== targetId) {
-        card.style.display = 'none';
-      }
-    });
-    var target = document.getElementById(targetId);
-    if (!target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  })();
+  window.FiberAuth.requireLogin();
 
-  (function () {
+  async function loadAssignments() {
+    var container = document.getElementById('projects-container');
+    try {
+      var user = window.FiberAuth.getUser();
+      var engineerId = user && user.id ? user.id : null;
+
+      if (!engineerId) {
+        container.innerHTML = '<div class="geo-status">Please login to view your assignments.</div>';
+        return;
+      }
+
+      var assignments = await window.FiberApi.listAssignments({ engineer: engineerId });
+
+      if (!assignments || !assignments.results || assignments.results.length === 0) {
+        container.innerHTML = '<div class="geo-status">No projects assigned to you yet.</div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < assignments.results.length; i++) {
+        var assignment = assignments.results[i];
+        var project = assignment.project || {};
+        var projectId = project.id || assignment.project_id || 'project-' + i;
+        var projectName = project.name || 'Unnamed Project';
+        var features = assignment.features || [];
+        var completed = features.filter(function(f) { return f.status === 'COMPLETED' || f.status === 'APPROVED'; }).length;
+        var pending = features.filter(function(f) { return f.status === 'PENDING' || f.status === 'SUBMITTED'; }).length;
+        var failed = features.filter(function(f) { return f.status === 'REJECTED' || f.status === 'FAILED'; }).length;
+        var total = features.length || assignment.total_features || 0;
+        var progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+        var dueDate = assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'N/A';
+
+        html += '<div id="project-' + projectId + '" class="card">';
+        html += '<div class="project-title">' + escapeHtml(projectName) + '</div>';
+        html += '<div class="meta">Assigned: ' + total + ' features | Due: ' + dueDate + '</div>';
+        html += '<div class="progress"><span style="width:' + progress + '%"></span></div>';
+        html += '<div class="meta">Progress: ' + progress + '%</div>';
+
+        html += '<div class="stat-grid">';
+        html += '<div class="stat"><strong>' + completed + '</strong>Completed</div>';
+        html += '<div class="stat"><strong>' + pending + '</strong>Pending</div>';
+        html += '<div class="stat"><strong>' + failed + '</strong>Failed</div>';
+        html += '</div>';
+
+        html += '<div class="section-title">Features</div>';
+
+        for (var j = 0; j < features.length; j++) {
+          var feature = features[j];
+          var featureName = feature.name || feature.feature_name || 'Feature #' + (j + 1);
+          var featureType = feature.type || feature.feature_type || 'Pole';
+          var status = feature.status || 'PENDING';
+          var statusClass = status.toLowerCase() === 'completed' || status.toLowerCase() === 'approved' ? 'complete' :
+                           status.toLowerCase() === 'rejected' || status.toLowerCase() === 'failed' ? 'failed' : 'pending';
+          var statusLabel = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+          var lastUpdate = feature.updated_at || feature.last_update ? new Date(feature.updated_at || feature.last_update).toLocaleString() : 'N/A';
+
+          html += '<button class="feature feature-link" type="button" ';
+          html += 'data-project="' + escapeHtml(projectName) + '" ';
+          html += 'data-feature="' + escapeHtml(featureName) + '" ';
+          html += 'data-type="' + escapeHtml(featureType) + '" ';
+          html += 'data-status="' + statusLabel + '">';
+          html += '<div><strong>' + escapeHtml(featureName) + '</strong>';
+          html += '<div class="meta">Last update: ' + lastUpdate + '</div></div>';
+          html += '<span class="badge ' + statusClass + '">' + statusLabel + '</span>';
+          html += '</button>';
+        }
+
+        html += '<div class="action">Select a feature above to submit an update.</div>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+
+      attachFeatureClickHandlers();
+      filterProjectFromUrl();
+
+    } catch (error) {
+      container.innerHTML = '<div class="geo-status">Error loading projects: ' + (error.message || 'Please try again later.') + '</div>';
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function attachFeatureClickHandlers() {
     var featureLinks = document.querySelectorAll('.feature-link');
     featureLinks.forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -130,7 +128,26 @@
         window.location.href = 'engineer-feature-submit.html?' + params.toString();
       });
     });
-  })();
+  }
+
+  function filterProjectFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var project = params.get('project');
+    if (!project) return;
+    var cards = document.querySelectorAll('[id^="project-"]');
+    cards.forEach(function (card) {
+      var title = card.querySelector('.project-title');
+      if (title && title.textContent !== project) {
+        card.style.display = 'none';
+      }
+    });
+    var visibleCards = Array.from(cards).filter(function(c) { return c.style.display !== 'none'; });
+    if (visibleCards.length > 0) {
+      visibleCards[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  loadAssignments();
 </script>
 </body>
 </html>

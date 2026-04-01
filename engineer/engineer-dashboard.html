@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Engineer Dashboard</title>
+  <title>Engineer Dashboard | Tech Mahindra</title>
 
   <style>
     :root {
@@ -13,9 +13,11 @@
       --light:#F9FAFB;
       --white:#FFFFFF;
       --green:#059669;
+      --amber:#F59E0B;
+      --blue:#3B82F6;
     }
 
-    * { box-sizing:border-box; font-family:system-ui; }
+    * { box-sizing:border-box; font-family:system-ui, -apple-system, sans-serif; }
 
     body {
       margin:0;
@@ -40,15 +42,9 @@
       letter-spacing: 0.2px;
     }
 
-    @media (max-width: 600px) {
-      body {
-        padding-bottom: 72px;
-      }
-    }
-
     .container {
       padding:16px;
-      max-width:480px;
+      max-width:600px;
       margin:auto;
     }
 
@@ -57,23 +53,70 @@
       margin-bottom:16px;
     }
 
+    h2 {
+      font-size: 16px;
+      margin: 24px 0 12px 0;
+      color: var(--dark);
+    }
+
     .card {
       background:var(--white);
-      border-radius:8px;
+      border-radius:12px;
       padding:16px;
       margin-bottom:14px;
-      box-shadow:0 6px 16px rgba(0,0,0,0.05);
+      box-shadow:0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid #E5E7EB;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 12px;
+      background: #F9FAFB;
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--blue);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--gray);
+      margin-top: 4px;
+      text-transform: uppercase;
     }
 
     .project-title {
       font-weight:600;
       margin-bottom:6px;
+      font-size: 15px;
     }
 
     .meta {
       font-size:13px;
       color:var(--gray);
       margin-bottom:10px;
+    }
+
+    .progress-section {
+      margin: 12px 0;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--gray);
+      margin-bottom: 4px;
     }
 
     .progress {
@@ -83,20 +126,104 @@
       overflow:hidden;
     }
 
-    .progress span {
-      display:block;
+    .progress-bar {
       height:100%;
       background:var(--green);
-      width:72%;
+      border-radius:4px;
+      transition: width 0.3s ease;
     }
 
-    a {
-      display:block;
-      margin-top:12px;
-      color:var(--tm-red);
-      font-weight:600;
-      text-decoration:none;
-      font-size:14px;
+    .progress-bar.standard { background: var(--blue); }
+    .progress-bar.dynamic { background: var(--green); }
+
+    .feature-list {
+      margin-top: 12px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: #F9FAFB;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .feature-name {
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .feature-status {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    .status-assigned { background: #DBEAFE; color: #1E40AF; }
+    .status-under_review { background: #FEF3C7; color: #92400E; }
+    .status-approved { background: #D1FAE5; color: #065F46; }
+    .status-redo { background: #FEE2E2; color: #991B1B; }
+
+    .btn {
+      display: inline-block;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .btn-primary { background: var(--tm-red); color: white; }
+    .btn-success { background: var(--green); color: white; }
+    .btn-amber { background: var(--amber); color: white; }
+    .btn-secondary { background: #E5E7EB; color: var(--dark); }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    @media (max-width: 600px) {
+      body { padding-bottom: 72px; }
+      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .stat-value { font-size: 20px; }
     }
 
     .mobile-nav {
@@ -125,6 +252,7 @@
       font-weight: 600;
       color: var(--gray);
       min-width: 64px;
+      text-decoration: none;
     }
 
     .mobile-nav a svg {
@@ -133,14 +261,24 @@
       stroke: currentColor;
     }
 
-    .mobile-nav a:active {
-      opacity: 0.8;
+    .mobile-nav a.active {
+      color: var(--tm-red);
     }
 
     @media (min-width: 601px) {
-      .mobile-nav {
-        display: none;
-      }
+      .mobile-nav { display: none; }
+    }
+
+    .loading-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray);
+    }
+
+    .error-state {
+      text-align: center;
+      padding: 40px;
+      color: #DC2626;
     }
   </style>
 </head>
@@ -151,25 +289,42 @@
 </header>
 
 <div class="container">
-  <h1>My Projects</h1>
+  <h1>My Dashboard</h1>
 
+  <!-- Personal Stats -->
   <div class="card">
-    <div class="project-title">Fiber Rollout – Zone A</div>
-    <div class="meta">Today: 12 tasks</div>
-    <div class="progress"><span></span></div>
-    <a href="/engineer/projects/1">View Tasks</a>
+    <div style="font-size: 14px; font-weight: 600; color: var(--gray); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+      My Contribution
+    </div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="statTotal">-</div>
+        <div class="stat-label">Assigned</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statApproved" style="color: var(--green);">-</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="statPending" style="color: var(--amber);">-</div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+    <div id="approvalRate" style="font-size: 13px; color: var(--gray); text-align: center;">
+      Loading stats...
+    </div>
   </div>
 
-  <div class="card">
-    <div class="project-title">Metro Expansion – Phase 2</div>
-    <div class="meta">Today: 4 tasks</div>
-    <div class="progress"><span style="width:90%"></span></div>
-    <a href="/engineer/projects/2">View Tasks</a>
+  <!-- Projects Section -->
+  <h2>My Projects</h2>
+  <div id="projectsContainer">
+    <div class="loading-state">Loading your projects...</div>
   </div>
+
 </div>
 
 <nav class="mobile-nav" aria-label="Engineer navigation">
-  <a href="engineer-dashboard.html" aria-label="Dashboard">
+  <a href="engineer-dashboard.html" class="active" aria-label="Dashboard">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M3 9l9-7 9 7" />
       <path d="M9 22V12h6v10" />
@@ -201,15 +356,285 @@
   </a>
 </nav>
 
-<script src="../fiber-api.js"></script>
+<!-- Submit Confirmation Modal -->
+<div id="submitModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; margin: 20px;">
+    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Submit for Review</h3>
+    <p style="margin: 0 0 16px 0; font-size: 14px; color: #6B7280;">
+      You are about to submit <strong id="submitCount">0</strong> feature(s) for admin review. 
+      Once submitted, you cannot make changes until approved or returned for redo.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button onclick="closeSubmitModal()" style="padding: 10px 16px; border: 1px solid #D1D5DB; background: white; border-radius: 6px; cursor: pointer;">Cancel</button>
+      <button onclick="confirmSubmit()" style="padding: 10px 16px; background: var(--green); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Confirm Submit</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/fiber-api.js"></script>
+<script src="js/api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
+
+  let currentAssignments = [];
+  let selectedFeatures = new Set();
+  let pendingSubmitProjectId = null;
+
+  const user = window.FiberAuth.getUser();
+  const engineerId = user?.id;
+
+  // Load engineer stats
+  async function loadStats() {
+    if (!engineerId) return;
+    
+    try {
+      const stats = await window.FiberApi.getEngineerStats(engineerId, { days: 30 });
+      
+      if (stats && stats.overall) {
+        document.getElementById('statTotal').textContent = stats.overall.total || 0;
+        document.getElementById('statApproved').textContent = stats.overall.approved || 0;
+        
+        const pending = (stats.overall.under_review || 0) + (stats.overall.assigned || 0) + (stats.overall.redo || 0);
+        document.getElementById('statPending').textContent = pending;
+        
+        const approvalRate = stats.overall.approval_rate || 0;
+        document.getElementById('approvalRate').innerHTML = 
+          `<strong>${approvalRate.toFixed(1)}%</strong> approval rate overall`;
+      }
+    } catch (err) {
+      console.error('Failed to load stats:', err);
+      document.getElementById('approvalRate').textContent = 'Failed to load stats';
+    }
+  }
+
+  // Load engineer assignments
+  async function loadAssignments() {
+    if (!engineerId) {
+      document.getElementById('projectsContainer').innerHTML = 
+        '<div class="error-state">Please log in to view your assignments</div>';
+      return;
+    }
+
+    try {
+      const data = await window.FiberApi.listJobs({ engineer: engineerId, page_size: 100 });
+      currentAssignments = data.results || [];
+      
+      // Group by project
+      const projectMap = {};
+      currentAssignments.forEach(job => {
+        const projId = job.project?.id;
+        if (!projId) return;
+        
+        if (!projectMap[projId]) {
+          projectMap[projId] = {
+            project: job.project,
+            jobs: []
+          };
+        }
+        projectMap[projId].jobs.push(job);
+      });
+
+      renderProjects(Object.values(projectMap));
+    } catch (err) {
+      console.error('Failed to load assignments:', err);
+      document.getElementById('projectsContainer').innerHTML = 
+        `<div class="error-state">Failed to load projects: ${err.message}</div>`;
+    }
+  }
+
+  function renderProjects(projectGroups) {
+    const container = document.getElementById('projectsContainer');
+    
+    if (!projectGroups.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <div>No active assignments</div>
+          <div style="font-size: 13px; margin-top: 8px;">Check back later for new assignments</div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = '';
+
+    projectGroups.forEach(group => {
+      const project = group.project;
+      const jobs = group.jobs;
+      
+      // Count features by status
+      const counts = { assigned: 0, under_review: 0, approved: 0, redo: 0 };
+      jobs.forEach(job => {
+        if (job.feature?.status) {
+          counts[job.feature.status] = (counts[job.feature.status] || 0) + 1;
+        }
+      });
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.cursor = 'pointer';
+      card.onclick = () => window.location.href = `engineer-project-features.html?project_id=${encodeURIComponent(project.id)}`;
+      card.innerHTML = `
+        <div class="project-title">${escapeHtml(project.name || 'Unknown Project')}</div>
+        <div class="meta">
+          ${jobs.length} assignment(s) | 
+          <span style="color: var(--green);">${counts.approved} approved</span> | 
+          <span style="color: var(--amber);">${counts.under_review + counts.assigned + counts.redo} pending</span>
+        </div>
+        
+        <div class="feature-list">
+          ${jobs.slice(0, 5).map(job => renderFeatureItem(job)).join('')}
+          ${jobs.length > 5 ? `
+            <div style="text-align: center; padding: 8px; font-size: 12px; color: var(--gray);">
+              +${jobs.length - 5} more assignments
+            </div>
+          ` : ''}
+        </div>
+
+        ${counts.assigned > 0 || counts.redo > 0 ? `
+          <div class="actions-row">
+            <button onclick="openSubmitModal('${project.id}')" class="btn btn-success" style="flex: 1;">
+              Submit for Review (${counts.assigned + counts.redo})
+            </button>
+          </div>
+        ` : ''}
+      `;
+      
+      container.appendChild(card);
+    });
+
+    // Re-attach checkbox handlers
+    document.querySelectorAll('.feature-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const featureId = e.target.dataset.featureId;
+        if (e.target.checked) {
+          selectedFeatures.add(featureId);
+        } else {
+          selectedFeatures.delete(featureId);
+        }
+      });
+    });
+  }
+
+  function renderFeatureItem(job) {
+    const feature = job.feature;
+    if (!feature) return '';
+
+    const statusClass = `status-${feature.status}`;
+    const statusText = {
+      'assigned': 'Assigned',
+      'under_review': 'Under Review',
+      'approved': 'Approved',
+      'redo': 'Redo',
+      'pending': 'Pending'
+    }[feature.status] || feature.status;
+
+    const canSubmit = feature.status === 'assigned' || feature.status === 'redo';
+
+    return `
+      <div class="feature-item">
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+          ${canSubmit ? `
+            <input type="checkbox" class="feature-checkbox" data-feature-id="${feature.id}" 
+              style="width: 18px; height: 18px; cursor: pointer;">
+          ` : '<div style="width: 18px;"></div>'}
+          <div>
+            <div class="feature-name">${escapeHtml(feature.layer_name || 'Unknown')}</div>
+            <div style="font-size: 11px; color: var(--gray);">${escapeHtml(feature.id?.slice(0, 8) || '')}</div>
+          </div>
+        </div>
+        <span class="feature-status ${statusClass}">${statusText}</span>
+      </div>
+    `;
+  }
+
+  function openSubmitModal(projectId) {
+    pendingSubmitProjectId = projectId;
+    
+    // Count selected features for this project
+    const projectFeatures = currentAssignments
+      .filter(job => job.project?.id === projectId && job.feature)
+      .map(job => job.feature.id);
+    
+    const selectedCount = Array.from(selectedFeatures).filter(id => projectFeatures.includes(id)).length;
+    
+    if (selectedCount === 0) {
+      alert('Please select at least one feature to submit');
+      return;
+    }
+    
+    document.getElementById('submitCount').textContent = selectedCount;
+    document.getElementById('submitModal').style.display = 'flex';
+  }
+
+  function closeSubmitModal() {
+    document.getElementById('submitModal').style.display = 'none';
+    pendingSubmitProjectId = null;
+  }
+
+  async function confirmSubmit() {
+    if (!pendingSubmitProjectId || !engineerId) return;
+    
+    const projectFeatures = currentAssignments
+      .filter(job => job.project?.id === pendingSubmitProjectId && job.feature)
+      .map(job => job.feature.id);
+    
+    const featuresToSubmit = Array.from(selectedFeatures).filter(id => projectFeatures.includes(id));
+    
+    if (featuresToSubmit.length === 0) {
+      alert('No features selected');
+      return;
+    }
+
+    try {
+      await window.FiberApi.submitFeatures(featuresToSubmit, engineerId);
+      
+      // Clear selected features
+      featuresToSubmit.forEach(id => selectedFeatures.delete(id));
+      
+      closeSubmitModal();
+      
+      // Reload data
+      loadStats();
+      loadAssignments();
+      
+      alert('Features submitted for review successfully!');
+    } catch (err) {
+      alert('Failed to submit features: ' + err.message);
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 
   function handleLogout(e) {
     if (e) e.preventDefault();
     window.FiberAuth.clear();
     window.location.href = "index.html";
   }
+
+  // Close modal on backdrop click
+  document.getElementById('submitModal').addEventListener('click', (e) => {
+    if (e.target.id === 'submitModal') closeSubmitModal();
+  });
+
+  // Escape key to close modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSubmitModal();
+  });
+
+  // Initialize - load sequentially to avoid overwhelming the API
+  async function initialize() {
+    await loadStats();
+    await loadAssignments();
+  }
+  initialize();
 </script>
 
 </body>

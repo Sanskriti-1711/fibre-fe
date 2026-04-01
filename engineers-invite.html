@@ -141,6 +141,9 @@
       <p>An invite email will be sent with an activation link</p>
 
       <form onsubmit="handleInvite(event)">
+        <label>Full Name</label>
+        <input id="inviteFullName" type="text" placeholder="John Doe" required />
+
         <label>Email Address</label>
         <input id="inviteEmail" type="email" placeholder="engineer@company.com" required />
 
@@ -189,12 +192,14 @@
     event.preventDefault();
     setInviteMsg("", false);
 
+    const fullName = document.getElementById("inviteFullName").value.trim();
     const email = document.getElementById("inviteEmail").value.trim();
     const password = document.getElementById("invitePassword").value;
 
     try {
-      await window.FiberApi.createEngineer(email, password, "ENGINEER");
+      await window.FiberApi.createEngineer(email, password, "ENGINEER", fullName);
       setInviteMsg("Engineer created successfully", false);
+      document.getElementById("inviteFullName").value = "";
       document.getElementById("inviteEmail").value = "";
       document.getElementById("invitePassword").value = "";
     } catch (e) {

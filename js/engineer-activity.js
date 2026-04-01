@@ -45,6 +45,10 @@ function showError(message) {
   setTimeout(() => showError(''), 5000);
 }
 
+function showLoading(show) {
+  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+}
+
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
@@ -78,7 +82,7 @@ function getStatusClass(status) {
 
 function getStatusLabel(status) {
   const labelMap = {
-    'PENDING': 'Pending',
+    'PENDING': 'Assigned',
     'ASSIGNED': 'Assigned',
     'UNDER_REVIEW': 'Under Review',
     'APPROVED': 'Approved',
@@ -96,7 +100,7 @@ async function loadEngineers() {
     engineerSelect.innerHTML = '<option value="">Select Engineer...</option>';
     engineersList.forEach(eng => {
       const id = eng.uuid || eng.id || eng.user_uuid || eng.pk;
-      const name = `${eng.first_name || ''} ${eng.last_name || ''}`.trim() || eng.name || eng.username || eng.email;
+      const name = eng.full_name || `${eng.first_name || ''} ${eng.last_name || ''}`.trim() || eng.name || eng.username || eng.email;
       const option = document.createElement('option');
       option.value = id;
       option.textContent = `${name} (${eng.email})`;
@@ -120,7 +124,7 @@ async function loadEngineerActivity(engineerId) {
   );
 
   if (currentEngineer) {
-    const name = `${currentEngineer.first_name || ''} ${currentEngineer.last_name || ''}`.trim() || 
+    const name = currentEngineer.full_name || `${currentEngineer.first_name || ''} ${currentEngineer.last_name || ''}`.trim() || 
                  currentEngineer.name || currentEngineer.username || currentEngineer.email;
     engineerName.textContent = name;
     engineerSubtitle.textContent = currentEngineer.email;
@@ -160,12 +164,8 @@ async function loadEngineerActivity(engineerId) {
 function updateDashboard(stats, activity) {
   updateKPICards(stats);
   updateStatusBreakdown();
-  updateWorkQueue();
   updateAssignmentsTable();
   updateProjectFilter();
-  updateAnalytics(stats);
-  updateProjectOverview();
-  updateActivityTimeline(activity);
 }
 
 function updateKPICards(stats) {
@@ -187,7 +187,6 @@ function updateKPICards(stats) {
 
 function updateStatusBreakdown() {
   const counts = {
-    PENDING: 0,
     ASSIGNED: 0,
     UNDER_REVIEW: 0,
     APPROVED: 0,
@@ -195,13 +194,12 @@ function updateStatusBreakdown() {
   };
 
   assignmentsData.forEach(a => {
-    const status = a.status || 'PENDING';
+    const status = a.status || 'ASSIGNED';
     if (counts.hasOwnProperty(status)) {
       counts[status]++;
     }
   });
 
-  document.getElementById('statusPending').textContent = counts.PENDING;
   document.getElementById('statusAssigned').textContent = counts.ASSIGNED;
   document.getElementById('statusReview').textContent = counts.UNDER_REVIEW;
   document.getElementById('statusApproved').textContent = counts.APPROVED;
@@ -297,8 +295,6 @@ function updateAssignmentsTable() {
         <td>${formatDate(assignedDate)}</td>
         <td class="actions-cell">
           <button class="btn-sm" data-action="view" data-id="${a.id}">View</button>
-          <button class="btn-sm" data-action="field" data-id="${a.id}">Field Work</button>
-          ${status === 'ASSIGNED' || status === 'PENDING' ? `<button class="btn-sm btn-primary" data-action="submit" data-id="${a.id}">Submit</button>` : ''}
         </td>
       </tr>
     `;
@@ -307,12 +303,6 @@ function updateAssignmentsTable() {
   // Add event listeners
   tbody.querySelectorAll('[data-action="view"]').forEach(btn => {
     btn.addEventListener('click', () => viewAssignmentDetails(btn.dataset.id));
-  });
-  tbody.querySelectorAll('[data-action="field"]').forEach(btn => {
-    btn.addEventListener('click', () => openFieldWorkModal(btn.dataset.id));
-  });
-  tbody.querySelectorAll('[data-action="submit"]').forEach(btn => {
-    btn.addEventListener('click', () => submitAssignmentForReview(btn.dataset.id));
   });
 }
 
@@ -603,26 +593,6 @@ refreshBtn.addEventListener('click', () => {
 });
 
 searchAssignments.addEventListener('input', debounce(updateAssignmentsTable, 300));
-
-// Queue tab buttons
-document.querySelectorAll('[data-queue]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-queue]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentQueueFilter = btn.dataset.queue;
-    updateWorkQueue();
-  });
-});
-
-// Period buttons
-document.querySelectorAll('[data-period]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentPeriod = btn.dataset.period;
-    updateAnalytics({});
-  });
-});
 
 // Modal listeners
 closeModal.addEventListener('click', closeFieldWorkModal);

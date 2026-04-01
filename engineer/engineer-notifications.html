@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notifications</title>
-  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="css/main.css" />
 </head>
 <body class="engineer-notifications">
 
@@ -18,22 +18,8 @@
     <div class="container">
       <h1>Notifications</h1>
 
-      <div class="notification">
-        <strong>Task Rejected</strong><br/>
-        Pole #1022 needs clearer image
-        <div class="time">10 minutes ago</div>
-      </div>
-
-      <div class="notification">
-        <strong>New Assignment</strong><br/>
-        Fiber Rollout - Zone B assigned
-        <div class="time">Today</div>
-      </div>
-
-      <div class="notification">
-        <strong>Admin Comment</strong><br/>
-        Please capture base installation clearly
-        <div class="time">Yesterday</div>
+      <div id="notifications-container">
+        <div class="geo-status">Loading notifications...</div>
       </div>
     </div>
 
@@ -72,15 +58,82 @@
   </main>
 </div>
 
-<script src="../fiber-api.js"></script>
+<script src="js/fiber-api.js"></script>
+<script src="js/api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
+
+  async function loadNotifications() {
+    var container = document.getElementById('notifications-container');
+    try {
+      var user = window.FiberAuth.getUser();
+      var engineerId = user && user.id ? user.id : null;
+
+      if (!engineerId) {
+        container.innerHTML = '<div class="geo-status">Please login to view notifications.</div>';
+        return;
+      }
+
+      var activity = await window.FiberApi.getEngineerActivity(engineerId, { limit: 20 });
+
+      if (!activity || !activity.results || activity.results.length === 0) {
+        container.innerHTML = '<div class="geo-status">No notifications yet.</div>';
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < activity.results.length; i++) {
+        var item = activity.results[i];
+        var title = item.title || item.action || 'Notification';
+        var message = item.message || item.description || '';
+        var time = item.created_at || item.timestamp || item.time;
+        var timeDisplay = time ? formatTime(time) : 'Recently';
+
+        html += '<div class="notification">';
+        html += '<strong>' + escapeHtml(title) + '</strong><br/>';
+        if (message) html += escapeHtml(message);
+        html += '<div class="time">' + timeDisplay + '</div>';
+        html += '</div>';
+      }
+
+      container.innerHTML = html;
+
+    } catch (error) {
+      container.innerHTML = '<div class="geo-status">Error loading notifications: ' + (error.message || 'Please try again later.') + '</div>';
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function formatTime(timestamp) {
+    try {
+      var date = new Date(timestamp);
+      var now = new Date();
+      var diff = Math.floor((now - date) / 1000);
+
+      if (diff < 60) return 'Just now';
+      if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+      if (diff < 172800) return 'Yesterday';
+
+      return date.toLocaleDateString();
+    } catch (e) {
+      return timestamp || 'Unknown';
+    }
+  }
 
   function handleLogout(e) {
     if (e) e.preventDefault();
     window.FiberAuth.clear();
     window.location.href = "index.html";
   }
+
+  loadNotifications();
 </script>
 
 </body>

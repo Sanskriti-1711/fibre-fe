@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Profile</title>
-  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="css/main.css" />
   
 </head>
 <body>
@@ -18,10 +18,13 @@
 
   <div class="card">
     <label>Name</label>
-    <input type="text" value="Arjun Patel" disabled />
+    <input type="text" id="profileName" disabled />
 
     <label>Email</label>
-    <input type="email" value="arjun.p@company.com" disabled />
+    <input type="email" id="profileEmail" disabled />
+
+    <label>Role</label>
+    <input type="text" id="profileRole" disabled />
   </div>
 
   <div class="card">
@@ -74,15 +77,29 @@
   </a>
 </nav>
 
-<script src="../fiber-api.js"></script>
+<script src="js/fiber-api.js"></script>
+<script src="js/api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
+
+  function loadProfile() {
+    var user = window.FiberAuth.getUser();
+    if (user) {
+      document.getElementById('profileName').value = user.full_name || user.name || user.email || 'Unknown';
+      document.getElementById('profileEmail').value = user.email || '';
+      document.getElementById('profileRole').value = user.role || 'Engineer';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
 
   function handleLogout(e) {
     if (e) e.preventDefault();
     window.FiberAuth.clear();
     window.location.href = "index.html";
   }
+
+  loadProfile();
 </script>
 
 </body>
