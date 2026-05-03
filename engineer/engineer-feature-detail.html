@@ -766,16 +766,12 @@
       // Extract status from feature data or properties
       const status = featureData.status || properties.status || 'unknown';
       
-      // Extract coordinates - use x/y from properties (WGS84 lat/lng)
-      // The geometry.coordinates are in projected CRS (EPSG:25833)
-      // properties.x and properties.y are WGS84
+      // Prefer named WGS84 lat/lng on properties; fall back to GeoJSON [lng, lat].
       let lat = properties.y || properties.latitude || properties.lat || properties.start_y || properties.End_Y__ || properties.End_Y || properties.End__Y__;
       let lng = properties.x || properties.longitude || properties.lng || properties.lon || properties.start_x || properties.End_X__ || properties.End_X || properties.End__X__;
-      
-      // Fallback to geometry coordinates if no x/y (but these need reprojection for non-WGS84)
+
       if ((!lat || !lng) && geometry.coordinates && Array.isArray(geometry.coordinates)) {
         if (geometry.type === 'Point') {
-          // Note: These may be in a projected CRS, not WGS84
           lng = geometry.coordinates[0];
           lat = geometry.coordinates[1];
         }
@@ -802,7 +798,6 @@
 
       // Initialize map with the full GeoJSON feature for shape rendering
       if (lat && lng) {
-        // Create WGS84 version of GeoJSON for Leaflet (original is in EPSG:25833)
         const wgs84GeoJson = {
           type: 'Feature',
           geometry: {
