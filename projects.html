@@ -137,112 +137,144 @@
     return 'in-progress';
   }
 
+  // Increments on every loadProjects() call so older in-flight loads can detect
+  // they've been superseded and bail out before mutating the DOM.
+  let currentLoadId = 0;
+
+  async function fetchAllProjects(params) {
+    const first = params
+      ? await window.FiberApi.listProjectsFiltered(params)
+      : await window.FiberApi.listProjects();
+
+    if (Array.isArray(first)) return first;
+    if (!first || !Array.isArray(first.results)) return [];
+
+    // DRF-style pagination: walk `next` URLs so we don't silently drop pages 2+.
+    const all = first.results.slice();
+    let next = first.next;
+    while (next) {
+      const page = await window.FiberApi.apiFetch(next, { method: 'GET' });
+      if (!page || !Array.isArray(page.results)) break;
+      all.push.apply(all, page.results);
+      next = page.next || null;
+    }
+    return all;
+  }
+
+  function buildStandardBar(value) {
+    const standard = Number(value).toFixed(1);
+    return ''
+      + '<div style="display: flex; align-items: center; gap: 8px;">'
+      +   '<div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">'
+      +     '<div style="height: 100%; width: ' + standard + '%; background: #3B82F6; border-radius: 3px;"></div>'
+      +   '</div>'
+      +   '<span style="font-size: 11px; font-weight: 600; color: #374151; min-width: 35px;">' + standard + '%</span>'
+      + '</div>';
+  }
+
+  function buildDynamicBar(value, hasWeights) {
+    if (!hasWeights) {
+      return '<span style="font-size: 11px; color: #9CA3AF;">No weights</span>';
+    }
+    const dynamic = Number(value).toFixed(1);
+    return ''
+      + '<div style="display: flex; align-items: center; gap: 8px;">'
+      +   '<div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">'
+      +     '<div style="height: 100%; width: ' + dynamic + '%; background: #10B981; border-radius: 3px;"></div>'
+      +   '</div>'
+      +   '<span style="font-size: 11px; font-weight: 600; color: #10B981; min-width: 35px;">' + dynamic + '%</span>'
+      + '</div>';
+  }
+
   async function loadProjects(params) {
     setProjectsError('');
     const tbody = document.getElementById('projectsTbody');
     if (!tbody) return;
 
+    const myLoadId = ++currentLoadId;
+
+    let list;
     try {
-      const data = params
-        ? await window.FiberApi.listProjectsFiltered(params)
-        : await window.FiberApi.listProjects();
-      const list = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
-
-      if (!list.length) {
-        tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">No projects found</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = '';
-      
-      // Fetch completion data for all projects sequentially to avoid overwhelming the API
-      const projectsWithCompletion = [];
-      for (const p of list) {
-        const id = pickProjectId(p);
-        if (!id) {
-          projectsWithCompletion.push({ project: p, completion: null });
-          continue;
-        }
-        try {
-          const completion = await window.FiberApi.getProjectCompletion(id);
-          projectsWithCompletion.push({ project: p, completion });
-        } catch (err) {
-          projectsWithCompletion.push({ project: p, completion: null });
-        }
-        // Small delay between requests to prevent overwhelming the server
-        if (list.length > 5) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-        }
-      }
-      
-      projectsWithCompletion.forEach(function(item) {
-        const p = item.project;
-        const completion = item.completion;
-        const id = pickProjectId(p);
-        const name = pickProjectName(p);
-        const region = pickProjectRegion(p);
-        const status = pickProjectStatus(p);
-        const lastActivity = pickProjectLastActivity(p);
-        const link = id ? ('project-details.html?project_id=' + encodeURIComponent(id)) : 'project-overview.html';
-        
-        // Build completion cells
-        let standardCell = '<td>-</td>';
-        let dynamicCell = '<td>-</td>';
-        
-        if (completion) {
-          const standard = Number(completion.standard_completion).toFixed(1);
-          const dynamic = Number(completion.dynamic_completion).toFixed(1);
-          const hasWeights = completion.weights_defined;
-          
-          standardCell = `
-            <td>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">
-                  <div style="height: 100%; width: ${standard}%; background: #3B82F6; border-radius: 3px;"></div>
-                </div>
-                <span style="font-size: 11px; font-weight: 600; color: #374151; min-width: 35px;">${standard}%</span>
-              </div>
-            </td>
-          `;
-          
-          dynamicCell = `
-            <td>
-              ${hasWeights ? `
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">
-                    <div style="height: 100%; width: ${dynamic}%; background: #10B981; border-radius: 3px;"></div>
-                  </div>
-                  <span style="font-size: 11px; font-weight: 600; color: #10B981; min-width: 35px;">${dynamic}%</span>
-                </div>
-              ` : '<span style="font-size: 11px; color: #9CA3AF;">No weights</span>'}
-            </td>
-          `;
-        }
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = ''
-          + '<td>' + escapeHtml(name) + '</td>'
-          + '<td>' + escapeHtml(region) + '</td>'
-          + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
-          + standardCell
-          + dynamicCell
-          + '<td>' + escapeHtml(lastActivity) + '</td>'
-          + '<td><a class="action-link" href="' + link + '">View</a><button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button></td>';
-        tbody.appendChild(tr);
-      });
-
-      // Attach delete handlers
-      tbody.querySelectorAll('.delete-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-          const projectId = e.target.getAttribute('data-id');
-          if (projectId && confirm('Are you sure you want to delete this project?')) {
-            handleDeleteProject(projectId);
-          }
-        });
-      });
+      list = await fetchAllProjects(params);
     } catch (e) {
+      if (myLoadId !== currentLoadId) return;
       setProjectsError(e && e.message ? e.message : 'Failed to load projects');
+      return;
     }
+
+    if (myLoadId !== currentLoadId) return;
+
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">No projects found</td></tr>';
+      return;
+    }
+
+    // Render every row immediately with placeholder completion cells so a slow
+    // (or hung) /completion/ call on one project can't keep the whole table empty.
+    tbody.innerHTML = '';
+    const rowsById = new Map();
+    const placeholder = '<span style="font-size:11px;color:#9CA3AF;">…</span>';
+
+    list.forEach(function (p) {
+      const id = pickProjectId(p);
+      const name = pickProjectName(p);
+      const region = pickProjectRegion(p);
+      const status = pickProjectStatus(p);
+      const lastActivity = pickProjectLastActivity(p);
+      const link = id ? ('project-details.html?project_id=' + encodeURIComponent(id)) : 'project-overview.html';
+      const deleteBtn = id
+        ? '<button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
+        : '';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = ''
+        + '<td>' + escapeHtml(name) + '</td>'
+        + '<td>' + escapeHtml(region) + '</td>'
+        + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
+        + '<td class="completion-standard">' + placeholder + '</td>'
+        + '<td class="completion-dynamic">' + placeholder + '</td>'
+        + '<td>' + escapeHtml(lastActivity) + '</td>'
+        + '<td><a class="action-link" href="' + link + '">View</a>' + deleteBtn + '</td>';
+      tbody.appendChild(tr);
+      if (id) rowsById.set(id, tr);
+    });
+
+    tbody.querySelectorAll('.delete-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const projectId = e.currentTarget.getAttribute('data-id');
+        if (projectId && confirm('Are you sure you want to delete this project?')) {
+          handleDeleteProject(projectId);
+        }
+      });
+    });
+
+    // Kick off all completion fetches in parallel; patch each row when its
+    // result lands. A stale load (newer click took over) is silently ignored.
+    list.forEach(function (p) {
+      const id = pickProjectId(p);
+      if (!id) return;
+      const tr = rowsById.get(id);
+      if (!tr) return;
+
+      window.FiberApi.getProjectCompletion(id).then(function (completion) {
+        if (myLoadId !== currentLoadId) return;
+        const stdCell = tr.querySelector('.completion-standard');
+        const dynCell = tr.querySelector('.completion-dynamic');
+        if (!completion) {
+          if (stdCell) stdCell.textContent = '-';
+          if (dynCell) dynCell.textContent = '-';
+          return;
+        }
+        if (stdCell) stdCell.innerHTML = buildStandardBar(completion.standard_completion);
+        if (dynCell) dynCell.innerHTML = buildDynamicBar(completion.dynamic_completion, completion.weights_defined);
+      }).catch(function () {
+        if (myLoadId !== currentLoadId) return;
+        const stdCell = tr.querySelector('.completion-standard');
+        const dynCell = tr.querySelector('.completion-dynamic');
+        if (stdCell) stdCell.textContent = '-';
+        if (dynCell) dynCell.textContent = '-';
+      });
+    });
   }
 
   function escapeHtml(str) {
