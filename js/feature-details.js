@@ -1,8 +1,5 @@
 window.FiberAuth.requireLogin();
 
-// Define EPSG:25833 projection for coordinate transformation
-proj4.defs('EPSG:25833', '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
-
 function qs(id) {
   return document.getElementById(id);
 }
@@ -183,30 +180,6 @@ async function loadFeatureAssignment(projectId, featureId) {
   return list && list.length ? list[0] : null;
 }
 
-function transformCoords(x, y) {
-  const transformed = proj4('EPSG:25833', 'WGS84', [x, y]);
-  return [transformed[1], transformed[0]];
-}
-
-function latLngsFromGeoJsonGeometry(geometry) {
-  if (!geometry) return null;
-
-  if (geometry.type === 'Point') {
-    const c = geometry.coordinates;
-    return transformCoords(c[0], c[1]);
-  }
-
-  if (geometry.type === 'LineString') {
-    return geometry.coordinates.map((c) => transformCoords(c[0], c[1]));
-  }
-
-  if (geometry.type === 'MultiLineString') {
-    return geometry.coordinates.map((line) => line.map((c) => transformCoords(c[0], c[1])));
-  }
-
-  return null;
-}
-
 function initMap() {
   if (!window.L) return null;
   const el = qs('auditMap');
@@ -231,17 +204,9 @@ function initMap() {
 function renderGeojsonFeature(map, geojson) {
   if (!map || !geojson || !geojson.geometry) return null;
 
-  // Use Leaflet's GeoJSON renderer with a coordinate transformer (EPSG:25833 -> WGS84)
-  // so MultiLineString/LineString/Point are handled consistently.
+  // GeoJSON from API is in WGS84; Leaflet's default coordsToLatLng handles the
+  // [lng, lat] -> [lat, lng] swap for Point/LineString/MultiLineString.
   const layer = L.geoJSON(geojson, {
-    coordsToLatLng: function (coords) {
-      if (!Array.isArray(coords) || coords.length < 2) {
-        return L.latLng(0, 0);
-      }
-
-      const ll = transformCoords(coords[0], coords[1]);
-      return L.latLng(ll[0], ll[1]);
-    },
     style: function () {
       return {
         color: '#E31837',

@@ -633,8 +633,7 @@
     // Clear previous content
     mapDiv.innerHTML = '';
     
-    // Use WGS84 coordinates from properties (x, y) instead of projected geometry coordinates
-    // geometry.coordinates are in EPSG:25833, but props.x and props.y are WGS84 lat/lng
+    // Center the map on the feature using props.x / props.y (WGS84 lat/lng).
     const lat = parseFloat(props?.y || props?.latitude || props?.lat);
     const lng = parseFloat(props?.x || props?.longitude || props?.lng || props?.lon);
     
@@ -648,7 +647,6 @@
     
     // If we have valid WGS84 coordinates, add a marker and render the actual feature shape
     if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
-      // Create WGS84 version of GeoJSON for Leaflet (original is in EPSG:25833)
       const wgs84GeoJson = {
         type: 'Feature',
         geometry: {

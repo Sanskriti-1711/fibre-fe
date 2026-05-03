@@ -23,9 +23,6 @@ const layerControl = L.control.layers(null, null, { collapsed: false }).addTo(ma
 
 const layerPalette = ['#0EA5E9', '#10B981', '#F59E0B', '#6366F1', '#EF4444', '#14B8A6'];
 
-// Define EPSG:25833 projection for coordinate transformation
-proj4.defs('EPSG:25833', '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
-
 function pickProjectId(p) {
   return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
 }
@@ -40,10 +37,9 @@ function getProjectIdFromUrl() {
   return params.get('project_id');
 }
 
-// Transform coordinates from EPSG:25833 to WGS84 (EPSG:4326)
-function transformCoords(x, y) {
-  const transformed = proj4('EPSG:25833', 'WGS84', [x, y]);
-  return [transformed[1], transformed[0]]; // Return as [lat, lng] for Leaflet
+// API returns GeoJSON in WGS84 (lng, lat). Leaflet expects [lat, lng].
+function toLatLng(lng, lat) {
+  return [lat, lng];
 }
 
 // Show/hide loader
@@ -89,7 +85,7 @@ function renderGeoJSONFeature(feature, layerInfo, layerGroup, allLayers) {
 
   if (geometry.type === 'Point') {
     const coords = geometry.coordinates;
-    const latLng = transformCoords(coords[0], coords[1]);
+    const latLng = toLatLng(coords[0], coords[1]);
     layer = L.circleMarker(latLng, {
       radius: 6,
       color: color,
@@ -106,8 +102,9 @@ function renderGeoJSONFeature(feature, layerInfo, layerGroup, allLayers) {
     };
     layer.bindPopup(`<strong>${layer.featureData.name}</strong><br/>Type: ${properties.Type || layerInfo.name}<br/>Status: ${layer.featureData.status}`);
   } else if (geometry.type === 'MultiLineString' || geometry.type === 'LineString') {
-    const coords = geometry.type === 'MultiLineString' ? geometry.coordinates[0] : geometry.coordinates;
-    const latLngs = coords.map(coord => transformCoords(coord[0], coord[1]));
+    const latLngs = geometry.type === 'MultiLineString'
+      ? geometry.coordinates.map(line => line.map(coord => toLatLng(coord[0], coord[1])))
+      : geometry.coordinates.map(coord => toLatLng(coord[0], coord[1]));
     layer = L.polyline(latLngs, {
       color: color,
       weight: 3,
