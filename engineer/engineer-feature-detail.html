@@ -671,23 +671,119 @@
     reader.readAsDataURL(file);
   }
 
-  function generateMeasurementFields(properties) {
+  // Read a previously-entered value/unit out of stored field_measurements.
+  // Stored entries are either { value, unit } objects or raw scalars.
+  function existingValue(measurements, key) {
+    const e = measurements && measurements[key];
+    if (e == null) return '';
+    if (typeof e === 'object') return e.value != null ? e.value : '';
+    return e;
+  }
+  function existingUnit(measurements, key) {
+    const e = measurements && measurements[key];
+    return (e && typeof e === 'object' && e.unit) ? e.unit : 'm';
+  }
+
+  function unitOptions(selected) {
+    return ['m:meters', 'cm:centimeters', 'mm:millimeters', 'ft:feet', 'in:inches']
+      .map(pair => {
+        const [val, text] = pair.split(':');
+        return `<option value="${val}"${val === selected ? ' selected' : ''}>${text}</option>`;
+      }).join('');
+  }
+
+  // Build the engineer form from the layer's derived field_schema.
+  // Falls back to legacy fuzzy detection for features imported before schemas existed.
+  function generateMeasurementFields(schema, properties, measurements) {
     const form = document.getElementById('measurementsForm');
     plannedMeasurements = [];
 
-    // Filter for numeric/planned measurement properties
+    if (!Array.isArray(schema) || schema.length === 0) {
+      generateMeasurementFieldsLegacy(properties);
+      return;
+    }
+
+    const editable = schema
+      .filter(f => f && f.editable)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+    if (editable.length === 0) {
+      form.innerHTML = '<div class="empty-state" style="padding:20px;">No engineer-entered fields for this layer.</div>';
+      return;
+    }
+
+    form.innerHTML = editable.map(field => {
+      const key = field.key;
+      const label = field.label || key;
+      const planned = properties[key] != null ? String(properties[key]) : '';
+      const val = existingValue(measurements, key);
+      plannedMeasurements.push({ key, plannedValue: planned, label });
+
+      const placeholder = planned ? `Planned: ${planned}` : 'Enter value';
+
+      if (field.widget === 'textarea') {
+        return `
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label">${escapeHtml(label)}</label>
+            <textarea class="form-input" rows="3"
+                      data-measurement="${escapeHtml(key)}" data-widget="textarea"
+                      placeholder="${escapeHtml(placeholder)}">${escapeHtml(String(val))}</textarea>
+          </div>`;
+      }
+
+      if (field.widget === 'number' && field.unit) {
+        return `
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">${escapeHtml(label)}</label>
+              <input type="number" step="any" class="form-input"
+                     data-measurement="${escapeHtml(key)}" data-widget="number"
+                     value="${escapeHtml(String(val))}" placeholder="${escapeHtml(placeholder)}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unit</label>
+              <select class="form-input" data-unit="${escapeHtml(key)}">
+                ${unitOptions(existingUnit(measurements, key))}
+              </select>
+            </div>
+          </div>`;
+      }
+
+      // text, measurement_text, qc, qc_result -> single text input
+      return `
+        <div class="form-group" style="margin-bottom:16px;">
+          <label class="form-label">${escapeHtml(label)}</label>
+          <input type="text" class="form-input"
+                 data-measurement="${escapeHtml(key)}" data-widget="text"
+                 value="${escapeHtml(String(val))}" placeholder="${escapeHtml(placeholder)}">
+        </div>`;
+    }).join('');
+
+    // General free-form notes -> stored separately as comparison_notes.
+    form.innerHTML += `
+      <div class="form-group" style="margin-top: 16px;">
+        <label class="form-label">Additional Notes</label>
+        <textarea class="form-input" id="notesInput" rows="3" placeholder="Any additional observations..."></textarea>
+      </div>
+    `;
+  }
+
+  // Legacy fallback: fuzzy-detect measurement-like properties (pre-schema features).
+  function generateMeasurementFieldsLegacy(properties) {
+    const form = document.getElementById('measurementsForm');
+    plannedMeasurements = [];
+
     const measurementKeys = Object.keys(properties).filter(key => {
       const val = properties[key];
-      // Include if value is number or string that looks like a measurement
-      return typeof val === 'number' || 
-             (typeof val === 'string' && !isNaN(parseFloat(val)) && key.toLowerCase().includes('height') || 
-              key.toLowerCase().includes('width') || key.toLowerCase().includes('depth') ||
-              key.toLowerCase().includes('length') || key.toLowerCase().includes('diameter') ||
-              key.toLowerCase().includes('size') || key.toLowerCase().includes('measure'));
+      return typeof val === 'number' ||
+             ((typeof val === 'string' && !isNaN(parseFloat(val))) &&
+              (key.toLowerCase().includes('height') || key.toLowerCase().includes('width') ||
+               key.toLowerCase().includes('depth') || key.toLowerCase().includes('length') ||
+               key.toLowerCase().includes('diameter') || key.toLowerCase().includes('size') ||
+               key.toLowerCase().includes('measure')));
     });
 
-    // If no specific measurement fields found, show common fiber optic fields
-    const defaultFields = measurementKeys.length > 0 ? measurementKeys : 
+    const defaultFields = measurementKeys.length > 0 ? measurementKeys :
       ['height', 'diameter', 'cable_count', 'pole_depth'];
 
     form.innerHTML = defaultFields.map(key => {
@@ -699,24 +795,19 @@
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">${escapeHtml(label)}</label>
-            <input type="text" class="form-input" data-measurement="${escapeHtml(key)}" 
+            <input type="text" class="form-input" data-measurement="${escapeHtml(key)}" data-widget="number"
                    value="${escapeHtml(plannedValue)}" placeholder="Enter measurement">
           </div>
           <div class="form-group">
             <label class="form-label">Unit</label>
             <select class="form-input" data-unit="${escapeHtml(key)}">
-              <option value="m">meters</option>
-              <option value="cm">centimeters</option>
-              <option value="mm">millimeters</option>
-              <option value="ft">feet</option>
-              <option value="in">inches</option>
+              ${unitOptions('m')}
             </select>
           </div>
         </div>
       `;
     }).join('');
 
-    // Add notes field
     form.innerHTML += `
       <div class="form-group" style="margin-top: 16px;">
         <label class="form-label">Additional Notes</label>
@@ -829,8 +920,14 @@
         propList.innerHTML = '<div class="empty-state" style="padding: 20px;">No properties available</div>';
       }
 
-      // Generate measurement fields from properties
-      generateMeasurementFields(properties);
+      // Generate measurement fields from the layer's derived schema (falls back
+      // to fuzzy detection when a feature predates schema support).
+      // Planned values come from Django's normalized properties (keys match the
+      // schema keys); the GeoJSON `properties` keep original column names and are
+      // used only for the human-readable properties list above.
+      const plannedSource = (featureData.properties && Object.keys(featureData.properties).length)
+        ? featureData.properties : properties;
+      generateMeasurementFields(featureData.field_schema, plannedSource, featureData.field_measurements);
 
       // Disable form if feature is not in editable state
       const editableStatuses = ['assigned', 'redo'];
@@ -861,14 +958,22 @@
     btn.innerHTML = '<span class="spinner"></span> Submitting...';
 
     try {
-      // Collect measurements
+      // Collect measurements. Numeric widgets store { value:Number, unit };
+      // text/textarea widgets store { value:String } (no unit).
       const measurements = {};
       document.querySelectorAll('[data-measurement]').forEach(input => {
         const key = input.dataset.measurement;
+        const widget = input.dataset.widget || 'number';
         const value = input.value;
-        const unit = document.querySelector(`[data-unit="${key}"]`)?.value || 'm';
-        if (value) {
-          measurements[key] = { value: parseFloat(value), unit };
+        if (value === '' || value == null) return;
+
+        if (widget === 'number') {
+          const num = parseFloat(value);
+          if (isNaN(num)) return;
+          const unit = document.querySelector(`[data-unit="${key}"]`)?.value || 'm';
+          measurements[key] = { value: num, unit };
+        } else {
+          measurements[key] = { value: value };
         }
       });
 
