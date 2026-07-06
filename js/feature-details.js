@@ -368,6 +368,56 @@ function bindFeatureDetails(params, data) {
   renderFieldPhoto(photoUrl, feature && feature.updated_at);
 }
 
+// Proper field labels from "Field Report Checklist - TechM_Final.xlsx".
+// The shapefile DBF truncates column names to 10 chars, so we restore the full
+// names here (keyed by the normalized schema key).
+var PROPER_FIELD_LABELS = {
+  // SPAN / Conduit layer (Sheet1 headers)
+  name: "Name",
+  altitudemo: "Altitude Mode",
+  subspan: "Sub-Span",
+  span: "Span",
+  sno: "Sr No",
+  remark: "Remark",
+  length: "Length",
+  fieldsurv: "Field survey completed",
+  spanfrom: "Span From (Vault/MH ID)",
+  spanto_v: "Span To (Vault/MH ID)",
+  spanroute: "SPAN Route",
+  trenchloc: "Trench location",
+  conduitdi: "Conduit Distance",
+  ductroute: "Duct Route ID",
+  conduitty: "Conduit Type (HDPE / DI / PVC)",
+  trenchlen: "Trench Length (m)",
+  trenchdep: "Trench Depth (mm)",
+  trenchwid: "Trench Width (mm)",
+  alignment: "Alignment",
+  bottomlev: "Bottom level",
+  noofduc: "No. of Ducts Installed",
+  conduiten: "Conduit encasement",
+  conduitca: "Conduit Capping Done or not",
+  conduitba: "Conduit banding correct or not",
+  backfillin: "Backfilling yes or no",
+  loosesoil: "Loose soil removed",
+  waterint: "Water in trench",
+  existingu: "Existing utilities checked",
+  barricadin: "Barricading & safety",
+  // Vault QAQC layer (non-colliding keys)
+  layer: "Layer",
+  vaultid: "Vault ID",
+  location: "Location / Chainage",
+  leveleluv: "Level / Elevation Check",
+  concreteq: "Concrete Quality",
+  cablerack: "Cable Rack / Slack",
+  lidinst: "Lid Type / Count",
+  reinstatem: "Reinstatement",
+  qc_pf: "Overall Status (Pass / Fail)"
+};
+
+function properLabel(f) {
+  return (f && PROPER_FIELD_LABELS[f.key]) || (f && (f.label || f.key)) || "";
+}
+
 function plannedDisplay(val, unit) {
   if (val === undefined || val === null || val === '') return '--';
   return unit ? `${val} ${unit}` : `${val}`;
@@ -406,7 +456,7 @@ function renderSchemaMeasurements(editable, properties, fm) {
   rows.forEach((f) => {
     const tr = document.createElement('tr');
     const c1 = document.createElement('td');
-    c1.textContent = f.label || f.key;
+    c1.textContent = properLabel(f);
     const c2 = document.createElement('td');
     c2.textContent = plannedDisplay(properties[f.key], f.unit ? 'm' : '');
     const c3 = document.createElement('td');
