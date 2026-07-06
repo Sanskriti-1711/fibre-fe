@@ -93,6 +93,35 @@
         </div>
       </div>
 
+      <div class="section" id="fieldConfigSection" style="display:none;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <h3 style="margin:0;">Field Configuration</h3>
+            <div class="muted">Choose which fields the field engineer fills in on-site, and the input type. Saved per layer; applies to all its features.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button id="allEditableBtn" class="btn btn-secondary" type="button">All editable</button>
+            <button id="allReadonlyBtn" class="btn btn-secondary" type="button">All read-only</button>
+            <button id="resetConfigBtn" class="btn btn-secondary" type="button">Reset to auto</button>
+            <button id="saveConfigBtn" class="btn" type="button">Save configuration</button>
+          </div>
+        </div>
+        <div id="fieldConfigStatus" class="muted" style="margin-top:8px;"></div>
+        <table style="margin-top:8px;">
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Key</th>
+              <th style="text-align:center;">Engineer fills?</th>
+              <th>Input type</th>
+            </tr>
+          </thead>
+          <tbody id="fieldConfigBody">
+            <tr><td colspan="4" style="padding:16px;color:#6B7280;">Loading field configuration…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="section">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <h3 style="margin:0;">Features</h3>

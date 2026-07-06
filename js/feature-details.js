@@ -350,10 +350,79 @@ function bindFeatureDetails(params, data) {
   setText('featureUpdated', formatDate(feature && feature.updated_at));
 
   const p = (feature && feature.properties) || {};
+  const fm = feature && feature.field_measurements ? feature.field_measurements : {};
 
+  // If the layer has a field schema (auto-derived or admin-configured), render
+  // the measurements table dynamically from its editable fields. Otherwise fall
+  // back to the legacy fixed Length/Diameter/Start/End layout.
+  const schema = feature && Array.isArray(feature.field_schema) ? feature.field_schema : null;
+  const editable = schema ? schema.filter((f) => f && f.editable) : [];
+
+  if (editable.length) {
+    renderSchemaMeasurements(editable, p, fm);
+  } else {
+    renderLegacyMeasurements(p, fm);
+  }
+
+  // Display uploaded photo if available
+  const photoUrl = feature && feature.photo_url ? feature.photo_url : null;
+  renderFieldPhoto(photoUrl, feature && feature.updated_at);
+}
+
+function plannedDisplay(val, unit) {
+  if (val === undefined || val === null || val === '') return '--';
+  return unit ? `${val} ${unit}` : `${val}`;
+}
+
+// A stored field_measurements entry is either { value, unit } or a raw scalar.
+function measurementDisplay(entry) {
+  if (entry === undefined || entry === null) return '--';
+  if (typeof entry === 'object') {
+    if (entry.value === undefined || entry.value === null || entry.value === '') return '--';
+    return entry.unit ? `${entry.value} ${entry.unit}` : `${entry.value}`;
+  }
+  return String(entry);
+}
+
+// Render the measurements table dynamically from the layer's editable fields.
+function renderSchemaMeasurements(editable, properties, fm) {
+  const tbody = document.getElementById('measurementsBody');
+  if (!tbody) return;
+
+  const rows = editable.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  tbody.innerHTML = '';
+
+  if (!rows.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 3;
+    td.style.padding = '12px';
+    td.style.color = '#6B7280';
+    td.textContent = 'No engineer-entered fields configured for this layer.';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  rows.forEach((f) => {
+    const tr = document.createElement('tr');
+    const c1 = document.createElement('td');
+    c1.textContent = f.label || f.key;
+    const c2 = document.createElement('td');
+    c2.textContent = plannedDisplay(properties[f.key], f.unit ? 'm' : '');
+    const c3 = document.createElement('td');
+    c3.textContent = measurementDisplay(fm[f.key]);
+    tr.appendChild(c1);
+    tr.appendChild(c2);
+    tr.appendChild(c3);
+    tbody.appendChild(tr);
+  });
+}
+
+// Legacy fixed layout for features without a field schema.
+function renderLegacyMeasurements(p, fm) {
   const length = p.length !== undefined && p.length !== null ? `${p.length} m` : '--';
   const diameter = p.diameter !== undefined && p.diameter !== null ? `${p.diameter} mm` : '--';
-
   const sx = (p.start_x !== undefined && p.start_x !== null) ? p.start_x : null;
   const sy = (p.start_y !== undefined && p.start_y !== null) ? p.start_y : null;
   const ex = (p.end_x !== undefined && p.end_x !== null) ? p.end_x : null;
@@ -364,16 +433,10 @@ function bindFeatureDetails(params, data) {
   setText('plannedStart', (sx !== null && sy !== null) ? `${sx}, ${sy}` : '--');
   setText('plannedEnd', (ex !== null && ey !== null) ? `${ex}, ${ey}` : '--');
 
-  // Display detected/as-built from field_measurements if available
-  const fm = feature && feature.field_measurements ? feature.field_measurements : {};
   setText('detectedLength', fm.length ? `${fm.length.value || fm.length} ${fm.length.unit || 'm'}` : '--');
   setText('detectedDiameter', fm.diameter ? `${fm.diameter.value || fm.diameter} ${fm.diameter.unit || 'mm'}` : '--');
   setText('detectedStart', '--');
   setText('detectedEnd', '--');
-
-  // Display uploaded photo if available
-  const photoUrl = feature && feature.photo_url ? feature.photo_url : null;
-  renderFieldPhoto(photoUrl, feature && feature.updated_at);
 }
 
 function renderFieldPhoto(photoUrl, uploadedAt) {
