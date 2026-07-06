@@ -353,13 +353,12 @@ function bindFeatureDetails(params, data) {
   const fm = feature && feature.field_measurements ? feature.field_measurements : {};
 
   // If the layer has a field schema (auto-derived or admin-configured), render
-  // the measurements table dynamically from its editable fields. Otherwise fall
-  // back to the legacy fixed Length/Diameter/Start/End layout.
+  // the table dynamically from ALL of its fields so the reviewer sees every
+  // property. Otherwise fall back to the legacy fixed layout.
   const schema = feature && Array.isArray(feature.field_schema) ? feature.field_schema : null;
-  const editable = schema ? schema.filter((f) => f && f.editable) : [];
 
-  if (editable.length) {
-    renderSchemaMeasurements(editable, p, fm);
+  if (schema && schema.length) {
+    renderSchemaMeasurements(schema, p, fm);
   } else {
     renderLegacyMeasurements(p, fm);
   }
