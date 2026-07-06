@@ -295,9 +295,26 @@
     exportBtn.disabled = !(projectSelect.value && layerSelect.value);
   }
 
+  // Self-contained pagination walk, using only listProjects + apiFetch. Older
+  // deployed builds of fiber-api.js don't export a fetch-all-pages helper.
+  async function fetchAllProjects() {
+    var first = await window.FiberApi.listProjects();
+    if (Array.isArray(first)) return first;
+    if (!first || !Array.isArray(first.results)) return [];
+    var all = first.results.slice();
+    var next = first.next;
+    while (next && typeof window.FiberApi.apiFetch === 'function') {
+      var page = await window.FiberApi.apiFetch(next, { method: 'GET' });
+      if (!page || !Array.isArray(page.results)) break;
+      all = all.concat(page.results);
+      next = page.next || null;
+    }
+    return all;
+  }
+
   async function loadProjects() {
     try {
-      var list = await window.FiberApi.fetchAllPages(window.FiberApi.listProjects);
+      var list = await fetchAllProjects();
       projectSelect.innerHTML = '<option value="">Select Project</option>';
       list.forEach(function (p) {
         var id = pickProjectId(p);
