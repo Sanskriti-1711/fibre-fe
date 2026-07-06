@@ -184,9 +184,8 @@
   // Load projects for filter
   async function loadProjects() {
     try {
-      const data = await window.FiberApi.listProjects();
-      allProjects = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
-      
+      allProjects = await window.FiberApi.fetchAllPages(window.FiberApi.listProjects);
+
       filterProject.innerHTML = '<option value="">All Projects</option>';
       allProjects.forEach(p => {
         const id = p.uuid || p.id || p.project_uuid || p.pk;
@@ -545,6 +544,11 @@
       const photoUrl = featureAttrs.photo || featureAttrs.photo_url || null;
       const fieldMeasurements = featureAttrs.field_measurements || null;
       const comparisonNotes = featureAttrs.comparison_notes || null;
+      const fieldSchema = Array.isArray(featureAttrs.field_schema) ? featureAttrs.field_schema : null;
+      // Planned values use Django's normalized properties (keys match the schema);
+      // fall back to the GeoJSON properties if absent.
+      const plannedProps = (featureAttrs.properties && Object.keys(featureAttrs.properties).length)
+        ? featureAttrs.properties : props;
       
       let html = `
         <div style="display: grid; gap: 20px;">
@@ -599,7 +603,7 @@
           <div>
             <label style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; display: block; margin-bottom: 8px;">Field Measurements</label>
             <div id="featureMeasurements" style="background: #F9FAFB; border-radius: 8px; padding: 16px;">
-              ${renderMeasurementsContent(fieldMeasurements)}
+              ${renderMeasurementsContent(fieldSchema, plannedProps, fieldMeasurements)}
             </div>
           </div>
           
@@ -719,26 +723,92 @@
     `;
   }
 
-  function renderMeasurementsContent(fieldMeasurements) {
-    if (!fieldMeasurements || Object.keys(fieldMeasurements).length === 0) {
-      return `<div style="color: #6B7280; font-size: 14px; text-align: center; padding: 20px;">No field measurements recorded</div>`;
+  // Proper field labels from "Field Report Checklist - TechM_Final.xlsx".
+  // Shapefile DBF truncates column names to 10 chars, so restore full names here.
+  var PROPER_FIELD_LABELS = {
+    name: "Name", altitudemo: "Altitude Mode", subspan: "Sub-Span", span: "Span",
+    sno: "Sr No", remark: "Remark", length: "Length",
+    fieldsurv: "Field survey completed", spanfrom: "Span From (Vault/MH ID)",
+    spanto_v: "Span To (Vault/MH ID)", spanroute: "SPAN Route",
+    trenchloc: "Trench location", conduitdi: "Conduit Distance",
+    ductroute: "Duct Route ID", conduitty: "Conduit Type (HDPE / DI / PVC)",
+    trenchlen: "Trench Length (m)", trenchdep: "Trench Depth (mm)",
+    trenchwid: "Trench Width (mm)", alignment: "Alignment", bottomlev: "Bottom level",
+    noofduc: "No. of Ducts Installed", conduiten: "Conduit encasement",
+    conduitca: "Conduit Capping Done or not", conduitba: "Conduit banding correct or not",
+    backfillin: "Backfilling yes or no", loosesoil: "Loose soil removed",
+    waterint: "Water in trench", existingu: "Existing utilities checked",
+    barricadin: "Barricading & safety",
+    layer: "Layer", vaultid: "Vault ID", location: "Location / Chainage",
+    leveleluv: "Level / Elevation Check", concreteq: "Concrete Quality",
+    cablerack: "Cable Rack / Slack", lidinst: "Lid Type / Count",
+    reinstatem: "Reinstatement", qc_pf: "Overall Status (Pass / Fail)"
+  };
+
+  function properLabel(f) {
+    return (f && PROPER_FIELD_LABELS[f.key]) || (f && (f.label || f.key)) || '';
+  }
+
+  function plannedDisplay(val, unit) {
+    if (val === undefined || val === null || val === '') return '--';
+    return unit ? `${val} ${unit}` : `${val}`;
+  }
+
+  // A stored field_measurements entry is either { value, unit } or a raw scalar.
+  function asBuiltDisplay(entry) {
+    if (entry === undefined || entry === null) return '--';
+    if (typeof entry === 'object') {
+      if (entry.value === undefined || entry.value === null || entry.value === '') return '--';
+      return entry.unit ? `${entry.value} ${entry.unit}` : `${entry.value}`;
     }
-    
-    return `
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
-        ${Object.entries(fieldMeasurements).map(([key, value]) => {
-          // Handle both {value, unit} objects and primitive values
-          const displayValue = typeof value === 'object' && value !== null 
-            ? `${value.value} ${value.unit || ''}`
-            : String(value);
-          return `
-          <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #E5E7EB; text-align: center;">
-            <div style="font-size: 11px; color: #6B7280; text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">${escapeHtml(key)}</div>
-            <div style="font-size: 20px; font-weight: 700; color: #059669;">${escapeHtml(displayValue)}</div>
-          </div>
-        `}).join('')}
-      </div>
-    `;
+    return String(entry);
+  }
+
+  // Render measurements as Label · Planned · As-Built from the layer's field
+  // schema. Falls back to a simple grid of raw measurements for pre-schema features.
+  function renderMeasurementsContent(schema, properties, fieldMeasurements) {
+    properties = properties || {};
+    const fm = fieldMeasurements || {};
+    const fields = Array.isArray(schema)
+      ? schema.slice().sort((a, b) => (a.order || 0) - (b.order || 0))
+      : [];
+
+    if (!fields.length) {
+      if (!fieldMeasurements || Object.keys(fm).length === 0) {
+        return `<div style="color:#6B7280;font-size:14px;text-align:center;padding:20px;">No field measurements recorded</div>`;
+      }
+      return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">${
+        Object.entries(fm).map(([key, value]) => {
+          const dv = (typeof value === 'object' && value !== null) ? `${value.value} ${value.unit || ''}` : String(value);
+          return `<div style="background:white;padding:16px;border-radius:8px;border:1px solid #E5E7EB;text-align:center;">
+            <div style="font-size:11px;color:#6B7280;text-transform:uppercase;font-weight:600;margin-bottom:4px;">${escapeHtml(key)}</div>
+            <div style="font-size:20px;font-weight:700;color:#059669;">${escapeHtml(dv)}</div></div>`;
+        }).join('')
+      }</div>`;
+    }
+
+    const rows = fields.map((f) => {
+      const label = escapeHtml(properLabel(f));
+      const planned = escapeHtml(plannedDisplay(properties[f.key], f.unit ? 'm' : ''));
+      const built = asBuiltDisplay(fm[f.key]);
+      const builtCell = (built === '--')
+        ? `<span style="color:#9CA3AF;">--</span>`
+        : `<span style="color:#059669;font-weight:600;">${escapeHtml(built)}</span>`;
+      return `<tr>
+        <td style="padding:8px;border-bottom:1px solid #F3F4F6;color:#374151;">${label}</td>
+        <td style="padding:8px;border-bottom:1px solid #F3F4F6;color:#6B7280;">${planned}</td>
+        <td style="padding:8px;border-bottom:1px solid #F3F4F6;">${builtCell}</td>
+      </tr>`;
+    }).join('');
+
+    return `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead><tr style="text-align:left;color:#6B7280;text-transform:uppercase;font-size:11px;font-weight:600;">
+        <th style="padding:8px;border-bottom:1px solid #E5E7EB;">Measurement</th>
+        <th style="padding:8px;border-bottom:1px solid #E5E7EB;">Planned</th>
+        <th style="padding:8px;border-bottom:1px solid #E5E7EB;">As-Built</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
   }
 
   function closeViewModal() {
