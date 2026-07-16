@@ -104,35 +104,7 @@
   // Public API
   // ------------------------------------------------------------------
 
-  // ------------------------------------------------------------------
-  // Pre-flight validation
-  // ------------------------------------------------------------------
 
-  /**
-   * Upload files to the validation endpoint for quick pre-checks.
-   * Returns { valid, checks, summary, pass_count, warn_count, fail_count }.
-   * Endpoint: POST /api/ftth/hld/validate/
-   */
-  async function validatePipeline(excelFile, roadsFile) {
-    var fd = new FormData();
-    fd.append('excel', excelFile);
-    fd.append('roads', roadsFile);
-
-    var url = buildUrl(API_PREFIX + '/validate/');
-    var headers = new Headers();
-    var token = getAuthToken();
-    if (token) headers.set('Authorization', 'Bearer ' + token);
-
-    var response = await fetch(url, { method: 'POST', body: fd, headers: headers });
-    var body = await parseBody(response);
-    if (!response.ok) {
-      var msg = body && typeof body === 'object' && body.detail
-        ? body.detail
-        : response.status + ' ' + response.statusText;
-      throw new Error(msg);
-    }
-    return body;
-  }
 
   async function runPipeline(excelFile, roadsFile, name, polyMethod) {
     var fd = new FormData();
@@ -223,64 +195,26 @@
     return body;
   }
 
+
+
   // ------------------------------------------------------------------
-  // Step-by-step pipeline execution
+  // Delete a project
   // ------------------------------------------------------------------
 
   /**
-   * Get step-by-step progress for a pipeline run.
-   * Returns the pipeline_state with per-step status, outputs, and errors.
-   * Endpoint: GET /api/ftth/hld/progress/<project_id>/
+   * Delete a pipeline project and all its associated data.
+   * Endpoint: DELETE /api/ftth/hld/projects/<project_id>/
+   *
+   * @param {string} projectId
+   * @returns {Promise<Object>}  { deleted: bool, project_id: string }
    */
-  async function getPipelineProgress(projectId) {
+  async function deleteProject(projectId) {
     var id = encodeURIComponent(projectId);
-    var url = buildUrl(API_PREFIX + '/progress/' + id + '/');
-    var response = await authFetch(url);
+    var url = buildUrl(API_PREFIX + '/projects/' + id + '/');
+    var response = await authFetch(url, { method: 'DELETE' });
     var body = await parseBody(response);
     if (!response.ok) {
       throw new Error((body && body.detail) || response.statusText);
-    }
-    return body;
-  }
-
-  /**
-   * Run a single pipeline step.
-   * Endpoint: POST /api/ftth/hld/run/step/<step_name>/
-   *
-   * @param {string} projectId
-   * @param {string} stepName  - e.g., "object", "polygon", "network", "trench", "cable", "duct"
-   * @param {Object} [fileMap] - Optional dict of form field name -> File reference
-   * @returns {Promise<Object>}
-   */
-  async function runPipelineStep(projectId, stepName, fileMap) {
-    var id = encodeURIComponent(projectId);
-    var name = encodeURIComponent(stepName);
-    var url = buildUrl(API_PREFIX + '/run/step/' + name + '/');
-
-    var fd = new FormData();
-    fd.append('project_id', projectId);
-
-    // Add optional files (uploaded GPKGs from previous steps)
-    if (fileMap) {
-      Object.keys(fileMap).forEach(function (fieldName) {
-        var file = fileMap[fieldName];
-        fd.append(fieldName, file);
-      });
-    }
-
-    var headers = new Headers();
-    var token = getAuthToken();
-    if (token) headers.set('Authorization', 'Bearer ' + token);
-
-    var response = await fetch(url, { method: 'POST', body: fd, headers: headers });
-    var body = await parseBody(response);
-    if (!response.ok) {
-      var msg = body && typeof body === 'object' && body.detail
-        ? body.detail
-        : body && typeof body === 'object' && body.message
-          ? body.message
-          : response.status + ' ' + response.statusText;
-      throw new Error(msg);
     }
     return body;
   }
@@ -303,7 +237,6 @@
 
   window.FtthApi = {
     BASE_URL: BASE_URL,
-    validatePipeline: validatePipeline,
     runPipeline: runPipeline,
     getPipelineStatus: getPipelineStatus,
     getPipelineLayer: getPipelineLayer,
@@ -312,7 +245,6 @@
     getSurveyPackageUrl: getSurveyPackageUrl,
     downloadSurveyPackage: downloadSurveyPackage,
     listProjects: listProjects,
-    getPipelineProgress: getPipelineProgress,
-    runPipelineStep: runPipelineStep,
+    deleteProject: deleteProject,
   };
 })();

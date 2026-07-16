@@ -98,63 +98,6 @@
       color: #9CA3AF;
     }
 
-    /* ---- Validation Banner ---- */
-    .ftth-validation-panel {
-      display: none;
-      background: #FFFFFF;
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin-bottom: 16px;
-      border: 1px solid #E5E7EB;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .ftth-validation-panel.visible { display: block; }
-    .ftth-validation-panel h3 {
-      margin: 0 0 12px;
-      font-size: 14px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .ftth-validation-panel h3 .v-spinner {
-      width: 16px; height: 16px;
-      border: 2px solid #CBD5E1;
-      border-top-color: #3B82F6;
-      border-radius: 50%;
-      animation: ftth-spin 0.8s linear infinite;
-      display: inline-block;
-    }
-    .ftth-validation-check {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 6px 0;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-    .ftth-validation-check .v-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
-    .ftth-validation-check .v-label { font-weight: 600; color: #1F2937; }
-    .ftth-validation-check .v-detail { color: #6B7280; font-size: 12px; }
-    .ftth-validation-summary {
-      margin-top: 10px;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .ftth-validation-summary.pass {
-      background: #ECFDF5; color: #065F46;
-      border: 1px solid #A7F3D0;
-    }
-    .ftth-validation-summary.warn {
-      background: #FFFBEB; color: #92400E;
-      border: 1px solid #FDE68A;
-    }
-    .ftth-validation-summary.fail {
-      background: #FEF2F2; color: #991B1B;
-      border: 1px solid #FECACA;
-    }
   </style>
 </head>
 <body>
@@ -176,12 +119,6 @@
       <!-- Error banner -->
       <div id="ftthError" class="ftth-error-banner"></div>
 
-      <!-- Validation panel -->
-      <div id="validationPanel" class="ftth-validation-panel">
-        <h3><span class="v-spinner" id="validationSpinner"></span> Validating Inputs&hellip;</h3>
-        <div id="validationChecks"></div>
-        <div id="validationSummary"></div>
-      </div>
 
       <!-- Upload form -->
       <div class="ftth-upload-content">
@@ -231,7 +168,7 @@
         </div>
 
         <!-- Run button -->
-        <button id="runBtn" class="ftth-run-btn" type="button" disabled>
+        <button id="runBtn" class="ftth-run-btn" type="button">
           <span class="spinner"></span>
           <span id="runBtnText">Run Design Pipeline</span>
         </button>
@@ -269,197 +206,11 @@
   const runBtn = document.getElementById('runBtn');
   const runBtnText = document.getElementById('runBtnText');
 
-  // Validation state
-  let validationResult = null;
-  let isValidating = false;
-  const validationPanel = document.getElementById('validationPanel');
-  const validationChecksEl = document.getElementById('validationChecks');
-  const validationSummaryEl = document.getElementById('validationSummary');
-  const validationSpinner = document.getElementById('validationSpinner');
+
 
   function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // ----------------------------------------------------------------
-  // Pre-flight Validation
-  // ----------------------------------------------------------------
 
-  /**
-   * Show validation results in the panel.
-   */
-  function renderValidationResult(result) {
-    validationChecksEl.innerHTML = '';
-    validationSummaryEl.innerHTML = '';
-    validationSpinner.style.display = 'none';
 
-    if (!result || !result.checks) {
-      validationPanel.classList.remove('visible');
-      return;
-    }
-
-    // Render each check
-    result.checks.forEach(function (check) {
-      var row = document.createElement('div');
-      row.className = 'ftth-validation-check';
-      var icon = check.status === 'pass' ? '✅' : check.status === 'warn' ? '⚠️' : '❌';
-      row.innerHTML = ''
-        + '<span class="v-icon">' + icon + '</span>'
-        + '<div><div class="v-label">' + escHtml(check.check) + '</div>'
-        + '<div class="v-detail">' + escHtml(check.detail || '') + '</div></div>';
-      validationChecksEl.appendChild(row);
-    });
-
-    // Summary banner
-    var summary = document.createElement('div');
-    summary.className = 'ftth-validation-summary';
-    if (result.valid) {
-      summary.classList.add('pass');
-      summary.textContent = '✅ ' + (result.summary || 'All checks passed!');
-    } else if (result.warn_count > 0 && result.fail_count === 0) {
-      summary.classList.add('warn');
-      summary.textContent = '⚠️ ' + (result.summary || 'All checks passed with warnings.');
-    } else {
-      summary.classList.add('fail');
-      summary.textContent = '❌ ' + (result.summary || 'Some checks failed.');
-    }
-    validationSummaryEl.appendChild(summary);
-
-    validationPanel.classList.add('visible');
-  }
-
-  /**
-   * Call the validation API with current files.
-   */
-  function runValidation() {
-    if (!excelFile || !roadsFile || isValidating) return;
-
-    // Show spinner
-    validationSpinner.style.display = 'inline-block';
-    validationPanel.classList.add('visible');
-    validationChecksEl.innerHTML = '<div style="color:#6B7280;font-size:13px;padding:8px 0;">Running checks&hellip;</div>';
-    validationSummaryEl.innerHTML = '';
-    isValidating = true;
-    validationResult = null;
-
-    window.FtthApi.validatePipeline(excelFile, roadsFile)
-      .then(function (result) {
-        validationResult = result;
-        renderValidationResult(result);
-        updateRunButton();
-      })
-      .catch(function (err) {
-        validationChecksEl.innerHTML = '<div class="ftth-validation-check">'
-          + '<span class="v-icon">❌</span>'
-          + '<div><div class="v-label">Validation Failed</div>'
-          + '<div class="v-detail">' + escHtml(err.message || 'Connection error') + '</div></div></div>';
-        validationSpinner.style.display = 'none';
-        validationResult = null;
-        updateRunButton();
-      })
-      .finally(function () {
-        isValidating = false;
-      });
-  }
-
-  // ----------------------------------------------------------------
-  // Dropzones
-  // ----------------------------------------------------------------
-  const excelZone = window.FtthComponents.createDropzone({
-    label: 'Choose Excel File',
-    accept: '.xlsx,.xls',
-    hint: '.xlsx files only',
-    icon: '📊',
-    onChange: function (f) {
-      excelFile = f;
-      validationResult = null;
-      validationPanel.classList.remove('visible');
-      if (excelFile && roadsFile) runValidation();
-      updateRunButton();
-    },
-  });
-  document.getElementById('excelDropzone').appendChild(excelZone);
-
-  const roadsZone = window.FtthComponents.createDropzone({
-    label: 'Choose Roads File',
-    accept: '.gpkg,.geojson,.json,.shp,.zip',
-    hint: '.gpkg, .geojson, .shp',
-    icon: '🛣️',
-    onChange: function (f) {
-      roadsFile = f;
-      validationResult = null;
-      validationPanel.classList.remove('visible');
-      if (excelFile && roadsFile) runValidation();
-      updateRunButton();
-    },
-  });
-  document.getElementById('roadsDropzone').appendChild(roadsZone);
-
-  // ----------------------------------------------------------------
-  // Helpers
-  // ----------------------------------------------------------------
-  function updateRunButton() {
-    // Enable only when both files are selected, validation passed, and not running
-    const validated = validationResult && validationResult.valid === true;
-    const ready = excelFile !== null && roadsFile !== null && validated && !isRunning;
-    runBtn.disabled = !ready;
-    runBtn.title = !validated ? 'Run validation first to enable pipeline' : '';
-  }
-
-  // escapeHtml alias available in ftth-components.js if needed elsewhere
-  // escHtml defined above for local use
-
-  function setError(msg) {
-    if (!msg) {
-      errorEl.style.display = 'none';
-      errorEl.textContent = '';
-      return;
-    }
-    errorEl.textContent = msg;
-    errorEl.style.display = 'block';
-  }
-
-  function setRunning(loading) {
-    isRunning = loading;
-    runBtn.disabled = loading;
-    runBtn.classList.toggle('loading', loading);
-    runBtnText.textContent = loading ? 'Starting Pipeline…' : 'Run Design Pipeline';
-    updateRunButton();
-  }
-
-  // ----------------------------------------------------------------
-  // Run pipeline
-  // ----------------------------------------------------------------
-  runBtn.addEventListener('click', async function () {
-    if (isRunning || !excelFile || !roadsFile) return;
-
-    setError('');
-    setRunning(true);
-
-    const name = document.getElementById('projectName').value.trim() || undefined;
-
-    try {
-      const result = await window.FtthApi.runPipeline(excelFile, roadsFile, name);
-      const projectId = result && (result.project_id || result.id);
-
-      if (!projectId) {
-        throw new Error('Backend did not return a project ID');
-      }
-
-      // Store in shared state for the status page
-      if (window.FtthState) {
-        window.FtthState.setProjectId(projectId);
-        window.FtthState.setResults(null);
-      }
-
-      // Navigate to status page
-      window.location.href = 'ftth-hld-status.html?project_id=' + encodeURIComponent(projectId);
-    } catch (err) {
-      setRunning(false);
-      setError(err && err.message ? err.message : 'Failed to start pipeline');
-    }
-  });
-</script>
-
-</body>
-</html>
