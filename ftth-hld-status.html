@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pipeline Status | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+  <style>
+    .ftth-status-content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .ftth-status-content .card {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid #E5E7EB;
+    }
+
+    .ftth-status-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .ftth-status-header h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .ftth-project-id {
+      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+      font-size: 12px;
+      color: #6B7280;
+      background: #F3F4F6;
+      padding: 4px 10px;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+
+    .ftth-meta-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin: 12px 0 0;
+      font-size: 13px;
+      color: #6B7280;
+    }
+
+    .ftth-meta-row strong {
+      color: #1F2937;
+    }
+
+    .ftth-stop-btn {
+      padding: 8px 16px;
+      background: #6B7280;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .ftth-stop-btn:hover {
+      background: #4B5563;
+    }
+
+    .ftth-log-section {
+      margin-top: 4px;
+    }
+
+    .ftth-log-section-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .ftth-log-section-label h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .ftth-log-count {
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    .ftth-completed-banner {
+      display: none;
+      background: #ECFDF5;
+      border: 1px solid #A7F3D0;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .ftth-completed-banner.show {
+      display: block;
+    }
+
+    .ftth-completed-banner h2 {
+      margin: 0 0 6px;
+      color: #065F46;
+      font-size: 18px;
+    }
+
+    .ftth-completed-banner p {
+      margin: 0 0 16px;
+      color: #047857;
+      font-size: 14px;
+    }
+
+    .ftth-view-results-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #059669;
+      color: #FFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .ftth-view-results-btn:hover {
+      background: #047857;
+    }
+
+    .ftth-failed-banner {
+      display: none;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .ftth-failed-banner.show {
+      display: block;
+    }
+
+    .ftth-failed-banner h2 {
+      margin: 0 0 6px;
+      color: #991B1B;
+      font-size: 18px;
+    }
+
+    .ftth-failed-banner p {
+      margin: 0 0 16px;
+      color: #DC2626;
+      font-size: 14px;
+    }
+
+    .ftth-retry-btn {
+      padding: 10px 20px;
+      background: #DC2626;
+      color: #FFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    /* ---- Geocoding Progress ---- */
+    .ftth-geocode-card {
+      display: none;
+    }
+    .ftth-geocode-card.visible { display: block; }
+    .ftth-geocode-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 8px 0;
+    }
+    .ftth-geocode-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+      animation: ftth-pulse 1.5s ease-in-out infinite;
+    }
+    .ftth-geocode-text {
+      flex: 1;
+    }
+    .ftth-geocode-addr {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1F2937;
+      margin-bottom: 2px;
+    }
+    .ftth-geocode-sub {
+      font-size: 12px;
+      color: #6B7280;
+    }
+    .ftth-geocode-bar {
+      width: 100%;
+      height: 6px;
+      background: #E5E7EB;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .ftth-geocode-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3B82F6, #8B5CF6);
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .ftth-geocode-ok {
+      font-size: 11px;
+      color: #10B981;
+      font-weight: 600;
+      margin-top: 3px;
+    }
+    @keyframes ftth-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* ---- Step Wizard Styles ---- */
+    .ftth-step-wizard {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ftth-step-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #F9FAFB;
+      border: 1px solid #F3F4F6;
+      transition: all 0.2s ease;
+    }
+    .ftth-step-row + .ftth-step-row {
+      margin-top: 4px;
+    }
+    .ftth-step-row.ftth-step-actionable {
+      background: #FFFBEB;
+      border-color: #FDE68A;
+    }
+    .ftth-step-row.ftth-step-running {
+      background: #EFF6FF;
+      border-color: #93C5FD;
+    }
+    .ftth-step-row.ftth-step-failed {
+      background: #FEF2F2;
+      border-color: #FECACA;
+    }
+    .ftth-step-row.ftth-step-completed {
+      background: #F9FAFB;
+      border-color: #E5E7EB;
+      opacity: 0.85;
+    }
+    .ftth-step-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #6B7280;
+      background: #F3F4F6;
+      border: 2px solid #D1D5DB;
+      flex-shrink: 0;
+    }
+    .ftth-step-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .ftth-step-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1F2937;
+      margin-bottom: 2px;
+    }
+    .ftth-step-detail {
+      font-size: 11px;
+      color: #6B7280;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ftth-step-error {
+      font-size: 11px;
+      color: #DC2626;
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ftth-step-actions {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ftth-step-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .ftth-step-badge-ok {
+      background: #ECFDF5;
+      color: #065F46;
+    }
+    .ftth-step-badge-running {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      animation: ftth-pulse 1.5s ease-in-out infinite;
+    }
+    .ftth-step-badge-pending {
+      background: #F3F4F6;
+      color: #6B7280;
+    }
+    .ftth-step-run-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: #059669;
+      color: #FFFFFF;
+    }
+    .ftth-step-run-btn:hover {
+      background: #047857;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+    }
+    .ftth-step-retry-btn {
+      background: #DC2626;
+    }
+    .ftth-step-retry-btn:hover {
+      background: #B91C1C;
+      box-shadow: 0 2px 8px rgba(220,38,38,0.3);
+    }
+    .ftth-step-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #93C5FD;
+      border-top-color: #3B82F6;
+      border-radius: 50%;
+      animation: ftth-spin 0.8s linear infinite;
+    }
+    @keyframes ftth-spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <div id="sidebarContainer"></div>
+
+  <main class="content">
+    <div class="container">
+
+      <div class="ftth-status-content">
+
+        <!-- Header -->
+        <div class="card">
+          <div class="ftth-status-header">
+            <h1>Pipeline Status</h1>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span id="statusBadgeContainer"></span>
+              <button id="stopPollBtn" class="ftth-stop-btn" type="button" style="display:none;">Stop Polling</button>
+            </div>
+          </div>
+          <div class="ftth-project-id" id="projectIdDisplay">—</div>
+          <div class="ftth-meta-row">
+            <span>Progress: <strong id="progressPct">0%</strong></span>
+            <span>Elapsed: <strong id="elapsedTime">0s</strong></span>
+            <span>Messages: <strong id="messageCount">0</strong></span>
+          </div>
+        </div>
+
+        <!-- Completed banner -->
+        <div id="completedBanner" class="ftth-completed-banner">
+          <h2>✅ Pipeline Complete!</h2>
+          <p>The design pipeline has finished. View your results on the map or download output files.</p>
+          <a id="viewResultsBtn" class="ftth-view-results-btn" href="#">
+            View Results →
+          </a>
+        </div>
+
+        <!-- Failed banner -->
+        <div id="failedBanner" class="ftth-failed-banner">
+          <h2>❌ Pipeline Failed</h2>
+          <p id="failedMessage">The pipeline encountered an error.</p>
+          <a class="ftth-retry-btn" href="ftth-hld.html">Back to Upload</a>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="card">
+          <h3 style="margin:0 0 10px;font-size:14px;font-weight:600;">Progress</h3>
+          <div class="ftth-progress-container">
+            <div class="ftth-progress-label">
+              <span id="progressLabel">Initializing…</span>
+              <span id="progressValue">0%</span>
+            </div>
+            <div id="progressBarContainer"></div>
+          </div>
+        </div>
+
+        <!-- Geocoding Progress (shown during Object Layer) -->
+        <div class="card ftth-geocode-card" id="geocodeCard">
+          <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;">
+            <span>🌍 Address Geocoding</span>
+          </h3>
+          <div class="ftth-geocode-info">
+            <div class="ftth-geocode-icon">📍</div>
+            <div class="ftth-geocode-text">
+              <div class="ftth-geocode-addr" id="geocodeAddr">Waiting for geocoding to start…</div>
+              <div class="ftth-geocode-sub" id="geocodeSub">
+                <span id="geocodeCurrent">0</span> / <span id="geocodeTotal">0</span> addresses
+                — <span id="geocodeOk">0</span> geocoded
+              </div>
+              <div class="ftth-geocode-bar">
+                <div class="ftth-geocode-fill" id="geocodeFill" style="width:0%;"></div>
+              </div>
+              <div class="ftth-geocode-ok" id="geocodeStatusText"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline Steps (Step Wizard) -->
+        <div class="card" id="stepWizardCard" style="display:none;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="margin:0;font-size:14px;font-weight:700;">Pipeline Steps</h3>
+            <span id="stepWizardProgress" style="font-size:11px;color:#6B7280;"></span>
+          </div>
+          <div id="stepWizardContainer"></div>
+          <div id="stepWizardMessage" style="margin-top:10px;font-size:12px;color:#6B7280;text-align:center;"></div>
+        </div>
+
+        <!-- Live log -->
+        <div class="card ftth-log-section">
+          <div class="ftth-log-section-label">
+            <h3>Pipeline Log</h3>
+            <span class="ftth-log-count" id="logLineCount">0 lines</span>
+          </div>
+          <div id="logContainer"></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script>
+  // Auto-detect local dev — point to local Django backend
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.FIBER_BASE_URL = 'http://localhost:8000';
+    window.FTTH_BASE_URL = 'http://localhost:8000';
+  }
+</script>
+<script src="fiber-api.js"></script>
+<script>
+  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+</script>
+<script src="js/ftth-api.js"></script>
+<script src="js/ftth-state.js"></script>
+<script src="js/ftth-components.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  // ----------------------------------------------------------------
+  // Get project_id from URL or shared state
+  // ----------------------------------------------------------------
+  const params = new URLSearchParams(window.location.search);
+  let projectId = params.get('project_id') || window.FtthState.getProjectId();
+
+  if (!projectId) {
+    // No project ID — redirect back to upload
+    window.location.href = 'ftth-hld.html';
+  }
+
+  // ----------------------------------------------------------------
+  // DOM refs
+  // ----------------------------------------------------------------
+  const statusBadgeContainer = document.getElementById('statusBadgeContainer');
+  const projectIdDisplay = document.getElementById('projectIdDisplay');
+  const progressPct = document.getElementById('progressPct');
+  const progressLabel = document.getElementById('progressLabel');
+  const progressValue = document.getElementById('progressValue');
+  const progressBarContainer = document.getElementById('progressBarContainer');
+  const logContainer = document.getElementById('logContainer');
+  const logLineCount = document.getElementById('logLineCount');
+  const elapsedTime = document.getElementById('elapsedTime');
+  const messageCount = document.getElementById('messageCount');
+  const completedBanner = document.getElementById('completedBanner');
+  const failedBanner = document.getElementById('failedBanner');
+  const failedMessage = document.getElementById('failedMessage');
+  const viewResultsBtn = document.getElementById('viewResultsBtn');
+  const stopPollBtn = document.getElementById('stopPollBtn');
+
+  // ----------------------------------------------------------------
+  // Setup
+  // ----------------------------------------------------------------
+  projectIdDisplay.textContent = 'Project: ' + projectId;
+
+  const logViewer = window.FtthComponents.createLogViewer({ maxLines: 1000 });
+  logContainer.appendChild(logViewer);
+
+  const progressBar = window.FtthComponents.createProgressBar(0);
+  progressBarContainer.appendChild(progressBar);
+
+  const badge = window.FtthComponents.createStatusBadge('pending');
+  statusBadgeContainer.appendChild(badge);
+
+  // Geocoding progress state
+  let geocodeProgress = { current: 0, total: 0, ok: 0 };
+  const geocodeCard = document.getElementById('geocodeCard');
+  const geocodeAddr = document.getElementById('geocodeAddr');
+  const geocodeCurrent = document.getElementById('geocodeCurrent');
+  const geocodeTotal = document.getElementById('geocodeTotal');
+  const geocodeOk = document.getElementById('geocodeOk');
+  const geocodeFill = document.getElementById('geocodeFill');
+  const geocodeStatusText = document.getElementById('geocodeStatusText');
+
+  /**
+   * Parse a log message for geocoding progress patterns.
+   * Patterns from HLDPlanning/algorithms/object_layer.py:
+   *   "Processed 25/150 rows…"
+   *   "Geocoded 50/150 rows; OK so far: 45"
+   */
+  function parseGeocodeProgress(text) {
+    if (!text) return null;
+    // Pattern 1: "Geocoded 50/150 rows; OK so far: 45"
+    var m1 = text.match(/Geocoded\s+(\d+)\s*\/\s*(\d+)\s+rows;\s+OK so far:\s+(\d+)/i);
+    if (m1) {
+      return { current: parseInt(m1[1], 10), total: parseInt(m1[2], 10), ok: parseInt(m1[3], 10) };
+    }
+    // Pattern 2: "Processed 25/150 rows…"
+    var m2 = text.match(/Processed\s+(\d+)\s*\/\s*(\d+)\s+rows/i);
+    if (m2) {
+      return { current: parseInt(m2[1], 10), total: parseInt(m2[2], 10), ok: geocodeProgress.ok };
+    }
+    return null;
+  }
+
+  /**
+   * Update the geocoding progress display.
+   */
+  function updateGeocodeDisplay(progress) {
+    if (!progress || progress.total === 0) {
+      geocodeCard.classList.remove('visible');
+      return;
+    }
+    geocodeCard.classList.add('visible');
+    geocodeCurrent.textContent = progress.current;
+    geocodeTotal.textContent = progress.total;
+    geocodeOk.textContent = progress.ok;
+    geocodeAddr.textContent = 'Geocoding address ' + progress.current + ' of ' + progress.total + '…';
+    var pct = Math.round((progress.current / progress.total) * 100);
+    geocodeFill.style.width = pct + '%';
+    if (progress.current >= progress.total) {
+      geocodeStatusText.textContent = '✅ All addresses geocoded (' + progress.ok + ' found)';
+    } else {
+      var rate = progress.current > 0 ? Math.round((progress.ok / progress.current) * 100) : 0;
+      geocodeStatusText.textContent = '✓ ' + progress.ok + ' geocoded so far (' + rate + '% success rate)';
+    }
+  }
+
+  let startTime = Date.now();
+  let prevMessageCount = 0;
+  let seenMessageIds = new Set();
+
+  // ----------------------------------------------------------------
+  // Polling callbacks
+  // ----------------------------------------------------------------
+  function onMessage(data) {
+    // Update status badge
+    const newBadge = window.FtthComponents.createStatusBadge(data.status);
+    statusBadgeContainer.innerHTML = '';
+    statusBadgeContainer.appendChild(newBadge);
+
+    // Update progress
+    const pct = data.progress !== undefined ? Number(data.progress) : 0;
+    window.FtthComponents.updateProgressBar(progressBar, pct);
+    progressPct.textContent = Math.round(pct) + '%';
+    progressValue.textContent = Math.round(pct) + '%';
+    progressLabel.textContent = data.status_label || (data.status === 'running' ? 'Processing…' : data.status);
+
+    // Append new messages
+    var latestProgress = null;
+    if (data.messages && Array.isArray(data.messages)) {
+      // Deduplicate by using a simple counter-based dedup (messages don't have IDs)
+      const newMessages = data.messages.slice(prevMessageCount);
+      newMessages.forEach(function (m) {
+        logViewer._append(m.text || m.message || String(m), m.level || 'info');
+        // Parse geocoding progress from each new message
+        var parsed = parseGeocodeProgress(m.text || m.message || '');
+        if (parsed) latestProgress = parsed;
+      });
+      prevMessageCount = data.messages.length;
+      if (latestProgress) {
+        geocodeProgress = latestProgress;
+        updateGeocodeDisplay(geocodeProgress);
+      }
+    }
+
+    logLineCount.textContent = prevMessageCount + ' lines';
+    messageCount.textContent = prevMessageCount;
+
+    // Elapsed time
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const mins = Math.floor(elapsed / 60);
+    const secs = elapsed % 60;
+    elapsedTime.textContent = mins > 0 ? (mins + 'm ' + secs + 's') : (secs + 's');
+  }
+
+  function onComplete(data) {
+    stopPollBtn.style.display = 'none';
+
+    if (data.status === 'completed') {
+      // Show completed banner
+      completedBanner.classList.add('show');
+      // Store results
+      window.FtthState.setResults(data);
+      // Link to results page
+      viewResultsBtn.href = 'ftth-hld-results.html?project_id=' + encodeURIComponent(projectId);
+
+      // Log completion summary
+      if (data.layers && data.layers.length) {
+        logViewer._append('Layers generated: ' + data.layers.map(function (l) {
+          return l.name + ' (' + l.count + ' ' + l.type + ')';
+        }).join(', '), 'success');
+      }
+      if (data.downloads && data.downloads.length) {
+        logViewer._append('Files available for download: ' + data.downloads.length, 'success');
+      }
+      logViewer._append('Pipeline completed successfully ✓', 'success');
+    } else {
+      // Failed
+      failedBanner.classList.add('show');
+      failedMessage.textContent = data.error || data.message || 'Pipeline failed unexpectedly';
+      logViewer._append('Pipeline failed: ' + (data.error || data.message || 'Unknown error'), 'error');
+    }
+  }
+
+  function onError(err) {
+    // Network error — keep polling (connection may recover)
+    logViewer._append('Poll error: ' + (err.message || 'Connection issue'), 'warn');
+  }
+
+  // Stop polling handler
+  stopPollBtn.addEventListener('click', function () {
+    window.FtthState.stopPolling();
+    stopPollBtn.style.display = 'none';
+    logViewer._append('Polling stopped by user', 'warn');
+  });
+
+  // ----------------------------------------------------------------
+  // Start polling
+  // ----------------------------------------------------------------
+  var stopFn = window.FtthState.startPolling(projectId, onMessage, onComplete, onError, 3000);
+  stopPollBtn.style.display = 'inline-block';
+
+  // ----------------------------------------------------------------
+  // Step wizard
+  // ----------------------------------------------------------------
+  var stepWizardContainer = document.getElementById('stepWizardContainer');
+  var stepWizardCard = document.getElementById('stepWizardCard');
+  var stepWizardProgress = document.getElementById('stepWizardProgress');
+  var stepWizardMessage = document.getElementById('stepWizardMessage');
+  var stepWizard = null;
+  var stepStates = {};
+
+  function refreshStepWizard() {
+    window.FtthApi.getPipelineProgress(projectId)
+      .then(function (data) {
+        if (!data || !data.pipeline_state) return;
+        var newStates = window.FtthComponents.getStepStatesFromPipeline(data.pipeline_state);
+        var keys = Object.keys(newStates);
+        var completed = 0;
+        var failed = 0;
+        keys.forEach(function (k) {
+          if (newStates[k].status === 'completed') completed++;
+          if (newStates[k].status === 'failed') failed++;
+        });
+        stepWizardProgress.textContent = completed + ' / ' + keys.length + ' steps complete';
+        if (stepWizard) {
+          stepWizard._update(newStates);
+        } else {
+          stepStates = newStates;
+          stepWizard = window.FtthComponents.createStepWizard({
+            stepStates: stepStates,
+            projectId: projectId,
+            onRunStep: onRunStep,
+          });
+          stepWizardContainer.appendChild(stepWizard);
+          stepWizardCard.style.display = 'block';
+        }
+        stepStates = newStates;
+        var runningStep = null;
+        keys.forEach(function (k) {
+          if (newStates[k].status === 'running') runningStep = k;
+        });
+        if (!runningStep && completed < keys.length && failed === 0) {
+          stepWizardMessage.textContent = 'Click "Run" on an available step to execute it individually.';
+        } else if (runningStep) {
+          stepWizardMessage.textContent = 'Step "' + runningStep + '" is running...';
+        } else if (failed > 0) {
+          stepWizardMessage.textContent = failed + ' step(s) failed. Fix the issue and click "Retry".';
+        } else if (completed === keys.length) {
+          stepWizardMessage.textContent = 'All steps complete!';
+        } else {
+          stepWizardMessage.textContent = '';
+        }
+      })
+      .catch(function (err) {
+        console.warn('Failed to load step progress:', err);
+      });
+  }
+
+  function onRunStep(stepName) {
+    logViewer._append('Starting step: ' + stepName + '...', 'info');
+    stepWizardMessage.textContent = 'Starting step "' + stepName + '"...';
+    window.FtthApi.runPipelineStep(projectId, stepName)
+      .then(function (result) {
+        logViewer._append('Step "' + stepName + '" submitted. Polling for results...', 'success');
+        stepWizardMessage.textContent = 'Step "' + stepName + '" submitted. Tracking progress...';
+        setTimeout(refreshStepWizard, 2000);
+      })
+      .catch(function (err) {
+        logViewer._append('Failed to start step "' + stepName + '": ' + (err.message || err), 'error');
+        stepWizardMessage.textContent = 'Failed: ' + (err.message || err);
+      });
+  }
+
+  var origOnMessage = onMessage;
+  onMessage = function (data) {
+    origOnMessage(data);
+    refreshStepWizard();
+  };
+
+  refreshStepWizard();
+
+  // Show the first running message
+  logViewer._append('Polling pipeline status for project ' + projectId + '...', 'info');
+  logViewer._append('Waiting for pipeline to start...', 'info');
+</script>
+
+</body>
+</html>

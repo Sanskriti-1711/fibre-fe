@@ -1,0 +1,456 @@
+/* ==================================================================
+   FTTH HLD Pipeline — Page-Specific Styles
+   Used by: ftth-hld.html, ftth-hld-status.html, ftth-hld-results.html
+   ================================================================== */
+
+/* ------------------------------------------------------------------
+   Keyframes
+   ------------------------------------------------------------------ */
+@keyframes ftth-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.75); }
+}
+
+@keyframes ftth-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ftth-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------------
+   Page Layout — Full-width map variant
+   ------------------------------------------------------------------ */
+.ftth-full-content.content {
+  padding: 0 !important;
+}
+
+.ftth-full-layout {
+  display: flex;
+  height: calc(100vh - 0px);
+  min-height: 100vh;
+}
+
+.ftth-map-pane {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.ftth-map-pane #map {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.ftth-side-pane {
+  width: 360px;
+  flex-shrink: 0;
+  background: #FFFFFF;
+  border-left: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.ftth-side-pane-header {
+  padding: 20px 20px 12px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.ftth-side-pane-header h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: #1F2937;
+}
+
+.ftth-side-pane-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.ftth-side-pane-section {
+  padding: 12px 20px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.ftth-side-pane-section:last-child {
+  border-bottom: none;
+}
+
+.ftth-side-pane-section h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6B7280;
+}
+
+/* ------------------------------------------------------------------
+   Dropzone
+   ------------------------------------------------------------------ */
+.ftth-dropzone {
+  border: 2px dashed #D1D5DB;
+  border-radius: 12px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #F9FAFB;
+  margin-bottom: 12px;
+  outline: none;
+  position: relative;
+}
+
+.ftth-dropzone:hover,
+.ftth-dropzone:focus {
+  border-color: #E31837;
+  background: #FEF2F2;
+}
+
+.ftth-dropzone.drag-over {
+  border-color: #E31837;
+  background: #FEE2E2;
+  border-style: solid;
+}
+
+.ftth-dropzone.has-file {
+  border-color: #10B981;
+  border-style: solid;
+  background: #ECFDF5;
+  padding: 18px 16px;
+}
+
+.ftth-dropzone-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.ftth-dropzone-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  margin-bottom: 4px;
+}
+
+.ftth-dropzone-hint {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.ftth-dropzone-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #065F46;
+  word-break: break-all;
+  max-width: 100%;
+  margin-bottom: 2px;
+}
+
+.ftth-dropzone-size {
+  font-size: 11px;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+
+.ftth-dropzone-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.08);
+  color: #374151;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+
+.ftth-dropzone-remove:hover {
+  background: rgba(0,0,0,0.15);
+}
+
+/* ------------------------------------------------------------------
+   Terminal Log Viewer
+   ------------------------------------------------------------------ */
+.ftth-log-viewer {
+  background: #0B1020;
+  color: #D1D5DB;
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-y: auto;
+  max-height: 420px;
+  min-height: 200px;
+  box-shadow: inset 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.ftth-log-line {
+  display: flex;
+  gap: 10px;
+  animation: ftth-fade-in 0.2s ease;
+  margin-bottom: 2px;
+}
+
+.ftth-log-time {
+  color: #6B7280;
+  flex-shrink: 0;
+  font-size: 11px;
+  user-select: none;
+  min-width: 70px;
+}
+
+.ftth-log-msg {
+  flex: 1;
+}
+
+.ftth-log-info .ftth-log-msg {
+  color: #D1D5DB;
+}
+
+.ftth-log-warn .ftth-log-msg {
+  color: #FBBF24;
+}
+
+.ftth-log-error .ftth-log-msg {
+  color: #F87171;
+}
+
+.ftth-log-success .ftth-log-msg {
+  color: #34D399;
+}
+
+/* ------------------------------------------------------------------
+   Status Badge (enhanced for FTTH pages)
+   ------------------------------------------------------------------ */
+.ftth-status-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* ------------------------------------------------------------------
+   Progress Bar (enhanced)
+   ------------------------------------------------------------------ */
+.ftth-progress-container {
+  margin-bottom: 20px;
+}
+
+.ftth-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6B7280;
+  margin-bottom: 6px;
+}
+
+/* ------------------------------------------------------------------
+   Upload Page Steps
+   ------------------------------------------------------------------ */
+.ftth-step {
+  margin-bottom: 24px;
+}
+
+.ftth-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #E31837;
+  color: #FFF;
+  font-size: 13px;
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.ftth-step-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1F2937;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* ------------------------------------------------------------------
+   Layer Toggle List
+   ------------------------------------------------------------------ */
+.ftth-layer-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ftth-layer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #E5E7EB;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.ftth-layer-toggle:last-child {
+  border-bottom: none;
+}
+
+.ftth-layer-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #E31837;
+  cursor: pointer;
+}
+
+.ftth-layer-toggle .layer-name {
+  flex: 1;
+  font-weight: 600;
+  color: #1F2937;
+}
+
+.ftth-layer-toggle .layer-count {
+  font-size: 11px;
+  color: #6B7280;
+}
+
+/* ------------------------------------------------------------------
+   Download Button List
+   ------------------------------------------------------------------ */
+.ftth-download-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ftth-download-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #1F2937;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.ftth-download-btn:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.ftth-download-btn-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.ftth-download-btn-name {
+  flex: 1;
+}
+
+.ftth-download-btn-size {
+  font-size: 11px;
+  color: #6B7280;
+}
+
+.ftth-download-btn-arrow {
+  color: #6B7280;
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------------
+   Info Cards
+   ------------------------------------------------------------------ */
+.ftth-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ftth-info-card {
+  background: #F9FAFB;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+
+.ftth-info-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1F2937;
+  margin-bottom: 4px;
+}
+
+.ftth-info-card-label {
+  font-size: 11px;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ------------------------------------------------------------------
+   Empty state
+   ------------------------------------------------------------------ */
+.ftth-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6B7280;
+}
+
+.ftth-empty-state-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.ftth-empty-state-text {
+  font-size: 14px;
+}
+
+/* ------------------------------------------------------------------
+   Spinner for map loading
+   ------------------------------------------------------------------ */
+.ftth-map-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(249,250,251,0.9);
+  z-index: 10;
+}
+
+.ftth-map-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #E5E7EB;
+  border-top-color: #E31837;
+  border-radius: 50%;
+  animation: ftth-spin 0.8s linear infinite;
+}

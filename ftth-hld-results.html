@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Design Results | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- MapLibre GL -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+
+  <style>
+    .ftth-results-layout { display:flex; width:100%; height:100vh; overflow:hidden; }
+    .ftth-map-pane { flex:1; position:relative; min-width:0; }
+    .ftth-map-pane #map { width:100%; height:100%; position:absolute; top:0; left:0; }
+    .ftth-side-pane { width:380px; flex-shrink:0; background:#FFFFFF; border-left:1px solid #E5E7EB; display:flex; flex-direction:column; overflow-y:auto; }
+    .ftth-side-pane-header { padding:20px 20px 12px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+    .ftth-side-pane-header h2 { margin:0 0 4px; font-size:16px; color:#1F2937; display:flex; align-items:center; gap:8px; }
+    .ftth-side-pane-header h2 .back-link { font-size:13px; font-weight:400; color:#6B7280; text-decoration:none; margin-left:auto; }
+    .ftth-side-pane-header h2 .back-link:hover { color:#E31837; }
+    .ftth-side-pane-header .project-id { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; margin-top:4px; }
+    .ftth-side-pane-section { padding:16px 20px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+    .ftth-side-pane-section:last-child { border-bottom:none; flex:1; }
+    .ftth-side-pane-section h3 { margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#6B7280; display:flex; align-items:center; justify-content:space-between; }
+    .ftth-side-pane-section h3 .badge { font-size:10px; font-weight:600; color:#6B7280; background:#F3F4F6; padding:2px 8px; border-radius:999px; }
+    .ftth-layer-controls { display:flex; flex-direction:column; }
+    .ftth-download-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; text-decoration:none; color:#1F2937; font-size:13px; font-weight:500; transition:all 0.15s ease; cursor:pointer; }
+    .ftth-download-btn:hover { background:#F3F4F6; border-color:#D1D5DB; }
+    .ftth-empty-state { text-align:center; padding:40px 20px; color:#6B7280; }
+    .ftth-empty-state .icon { font-size:40px; margin-bottom:12px; }
+    .ftth-empty-state p { font-size:14px; margin:0 0 16px; }
+    .ftth-layer-color-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .ftth-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .ftth-summary-item { background:#F9FAFB; border-radius:6px; padding:10px; text-align:center; }
+    .ftth-summary-item .value { font-size:20px; font-weight:700; color:#1F2937; }
+    .ftth-summary-item .label { font-size:10px; color:#6B7280; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+    .ftth-basemap-switcher { position:absolute; top:12px; right:12px; z-index:10; display:flex; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); padding:4px; gap:2px; }
+    .ftth-basemap-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; padding:6px 0 4px; border:none; background:transparent; border-radius:8px; cursor:pointer; transition:all 0.2s ease; color:#6B7280; font-size:10px; font-weight:500; gap:2px; }
+    .ftth-basemap-btn .icon { font-size:18px; line-height:1; transition:transform 0.2s ease; }
+    .ftth-basemap-btn .label { font-size:9px; line-height:1; white-space:nowrap; }
+    .ftth-basemap-btn:hover { background:#F3F4F6; color:#374151; }
+    .ftth-basemap-btn:hover .icon { transform:scale(1.15); }
+    .ftth-basemap-btn.active { background:#E31837; color:#FFFFFF; box-shadow:0 1px 4px rgba(227,24,55,0.3); }
+    .ftth-basemap-btn.active:hover { background:#C4142F; }
+
+    .ftth-survey-btn {
+      display:flex; align-items:center; gap:10px; width:100%;
+      padding:12px 14px; margin-top:12px;
+      background:linear-gradient(135deg,#059669,#047857);
+      border:none; border-radius:10px;
+      text-decoration:none; color:#FFFFFF;
+      font-size:14px; font-weight:700;
+      cursor:pointer; transition:all 0.2s ease;
+      box-shadow:0 2px 8px rgba(5,150,105,0.3);
+    }
+    .ftth-survey-btn:hover { background:linear-gradient(135deg,#047857,#065F46); transform:translateY(-1px); box-shadow:0 4px 12px rgba(5,150,105,0.4); }
+    .ftth-survey-btn:active { transform:translateY(0); }
+    .ftth-survey-btn .icon { font-size:22px; }
+    .ftth-survey-btn .sub { font-size:11px; font-weight:400; opacity:0.8; }
+
+    @media (max-width:768px) {
+      .ftth-results-layout { flex-direction:column-reverse; }
+      .ftth-side-pane { width:100%; max-height:40vh; border-left:none; border-top:1px solid #E5E7EB; }
+      .ftth-map-pane #map { height:60vh; position:relative; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="sidebarContainer" style="display:none;"></div>
+
+<div class="layout" style="padding:0;">
+  <div class="ftth-results-layout">
+
+    <div class="ftth-map-pane">
+      <div id="map"></div>
+
+      <div class="ftth-basemap-switcher" id="basemapSwitcher">
+        <button class="ftth-basemap-btn active" data-basemap="streets"><span class="icon">&#x1F5FA;&#xFE0F;</span><span class="label">Streets</span></button>
+        <button class="ftth-basemap-btn" data-basemap="light"><span class="icon">&#x1F319;</span><span class="label">Light</span></button>
+        <button class="ftth-basemap-btn" data-basemap="satellite"><span class="icon">&#x1F4F0;</span><span class="label">Satellite</span></button>
+        <button class="ftth-basemap-btn" data-basemap="dark"><span class="icon">&#x1F311;</span><span class="label">Dark</span></button>
+      </div>
+
+      <div id="mapLoading" class="ftth-map-loading">
+        <div><div class="spinner" style="margin:0 auto 12px;"></div><div style="font-size:14px;color:#6B7280;">Loading map data&#x2026;</div></div>
+      </div>
+    </div>
+
+    <div class="ftth-side-pane">
+      <div class="ftth-side-pane-header">
+        <h2>Design Results <a class="back-link" href="ftth-hld-status.html">&#x2190; Back</a></h2>
+        <div class="project-id" id="projectIdDisplay">&#x2014;</div>
+      </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>Summary</h3>
+        <div class="ftth-summary-grid">
+          <div class="ftth-summary-item"><div class="value" id="layerCount">0</div><div class="label">Layers</div></div>
+          <div class="ftth-summary-item"><div class="value" id="totalFeatures">0</div><div class="label">Total Features</div></div>
+        </div>
+      </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>Layers <span class="badge" id="layerBadge">0</span></h3>
+        <div class="ftth-layer-controls" id="layerControls"><div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>Loading layers&#x2026;</p></div></div>
+      </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>Downloads <span class="badge" id="downloadBadge">0</span></h3>
+        <div id="downloadList"><div class="ftth-empty-state"><div class="icon">&#x1F4C1;</div><p>No downloadable files yet</p></div></div>
+        <div id="surveyPackageContainer" style="display:none;">
+          <button id="surveyPackageBtn" class="ftth-survey-btn" type="button">
+            <span class="icon">&#x1F9F0;</span>
+            <span><div>Survey Package</div><div class="sub">All GPKGs + BOQ + BOM (ZIP)</div></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="partials/sidebar-loader.js" data-sidebar-base="../"></script>
+<script>
+  // Auto-detect local dev — point to local Django backend
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.FIBER_BASE_URL = 'http://localhost:8000';
+    window.FTTH_BASE_URL = 'http://localhost:8000';
+  }
+</script>
+<script src="fiber-api.js"></script>
+<script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
+<script src="js/ftth-api.js"></script>
+<script src="js/ftth-state.js"></script>
+<script src="js/ftth-map.js"></script>
+<script src="js/ftth-components.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  var params = new URLSearchParams(window.location.search);
+  var projectId = params.get('project_id') || window.FtthState.getProjectId();
+  if (!projectId) {
+    var cached = window.FtthState.getResults();
+    if (cached && cached.project_id) { projectId = cached.project_id; }
+  }
+
+  if (!projectId) {
+    document.getElementById('projectIdDisplay').textContent = 'No project selected';
+    document.querySelector('.ftth-map-loading').innerHTML = '<p style="color:#6B7280;font-size:16px;">No project selected. <a href="ftth-hld.html" style="color:#E31837;">Run a design</a></p>';
+  } else {
+    document.getElementById('projectIdDisplay').textContent = 'Project: ' + projectId;
+  }
+
+  var map = null, allLayers = [], allDownloads = [];
+  var layerControlsEl = document.getElementById('layerControls');
+  var downloadListEl = document.getElementById('downloadList');
+  var mapLoadingEl = document.getElementById('mapLoading');
+  var layerCountEl = document.getElementById('layerCount');
+  var totalFeaturesEl = document.getElementById('totalFeatures');
+  var layerBadgeEl = document.getElementById('layerBadge');
+  var downloadBadgeEl = document.getElementById('downloadBadge');
+  var surveyPkgContainer = document.getElementById('surveyPackageContainer');
+  var surveyPkgBtn = document.getElementById('surveyPackageBtn');
+
+  function initResultsMap() {
+    try {
+      map = window.FtthMap.initMap('map', { id:'results', center:[13.405,52.52], zoom:11, basemap:'streets', onLoad:function(){ loadPipelineData(); } });
+      if (map.loaded()) { loadPipelineData(); }
+    } catch(err) {
+      console.error('Map init failed:', err);
+      mapLoadingEl.innerHTML = '<p style="color:#DC2626;">Failed to initialize map: ' + err.message + '</p>';
+    }
+  }
+
+  async function loadPipelineData() {
+    try {
+      var statusData = await window.FtthApi.getPipelineStatus(projectId);
+      if (!statusData) { showEmpty('Pipeline data not found'); return; }
+      window.FtthState.setResults(statusData);
+      allLayers = statusData.layers || [];
+      allDownloads = statusData.downloads || [];
+      layerCountEl.textContent = allLayers.length;
+      layerBadgeEl.textContent = allLayers.length;
+      downloadBadgeEl.textContent = allDownloads.length;
+      var totalFeat = 0;
+      allLayers.forEach(function(l){ totalFeat += (l.count || 0); });
+      totalFeaturesEl.textContent = totalFeat;
+      renderLayerControls(allLayers);
+      renderDownloads(allDownloads);
+      if (allLayers.length > 0) {
+        mapLoadingEl.style.display = 'flex';
+        mapLoadingEl.querySelector('.spinner').style.display = 'block';
+        mapLoadingEl.querySelector('div > div').textContent = 'Loading GIS layers\u2026';
+        await Promise.all(allLayers.map(function(layer, index){ return loadLayerGeoJSON(layer, index); }));
+        setTimeout(function(){ try{ window.FtthMap.fitToLayers(map, 50); }catch(_){} }, 500);
+      } else {
+        showEmpty('No layers generated.');
+      }
+      mapLoadingEl.style.display = 'none';
+    } catch(err) {
+      console.error('Failed to load pipeline data:', err);
+      mapLoadingEl.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;margin-bottom:12px;">Failed to load results: ' + escapeHtml(err.message) + '</p><a href="ftth-hld-status.html?project_id=' + encodeURIComponent(projectId) + '" style="color:#E31837;font-size:14px;">\u2190 Back</a></div>';
+    }
+  }
+
+  async function loadLayerGeoJSON(layerMeta, index) {
+    var layerName = layerMeta.name || layerMeta.layer_name || 'layer_' + index;
+    try {
+      var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
+      if (!geojson || !geojson.features || !geojson.features.length) { console.warn('Empty GeoJSON:', layerName); return; }
+      var isPolygon = geojson.features[0] && geojson.features[0].geometry && geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
+      window.FtthMap.addGeoJSONLayer(map, layerName, geojson, { flagField: isPolygon ? 'REVIEW' : undefined, flagValue: isPolygon ? 1 : undefined, visible: true });
+      updateToggleStatus(layerName, geojson.features.length);
+    } catch(err) { console.warn('Failed to load layer ' + layerName + ':', err); }
+  }
+
+  function renderLayerControls(layers) {
+    if (!layers.length) { layerControlsEl.innerHTML = '<div class="ftth-empty-state"><div class="icon">\uD83D\uDDFA\uFE0F</div><p>No layers available</p></div>'; return; }
+    layerControlsEl.innerHTML = '';
+    layers.forEach(function(layer){
+      var name = layer.name || layer.layer_name || 'Layer';
+      var count = layer.count || layer.feature_count || 0;
+      var label = document.createElement('label');
+      label.className = 'ftth-layer-toggle';
+      label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;border-bottom:1px solid #E5E7EB;';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = true;
+      cb.style.cssText = 'width:16px;height:16px;accent-color:#E31837;cursor:pointer;';
+      cb.dataset.layerName = name;
+      cb.addEventListener('change', function(){ toggleLayerVisibility(name, cb.checked); });
+      var dot = document.createElement('span');
+      dot.className = 'ftth-layer-color-dot';
+      dot.style.background = getLayerColor(name);
+      var ns = document.createElement('span');
+      ns.className = 'layer-name'; ns.textContent = name;
+      var cs = document.createElement('span');
+      cs.className = 'layer-count';
+      cs.id = 'layer-count-' + name.replace(/\s+/g,'-');
+      cs.textContent = count + ' features';
+      label.appendChild(cb); label.appendChild(dot); label.appendChild(ns); label.appendChild(cs);
+      layerControlsEl.appendChild(label);
+    });
+  }
+
+  function updateToggleStatus(layerName, count) {
+    var el = document.getElementById('layer-count-' + layerName.replace(/\s+/g,'-'));
+    if (el) el.textContent = count + ' features';
+  }
+
+  function toggleLayerVisibility(layerName, visible) { window.FtthMap.setLayerVisible(map, layerName, visible); }
+
+  function getLayerColor(name) {
+    var colors = {
+      polygons: '#00aa88', trenches: '#3B82F6',
+      objects: '#8B5CF6', pdps: '#06B6D4', mfg: '#10B981',
+      feeder_cable: '#EF4444', distribution_cable: '#F97316',
+      feeder_ducts: '#F59E0B', distribution_ducts: '#EAB308',
+      buildings: '#8B5CF6'
+    };
+    return colors[name] || '#6B7280';
+  }
+
+  function renderDownloads(downloads) {
+    if (!downloads || !downloads.length) {
+      downloadListEl.innerHTML = '<div class="ftth-empty-state"><div class="icon">\uD83D\uDCC1</div><p>No downloadable files</p></div>';
+      surveyPkgContainer.style.display = 'none';
+      return;
+    }
+    downloadListEl.innerHTML = '';
+    downloads.forEach(function(dl){
+      var fileName = dl.name || dl.file_name || dl.filename || 'download';
+      var fileSize = dl.size || dl.file_size || '';
+      // Use a button that calls downloadFile() with JWT auth,
+      // instead of an <a> href which does NOT send auth headers.
+      var btn = document.createElement('button');
+      btn.className = 'ftth-download-btn';
+      btn.type = 'button';
+      btn.title = 'Download ' + fileName;
+      btn.innerHTML = '<span class="ftth-download-btn-icon">\uD83D\uDCE5</span><span class="ftth-download-btn-name">' + escapeHtml(fileName) + '</span>' + (fileSize ? '<span class="ftth-download-btn-size">' + escapeHtml(fileSize) + '</span>' : '') + '<span class="ftth-download-btn-arrow">\u2192</span>';
+      // Pass projectId from the closure scope
+      (function(fn) {
+        btn.addEventListener('click', function() {
+          window.FtthApi.downloadFile(projectId, fn);
+        });
+      })(fileName);
+      downloadListEl.appendChild(btn);
+    });
+    surveyPkgContainer.style.display = 'block';
+  }
+
+  if (surveyPkgBtn) {
+    surveyPkgBtn.addEventListener('click', function(){
+      window.FtthApi.downloadSurveyPackage(projectId);
+    });
+  }
+
+  function showEmpty(msg) { mapLoadingEl.style.display = 'flex'; mapLoadingEl.innerHTML = '<p style="color:#6B7280;font-size:16px;">' + escapeHtml(msg) + '</p>'; }
+
+  function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+
+  function initBaseMapSwitcher() {
+    var switcher = document.getElementById('basemapSwitcher');
+    if (!switcher) return;
+    var buttons = switcher.querySelectorAll('.ftth-basemap-btn');
+    buttons.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var styleName = btn.getAttribute('data-basemap');
+        if (!styleName) return;
+        buttons.forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        window.FtthMap.setBaseStyle(map, styleName);
+      });
+    });
+  }
+
+  (function boot(){ if (projectId) { initResultsMap(); initBaseMapSwitcher(); } })();
+</script>
+</body>
+</html>
