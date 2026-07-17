@@ -176,6 +176,14 @@
     </div>
   </div>
   </div>
+<script>
+  // Auto-detect local dev — point to the local Django backend
+  // In production (non-localhost), FIBER_BASE_URL is not set so
+  // fiber-api.js falls back to the default production URL.
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.FIBER_BASE_URL = 'http://localhost:8000';
+  }
+</script>
 <script src="fiber-api.js"></script>
 <script>
   async function handleLogin(event) {

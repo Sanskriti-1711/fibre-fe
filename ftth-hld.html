@@ -208,9 +208,91 @@
 
 
 
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // ----------------------------------------------------------------
+  // File dropzones
+  // ----------------------------------------------------------------
+
+  document.getElementById('excelDropzone').appendChild(
+    FtthComponents.createDropzone({
+      label: 'Choose .xlsx file',
+      accept: '.xlsx,.xls',
+      hint: 'Boundary data, building locations, design parameters',
+      icon: '📊',
+      onChange: function (file) { excelFile = file; updateRunButton(); }
+    })
+  );
+
+  document.getElementById('roadsDropzone').appendChild(
+    FtthComponents.createDropzone({
+      label: 'Choose .zip / .geojson / .shp / .gpkg',
+      accept: '.zip,.geojson,.json,.shp,.gpkg',
+      hint: 'Road network GIS data (ZIP of shapefile, GeoJSON, GPKG)',
+      icon: '🛣️',
+      onChange: function (file) { roadsFile = file; updateRunButton(); }
+    })
+  );
+
+  // ----------------------------------------------------------------
+  // Project name input
+  // ----------------------------------------------------------------
+
+  const projectNameInput = document.getElementById('projectName');
+  projectNameInput.addEventListener('input', updateRunButton);
+
+  // ----------------------------------------------------------------
+  // Run button state + handler
+  // ----------------------------------------------------------------
+
+  function updateRunButton() {
+    const ready = excelFile && roadsFile && !isRunning;
+    runBtn.disabled = !ready;
   }
 
+  function showError(message) {
+    errorEl.textContent = message;
+    errorEl.style.display = 'block';
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
+  function hideError() {
+    errorEl.style.display = 'none';
+    errorEl.textContent = '';
+  }
+
+  runBtn.addEventListener('click', async function () {
+    if (!excelFile || !roadsFile || isRunning) return;
+
+    hideError();
+    isRunning = true;
+    runBtn.classList.add('loading');
+    runBtnText.textContent = 'Starting pipeline\u2026';
+    runBtn.disabled = true;
+
+    const projectName = projectNameInput.value.trim() || null;
+
+    try {
+      const result = await FtthApi.runPipeline(excelFile, roadsFile, projectName);
+      const projectId = result && (result.project_id || result.id);
+      if (!projectId) {
+        throw new Error('Backend did not return a project ID.');
+      }
+      // Persist a friendly name for the status page and projects listing.
+      try {
+        localStorage.setItem('ftth_project_name_' + projectId, projectName || '');
+      } catch (_) { /* ignore */ }
+      window.location.href = 'ftth-hld-status.html?project_id=' + encodeURIComponent(projectId);
+    } catch (err) {
+      isRunning = false;
+      runBtn.classList.remove('loading');
+      runBtnText.textContent = 'Run Design Pipeline';
+      updateRunButton();
+      showError('Failed to start pipeline: ' + (err && err.message ? err.message : err));
+    }
+  });
+
+  // Initial state
+  updateRunButton();
+</script>
+</body>
+</html>
 

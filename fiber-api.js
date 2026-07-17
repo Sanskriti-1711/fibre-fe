@@ -1,5 +1,14 @@
 (function () {
-  const BASE_URL = "https://fiberbackend.zeabur.app";
+  // Auto-detect local dev — only activates on localhost (Zeabur unaffected)
+  if (!window.FIBER_BASE_URL) {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      window.FIBER_BASE_URL = 'http://localhost:8000';
+    }
+  }
+
+  const BASE_URL =
+    (window.FIBER_BASE_URL || "https://fiberbackend.zeabur.app").replace(/\/+$/, '');
   const STORAGE_KEY = "fiber_auth";
 
   function buildUrl(path) {
