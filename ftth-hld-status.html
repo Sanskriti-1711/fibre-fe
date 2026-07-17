@@ -181,55 +181,6 @@
       display: inline-block;
     }
 
-    /* ---- Geocoding Progress ---- */
-    .ftth-geocode-card {
-      display: none;
-    }
-    .ftth-geocode-card.visible { display: block; }
-    .ftth-geocode-info {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 8px 0;
-    }
-    .ftth-geocode-icon {
-      font-size: 24px;
-      flex-shrink: 0;
-      animation: ftth-pulse 1.5s ease-in-out infinite;
-    }
-    .ftth-geocode-text {
-      flex: 1;
-    }
-    .ftth-geocode-addr {
-      font-size: 15px;
-      font-weight: 700;
-      color: #1F2937;
-      margin-bottom: 2px;
-    }
-    .ftth-geocode-sub {
-      font-size: 12px;
-      color: #6B7280;
-    }
-    .ftth-geocode-bar {
-      width: 100%;
-      height: 6px;
-      background: #E5E7EB;
-      border-radius: 3px;
-      overflow: hidden;
-      margin-top: 4px;
-    }
-    .ftth-geocode-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #3B82F6, #8B5CF6);
-      border-radius: 3px;
-      transition: width 0.5s ease;
-    }
-    .ftth-geocode-ok {
-      font-size: 11px;
-      color: #10B981;
-      font-weight: 600;
-      margin-top: 3px;
-    }
     @keyframes ftth-pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
@@ -289,27 +240,6 @@
               <span id="progressValue">0%</span>
             </div>
             <div id="progressBarContainer"></div>
-          </div>
-        </div>
-
-        <!-- Geocoding Progress (shown during Object Layer) -->
-        <div class="card ftth-geocode-card" id="geocodeCard">
-          <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;">
-            <span>🌍 Address Geocoding</span>
-          </h3>
-          <div class="ftth-geocode-info">
-            <div class="ftth-geocode-icon">📍</div>
-            <div class="ftth-geocode-text">
-              <div class="ftth-geocode-addr" id="geocodeAddr">Waiting for geocoding to start…</div>
-              <div class="ftth-geocode-sub" id="geocodeSub">
-                <span id="geocodeCurrent">0</span> / <span id="geocodeTotal">0</span> addresses
-                — <span id="geocodeOk">0</span> geocoded
-              </div>
-              <div class="ftth-geocode-bar">
-                <div class="ftth-geocode-fill" id="geocodeFill" style="width:0%;"></div>
-              </div>
-              <div class="ftth-geocode-ok" id="geocodeStatusText"></div>
-            </div>
           </div>
         </div>
 
@@ -380,7 +310,7 @@
   // ----------------------------------------------------------------
   projectIdDisplay.textContent = 'Project: ' + projectId;
 
-  const logViewer = window.FtthComponents.createLogViewer({ maxLines: 1000 });
+  const logViewer = window.FtthComponents.createLogViewer({ maxLines: 10000 });
   logContainer.appendChild(logViewer);
 
   const progressBar = window.FtthComponents.createProgressBar(0);
@@ -388,60 +318,6 @@
 
   const badge = window.FtthComponents.createStatusBadge('pending');
   statusBadgeContainer.appendChild(badge);
-
-  // Geocoding progress state
-  let geocodeProgress = { current: 0, total: 0, ok: 0 };
-  const geocodeCard = document.getElementById('geocodeCard');
-  const geocodeAddr = document.getElementById('geocodeAddr');
-  const geocodeCurrent = document.getElementById('geocodeCurrent');
-  const geocodeTotal = document.getElementById('geocodeTotal');
-  const geocodeOk = document.getElementById('geocodeOk');
-  const geocodeFill = document.getElementById('geocodeFill');
-  const geocodeStatusText = document.getElementById('geocodeStatusText');
-
-  /**
-   * Parse a log message for geocoding progress patterns.
-   * Patterns from HLDPlanning/algorithms/object_layer.py:
-   *   "Processed 25/150 rows…"
-   *   "Geocoded 50/150 rows; OK so far: 45"
-   */
-  function parseGeocodeProgress(text) {
-    if (!text) return null;
-    // Pattern 1: "Geocoded 50/150 rows; OK so far: 45"
-    var m1 = text.match(/Geocoded\s+(\d+)\s*\/\s*(\d+)\s+rows;\s+OK so far:\s+(\d+)/i);
-    if (m1) {
-      return { current: parseInt(m1[1], 10), total: parseInt(m1[2], 10), ok: parseInt(m1[3], 10) };
-    }
-    // Pattern 2: "Processed 25/150 rows…"
-    var m2 = text.match(/Processed\s+(\d+)\s*\/\s*(\d+)\s+rows/i);
-    if (m2) {
-      return { current: parseInt(m2[1], 10), total: parseInt(m2[2], 10), ok: geocodeProgress.ok };
-    }
-    return null;
-  }
-
-  /**
-   * Update the geocoding progress display.
-   */
-  function updateGeocodeDisplay(progress) {
-    if (!progress || progress.total === 0) {
-      geocodeCard.classList.remove('visible');
-      return;
-    }
-    geocodeCard.classList.add('visible');
-    geocodeCurrent.textContent = progress.current;
-    geocodeTotal.textContent = progress.total;
-    geocodeOk.textContent = progress.ok;
-    geocodeAddr.textContent = 'Geocoding address ' + progress.current + ' of ' + progress.total + '…';
-    var pct = Math.round((progress.current / progress.total) * 100);
-    geocodeFill.style.width = pct + '%';
-    if (progress.current >= progress.total) {
-      geocodeStatusText.textContent = '✅ All addresses geocoded (' + progress.ok + ' found)';
-    } else {
-      var rate = progress.current > 0 ? Math.round((progress.ok / progress.current) * 100) : 0;
-      geocodeStatusText.textContent = '✓ ' + progress.ok + ' geocoded so far (' + rate + '% success rate)';
-    }
-  }
 
   let startTime = Date.now();
   let prevMessageCount = 0;
@@ -463,22 +339,13 @@
     progressValue.textContent = Math.round(pct) + '%';
     progressLabel.textContent = data.status_label || (data.status === 'running' ? 'Processing…' : data.status);
 
-    // Append new messages
-    var latestProgress = null;
+    // Append new messages — all messages shown verbatim for verbose logging
     if (data.messages && Array.isArray(data.messages)) {
-      // Deduplicate by using a simple counter-based dedup (messages don't have IDs)
       const newMessages = data.messages.slice(prevMessageCount);
       newMessages.forEach(function (m) {
         logViewer._append(m.text || m.message || String(m), m.level || 'info');
-        // Parse geocoding progress from each new message
-        var parsed = parseGeocodeProgress(m.text || m.message || '');
-        if (parsed) latestProgress = parsed;
       });
       prevMessageCount = data.messages.length;
-      if (latestProgress) {
-        geocodeProgress = latestProgress;
-        updateGeocodeDisplay(geocodeProgress);
-      }
     }
 
     logLineCount.textContent = prevMessageCount + ' lines';
