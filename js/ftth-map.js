@@ -80,6 +80,9 @@
     distribution_ducts: {
       fill: '#EAB308', outline: '#A16207', opacity: 0.6, lineWidth: 3, lineDash: [7, 3], label: 'Distribution Ducts',
     },
+    drop_ducts: {
+      fill: '#EC4899', outline: '#9D174D', opacity: 0.6, lineWidth: 2.5, lineDash: [2, 2], label: 'Drop Ducts',
+    },
     objects: {
       fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4, label: 'Objects',
     },
@@ -94,6 +97,15 @@
     },
     default: {
       fill: '#6B7280', outline: '#374151', opacity: 0.4, label: 'Layer',
+    },
+    // Sub-layer color map used when a group GeoJSON is tagged per-feature with
+    // a `sublayer` property (merged feeder/distribution/drop ducts, etc.)
+    SUBLAYER_COLORS: {
+      'Feeder_Ducts': '#F59E0B',
+      'Distribution_Ducts': '#EAB308',
+      'Drop_Ducts': '#EC4899',
+      'Feeder_Cable': '#EF4444',
+      'Distribution_Cable': '#F97316',
     },
   };
 
@@ -204,6 +216,20 @@
         'line-width': palette.lineWidth !== undefined ? palette.lineWidth : 3,
         'line-opacity': fillOpacity + 0.2,
       };
+      // If the GeoJSON features carry a `sublayer` property (merged group layer),
+      // color each sub-layer differently using a match expression.
+      if (opts.sublayerField) {
+        var matchColor = ['match', ['get', opts.sublayerField]];
+        var used = {};
+        (geojson.features || []).forEach(function (feat) {
+          var val = feat.properties && feat.properties[opts.sublayerField];
+          if (!val) return;
+          var subColor = LAYER_COLORS.SUBLAYER_COLORS[val] || fillColor;
+          if (!used[val]) { matchColor.push(val, subColor); used[val] = true; }
+        });
+        matchColor.push(fillColor);
+        linePaint['line-color'] = matchColor;
+      }
       if (palette.lineDash && palette.lineDash.length > 0) {
         linePaint['line-dasharray'] = palette.lineDash;
       }
@@ -296,5 +322,6 @@
     initMap: initMap, getMap: getMap, addGeoJSONLayer: addGeoJSONLayer,
     setLayerVisible: setLayerVisible, fitToLayers: fitToLayers,
     getBaseStyles: getBaseStyles, setBaseStyle: setBaseStyle,
+    SUBLAYER_COLORS: LAYER_COLORS.SUBLAYER_COLORS,
   };
 })();

@@ -213,7 +213,7 @@
       var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
       if (!geojson || !geojson.features || !geojson.features.length) { console.warn('Empty GeoJSON:', layerName); return; }
       var isPolygon = geojson.features[0] && geojson.features[0].geometry && geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
-      window.FtthMap.addGeoJSONLayer(map, layerName, geojson, { flagField: isPolygon ? 'REVIEW' : undefined, flagValue: isPolygon ? 1 : undefined, visible: true });
+      window.FtthMap.addGeoJSONLayer(map, layerName, geojson, { flagField: isPolygon ? 'REVIEW' : undefined, flagValue: isPolygon ? 1 : undefined, visible: true, sublayerField: 'sublayer' });
       updateToggleStatus(layerName, geojson.features.length);
     } catch(err) { console.warn('Failed to load layer ' + layerName + ':', err); }
   }
@@ -258,7 +258,7 @@
       polygons: '#00aa88', trenches: '#3B82F6',
       objects: '#8B5CF6', pdps: '#06B6D4', mfg: '#10B981',
       feeder_cable: '#EF4444', distribution_cable: '#F97316',
-      feeder_ducts: '#F59E0B', distribution_ducts: '#EAB308',
+      feeder_ducts: '#F59E0B', distribution_ducts: '#EAB308', drop_ducts: '#EC4899',
       buildings: '#8B5CF6'
     };
     return colors[name] || '#6B7280';
