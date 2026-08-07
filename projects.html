@@ -75,6 +75,7 @@
   window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
+<script src="js/ftth-api.js"></script>
 <script src="js/components/progress-bar.js"></script>
 <script src="js/components/completion-card.js"></script>
 <script>
@@ -100,7 +101,7 @@
   }
 
   function pickProjectId(p) {
-    return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
+    return (p && (p.uuid || p.id || p.project_id || p.project_uuid || p.pk)) || null;
   }
 
   function pickProjectName(p) {
@@ -147,9 +148,9 @@
   let currentLoadId = 0;
 
   async function fetchAllProjects(params) {
-    const first = params
-      ? await window.FiberApi.listProjectsFiltered(params)
-      : await window.FiberApi.listProjects();
+    // This page shows the unified list (survey + HLD pipeline runs).
+    const merged = Object.assign({}, params || {}, { kind: 'all' });
+    const first = await window.FiberApi.listProjectsFiltered(merged);
 
     if (Array.isArray(first)) return first;
     if (!first || !Array.isArray(first.results)) return [];
@@ -226,18 +227,35 @@
       const region = pickProjectRegion(p);
       const status = pickProjectStatus(p);
       const lastActivity = pickProjectLastActivity(p);
-      const link = id ? ('project-details.html?project_id=' + encodeURIComponent(id)) : 'project-overview.html';
+      // HLD pipeline runs (type='hld') render with a badge, inline progress
+      // and links to the FTTH status/results pages.
+      const isHld = !!(p && p.type === 'hld');
+      const isHldDone = isHld && String(p.status || '').toLowerCase().indexOf('complete') !== -1;
+      const link = id
+        ? (isHld
+            ? (isHldDone
+                ? 'ftth-hld-results.html?project_id=' + encodeURIComponent(id)
+                : 'ftth-hld-status.html?project_id=' + encodeURIComponent(id))
+            : 'project-details.html?project_id=' + encodeURIComponent(id))
+        : 'project-overview.html';
       const deleteBtn = id
-        ? '<button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
+        ? '<button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
         : '';
+      const badge = isHld
+        ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
+        : '';
+      const stdCell = isHld ? buildStandardBar(Number(p.progress) || 0) : placeholder;
+      const dynCell = isHld
+        ? '<span style="font-size:11px;color:#9CA3AF;">' + (p.layers && p.layers.length ? p.layers.length + ' layers' : '\u2014') + '</span>'
+        : placeholder;
 
       const tr = document.createElement('tr');
       tr.innerHTML = ''
-        + '<td>' + escapeHtml(name) + '</td>'
+        + '<td>' + badge + escapeHtml(name) + '</td>'
         + '<td>' + escapeHtml(region) + '</td>'
         + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
-        + '<td class="completion-standard">' + placeholder + '</td>'
-        + '<td class="completion-dynamic">' + placeholder + '</td>'
+        + '<td class="completion-standard">' + stdCell + '</td>'
+        + '<td class="completion-dynamic">' + dynCell + '</td>'
         + '<td>' + escapeHtml(lastActivity) + '</td>'
         + '<td><a class="action-link" href="' + link + '">View</a>' + deleteBtn + '</td>';
       tbody.appendChild(tr);
@@ -247,8 +265,9 @@
     tbody.querySelectorAll('.delete-btn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         const projectId = e.currentTarget.getAttribute('data-id');
+        const type = e.currentTarget.getAttribute('data-type') || 'survey';
         if (projectId && confirm('Are you sure you want to delete this project?')) {
-          handleDeleteProject(projectId);
+          handleDeleteProject(projectId, type);
         }
       });
     });
@@ -256,6 +275,7 @@
     // Kick off all completion fetches in parallel; patch each row when its
     // result lands. A stale load (newer click took over) is silently ignored.
     list.forEach(function (p) {
+      if (p && p.type === 'hld') return; // HLD rows render progress inline
       const id = pickProjectId(p);
       if (!id) return;
       const tr = rowsById.get(id);
@@ -319,9 +339,13 @@
     });
   }
 
-  async function handleDeleteProject(projectId) {
+  async function handleDeleteProject(projectId, type) {
     try {
-      await window.FiberApi.deleteProject(projectId);
+      if (type === 'hld') {
+        await window.FtthApi.deleteProject(projectId);
+      } else {
+        await window.FiberApi.deleteProject(projectId);
+      }
       window.location.reload();
     } catch (e) {
       setProjectsError(e && e.message ? e.message : 'Failed to delete project');
