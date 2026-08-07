@@ -499,13 +499,29 @@ function updateActivityTimeline(activity) {
 }
 
 // Actions
+
+// Where the mobile app's web build lives (served from the Expo export).
+// Override for production via: window.SURVEY_MAP_BASE_URL = 'https://...'
+const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/, '');
+
 function viewAssignmentDetails(id) {
   const assignment = assignmentsData.find(a => String(a.id) === String(id));
   if (!assignment) return;
-  
-  // Navigate to assignment detail or show in modal
+
+  // Feature-scope assignment → the platform's feature detail page
   if (assignment.target_id) {
     window.location.href = `feature-details.html?id=${encodeURIComponent(assignment.target_id)}`;
+    return;
+  }
+
+  // Project-scope assignment → open the mobile app's MapLibre map views
+  // (🔵 HLD / 🟠 Survey / 🔀 Overlay) via the Expo web build, authenticated
+  // with the platform's session token so no second login is needed.
+  const projectId = assignment.project?.id || assignment.project;
+  if (projectId) {
+    const token = (window.FiberAuth && window.FiberAuth.getAccess) ? window.FiberAuth.getAccess() : '';
+    const url = `${SURVEY_MAP_BASE_URL}/?token=${encodeURIComponent(token)}&project=${encodeURIComponent(projectId)}`;
+    window.open(url, '_blank', 'noopener');
   }
 }
 
