@@ -106,10 +106,11 @@
 
 
 
-  async function runPipeline(excelFile, roadsFile, name, polyMethod) {
+  async function runPipeline(excelFile, roadsFile, name, polyMethod, brownfieldFile) {
     var fd = new FormData();
     fd.append('excel', excelFile);
     fd.append('roads', roadsFile);
+    if (brownfieldFile) fd.append('brownfield', brownfieldFile);
     if (name) fd.append('name', name);
     if (polyMethod !== undefined) fd.append('poly_method', String(polyMethod));
 

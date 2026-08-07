@@ -147,10 +147,22 @@
           <div id="roadsDropzone"></div>
         </div>
 
-        <!-- Step 3: Project Name (optional) -->
+        <!-- Step 3: Brownfield / existing infrastructure (optional) -->
         <div class="ftth-step">
           <div class="ftth-step-title">
             <span class="ftth-step-number" style="background: #6B7280;">3</span>
+            Existing Infrastructure <span style="font-weight:400;color:#6B7280;font-size:13px;">(optional)</span>
+          </div>
+          <p style="margin: -4px 0 12px; font-size: 13px; color: #6B7280; padding-left: 36px;">
+            ZIP of existing ducts, chambers, poles, fibre, trenches, PDPs and MFGs — enables reuse of current network
+          </p>
+          <div id="brownfieldDropzone"></div>
+        </div>
+
+        <!-- Step 4: Project Name (optional) -->
+        <div class="ftth-step">
+          <div class="ftth-step-title">
+            <span class="ftth-step-number" style="background: #6B7280;">4</span>
             Project Name <span style="font-weight:400;color:#6B7280;font-size:13px;">(optional)</span>
           </div>
           <p style="margin: -4px 0 12px; font-size: 13px; color: #6B7280; padding-left: 36px;">
@@ -200,6 +212,7 @@
   // ----------------------------------------------------------------
   let excelFile = null;
   let roadsFile = null;
+  let brownfieldFile = null;
   let isRunning = false;
 
   const errorEl = document.getElementById('ftthError');
@@ -229,6 +242,16 @@
       hint: 'Road network GIS data (ZIP of shapefile, GeoJSON, GPKG)',
       icon: '🛣️',
       onChange: function (file) { roadsFile = file; updateRunButton(); }
+    })
+  );
+
+  document.getElementById('brownfieldDropzone').appendChild(
+    FtthComponents.createDropzone({
+      label: 'Choose .zip / .geojson / .gpkg',
+      accept: '.zip,.geojson,.json,.shp,.gpkg',
+      hint: 'Existing network: ducts, chambers, poles, fibre, trenches, PDPs, MFGs (optional)',
+      icon: '🏗️',
+      onChange: function (file) { brownfieldFile = file; }
     })
   );
 
@@ -271,7 +294,7 @@
     const projectName = projectNameInput.value.trim() || null;
 
     try {
-      const result = await FtthApi.runPipeline(excelFile, roadsFile, projectName);
+      const result = await FtthApi.runPipeline(excelFile, roadsFile, projectName, undefined, brownfieldFile);
       const projectId = result && (result.project_id || result.id);
       if (!projectId) {
         throw new Error('Backend did not return a project ID.');

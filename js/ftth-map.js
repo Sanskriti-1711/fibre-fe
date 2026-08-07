@@ -95,6 +95,9 @@
     buildings: {
       fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4, label: 'Buildings',
     },
+    brownfield: {
+      fill: '#64748B', outline: '#94A3B8', opacity: 0.7, lineWidth: 2.5, lineDash: [], pointRadius: 7, label: 'Existing Infrastructure',
+    },
     default: {
       fill: '#6B7280', outline: '#374151', opacity: 0.4, label: 'Layer',
     },
@@ -106,6 +109,20 @@
       'Drop_Ducts': '#EC4899',
       'Feeder_Cable': '#EF4444',
       'Distribution_Cable': '#F97316',
+    },
+    // Shades of the same base colour: used to differentiate asset types
+    // inside the merged brownfield layer (all pre-existing infra, one toggle).
+    ASSET_TYPE_COLORS: {
+      'duct': '#64748B',
+      'trench': '#94A3B8',
+      'fibre': '#7D8BA6',
+      'feeder_trench': '#9AA7B8',
+      'distribution_trench': '#8A99AD',
+      'chamber': '#475569',
+      'pole': '#A8B4C4',
+      'cabinet': '#5B6B7E',
+      'pdp': '#3F4D61',
+      'mfg': '#334155',
     },
   };
 
@@ -192,33 +209,62 @@
     var sourceId = 'ftth-source-' + layerId;
     var fillLayerId = 'ftth-fill-' + layerId;
     var outlineLayerId = 'ftth-outline-' + layerId;
+    var pointsLayerId = 'ftth-points-' + layerId;
 
-    if (map.getSource(sourceId)) return { sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId };
+    if (map.getSource(sourceId)) return { sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId, pointsLayerId: pointsLayerId };
 
-    var firstFeature = geojson.features && geojson.features[0];
-    var geomType = firstFeature && firstFeature.geometry && firstFeature.geometry.type;
-    var isPolygon = geomType && geomType.toLowerCase().indexOf('polygon') !== -1;
-    var isLine = geomType && (geomType.toLowerCase().indexOf('line') !== -1 || geomType.toLowerCase() === 'linestring' || geomType.toLowerCase() === 'multilinestring');
+    // Scan ALL features: a merged group (e.g. brownfield lines + points) can
+    // mix geometry types — MapLibre only renders features matching the layer
+    // type, so we must add one layer per geometry type present.
+    var hasPolygon = false, hasLine = false, hasPoint = false;
+    (geojson.features || []).forEach(function (feat) {
+      var t = feat && feat.geometry && feat.geometry.type;
+      if (!t) return;
+      if (t.toLowerCase().indexOf('polygon') !== -1) { hasPolygon = true; return; }
+      if (t === 'LineString' || t === 'MultiLineString' || t.toLowerCase().indexOf('line') !== -1) { hasLine = true; return; }
+      if (t === 'Point' || t === 'MultiPoint') { hasPoint = true; }
+    });
+
+    // If features carry an ASSET_TYPE field, build a per-type colour map using
+    // shades of the group colour (e.g. all brownfield assets in one hue family).
+    var typeMatch = null;
+    if (opts.assetTypeField) {
+      var tm = ['match', ['get', opts.assetTypeField]];
+      var usedTypes = {};
+      (geojson.features || []).forEach(function (feat) {
+        var val = feat.properties && feat.properties[opts.assetTypeField];
+        if (!val) return;
+        var c = LAYER_COLORS.ASSET_TYPE_COLORS[val] || fillColor;
+        if (!usedTypes[val]) { tm.push(val, c); usedTypes[val] = true; }
+      });
+      tm.push(fillColor);
+      typeMatch = tm;
+    }
 
     map.addSource(sourceId, { type: 'geojson', data: geojson });
+    var renderedLayers = [];
 
-    if (isPolygon) {
+    if (hasPolygon) {
       var fillPaint = { 'fill-opacity': fillOpacity };
       if (flagField) { fillPaint['fill-color'] = ['match', ['get', flagField], flagValue, fillFlagged, fillColor]; }
+      else if (typeMatch) { fillPaint['fill-color'] = typeMatch; }
       else { fillPaint['fill-color'] = fillColor; }
       map.addLayer({ id: fillLayerId, type: 'fill', source: sourceId, paint: fillPaint, layout: { visibility: visible ? 'visible' : 'none' } });
       map.addLayer({ id: outlineLayerId, type: 'line', source: sourceId, paint: { 'line-color': outlineColor, 'line-width': 2 }, layout: { visibility: visible ? 'visible' : 'none' } });
+      renderedLayers.push(fillLayerId, outlineLayerId);
     }
 
-    if (isLine) {
+    if (hasLine) {
       var linePaint = {
         'line-color': fillColor,
         'line-width': palette.lineWidth !== undefined ? palette.lineWidth : 3,
         'line-opacity': fillOpacity + 0.2,
       };
-      // If the GeoJSON features carry a `sublayer` property (merged group layer),
-      // color each sub-layer differently using a match expression.
-      if (opts.sublayerField) {
+      if (typeMatch) {
+        linePaint['line-color'] = typeMatch;
+      } else if (opts.sublayerField) {
+        // If the GeoJSON features carry a `sublayer` property (merged group
+        // layer), color each sub-layer differently using a match expression.
         var matchColor = ['match', ['get', opts.sublayerField]];
         var used = {};
         (geojson.features || []).forEach(function (feat) {
@@ -234,30 +280,35 @@
         linePaint['line-dasharray'] = palette.lineDash;
       }
       map.addLayer({ id: fillLayerId, type: 'line', source: sourceId, paint: linePaint, layout: { visibility: visible ? 'visible' : 'none' } });
+      renderedLayers.push(fillLayerId);
     }
 
-    if (!isPolygon && !isLine) {
-      map.addLayer({ id: fillLayerId, type: 'circle', source: sourceId, paint: { 'circle-color': fillColor, 'circle-radius': 5, 'circle-opacity': 0.8, 'circle-stroke-color': outlineColor, 'circle-stroke-width': 1 }, layout: { visibility: visible ? 'visible' : 'none' } });
+    if (hasPoint) {
+      var pointRadius = palette.pointRadius !== undefined ? palette.pointRadius : 5;
+      var circlePaint = { 'circle-color': typeMatch || fillColor, 'circle-radius': pointRadius, 'circle-opacity': 0.85, 'circle-stroke-color': outlineColor, 'circle-stroke-width': 1 };
+      map.addLayer({ id: pointsLayerId, type: 'circle', source: sourceId, paint: circlePaint, layout: { visibility: visible ? 'visible' : 'none' } });
+      renderedLayers.push(pointsLayerId);
     }
 
-    map.on('click', fillLayerId, function (e) {
-      if (!e.features || !e.features[0]) return;
-      var props = e.features[0].properties || {};
-      var coords = e.lngLat;
-      var html = '<div style="font-size:13px;line-height:1.5;max-width:280px;">';
-      var keys = Object.keys(props).slice(0, 12);
-      keys.forEach(function (k) {
-        if (props[k] === null || props[k] === undefined) return;
-        html += '<div><strong>' + escapeHtmlProp(k) + ':</strong> ' + escapeHtmlProp(String(props[k])) + '</div>';
+    renderedLayers.forEach(function (lid) {
+      map.on('click', lid, function (e) {
+        if (!e.features || !e.features[0]) return;
+        var props = e.features[0].properties || {};
+        var coords = e.lngLat;
+        var html = '<div style="font-size:13px;line-height:1.5;max-width:280px;">';
+        var keys = Object.keys(props).slice(0, 12);
+        keys.forEach(function (k) {
+          if (props[k] === null || props[k] === undefined) return;
+          html += '<div><strong>' + escapeHtmlProp(k) + ':</strong> ' + escapeHtmlProp(String(props[k])) + '</div>';
+        });
+        html += '</div>';
+        new maplibregl.Popup({ closeButton: true, maxWidth: '320px' }).setLngLat(coords).setHTML(html).addTo(map);
       });
-      html += '</div>';
-      new maplibregl.Popup({ closeButton: true, maxWidth: '320px' }).setLngLat(coords).setHTML(html).addTo(map);
+      map.on('mouseenter', lid, function () { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseleave', lid, function () { map.getCanvas().style.cursor = ''; });
     });
 
-    map.on('mouseenter', fillLayerId, function () { map.getCanvas().style.cursor = 'pointer'; });
-    map.on('mouseleave', fillLayerId, function () { map.getCanvas().style.cursor = ''; });
-
-    return { sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId };
+    return { sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId, pointsLayerId: pointsLayerId };
   }
 
   function setLayerVisible(map, layerId, visible) {
@@ -265,8 +316,10 @@
     var visibility = visible ? 'visible' : 'none';
     var fillLayer = 'ftth-fill-' + layerId;
     var outlineLayer = 'ftth-outline-' + layerId;
+    var pointsLayer = 'ftth-points-' + layerId;
     if (map.getLayer(fillLayer)) { map.setLayoutProperty(fillLayer, 'visibility', visibility); }
     if (map.getLayer(outlineLayer)) { map.setLayoutProperty(outlineLayer, 'visibility', visibility); }
+    if (map.getLayer(pointsLayer)) { map.setLayoutProperty(pointsLayer, 'visibility', visibility); }
   }
 
   function fitToLayers(map, padding) {
