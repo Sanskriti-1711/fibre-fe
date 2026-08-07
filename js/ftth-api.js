@@ -11,7 +11,8 @@
  *   GET  /api/ftth/hld/results/{id}/                 — Poll status + messages
  *   GET  /api/ftth/hld/results/{id}/layers/{name}/   — GeoJSON for a layer
  *   GET  /api/ftth/hld/download/{id}/{file}           — Download output file
- *   GET  /api/ftth/hld/results/{id}/survey-package/  — ZIP of all GPKGs + BOQ + BOM
+ *   GET  /api/ftth/hld/results/{id}/survey-package/  — field-survey subset (ZIP)
+ *   GET  /api/ftth/hld/results/{id}/design-package/  — full design package (ZIP)
  *   GET  /api/ftth/hld/projects/                     — List recent projects
  */
 
@@ -185,6 +186,19 @@
     downloadBlob(url, projectId + '_survey_package.zip');
   }
 
+  function getDesignPackageUrl(projectId) {
+    var id = encodeURIComponent(projectId);
+    return buildUrl(API_PREFIX + '/results/' + id + '/design-package/');
+  }
+
+  /**
+   * Download the full HLD design package zip with JWT auth.
+   */
+  function downloadDesignPackage(projectId) {
+    var url = getDesignPackageUrl(projectId);
+    downloadBlob(url, projectId + '_design_package.zip');
+  }
+
   async function listProjects(limit) {
     var qs = limit ? '?limit=' + encodeURIComponent(limit) : '';
     var url = buildUrl(API_PREFIX + '/projects/' + qs);
@@ -245,6 +259,8 @@
     downloadFile: downloadFile,
     getSurveyPackageUrl: getSurveyPackageUrl,
     downloadSurveyPackage: downloadSurveyPackage,
+    getDesignPackageUrl: getDesignPackageUrl,
+    downloadDesignPackage: downloadDesignPackage,
     listProjects: listProjects,
     deleteProject: deleteProject,
   };

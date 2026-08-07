@@ -61,6 +61,21 @@
     .ftth-survey-btn .icon { font-size:22px; }
     .ftth-survey-btn .sub { font-size:11px; font-weight:400; opacity:0.8; }
 
+    .ftth-design-btn {
+      display:flex; align-items:center; gap:10px; width:100%;
+      padding:12px 14px; margin-top:10px;
+      background:linear-gradient(135deg,#4F46E5,#4338CA);
+      border:none; border-radius:10px;
+      text-decoration:none; color:#FFFFFF;
+      font-size:14px; font-weight:700;
+      cursor:pointer; transition:all 0.2s ease;
+      box-shadow:0 2px 8px rgba(79,70,229,0.3);
+    }
+    .ftth-design-btn:hover { background:linear-gradient(135deg,#4338CA,#3730A3); transform:translateY(-1px); box-shadow:0 4px 12px rgba(79,70,229,0.4); }
+    .ftth-design-btn:active { transform:translateY(0); }
+    .ftth-design-btn .icon { font-size:22px; }
+    .ftth-design-btn .sub { font-size:11px; font-weight:400; opacity:0.8; }
+
     @media (max-width:768px) {
       .ftth-results-layout { flex-direction:column-reverse; }
       .ftth-side-pane { width:100%; max-height:40vh; border-left:none; border-top:1px solid #E5E7EB; }
@@ -115,7 +130,13 @@
         <div id="surveyPackageContainer" style="display:none;">
           <button id="surveyPackageBtn" class="ftth-survey-btn" type="button">
             <span class="icon">&#x1F9F0;</span>
-            <span><div>Survey Package</div><div class="sub">All GPKGs + BOQ + BOM (ZIP)</div></span>
+            <span><div>Survey Package</div><div class="sub">Field subset: Polygons, PDPs, Cables, Chambers, Trenches, Ducts, Brownfield (ZIP)</div></span>
+          </button>
+        </div>
+        <div id="designPackageContainer" style="display:none;">
+          <button id="designPackageBtn" class="ftth-design-btn" type="button">
+            <span class="icon">&#x1F4E6;</span>
+            <span><div>Design Package</div><div class="sub">All layers + BOQ/BOM + documents (ZIP)</div></span>
           </button>
         </div>
       </div>
@@ -163,6 +184,8 @@
   var downloadBadgeEl = document.getElementById('downloadBadge');
   var surveyPkgContainer = document.getElementById('surveyPackageContainer');
   var surveyPkgBtn = document.getElementById('surveyPackageBtn');
+  var designPkgContainer = document.getElementById('designPackageContainer');
+  var designPkgBtn = document.getElementById('designPackageBtn');
 
   function initResultsMap() {
     try {
@@ -271,6 +294,7 @@
     if (!downloads || !downloads.length) {
       downloadListEl.innerHTML = '<div class="ftth-empty-state"><div class="icon">\uD83D\uDCC1</div><p>No downloadable files</p></div>';
       surveyPkgContainer.style.display = 'none';
+      designPkgContainer.style.display = 'none';
       return;
     }
     downloadListEl.innerHTML = '';
@@ -293,11 +317,18 @@
       downloadListEl.appendChild(btn);
     });
     surveyPkgContainer.style.display = 'block';
+    designPkgContainer.style.display = 'block';
   }
 
   if (surveyPkgBtn) {
     surveyPkgBtn.addEventListener('click', function(){
       window.FtthApi.downloadSurveyPackage(projectId);
+    });
+  }
+
+  if (designPkgBtn) {
+    designPkgBtn.addEventListener('click', function(){
+      window.FtthApi.downloadDesignPackage(projectId);
     });
   }
 
