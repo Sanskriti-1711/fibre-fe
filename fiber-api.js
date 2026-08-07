@@ -434,6 +434,34 @@
     });
   }
 
+  // ── Survey Changes (SurveyFeature) APIs ─────────────────────────────
+  async function listSurveyChanges(params) {
+    const query = params && typeof params === "object"
+      ? Object.keys(params)
+          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+          .join("&")
+      : "";
+    const path = query ? `/api/survey/survey-features/?${query}` : "/api/survey/survey-features/";
+    return apiFetch(path, { method: "GET" });
+  }
+
+  async function approveSurveyChange(featureId, notes) {
+    return apiFetch(`/api/survey/survey-features/${featureId}/approval/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision: "approve", notes: notes || "" }),
+    });
+  }
+
+  async function redoSurveyChange(featureId, notes) {
+    return apiFetch(`/api/survey/survey-features/${featureId}/approval/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ decision: "redo", notes: notes || "" }),
+    });
+  }
+
   const FiberAuth = {
     getAccess,
     getRefresh,
@@ -487,6 +515,9 @@
     submitFeatures,
     approveFeatures,
     rejectFeatures,
+    listSurveyChanges,
+    approveSurveyChange,
+    redoSurveyChange,
     apiFetch,
   };
 

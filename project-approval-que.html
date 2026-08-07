@@ -125,6 +125,22 @@
       <button id="nextPage" class="create-btn" type="button" style="background: #374151;">Next</button>
     </div>
 
+    <!-- Survey Changes (engineer edits to the HLD, auto-queued for approval) -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px;">
+      <div>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #374151;">Survey Changes</h2>
+        <p style="margin: 4px 0 0 0; font-size: 13px; color: #6B7280;">
+          Engineer edits to the design, grouped by project — view on map, approve, or request redo
+        </p>
+      </div>
+      <div style="font-size: 12px; color: #9CA3AF;" id="surveyChangesCount"></div>
+    </div>
+    <div class="table-card" style="margin-top: 12px;">
+      <div id="surveyChangesContainer">
+        <div style="padding: 40px; text-align: center; color: #6B7280;">Loading survey changes...</div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -418,6 +434,7 @@
   function closeRejectModal() {
     rejectModal.style.display = 'none';
     pendingRejectFeatureId = null;
+    pendingSurveyRedoId = null;
   }
 
   // Confirm reject
@@ -425,6 +442,19 @@
     const reason = document.getElementById('rejectReason').value.trim();
     if (!reason) {
       alert('Please provide a rejection reason');
+      return;
+    }
+
+    // Survey change redo path (uses the same modal)
+    if (pendingSurveyRedoId) {
+      try {
+        await window.FiberApi.redoSurveyChange(pendingSurveyRedoId, reason);
+        pendingSurveyRedoId = null;
+        closeRejectModal();
+        loadSurveyChanges();
+      } catch (err) {
+        alert('Failed to request redo: ' + err.message);
+      }
       return;
     }
 
@@ -491,11 +521,13 @@
   filterProject.addEventListener('change', () => {
     currentPage = 1;
     loadFeatures();
+    loadSurveyChanges();
   });
 
   filterStatus.addEventListener('change', () => {
     currentPage = 1;
     loadFeatures();
+    loadSurveyChanges();
   });
 
   document.getElementById('clearFilters').addEventListener('click', () => {
@@ -503,9 +535,13 @@
     filterStatus.value = 'under_review';
     currentPage = 1;
     loadFeatures();
+    loadSurveyChanges();
   });
 
-  document.getElementById('refreshBtn').addEventListener('click', loadFeatures);
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    loadFeatures();
+    loadSurveyChanges();
+  });
 
   // View feature modal
   async function viewFeature(featureId) {
@@ -839,9 +875,162 @@
       .replace(/'/g, '&#039;');
   }
 
+  // ── Survey Changes (engineer edits) ─────────────────────────────────────
+  const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/, '');
+  let surveyChanges = [];
+  let pendingSurveyRedoId = null;
+
+  const SURVEY_STATUS_META = {
+    new:          { label: 'New',          text: '#2563EB', bg: '#DBEAFE' },
+    modified:     { label: 'Modified',     text: '#B45309', bg: '#FEF3C7' },
+    removed:      { label: 'Removed',      text: '#DC2626', bg: '#FEE2E2' },
+    pending_review:{ label: 'Pending Review', text: '#F59E0B', bg: '#FEF3C7' },
+    approved:     { label: 'Approved',     text: '#059669', bg: '#D1FAE5' },
+    completed:    { label: 'Completed',    text: '#059669', bg: '#D1FAE5' },
+    rejected:     { label: 'Redo',         text: '#EF4444', bg: '#FEE2E2' },
+  };
+
+  const SURVEY_PENDING_STATUSES = ['new', 'modified', 'removed', 'pending_review'];
+
+  // Map the approval-queue status filter to SurveyFeature statuses
+  function surveyStatusesForFilter(filter) {
+    if (filter === 'approved') return ['approved', 'completed'];
+    if (filter === 'redo') return ['rejected'];
+    return SURVEY_PENDING_STATUSES;
+  }
+
+  async function loadSurveyChanges() {
+    const container = document.getElementById('surveyChangesContainer');
+    try {
+      const allowed = surveyStatusesForFilter(filterStatus.value || 'under_review');
+      const params = { page_size: 100 };
+      if (filterProject.value) params.project = filterProject.value;
+
+      let all = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const data = await window.FiberApi.listSurveyChanges({ ...params, page });
+        all = all.concat(data.results || []);
+        totalPages = data.total_pages || 1;
+        page++;
+      } while (page <= totalPages && page <= 20);
+
+      surveyChanges = all.filter(sc => allowed.includes(sc.survey_status));
+      document.getElementById('surveyChangesCount').textContent = surveyChanges.length
+        ? `${surveyChanges.length} change(s)` : '';
+
+      if (!surveyChanges.length) {
+        container.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">No survey changes match your criteria</div>';
+        return;
+      }
+
+      // Group by project name
+      const byProject = {};
+      for (const sc of surveyChanges) {
+        const key = sc.project_name || sc.project || 'Unknown Project';
+        if (!byProject[key]) byProject[key] = [];
+        byProject[key].push(sc);
+      }
+
+      let html = '';
+      for (const name of Object.keys(byProject)) {
+        html += `
+          <div style="padding: 12px 16px; background: #F9FAFB; border-bottom: 1px solid #E5E7EB; font-weight: 700; font-size: 13px; color: #374151;">
+            📁 ${escapeHtml(name)}
+            <span style="font-weight: 500; color: #9CA3AF;">(${byProject[name].length})</span>
+          </div>
+        `;
+        html += '<div style="overflow-x: auto;"><table><thead><tr>' +
+          '<th>Feature</th><th>Layer</th><th>Engineer</th><th>Change</th>' +
+          '<th style="width:120px;">Status</th><th style="width:250px;">Actions</th>' +
+          '</tr></thead><tbody>';
+
+        for (const sc of byProject[name]) {
+          const meta = SURVEY_STATUS_META[sc.survey_status] || { label: sc.survey_status, text: '#6B7280', bg: '#F3F4F6' };
+          const isPending = SURVEY_PENDING_STATUSES.includes(sc.survey_status);
+          html += `<tr>
+            <td>
+              <div style="font-weight:500;color:#374151;">${escapeHtml(sc.layer_name || 'Feature')}</div>
+              <div style="font-size:11px;color:#9CA3AF;">${escapeHtml(String(sc.id).slice(0, 8))}</div>
+            </td>
+            <td><span style="font-size:12px;color:#6B7280;background:#F3F4F6;padding:2px 8px;border-radius:10px;">${escapeHtml(sc.layer_id || '')}</span></td>
+            <td>
+              <div style="font-size:13px;color:#374151;">${escapeHtml(sc.engineer_name || 'Unknown')}</div>
+              <div style="font-size:11px;color:#9CA3AF;">v${sc.version_number || 1}</div>
+            </td>
+            <td style="font-size:12px;color:#6B7280;max-width:260px;">${changeSummaryText(sc)}</td>
+            <td><span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;color:${meta.text};background:${meta.bg};">${escapeHtml(meta.label)}</span></td>
+            <td>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="viewSurveyChangeOnMap('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#3B82F6;color:white;border:none;border-radius:4px;cursor:pointer;">View on Map</button>
+                ${isPending ? `
+                  <button onclick="approveSurveyChange('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#10B981;color:white;border:none;border-radius:4px;cursor:pointer;">Approve</button>
+                  <button onclick="openSurveyRedoModal('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#F59E0B;color:white;border:none;border-radius:4px;cursor:pointer;">Redo</button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>`;
+        }
+        html += '</tbody></table></div>';
+      }
+      container.innerHTML = html;
+    } catch (err) {
+      console.error('Failed to load survey changes:', err);
+      container.innerHTML = `<div style="padding:40px;text-align:center;color:#DC2626;">Failed to load survey changes: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function changeSummaryText(sc) {
+    const parts = [];
+    const geomChanged = JSON.stringify(sc.original_geometry || null) !== JSON.stringify(sc.survey_geometry || null);
+    if (geomChanged) parts.push('geometry changed');
+
+    const origAttrs = sc.original_attributes || {};
+    const survAttrs = sc.survey_attributes || {};
+    let attrChanges = 0;
+    const keys = new Set([...Object.keys(origAttrs), ...Object.keys(survAttrs)]);
+    for (const k of keys) {
+      if (JSON.stringify(origAttrs[k] ?? null) !== JSON.stringify(survAttrs[k] ?? null)) attrChanges++;
+    }
+    if (attrChanges) parts.push(`${attrChanges} field(s) changed`);
+    if (sc.change_reason) parts.push(`“${sc.change_reason}”`);
+    if (!parts.length) parts.push('edited');
+    return parts.join(' · ');
+  }
+
+  async function viewSurveyChangeOnMap(featureId) {
+    const sc = surveyChanges.find(x => String(x.id) === String(featureId));
+    if (!sc || !sc.project) {
+      alert('No project linked to this change');
+      return;
+    }
+    const token = (window.FiberAuth && window.FiberAuth.getAccess) ? window.FiberAuth.getAccess() : '';
+    const url = `${SURVEY_MAP_BASE_URL}/?token=${encodeURIComponent(token)}&project=${encodeURIComponent(sc.project)}&feature=${encodeURIComponent(sc.id)}`;
+    window.open(url, '_blank', 'noopener');
+  }
+
+  async function approveSurveyChange(featureId) {
+    if (!confirm('Approve this survey change?')) return;
+    try {
+      await window.FiberApi.approveSurveyChange(featureId, 'Approved via approval queue');
+      loadSurveyChanges();
+    } catch (err) {
+      alert('Failed to approve: ' + err.message);
+    }
+  }
+
+  function openSurveyRedoModal(featureId) {
+    pendingSurveyRedoId = featureId;
+    pendingRejectFeatureId = null;
+    document.getElementById('rejectReason').value = '';
+    rejectModal.style.display = 'flex';
+  }
+
   // Initialize
   loadProjects().then(() => {
     loadFeatures();
+    loadSurveyChanges();
   });
 </script>
 </html>
