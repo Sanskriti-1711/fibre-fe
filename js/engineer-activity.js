@@ -617,5 +617,26 @@ function debounce(fn, ms) {
   };
 }
 
-// Initialize
-loadEngineers();
+// Initialize — auto-select an engineer passed via ?engineer=<id>
+function engineerIdFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('engineer') || '';
+  } catch (_) {
+    return '';
+  }
+}
+
+async function init() {
+  await loadEngineers();
+  const fromUrl = engineerIdFromUrl();
+  if (fromUrl && engineerSelect) {
+    const option = Array.from(engineerSelect.options).find(o => o.value === fromUrl);
+    if (option) {
+      engineerSelect.value = fromUrl;
+      await loadEngineerActivity(fromUrl);
+    }
+  }
+}
+
+init();

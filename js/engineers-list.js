@@ -77,7 +77,7 @@ async function loadEngineers() {
         <td class="status ${active ? "active" : "inactive"}">${active ? "Active" : "Inactive"}</td>
         <td>${escapeHtml(lastActive)}</td>
         <td>
-          <a href="engineer-activity.html" class="action-link">View Activity</a>
+          <a href="${id ? 'engineer-activity.html?engineer=' + encodeURIComponent(id) : 'engineer-activity.html'}" class="action-link">View Activity</a>
           ${id ? `&nbsp;&nbsp;|&nbsp;&nbsp;<a href="#" data-id="${encodeURIComponent(id)}" class="action-link deleteLink">Remove</a>` : ""}
         </td>
       `;

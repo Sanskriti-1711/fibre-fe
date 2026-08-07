@@ -5,7 +5,15 @@
  */
 
 (function() {
-  const BASE_URL = "https://fiberbackend.zeabur.app";
+  // Auto-detect local dev — only activates on localhost (production unaffected)
+  const DETECTED_BASE_URL = (function () {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') {
+      return 'http://localhost:8000';
+    }
+    return 'https://fiberbackend.zeabur.app';
+  })();
+  const BASE_URL = window.FIBER_BASE_URL || DETECTED_BASE_URL;
 
   // Import auth from parent fiber-api.js
   const FiberAuth = window.FiberAuth || {
