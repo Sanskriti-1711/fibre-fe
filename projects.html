@@ -19,13 +19,21 @@
     <div class="header">
       <div>
         <h1>Projects</h1>
-        <p>Manage and monitor all fiber rollout projects</p>
+        <p>FTTH-HLD and Survey projects</p>
       </div>
       <a class="create-btn" href="project-create.html">Create Project</a>
     </div>
 
     <div class="table-card" style="margin-bottom:16px;">
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
+        <div style="min-width:180px;">
+          <label for="filterKind" style="font-size:12px;font-weight:600;color:#6B7280;display:block;margin-bottom:6px;">Type</label>
+          <select id="filterKind" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);">
+            <option value="">All</option>
+            <option value="hld">FTTH-HLD</option>
+            <option value="survey">Survey</option>
+          </select>
+        </div>
         <div style="min-width:200px;">
           <label for="filterStatus" style="font-size:12px;font-weight:600;color:#6B7280;display:block;margin-bottom:6px;">Status</label>
           <select id="filterStatus" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);">
@@ -152,8 +160,10 @@
   let currentLoadId = 0;
 
   async function fetchAllProjects(params) {
-    // This page shows the unified list (survey + HLD pipeline runs).
-    const merged = Object.assign({}, params || {}, { kind: 'all' });
+    // This page shows only our FTTH kinds (survey + HLD pipeline runs).
+    // The Type dropdown maps to the ?kind= param (survey | hld | all).
+    const merged = Object.assign({}, params || {});
+    if (!merged.kind) merged.kind = 'all';
     const first = await window.FiberApi.listProjectsFiltered(merged);
 
     if (Array.isArray(first)) return first;
@@ -247,7 +257,7 @@
         : '';
       const badge = isHld
         ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
-        : '';
+        : '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#ECFDF5;color:#059669;margin-right:6px;vertical-align:middle;">Survey</span> ';
       const stdCell = isHld ? buildStandardBar(Number(p.progress) || 0) : placeholder;
       const dynCell = isHld
         ? '<span style="font-size:11px;color:#9CA3AF;">' + (p.layers && p.layers.length ? p.layers.length + ' layers' : '\u2014') + '</span>'
@@ -316,9 +326,11 @@
   }
 
   function getFilterParams() {
+    const kind = document.getElementById('filterKind');
     const status = document.getElementById('filterStatus');
     const region = document.getElementById('filterRegion');
     return {
+      kind: kind ? kind.value : '',
       status: status ? status.value : '',
       region: region ? region.value.trim() : ''
     };
@@ -335,8 +347,10 @@
 
   if (clearBtn) {
     clearBtn.addEventListener('click', function () {
+      const kind = document.getElementById('filterKind');
       const status = document.getElementById('filterStatus');
       const region = document.getElementById('filterRegion');
+      if (kind) kind.value = '';
       if (status) status.value = '';
       if (region) region.value = '';
       loadProjects();
