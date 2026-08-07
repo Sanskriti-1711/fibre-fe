@@ -444,11 +444,10 @@
 <div id="toast" class="ftth-toast"></div>
 
 <script src="partials/sidebar-loader.js"></script>
+<script src="js/ftth-config.js"></script>
 <script>
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    window.FIBER_BASE_URL = 'http://localhost:8000';
-    window.FTTH_BASE_URL = 'http://localhost:8000';
-  }
+  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
 <script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>

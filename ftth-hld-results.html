@@ -125,12 +125,10 @@
 </div>
 
 <script src="partials/sidebar-loader.js" data-sidebar-base="../"></script>
+<script src="js/ftth-config.js"></script>
 <script>
-  // Auto-detect local dev — point to local Django backend
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    window.FIBER_BASE_URL = 'http://localhost:8000';
-    window.FTTH_BASE_URL = 'http://localhost:8000';
-  }
+  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
 <script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
