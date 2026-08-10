@@ -500,6 +500,7 @@
   window.FiberApi = {
     login,
     refreshAccessToken,
+    rawFetch,
     listEngineers,
     assignHldProject,
     acceptSurveyProject,

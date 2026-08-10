@@ -55,14 +55,14 @@ async function fetchProjectDetails(projectId) {
   return window.FiberApi.getProject(projectId);
 }
 
-// Fetch project map data from API
+// Fetch project map data from API (Django-backed; survey packages live in
+// the Django DB, not in the external import microservice).
 async function fetchProjectMapData(projectId) {
-  const url = `https://fiber-import.zeabur.app/geo/projects/${projectId}/map-data`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch map data: ${response.status} ${response.statusText}`);
-  }
-  return response.json();
+  const response = await window.FiberApi.rawFetch(
+    `/api/projects/${encodeURIComponent(projectId)}/map-data/`,
+    { method: "GET" }
+  );
+  return response;
 }
 
 // Convert completion percentage to integer
