@@ -261,12 +261,15 @@
       // and links to the FTTH status/results pages.
       const isHld = !!(p && p.type === 'hld');
       const isHldDone = isHld && String(p.status || '').toLowerCase().indexOf('complete') !== -1;
+      // HLD -> FTTH results/status pages. Survey copies -> the mobile
+      // app's Expo web build (same MapLibre views the engineer sees),
+      // opened with the session token via a click handler below.
       const link = id
         ? (isHld
             ? (isHldDone
                 ? 'ftth-hld-results.html?project_id=' + encodeURIComponent(id)
                 : 'ftth-hld-status.html?project_id=' + encodeURIComponent(id))
-            : 'project-details.html?project_id=' + encodeURIComponent(id))
+            : null)
         : 'project-overview.html';
       const deleteBtn = id
         ? '<button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
@@ -300,12 +303,27 @@
         + '<td class="completion-dynamic">' + dynCell + '</td>'
         + '<td>' + assignedCell + '</td>'
         + '<td>' + escapeHtml(lastActivity) + '</td>'
-        + '<td><a class="action-link" href="' + link + '">View</a>' + assignBtn + deleteBtn + '</td>';
+        + '<td>' + (isHld
+            ? '<a class="action-link" href="' + link + '">View</a>'
+            : '<button class="action-link view-survey-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;background:none;border:none;padding:0;font:inherit;color:inherit;">View</button>')
+          + assignBtn + deleteBtn + '</td>';
       tbody.appendChild(tr);
       if (id) rowsById.set(id, tr);
     });
 
     bindAssignButtons();
+    // Survey View -> mobile app's Expo web build (MapLibre views)
+    const surveyMapBase = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/, '');
+    tbody.querySelectorAll('.view-survey-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        const projectId = btn.getAttribute('data-id');
+        if (!projectId) return;
+        const token = (window.FiberAuth && window.FiberAuth.getAccess) ? window.FiberAuth.getAccess() : '';
+        const url = surveyMapBase + '/?token=' + encodeURIComponent(token) + '&project=' + encodeURIComponent(projectId);
+        window.open(url, '_blank', 'noopener');
+      });
+    });
     tbody.querySelectorAll('.delete-btn').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         const projectId = e.currentTarget.getAttribute('data-id');
