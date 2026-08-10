@@ -284,14 +284,12 @@
 
       // Assigned engineer / survey copy info
       const assignedName = (p.assigned_engineer && p.assigned_engineer.full_name) || '';
-      const assignedCell = isHld
-        ? (assignedName
-            ? '<span style="font-size:12px;color:#374151;">' + escapeHtml(assignedName) + '</span>'
-              + (p.survey_status
-                ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:' + (p.survey_status === 'active' ? '#ECFDF5' : '#FFFBEB') + ';color:' + (p.survey_status === 'active' ? '#059669' : '#B45309') + ';">Survey: ' + escapeHtml(p.survey_status) + '</span>'
-                : '')
-            : '<span style="font-size:11px;color:#9CA3AF;">\u2014</span>')
-        : '<span style="font-size:11px;color:#9CA3AF;">\u2014</span>';
+      const assignedCell = (assignedName
+          ? '<span style="font-size:12px;color:#374151;">' + escapeHtml(assignedName) + '</span>'
+            + (isHld && p.survey_status
+              ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:' + (p.survey_status === 'active' ? '#ECFDF5' : '#FFFBEB') + ';color:' + (p.survey_status === 'active' ? '#059669' : '#B45309') + ';">Survey: ' + escapeHtml(p.survey_status) + '</span>'
+              : '')
+          : '<span style="font-size:11px;color:#9CA3AF;">\u2014</span>');
       const assignBtn = '<button class="action-link assign-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" data-name="' + escapeHtml(name) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Assign</button>';
 
       const tr = document.createElement('tr');
