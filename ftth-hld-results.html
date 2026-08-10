@@ -142,6 +142,22 @@
       </div>
     </div>
 
+    <div class="ftth-side-pane-section">
+      <h3>Survey Assignment <span class="badge" id="surveyAssignBadge">—</span></h3>
+      <div id="surveyAssignStatus" style="font-size:12px;color:#6B7280;margin-bottom:10px;">Checking assignment state…</div>
+      <div id="surveyAssignEngineers" style="font-size:12px;margin-bottom:10px;"></div>
+      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Assign engineer(s) for field survey</label>
+      <select id="surveyAssignSelect" multiple style="width:100%;min-height:88px;padding:8px;border-radius:6px;border:1px solid #D1D5DB;font-size:13px;margin-bottom:10px;">
+        <option value="">Loading engineers…</option>
+      </select>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="surveyAssignBtn" type="button" style="flex:1;padding:10px 14px;background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s ease;">
+          Create Survey Copy &amp; Assign
+        </button>
+      </div>
+      <p id="surveyAssignMsg" style="margin:10px 0 0;font-size:12px;color:#6B7280;"></p>
+    </div>
+
   </div>
 </div>
 
@@ -202,6 +218,7 @@
       var statusData = await window.FtthApi.getPipelineStatus(projectId);
       if (!statusData) { showEmpty('Pipeline data not found'); return; }
       window.FtthState.setResults(statusData);
+      renderSurveyAssignment(statusData.survey);
       allLayers = statusData.layers || [];
       allDownloads = statusData.downloads || [];
       layerCountEl.textContent = allLayers.length;
@@ -351,7 +368,95 @@
     });
   }
 
-  (function boot(){ if (projectId) { initResultsMap(); initBaseMapSwitcher(); } })();
+  // ─────────────────────────────────────────────────────────────────────
+  // Survey Assignment (admin/subadmin): pick one or more field engineers,
+  // the backend creates the Survey copy (flagged 'survey') + jobs, and the
+  // engineer sees it under My Projects on the mobile app.
+  // ─────────────────────────────────────────────────────────────────────
+  var engineersList = [];
+  var surveyAssignBadge = document.getElementById('surveyAssignBadge');
+  var surveyAssignStatus = document.getElementById('surveyAssignStatus');
+  var surveyAssignEngineers = document.getElementById('surveyAssignEngineers');
+  var surveyAssignSelect = document.getElementById('surveyAssignSelect');
+  var surveyAssignBtn = document.getElementById('surveyAssignBtn');
+  var surveyAssignMsg = document.getElementById('surveyAssignMsg');
+
+  function renderSurveyAssignment(survey) {
+    if (!surveyAssignBadge) return;
+    if (!survey || !survey.status) {
+      surveyAssignBadge.textContent = 'Not assigned';
+      surveyAssignStatus.textContent = 'This run has no survey copy yet. Assign one or more engineers below to create it.';
+      surveyAssignEngineers.innerHTML = '';
+      return;
+    }
+    var cap = String(survey.status).replace(/_/g, ' ').replace(/\b\w/g, function(m){ return m.toUpperCase(); });
+    surveyAssignBadge.textContent = cap;
+    var engs = (survey.assigned_engineers || []).map(function(e){
+      return '<span style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#ECFDF5;color:#047857;">'
+        + escapeHtml(e.full_name || e.email) + '</span>';
+    }).join('');
+    surveyAssignEngineers.innerHTML = engs
+      ? '<div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Assigned:</div>' + engs
+      : '';
+    surveyAssignStatus.innerHTML = survey.copy_name
+      ? 'Survey copy: <strong>' + escapeHtml(survey.copy_name) + '</strong> (status: ' + cap + ')'
+      : 'Survey copy exists (status: ' + cap + ')';
+  }
+
+  async function loadEngineersForAssign() {
+    try {
+      var data = await window.FiberApi.listEngineers();
+      var list = Array.isArray(data) ? data : ((data && data.results) || []);
+      engineersList = list;
+      surveyAssignSelect.innerHTML = '';
+      if (!list.length) {
+        var opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No engineers found';
+        surveyAssignSelect.appendChild(opt);
+        return;
+      }
+      list.forEach(function(e){
+        var o = document.createElement('option');
+        o.value = e.id;
+        o.textContent = (e.full_name || e.name || e.email || 'Engineer');
+        surveyAssignSelect.appendChild(o);
+      });
+    } catch (err) {
+      surveyAssignMsg.textContent = 'Could not load engineers: ' + (err.message || err);
+    }
+  }
+
+  if (surveyAssignBtn) {
+    surveyAssignBtn.addEventListener('click', async function(){
+      var ids = Array.prototype.slice.call(surveyAssignSelect.selectedOptions || []).map(function(o){ return o.value; });
+      if (!ids.length) { surveyAssignMsg.textContent = 'Select at least one engineer.'; return; }
+      surveyAssignBtn.disabled = true;
+      surveyAssignMsg.textContent = 'Creating survey copy and assigning… this may take a minute.';
+      try {
+        var res = await window.FiberApi.assignHldProject(projectId, ids);
+        surveyAssignMsg.style.color = '#047857';
+        surveyAssignMsg.innerHTML = 'Survey copy created: <strong>' + escapeHtml(res.survey_project_name || '') + '</strong> for '
+          + (res.engineers || []).map(function(e){ return escapeHtml(e.full_name || e.email); }).join(', ')
+          + '. It will appear in the projects panel and on the engineer’s app.';
+        var data = await window.FtthApi.getPipelineStatus(projectId);
+        if (data && data.survey) renderSurveyAssignment(data.survey);
+      } catch (err) {
+        surveyAssignMsg.style.color = '#B91C1C';
+        surveyAssignMsg.textContent = 'Assignment failed: ' + (err.message || err);
+      } finally {
+        surveyAssignBtn.disabled = false;
+      }
+    });
+  }
+
+  (function boot(){
+    if (projectId) {
+      initResultsMap();
+      initBaseMapSwitcher();
+      loadEngineersForAssign();
+    }
+  })();
 </script>
 </body>
 </html>

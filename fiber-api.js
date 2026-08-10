@@ -320,13 +320,15 @@
     });
   }
 
-  // Assign a completed HLD run to a field engineer. The backend creates
-  // the Survey copy (auto-imported survey package) + project-scope job.
-  async function assignHldProject(projectId, engineerId) {
+  // Assign a completed HLD run to one or more field engineers for the survey.
+  // The backend creates the Survey copy (auto-imported survey package) +
+  // one project-scope job per engineer. Accepts a single id or an array.
+  async function assignHldProject(projectId, engineerIds) {
+    const ids = Array.isArray(engineerIds) ? engineerIds : [engineerIds];
     return apiFetch(`/api/ftth/hld/projects/${encodeURIComponent(projectId)}/assign/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ engineer_id: engineerId }),
+      body: JSON.stringify({ engineer_ids: ids }),
     });
   }
 
