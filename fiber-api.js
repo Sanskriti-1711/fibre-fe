@@ -320,6 +320,25 @@
     });
   }
 
+  // Assign a completed HLD run to a field engineer. The backend creates
+  // the Survey copy (auto-imported survey package) + project-scope job.
+  async function assignHldProject(projectId, engineerId) {
+    return apiFetch(`/api/ftth/hld/projects/${encodeURIComponent(projectId)}/assign/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ engineer_id: engineerId }),
+    });
+  }
+
+  // Engineer (or subadmin) accepts an assigned Survey copy → status active.
+  async function acceptSurveyProject(projectId) {
+    return apiFetch(`/api/projects/${encodeURIComponent(projectId)}/accept/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    });
+  }
+
   async function getAssignment(assignmentId) {
     const id = encodeURIComponent(assignmentId);
     return apiFetch(`/api/assignments/${id}/`, { method: "GET" });
@@ -482,6 +501,8 @@
     login,
     refreshAccessToken,
     listEngineers,
+    assignHldProject,
+    acceptSurveyProject,
     listProjects,
     listProjectLatest,
     listProjectsFiltered,
