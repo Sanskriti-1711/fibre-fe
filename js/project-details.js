@@ -1,25 +1,18 @@
 // Project Details Module
-// Handles map rendering and project data fetching
+// Handles map rendering and project data fetching (MapLibre GL)
 
 window.FiberAuth.requireLogin();
 
-const map = L.map('map').setView([51.5074, -0.1278], 12);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+let map = null;
+let overlayGroups = []; // layer group refs: { name, sourceId, layerIds: [] }
 
 const featureList = document.getElementById('featureList');
-// const layerList = document.getElementById('layerList');
-// const layerCount = document.getElementById('layerCount');
-// const featureCount = document.getElementById('featureCount');
 const projectTitle = document.getElementById('projectTitle');
 const detailName = document.getElementById('detailName');
 const detailStatus = document.getElementById('detailStatus');
 const detailEngineer = document.getElementById('detailEngineer');
 const detailCompletion = document.getElementById('detailCompletion');
 const layerBasicsBody = document.getElementById('layerBasicsBody');
-const layerControl = L.control.layers(null, null, { collapsed: false }).addTo(map);
 
 const layerPalette = ['#0EA5E9', '#10B981', '#F59E0B', '#6366F1', '#EF4444', '#14B8A6'];
 
@@ -37,17 +30,41 @@ function getProjectIdFromUrl() {
   return params.get('project_id');
 }
 
-// API returns GeoJSON in WGS84 (lng, lat). Leaflet expects [lat, lng].
-function toLatLng(lng, lat) {
-  return [lat, lng];
-}
-
 // Show/hide loader
 function setLoading(isLoading) {
   const loader = document.getElementById('mapLoader');
   const kpiSection = document.getElementById('kpiSection');
   if (loader) loader.style.display = isLoading ? 'block' : 'none';
   if (kpiSection) kpiSection.style.display = isLoading ? 'none' : 'grid';
+}
+
+// Initialize the MapLibre map (OSM raster basemap)
+function initMap() {
+  if (typeof maplibregl === 'undefined' || !document.getElementById('map')) return null;
+
+  const m = new maplibregl.Map({
+    container: 'map',
+    style: {
+      version: 8,
+      sources: {
+        'osm-raster': {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        },
+      },
+      layers: [
+        { id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 },
+      ],
+    },
+    center: [-0.1278, 51.5074],
+    zoom: 12,
+  });
+  m.addControl(new maplibregl.NavigationControl(), 'top-left');
+  m.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+  m.addControl(new maplibregl.AttributionControl({ compact: true }));
+  return m;
 }
 
 // Fetch project details from API using FiberApi (handles JWT auth)
@@ -73,64 +90,141 @@ function formatCompletionPercentage(completionValue) {
   return Math.round(num);
 }
 
-// Render GeoJSON feature on map
-function renderGeoJSONFeature(feature, layerInfo, layerGroup, allLayers) {
-  const geometry = feature.geometry;
-  const properties = feature.properties || {};
+// Compute the LngLatBounds covering an array of features
+function boundsOfFeatures(features) {
+  const b = new maplibregl.LngLatBounds();
+  let any = false;
+  (features || []).forEach(function (f) {
+    if (!f || !f.geometry || !f.geometry.coordinates) return;
+    const coords = f.geometry.coordinates;
+    const type = f.geometry.type;
+    const points = [];
+    if (type === 'Point') { points.push(coords); }
+    else if (type === 'MultiPoint' || type === 'LineString') { points.push(...coords); }
+    else if (type === 'MultiLineString' || type === 'Polygon') { points.push(...(coords[0] || [])); }
+    else if (type === 'MultiPolygon') { points.push(...((coords[0] && coords[0][0]) || [])); }
+    points.forEach(function (p) { if (p && p.length >= 2) { b.extend(p); any = true; } });
+  });
+  return any ? b : null;
+}
+
+// Render GeoJSON features for a layer as a MapLibre source + layers
+function renderGeoJSONFeature(featureListData, layerInfo, index) {
+  const group = {
+    name: layerInfo.name,
+    sourceId: 'layer-source-' + index,
+    layerIds: [],
+  };
+
+  const features = (featureListData && featureListData.features) || [];
+  if (!features.length) return group;
+
   const color = layerInfo.color;
+  const sourceId = group.sourceId;
 
-  if (!geometry) return null;
+  // MapLibre renders only matching geometry per layer, so split by type
+  const lineFeatures = [];
+  const pointFeatures = [];
+  const polygonFeatures = [];
+  features.forEach(function (f) {
+    if (!f || !f.geometry) return;
+    const t = f.geometry.type;
+    if (t === 'Point' || t === 'MultiPoint') { pointFeatures.push(f); }
+    else if (t === 'LineString' || t === 'MultiLineString' || String(t).toLowerCase().indexOf('line') !== -1) { lineFeatures.push(f); }
+    else { polygonFeatures.push(f); }
+  });
 
-  let layer = null;
+  const addLayers = function () {
+    if (!map || map.getSource(sourceId)) return;
 
-  if (geometry.type === 'Point') {
-    const coords = geometry.coordinates;
-    const latLng = toLatLng(coords[0], coords[1]);
-    layer = L.circleMarker(latLng, {
-      radius: 6,
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.85
+    const fc = { type: 'FeatureCollection', features: features };
+    map.addSource(sourceId, { type: 'geojson', data: fc });
+
+    if (lineFeatures.length) {
+      const lineLayerId = sourceId + '-line';
+      map.addLayer({ id: lineLayerId, type: 'line', source: sourceId, paint: { 'line-color': color, 'line-width': 3, 'line-opacity': 0.8 } });
+      group.layerIds.push(lineLayerId);
+    }
+    if (pointFeatures.length) {
+      const pointLayerId = sourceId + '-point';
+      map.addLayer({ id: pointLayerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 6, 'circle-color': color, 'circle-opacity': 0.85, 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 1 } });
+      group.layerIds.push(pointLayerId);
+    }
+    if (polygonFeatures.length) {
+      const fillLayerId = sourceId + '-fill';
+      const outlineLayerId = sourceId + '-outline';
+      map.addLayer({ id: fillLayerId, type: 'fill', source: sourceId, paint: { 'fill-color': color, 'fill-opacity': 0.3 } });
+      map.addLayer({ id: outlineLayerId, type: 'line', source: sourceId, paint: { 'line-color': color, 'line-width': 2 } });
+      group.layerIds.push(fillLayerId, outlineLayerId);
+    }
+
+    // Click handler → popup + highlight + details
+    group.layerIds.forEach(function (lid) {
+      map.on('click', lid, function (e) {
+        if (!e.features || !e.features[0]) return;
+        const props = e.features[0].properties || {};
+        const featureData = {
+          id: props.ID || e.features[0].id,
+          name: props.ID || props.NAME || 'Feature',
+          status: props.status || 'Pending',
+          engineer: props.engineer || '--',
+          completion: props.completion || '--',
+          layer: layerInfo.name
+        };
+        highlightLayer(lid, color);
+        setFeatureDetails(featureData);
+        new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
+          .setLngLat(e.lngLat)
+          .setHTML('<strong>' + esc(props.ID || props.NAME || 'Feature') + '</strong><br/>Type: ' + esc(props.Type || layerInfo.name) + '<br/>Status: ' + esc(featureData.status))
+          .addTo(map);
+      });
+      map.on('mouseenter', lid, function () { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseleave', lid, function () { map.getCanvas().style.cursor = ''; });
     });
-    layer.featureData = {
-      id: properties.ID || feature.id,
-      name: properties.ID || properties.NAME || `Feature #${feature.id}`,
-      status: properties.status || 'Pending',
-      engineer: properties.engineer || '--',
-      completion: properties.completion || '--',
-      layer: layerInfo.name
-    };
-    layer.bindPopup(`<strong>${layer.featureData.name}</strong><br/>Type: ${properties.Type || layerInfo.name}<br/>Status: ${layer.featureData.status}`);
-  } else if (geometry.type === 'MultiLineString' || geometry.type === 'LineString') {
-    const latLngs = geometry.type === 'MultiLineString'
-      ? geometry.coordinates.map(line => line.map(coord => toLatLng(coord[0], coord[1])))
-      : geometry.coordinates.map(coord => toLatLng(coord[0], coord[1]));
-    layer = L.polyline(latLngs, {
-      color: color,
-      weight: 3,
-      opacity: 0.8
-    });
-    layer.featureData = {
-      id: properties.ID || feature.id,
-      name: properties.ID || properties.NAME || `Feature #${feature.id}`,
-      status: properties.status || 'Pending',
-      engineer: properties.engineer || '--',
-      completion: properties.completion || '--',
-      layer: layerInfo.name
-    };
-    layer.bindPopup(`<strong>${layer.featureData.name}</strong><br/>Type: ${properties.Type || layerInfo.name}<br/>Length: ${properties.Length || properties['Length(m)'] || '--'}m<br/>Status: ${layer.featureData.status}`);
+  };
+
+  // MapLibre requires the style to be loaded before adding sources/layers
+  if (map.isStyleLoaded()) {
+    addLayers();
+  } else {
+    map.once('load', addLayers);
   }
 
-  if (layer) {
-    layer.on('click', function () {
-      highlightFeature(layer, color);
-      setFeatureDetails(layer.featureData);
-    });
-    layer.addTo(layerGroup);
-    allLayers.push(layer);
-  }
+  // Feature list entries (independent of layer render timing)
+  features.forEach(function (geoFeature) {
+    const props = geoFeature.properties || {};
+    const id = props.ID || geoFeature.id;
+    const label = layerInfo.name + ' #' + id + ' • ' + (geoFeature.geometry ? geoFeature.geometry.type : '?');
+    const fBounds = boundsOfFeatures([geoFeature]);
+    const fCenter = featureCenter(geoFeature);
+    addFeatureListItem(label, {
+      layerId: group.layerIds[0],
+      color: color,
+      bounds: fBounds,
+      center: fCenter,
+      data: {
+        id: id,
+        type: geoFeature.geometry ? geoFeature.geometry.type : '',
+        layer: layerInfo.name,
+        status: 'Pending'
+      }
+    }, color);
+  });
 
-  return layer;
+  return group;
+}
+
+function featureCenter(feature) {
+  if (!feature || !feature.geometry || !feature.geometry.coordinates) return null;
+  const c = feature.geometry.coordinates;
+  if (feature.geometry.type === 'Point') return [c[0], c[1]];
+  if (Array.isArray(c[0])) return [c[0][0], c[0][1]];
+  return [c[0], c[1]];
+}
+
+function esc(str) {
+  return String(str === undefined || str === null ? '' : str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // Load and render project data
@@ -145,6 +239,12 @@ async function loadAndRenderProject() {
   }
 
   setLoading(true);
+
+  if (!map) {
+    document.getElementById('projectDescription').textContent = 'Map library failed to load — please refresh the page.';
+    setLoading(false);
+    return;
+  }
 
   try {
     // Fetch both project details and map data in parallel
@@ -198,27 +298,24 @@ async function loadAndRenderProject() {
     // Render layers
     const layers = mapData.layers || [];
     const geojsonData = mapData.geojson || {};
-    const allMapLayers = [];
+    const allLayerBounds = [];
 
     layers.forEach(function (layerInfo, index) {
       const color = layerPalette[index % layerPalette.length];
       layerInfo.color = color;
 
-      // addLayerPill(layerInfo.name);
-      const group = L.layerGroup();
-
       // Add layer basics row
       const row = document.createElement('tr');
-      
+
       // Try exact match first, then normalized match
       let layerId = apiLayerIdByName[layerInfo.name] || '';
       if (!layerId) {
         const normalizedMapName = (layerInfo.name || '').toLowerCase().replace(/_/g, ' ').trim();
         layerId = apiLayerIdByNameNormalized[normalizedMapName] || '';
       }
-      
+
       console.log('Layer mapping:', { mapName: layerInfo.name, resolvedId: layerId });
-      
+
       row.innerHTML = ''
         + '<td>' + layerInfo.name + '</td>'
         + '<td>' + (layerInfo.type || '--') + '</td>'
@@ -226,28 +323,13 @@ async function loadAndRenderProject() {
         + '<td><a href="layer-details.html?project_id=' + encodeURIComponent(projectId) + '&layer_id=' + encodeURIComponent(layerId) + '" class="btn btn-details">View</a></td>';
       layerBasicsBody.appendChild(row);
 
-      // Render GeoJSON features for this layer and build feature list
+      // Render GeoJSON features for this layer
       const layerGeoJSON = geojsonData[layerInfo.name];
-      if (layerGeoJSON && layerGeoJSON.features) {
-        layerGeoJSON.features.forEach(function (geoFeature) {
-          const layer = renderGeoJSONFeature(geoFeature, layerInfo, group, allMapLayers);
-          
-          // Add to feature list if layer was created
-          if (layer && layer.featureData) {
-            const label = `${layerInfo.name} #${layer.featureData.id} • ${geoFeature.geometry.type}`;
-            addFeatureListItem(label, layer, color, {
-              id: layer.featureData.id,
-              type: geoFeature.geometry.type,
-              layer: layerInfo.name,
-              status: 'Pending'
-            });
-          }
-        });
-      }
-
-      group.addTo(map);
-      layerControl.addOverlay(group, layerInfo.name);
+      const group = renderGeoJSONFeature(layerGeoJSON, layerInfo, index);
       overlayGroups.push(group);
+
+      const b = boundsOfFeatures((layerGeoJSON && layerGeoJSON.features) || []);
+      if (b) allLayerBounds.push(b);
     });
 
     // Setup checkbox listeners
@@ -255,23 +337,18 @@ async function loadAndRenderProject() {
       checkbox.addEventListener('change', function () {
         const group = overlayGroups[index];
         if (!group) return;
-        if (checkbox.checked) {
-          group.addTo(map);
-        } else {
-          map.removeLayer(group);
-        }
+        const visibility = checkbox.checked ? 'visible' : 'none';
+        group.layerIds.forEach(function (lid) {
+          if (map.getLayer(lid)) map.setLayoutProperty(lid, 'visibility', visibility);
+        });
       });
     });
 
-    // layerCount.textContent = layers.length;
-    // featureCount.textContent = totalFeatures;
-
     // Fit map to all features
-    if (allMapLayers.length) {
-      const groupBounds = L.featureGroup(allMapLayers).getBounds();
-      if (groupBounds.isValid()) {
-        map.fitBounds(groupBounds, { padding: [20, 20] });
-      }
+    if (allLayerBounds.length && map) {
+      const combined = new maplibregl.LngLatBounds();
+      allLayerBounds.forEach(function (b) { combined.extend(b); });
+      map.fitBounds(combined, { padding: 40, maxZoom: 16 });
     }
 
   } catch (error) {
@@ -282,12 +359,16 @@ async function loadAndRenderProject() {
   }
 }
 
-function highlightFeature(layer, baseColor) {
-  if (!layer || !layer.setStyle) return;
-  layer.setStyle({ color: '#E31837', weight: 3, fillOpacity: 0.35 });
-  setTimeout(function () {
-    layer.setStyle({ color: baseColor || '#0EA5E9', weight: 2, fillOpacity: 0.25 });
-  }, 1200);
+function highlightLayer(layerId, baseColor) {
+  if (!map || !map.getLayer(layerId)) return;
+  const type = map.getLayer(layerId).type;
+  const paintKey = type === 'circle' ? 'circle-color' : (type === 'fill' ? 'fill-color' : 'line-color');
+  try {
+    map.setPaintProperty(layerId, paintKey, '#E31837');
+    setTimeout(function () {
+      try { map.setPaintProperty(layerId, paintKey, baseColor || '#0EA5E9'); } catch (_) {}
+    }, 1200);
+  } catch (_) {}
 }
 
 function setFeatureDetails(feature) {
@@ -300,47 +381,39 @@ function setFeatureDetails(feature) {
   detailCompletion.textContent = feature.completion || '--';
 }
 
-function addFeatureListItem(label, layer, baseColor, feature) {
+function addFeatureListItem(label, target, baseColor) {
   const item = document.createElement('div');
   item.className = 'feature-item';
   item.textContent = label;
   item.addEventListener('click', function () {
-    if (!layer) return;
-    
-    // Zoom to feature - handle both Points (getLatLng) and Lines (getBounds)
-    if (layer.getLatLng) {
-      map.setView(layer.getLatLng(), 18);
-    } else if (layer.getBounds) {
-      map.fitBounds(layer.getBounds(), { padding: [50, 50] });
+    if (!map || !target) return;
+
+    // Zoom to feature
+    if (target.bounds) {
+      map.fitBounds(target.bounds, { padding: 50, maxZoom: 18 });
+    } else if (target.center) {
+      map.jumpTo({ center: target.center, zoom: 18 });
     }
-    
-    if (layer.openPopup) layer.openPopup();
-    highlightFeature(layer, baseColor);
-    setFeatureDetails(feature);
+
+    if (target.layerId) highlightLayer(target.layerId, target.color || baseColor);
+    setFeatureDetails(target.data);
   });
   featureList.appendChild(item);
 }
 
-function addLayerPill(label) {
-  // const pill = document.createElement('span');
-  // pill.className = 'layer-pill';
-  // pill.textContent = label;
-  // layerList.appendChild(pill);
-}
-
-let overlayGroups = [];
-
 function clearView() {
   overlayGroups.forEach(function (group) {
-    map.removeLayer(group);
+    if (!map) return;
+    group.layerIds.forEach(function (lid) {
+      if (map.getLayer(lid)) map.removeLayer(lid);
+    });
+    if (map.getSource(group.sourceId)) map.removeSource(group.sourceId);
   });
   overlayGroups = [];
   featureList.innerHTML = '';
-  // layerList.innerHTML = '';
   layerBasicsBody.innerHTML = '';
-  // layerCount.textContent = '0';
-  // featureCount.textContent = '0';
 }
 
 // Initialize on page load
+map = initMap();
 loadAndRenderProject();

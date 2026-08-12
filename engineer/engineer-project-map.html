@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Project Map</title>
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-  <script src="../vendor/leaflet/leaflet.js"></script>
+  <!-- MapLibre GL -->
+  <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css" />
+  <script src="../vendor/maplibre/maplibre-gl.js"></script>
   <link rel="stylesheet" href="css/main.css" />
 </head>
 <body class="engineer-project-map">
@@ -35,11 +35,27 @@
 <script>
   window.FiberAuth.requireLogin();
 
-  var map = L.map('map').setView([51.5074, -0.1278], 13);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap'
-  }).addTo(map);
+  var map = new maplibregl.Map({
+    container: 'map',
+    style: {
+      version: 8,
+      sources: {
+        'osm-raster': {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }
+      },
+      layers: [
+        { id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 }
+      ]
+    },
+    center: [-0.1278, 51.5074],
+    zoom: 13
+  });
+  map.addControl(new maplibregl.NavigationControl(), 'top-left');
+  map.addControl(new maplibregl.AttributionControl({ compact: true }));
 
   var statusColors = {
     'PENDING': '#D97706',
@@ -49,6 +65,11 @@
     'REJECTED': '#DC2626',
     'FAILED': '#DC2626'
   };
+
+  function esc(str) {
+    return String(str === undefined || str === null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
 
   function goToTask(projectName, featureName, featureType, status) {
     var params = new URLSearchParams();
@@ -107,33 +128,63 @@
         return;
       }
 
-      var bounds = L.latLngBounds();
-
-      for (var k = 0; k < featuresWithCoords.length; k++) {
-        var f = featuresWithCoords[k];
-        var color = statusColors[f.status.toUpperCase()] || '#6B7280';
-
-        var marker = L.circleMarker([f.lat, f.lng], {
-          color: color,
-          fillColor: color,
-          fillOpacity: 0.7,
-          radius: 8
-        }).addTo(map);
-
-        marker.bindPopup('<strong>' + f.name + '</strong><br/>' + f.projectName + '<br/>Status: ' + f.status);
-
-        marker.on('click', (function(feature) {
-          return function() {
-            goToTask(feature.projectName, feature.name, feature.type, feature.status);
+      // Build a GeoJSON point collection with per-status colors
+      var geojson = {
+        type: 'FeatureCollection',
+        features: featuresWithCoords.map(function (f) {
+          var color = statusColors[String(f.status).toUpperCase()] || '#6B7280';
+          return {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [f.lng, f.lat] },
+            properties: {
+              name: f.name,
+              projectName: f.projectName,
+              type: f.type,
+              status: f.status,
+              color: color
+            }
           };
-        })(f));
+        })
+      };
 
-        bounds.extend([f.lat, f.lng]);
-      }
+      var bounds = new maplibregl.LngLatBounds();
+      featuresWithCoords.forEach(function (f) { bounds.extend([f.lng, f.lat]); });
 
-      if (featuresWithCoords.length > 0) {
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
+      map.on('load', function () {
+        if (map.getSource('engineer-points')) {
+          map.removeLayer('engineer-points-layer');
+          map.removeSource('engineer-points');
+        }
+        map.addSource('engineer-points', { type: 'geojson', data: geojson });
+        map.addLayer({
+          id: 'engineer-points-layer',
+          type: 'circle',
+          source: 'engineer-points',
+          paint: {
+            'circle-radius': 8,
+            'circle-color': ['get', 'color'],
+            'circle-opacity': 0.85,
+            'circle-stroke-color': '#FFFFFF',
+            'circle-stroke-width': 1.5
+          }
+        });
+
+        map.on('click', 'engineer-points-layer', function (e) {
+          if (!e.features || !e.features[0]) return;
+          var props = e.features[0].properties;
+          new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
+            .setLngLat(e.lngLat)
+            .setHTML('<strong>' + esc(props.name) + '</strong><br/>' + esc(props.projectName) + '<br/>Status: ' + esc(props.status))
+            .addTo(map);
+          goToTask(props.projectName, props.name, props.type, props.status);
+        });
+        map.on('mouseenter', 'engineer-points-layer', function () { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'engineer-points-layer', function () { map.getCanvas().style.cursor = ''; });
+
+        if (featuresWithCoords.length > 0) {
+          map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+        }
+      });
 
     } catch (error) {
       console.error('Error loading features:', error);

@@ -181,110 +181,124 @@ async function loadFeatureAssignment(projectId, featureId) {
 }
 
 function initMap() {
-  if (!window.L) return null;
+  if (typeof maplibregl === 'undefined') return null;
   const el = qs('auditMap');
   if (!el) return null;
 
-  const map = L.map('auditMap', { zoomControl: true }).setView([51.5074, -0.1278], 15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
-
-  // In grids/flex layouts Leaflet may compute a wrong size on first paint.
-  // This ensures tiles/layers render and fitBounds works reliably.
-  setTimeout(function () {
-    try {
-      map.invalidateSize();
-    } catch (_) {}
-  }, 0);
-
+  const map = new maplibregl.Map({
+    container: 'auditMap',
+    style: {
+      version: 8,
+      sources: {
+        'osm-raster': {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        },
+      },
+      layers: [
+        { id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 },
+      ],
+    },
+    center: [-0.1278, 51.5074],
+    zoom: 15,
+  });
+  map.addControl(new maplibregl.NavigationControl(), 'top-left');
   return map;
+}
+
+// Compute an LngLatBounds for a single GeoJSON feature (WGS84 coords).
+function featureBoundsOf(geojson) {
+  if (!geojson || !geojson.geometry || !geojson.geometry.coordinates) return null;
+  const coords = geojson.geometry.coordinates;
+  const type = geojson.geometry.type;
+  const points = [];
+  if (type === 'Point') {
+    points.push(coords);
+  } else if (type === 'MultiPoint' || type === 'LineString') {
+    points.push(...coords);
+  } else if (type === 'MultiLineString' || type === 'Polygon') {
+    points.push(...(coords[0] || []));
+  } else if (type === 'MultiPolygon') {
+    points.push(...((coords[0] && coords[0][0]) || []));
+  }
+  if (!points.length) return null;
+  const b = new maplibregl.LngLatBounds();
+  points.forEach((p) => { if (p && p.length >= 2) b.extend(p); });
+  return b;
 }
 
 function renderGeojsonFeature(map, geojson) {
   if (!map || !geojson || !geojson.geometry) return null;
 
-  // GeoJSON from API is in WGS84; Leaflet's default coordsToLatLng handles the
-  // [lng, lat] -> [lat, lng] swap for Point/LineString/MultiLineString.
-  const layer = L.geoJSON(geojson, {
-    style: function () {
-      return {
-        color: '#E31837',
-        weight: 6,
-        opacity: 0.95,
-      };
-    },
-    pointToLayer: function (_feature, latlng) {
-      return L.circleMarker(latlng, {
-        radius: 7,
-        color: '#E31837',
-        fillColor: '#E31837',
-        fillOpacity: 0.9,
-        weight: 3,
-      });
-    }
-  });
+  const sourceId = 'feature-source';
+  const lineLayerId = 'feature-line';
+  const pointLayerId = 'feature-point';
 
-  layer.addTo(map);
+  if (map.getSource(sourceId)) {
+    try { map.removeLayer(lineLayerId); } catch (_) {}
+    try { map.removeLayer(pointLayerId); } catch (_) {}
+    map.removeSource(sourceId);
+  }
 
-  const bounds = layer.getBounds && layer.getBounds();
-  if (bounds && bounds.isValid && bounds.isValid()) {
+  map.addSource(sourceId, { type: 'geojson', data: geojson });
+
+  const gtype = geojson.geometry.type;
+  const isLine = gtype === 'LineString' || gtype === 'MultiLineString' || gtype.toLowerCase().indexOf('line') !== -1;
+  const isPoint = gtype === 'Point' || gtype === 'MultiPoint';
+
+  if (isLine) {
+    map.addLayer({
+      id: lineLayerId, type: 'line', source: sourceId,
+      paint: { 'line-color': '#E31837', 'line-width': 6, 'line-opacity': 0.95 },
+    });
+  } else if (isPoint) {
+    map.addLayer({
+      id: pointLayerId, type: 'circle', source: sourceId,
+      paint: {
+        'circle-radius': 7, 'circle-color': '#E31837', 'circle-opacity': 0.9,
+        'circle-stroke-color': '#E31837', 'circle-stroke-width': 3,
+      },
+    });
+  } else {
+    // Polygon / MultiPolygon
+    map.addLayer({
+      id: lineLayerId, type: 'line', source: sourceId,
+      paint: { 'line-color': '#E31837', 'line-width': 3, 'line-opacity': 0.95 },
+    });
+  }
+
+  const bounds = featureBoundsOf(geojson);
+  if (bounds) {
     setTimeout(function () {
-      try {
-        map.invalidateSize();
-        map.fitBounds(bounds, { padding: [20, 20] });
-      } catch (_) {}
+      try { map.fitBounds(bounds, { padding: 24, maxZoom: 18 }); } catch (_) {}
     }, 0);
   } else {
     console.warn('[feature-details] GeoJSON bounds invalid; geometry may be empty/unsupported:', geojson && geojson.geometry);
   }
 
-  return layer;
+  return { bounds: bounds, layerId: isLine || isPoint ? (isPoint ? pointLayerId : lineLayerId) : lineLayerId };
 }
 
 function addFeatureZoomControl(map, label, targetLayer) {
-  if (!map || !window.L) return;
-
-  if (map._featureZoomControl) {
-    try {
-      map.removeControl(map._featureZoomControl);
-    } catch (_) {}
-    map._featureZoomControl = null;
-  }
+  if (!map || !targetLayer || !targetLayer.bounds) return;
 
   const text = label ? String(label) : 'Zoom to Feature';
+  const el = document.createElement('div');
+  el.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+  el.innerHTML = '<button type="button" style="background:#FFFFFF;border:none;padding:8px 10px;font-size:13px;color:#111827;cursor:pointer;">' + escapeHtml(text) + '</button>';
+  el.style.boxShadow = '0 4px 10px rgba(0,0,0,0.08)';
+  el.style.borderRadius = '8px';
+  el.style.overflow = 'hidden';
+  el.addEventListener('click', function () {
+    try { map.fitBounds(targetLayer.bounds, { padding: 24, maxZoom: 18 }); } catch (_) {}
+  });
 
-  const ctl = L.control({ position: 'topright' });
-  ctl.onAdd = function () {
-    const div = L.DomUtil.create('div');
-    div.style.background = '#FFFFFF';
-    div.style.border = '1px solid rgba(0,0,0,0.12)';
-    div.style.borderRadius = '8px';
-    div.style.padding = '8px 10px';
-    div.style.fontSize = '13px';
-    div.style.color = '#111827';
-    div.style.boxShadow = '0 4px 10px rgba(0,0,0,0.08)';
-    div.style.cursor = 'pointer';
-    div.style.userSelect = 'none';
-    div.innerHTML = '<span style="font-weight:600;">' + escapeHtml(text) + '</span>';
-
-    L.DomEvent.disableClickPropagation(div);
-    L.DomEvent.on(div, 'click', function () {
-      if (!targetLayer || !targetLayer.getBounds) return;
-      const b = targetLayer.getBounds();
-      if (b && b.isValid && b.isValid()) {
-        try {
-          map.invalidateSize();
-          map.fitBounds(b, { padding: [20, 20] });
-        } catch (_) {}
-      }
-    });
-
-    return div;
-  };
-
-  ctl.addTo(map);
-  map._featureZoomControl = ctl;
+  map.addControl({
+    onAdd: function () { return el; },
+    onRemove: function () { if (el.parentNode) el.parentNode.removeChild(el); },
+  }, 'top-right');
 }
 
 async function getFeatureDetails(projectId, featureId) {

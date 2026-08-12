@@ -128,13 +128,10 @@ if (BUNDLE) {
       }
     }
 
-    // Explicitly assert the self-hosted map libraries are bundled (the
-    // frontend no longer loads leaflet/maplibre from unpkg CDN, so maps
-    // depend on these vendor assets being deployed)
+    // Explicitly assert the self-hosted map library is bundled (the
+    // frontend no longer loads maplibre from unpkg CDN, so maps depend on
+    // these vendor assets being deployed)
     const vendorAssets = [
-      'vendor/leaflet/leaflet.js',
-      'vendor/leaflet/leaflet.css',
-      'vendor/leaflet/images/marker-icon.png',
       'vendor/maplibre/maplibre-gl.js',
       'vendor/maplibre/maplibre-gl.css',
     ];

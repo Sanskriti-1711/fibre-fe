@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Feature Details | Tech Mahindra</title>
 
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="../vendor/leaflet/leaflet.css" />
-  <script src="../vendor/leaflet/leaflet.js"></script>
+  <!-- MapLibre GL -->
+  <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css" />
+  <script src="../vendor/maplibre/maplibre-gl.js"></script>
 
   <style>
     :root {
@@ -602,46 +602,95 @@
   function initMap(lat, lng, geoJsonFeature) {
     if (map) {
       map.remove();
+      map = null;
     }
-    map = L.map('map').setView([lat, lng], 17);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap'
-    }).addTo(map);
-    
+    map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {
+          'osm-raster': {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }
+        },
+        layers: [
+          { id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 }
+        ]
+      },
+      center: [lng, lat],
+      zoom: 17
+    });
+    map.addControl(new maplibregl.NavigationControl(), 'top-left');
+
     // Render the actual GeoJSON feature shape in red
     if (geoJsonFeature && geoJsonFeature.geometry) {
-      const geoJsonLayer = L.geoJSON(geoJsonFeature, {
-        style: {
-          color: '#DC2626',      // Red outline
-          fillColor: '#DC2626',  // Red fill
-          fillOpacity: 0.3,      // Semi-transparent fill
-          weight: 3              // Thicker outline
-        },
-        pointToLayer: function(feature, latlng) {
-          // For Point geometries, render as a red circle
-          return L.circleMarker(latlng, {
-            radius: 8,
-            fillColor: '#DC2626',
-            color: '#DC2626',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.6
+      const sourceId = 'feature-source';
+      const gtype = geoJsonFeature.geometry.type;
+      const isPoint = gtype === 'Point' || gtype === 'MultiPoint';
+
+      map.on('load', function () {
+        if (map.getSource(sourceId)) {
+          try { map.removeLayer('feature-fill'); } catch (_) {}
+          try { map.removeLayer('feature-line'); } catch (_) {}
+          try { map.removeLayer('feature-point'); } catch (_) {}
+          map.removeSource(sourceId);
+        }
+        map.addSource(sourceId, { type: 'geojson', data: geoJsonFeature });
+
+        if (isPoint) {
+          map.addLayer({
+            id: 'feature-point', type: 'circle', source: sourceId,
+            paint: {
+              'circle-radius': 8, 'circle-color': '#DC2626', 'circle-opacity': 0.6,
+              'circle-stroke-color': '#DC2626', 'circle-stroke-width': 2
+            }
           });
+        } else {
+          map.addLayer({
+            id: 'feature-line', type: 'line', source: sourceId,
+            paint: { 'line-color': '#DC2626', 'line-width': 3, 'line-opacity': 1 }
+          });
+          if (gtype === 'Polygon' || gtype === 'MultiPolygon') {
+            map.addLayer({
+              id: 'feature-fill', type: 'fill', source: sourceId,
+              paint: { 'fill-color': '#DC2626', 'fill-opacity': 0.3 }
+            });
+          }
+          // Fit bounds for non-Point geometries
+          const b = featureBoundsOf(geoJsonFeature);
+          if (b) map.fitBounds(b, { padding: 50, maxZoom: 18 });
         }
-      }).addTo(map);
-      
-      // Only fit bounds for non-Point geometries (LineString, Polygon)
-      // For Points, keep the setView center
-      if (geoJsonFeature.geometry.type !== 'Point') {
-        const bounds = geoJsonLayer.getBounds();
-        if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 18 });
-        }
-      }
+      });
     } else {
-      // Fallback to marker if no GeoJSON
-      L.marker([lat, lng]).addTo(map);
+      // Fallback: red circle marker if no GeoJSON
+      map.on('load', function () {
+        map.addSource('fallback-point', {
+          type: 'geojson',
+          data: { type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: {} }
+        });
+        map.addLayer({
+          id: 'fallback-point-layer', type: 'circle', source: 'fallback-point',
+          paint: { 'circle-radius': 8, 'circle-color': '#DC2626', 'circle-opacity': 0.8, 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2 }
+        });
+      });
     }
+  }
+
+  function featureBoundsOf(geojson) {
+    if (!geojson || !geojson.geometry || !geojson.geometry.coordinates) return null;
+    const coords = geojson.geometry.coordinates;
+    const type = geojson.geometry.type;
+    const points = [];
+    if (type === 'LineString' || type === 'MultiPoint') points.push(...coords);
+    else if (type === 'MultiLineString' || type === 'Polygon') points.push(...(coords[0] || []));
+    else if (type === 'MultiPolygon') points.push(...((coords[0] && coords[0][0]) || []));
+    if (!points.length) return null;
+    const b = new maplibregl.LngLatBounds();
+    points.forEach((p) => { if (p && p.length >= 2) b.extend(p); });
+    return b;
   }
 
   function handleFileSelect(event) {
