@@ -1,0 +1,55 @@
+# ─────────────────────────────────────────────────────────────────────────
+# fibre-fe — static UI CI/CD (GitLab)
+#
+# Every push to main:
+#   1. validate — runs JS syntax checks + broken-link checks on all pages
+#   2. pages    — deploys the static UI to GitLab Pages
+#                (https://<namespace>.gitlab.io/fibre-fe)
+#
+# The frontend is plain HTML/CSS/JS — no build step required. The static
+# files are copied verbatim into public/ for Pages.
+# ─────────────────────────────────────────────────────────────────────────
+
+stages:
+  - validate
+  - deploy
+
+variables:
+  # Fail fast — stop the pipeline at the first failing job in a stage
+  GIT_DEPTH: "50"
+
+# ── Stage 1: validate ────────────────────────────────────────────────────
+validate:
+  stage: validate
+  image: node:20-alpine
+  script:
+    - node --version
+    # Syntax-check every .js file + every inline <script> block, then
+    # verify every internal link and sidebar entry points to a real page.
+    - node ci/link-check.js
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+  interruptible: true
+
+# ── Stage 2: deploy to GitLab Pages ──────────────────────────────────────
+pages:
+  stage: deploy
+  image: node:20-alpine
+  script:
+    - node ci/link-check.js
+    # Build the deployable bundle: everything except git internals + CI
+    - mkdir -p public
+    - cp -r *.html public/
+    - cp -r css public/css
+    - cp -r js public/js
+    - cp -r partials public/partials
+    - cp -r engineer public/engineer
+    - cp -r docs public/docs
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG

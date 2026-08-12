@@ -232,6 +232,15 @@
       background: #FEE2E2;
     }
 
+    .ftth-action-lld {
+      background: #F5F3FF;
+      color: #5B21B6;
+      border-color: #DDD6FE;
+    }
+    .ftth-action-lld:hover {
+      background: #EDE9FE;
+    }
+
     /* ---- Confirmation Modal ---- */
     .ftth-modal-overlay {
       display: none;
@@ -582,6 +591,9 @@
           +     '<a class="ftth-action-btn ftth-action-status" href="ftth-hld-status.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F50D; Status</a>'
           +     (isCompleted
           ? '<a class="ftth-action-btn ftth-action-results" href="ftth-hld-results.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F5FA;&#xFE0F; Results</a>'
+          : '')
+          +     (isCompleted
+          ? '<a class="ftth-action-btn ftth-action-lld" href="ftth-lld-review.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F4CB; LLD Review</a>'
           : '')                    +     (isCompleted
           ? '<button class="ftth-action-btn ftth-action-download" onclick="downloadSurvey(\'' + escHtml(p.project_id) + '\')">&#x1F4E5; GPKG</button>'
           : '')

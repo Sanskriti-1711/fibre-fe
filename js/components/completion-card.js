@@ -1,5 +1,8 @@
 // Completion Card Component for displaying project completion metrics
 // Usage: CompletionCard.create(projectId, containerElement)
+//
+// Styled by the design system classes in css/main.css (.ds-completion-*),
+// so it matches the rest of the platform.
 
 const CompletionCard = {
   /**
@@ -17,13 +20,12 @@ const CompletionCard = {
     } = options;
 
     const container = document.createElement('div');
-    container.className = 'completion-card';
-    container.style.cssText = compact ? this._compactStyles() : this._defaultStyles();
+    container.className = compact ? 'ds-completion ds-completion--compact' : 'ds-completion';
 
     // Loading state
     container.innerHTML = `
-      <div style="padding: 20px; text-align: center; color: #6B7280;">
-        <div style="font-size: 14px;">Loading completion metrics...</div>
+      <div class="ds-completion-loading">
+        Loading completion metrics...
       </div>
     `;
 
@@ -33,7 +35,7 @@ const CompletionCard = {
       container.appendChild(this._buildContent(data, projectId, { showWeights, compact }));
     } catch (err) {
       container.innerHTML = `
-        <div style="padding: 16px; color: #DC2626; font-size: 13px;">
+        <div class="ds-completion-error">
           Failed to load completion: ${err.message}
         </div>
       `;
@@ -60,14 +62,7 @@ const CompletionCard = {
 
   _buildCompactView(data) {
     const container = document.createElement('div');
-    container.style.cssText = 'display: flex; align-items: center; gap: 12px;';
-
-    // Standard completion circle
-    const standardCircle = this._createMiniCircle(
-      data.standard_completion,
-      '#3B82F6',
-      'S'
-    );
+    container.className = 'ds-completion-compact';
 
     // Dynamic completion circle (only if weights defined)
     if (data.weights_defined) {
@@ -79,14 +74,20 @@ const CompletionCard = {
       container.appendChild(dynamicCircle);
     }
 
+    // Standard completion circle
+    const standardCircle = this._createMiniCircle(
+      data.standard_completion,
+      '#3B82F6',
+      'S'
+    );
     container.appendChild(standardCircle);
 
     // Stats text
     const stats = document.createElement('div');
-    stats.style.cssText = 'font-size: 11px; color: #6B7280; line-height: 1.4;';
+    stats.className = 'ds-completion-compact-stats';
     stats.innerHTML = `
       <div>${data.approved_features}/${data.total_features} approved</div>
-      ${data.weights_defined ? '<div style="color: #10B981;">Weighted</div>' : ''}
+      ${data.weights_defined ? '<div class="ds-completion-weighted">Weighted</div>' : ''}
     `;
     container.appendChild(stats);
 
@@ -101,12 +102,7 @@ const CompletionCard = {
     const offset = circumference - (percentage / 100) * circumference;
 
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = `
-      position: relative;
-      width: ${size}px;
-      height: ${size}px;
-      flex-shrink: 0;
-    `;
+    wrapper.className = 'ds-completion-mini';
 
     wrapper.innerHTML = `
       <svg width="${size}" height="${size}" style="transform: rotate(-90deg);">
@@ -123,14 +119,7 @@ const CompletionCard = {
           style="transition: stroke-dashoffset 0.5s ease;"
         />
       </svg>
-      <div style="
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 10px;
-        font-weight: 700;
-        color: ${color};
-      ">${Math.round(percentage)}%</div>
+      <div class="ds-completion-mini-label" style="color: ${color};">${Math.round(percentage)}%</div>
     `;
 
     return wrapper;
@@ -141,32 +130,18 @@ const CompletionCard = {
 
     // Header with title and weights button
     const header = document.createElement('div');
-    header.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #E5E7EB;
-    `;
+    header.className = 'ds-completion-header';
 
     const title = document.createElement('h3');
+    title.className = 'ds-completion-title';
     title.textContent = 'Project Completion';
-    title.style.cssText = 'margin: 0; font-size: 16px; font-weight: 600; color: #111827;';
     header.appendChild(title);
 
     if (showWeights) {
       const weightsBtn = document.createElement('button');
+      weightsBtn.className = 'ds-completion-weights-btn';
       weightsBtn.textContent = data.weights_defined ? 'Edit Weights' : 'Set Weights';
-      weightsBtn.style.cssText = `
-        padding: 6px 12px;
-        font-size: 12px;
-        background: ${data.weights_defined ? '#10B981' : '#F59E0B'};
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      `;
+      weightsBtn.style.background = data.weights_defined ? '#10B981' : '#F59E0B';
       weightsBtn.onclick = () => this._openWeightManager(projectId);
       header.appendChild(weightsBtn);
     }
@@ -175,14 +150,8 @@ const CompletionCard = {
 
     // Main metrics grid
     const metricsGrid = document.createElement('div');
-    metricsGrid.style.cssText = `
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    `;
+    metricsGrid.className = 'ds-completion-metrics';
 
-    // Standard completion card
     metricsGrid.appendChild(this._createMetricCard(
       'Standard Completion',
       data.standard_completion,
@@ -190,7 +159,6 @@ const CompletionCard = {
       'Simple count-based progress'
     ));
 
-    // Dynamic completion card
     metricsGrid.appendChild(this._createMetricCard(
       'Dynamic Completion',
       data.dynamic_completion,
@@ -201,19 +169,10 @@ const CompletionCard = {
 
     // Stats card
     const statsCard = document.createElement('div');
-    statsCard.style.cssText = `
-      background: #F9FAFB;
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-    `;
+    statsCard.className = 'ds-completion-stats';
     statsCard.innerHTML = `
-      <div style="font-size: 24px; font-weight: 700; color: #111827;">
-        ${data.approved_features}
-      </div>
-      <div style="font-size: 12px; color: #6B7280; margin-top: 4px;">
-        of ${data.total_features} features approved
-      </div>
+      <div class="ds-completion-stats-value">${data.approved_features}</div>
+      <div class="ds-completion-stats-label">of ${data.total_features} features approved</div>
     `;
     metricsGrid.appendChild(statsCard);
 
@@ -230,24 +189,13 @@ const CompletionCard = {
 
   _createMetricCard(title, value, color, subtitle, enabled = true) {
     const card = document.createElement('div');
-    card.style.cssText = `
-      background: ${enabled ? '#F9FAFB' : '#F3F4F6'};
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-      border: 2px solid ${enabled ? color : 'transparent'};
-    `;
+    card.className = 'ds-completion-metric';
+    card.style.borderColor = enabled ? color : 'transparent';
 
     card.innerHTML = `
-      <div style="font-size: 28px; font-weight: 700; color: ${enabled ? color : '#9CA3AF'};">
-        ${Number(value).toFixed(1)}%
-      </div>
-      <div style="font-size: 12px; font-weight: 600; color: #374151; margin-top: 4px;">
-        ${title}
-      </div>
-      <div style="font-size: 10px; color: #6B7280; margin-top: 4px;">
-        ${subtitle}
-      </div>
+      <div class="ds-completion-metric-value" style="color: ${enabled ? color : '#9CA3AF'};">${Number(value).toFixed(1)}%</div>
+      <div class="ds-completion-metric-title">${title}</div>
+      <div class="ds-completion-metric-subtitle">${subtitle}</div>
     `;
 
     return card;
@@ -255,53 +203,27 @@ const CompletionCard = {
 
   _buildLayerBreakdown(layers) {
     const container = document.createElement('div');
-    container.style.cssText = 'margin-top: 20px;';
+    container.className = 'ds-completion-breakdown';
 
     const header = document.createElement('h4');
+    header.className = 'ds-completion-breakdown-title';
     header.textContent = 'Layer Breakdown';
-    header.style.cssText = 'margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #374151;';
     container.appendChild(header);
 
     const table = document.createElement('div');
-    table.style.cssText = `
-      display: grid;
-      gap: 8px;
-    `;
+    table.className = 'ds-completion-breakdown-list';
 
     layers.forEach(layer => {
       const row = document.createElement('div');
-      row.style.cssText = `
-        display: grid;
-        grid-template-columns: 1fr 60px 80px 80px;
-        gap: 12px;
-        align-items: center;
-        padding: 8px 12px;
-        background: white;
-        border-radius: 6px;
-        font-size: 12px;
-      `;
+      row.className = 'ds-completion-breakdown-row';
 
       row.innerHTML = `
-        <div style="font-weight: 500; color: #374151;">${layer.layer_name}</div>
-        <div style="color: #6B7280;">${layer.weight.toFixed(0)}%</div>
-        <div>
-          <div style="
-            height: 6px;
-            background: #E5E7EB;
-            border-radius: 3px;
-            overflow: hidden;
-          ">
-            <div style="
-              height: 100%;
-              width: ${layer.progress_percentage}%;
-              background: #3B82F6;
-              border-radius: 3px;
-            "></div>
-          </div>
+        <div class="ds-completion-breakdown-name">${layer.layer_name}</div>
+        <div class="ds-completion-breakdown-weight">${layer.weight.toFixed(0)}%</div>
+        <div class="ds-completion-breakdown-track">
+          <div class="ds-completion-breakdown-fill" style="width: ${layer.progress_percentage}%; background: #3B82F6;"></div>
         </div>
-        <div style="text-align: right; color: #6B7280;">
-          ${layer.approved_features}/${layer.total_features}
-        </div>
+        <div class="ds-completion-breakdown-count">${layer.approved_features}/${layer.total_features}</div>
       `;
 
       table.appendChild(row);
@@ -317,25 +239,6 @@ const CompletionCard = {
       detail: { projectId }
     });
     document.dispatchEvent(event);
-  },
-
-  _defaultStyles() {
-    return `
-      background: white;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border: 1px solid #E5E7EB;
-    `;
-  },
-
-  _compactStyles() {
-    return `
-      background: #F9FAFB;
-      border-radius: 8px;
-      padding: 12px;
-      border: 1px solid #E5E7EB;
-    `;
   }
 };
 

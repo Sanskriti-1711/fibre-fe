@@ -1,5 +1,8 @@
 // Progress Bar Component for Completion Metrics
 // Usage: ProgressBar.create(65.5, { height: '8px', showLabel: true })
+//
+// Styled by the design system classes in css/main.css (.ds-progress-*),
+// so it matches the rest of the platform.
 
 const ProgressBar = {
   /**
@@ -22,48 +25,24 @@ const ProgressBar = {
     } = options;
 
     const container = document.createElement('div');
-    container.className = `progress-bar-container ${className}`;
-    container.style.cssText = `
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    `;
+    container.className = `ds-progress ${className}`;
 
     const track = document.createElement('div');
-    track.className = 'progress-bar-track';
-    track.style.cssText = `
-      flex: 1;
-      height: ${height};
-      background: #E5E7EB;
-      border-radius: 4px;
-      overflow: hidden;
-    `;
+    track.className = 'ds-progress-track';
+    track.style.height = height;
 
     const fill = document.createElement('div');
-    fill.className = 'progress-bar-fill';
-    fill.style.cssText = `
-      height: 100%;
-      width: ${value}%;
-      background: ${color};
-      border-radius: 4px;
-      transition: width 0.3s ease;
-    `;
+    fill.className = 'ds-progress-fill';
+    fill.style.width = `${value}%`;
+    fill.style.background = color;
 
     track.appendChild(fill);
     container.appendChild(track);
 
     if (showLabel) {
       const label = document.createElement('span');
-      label.className = 'progress-bar-label';
+      label.className = 'ds-progress-label';
       label.textContent = `${value.toFixed(1)}%`;
-      label.style.cssText = `
-        font-size: 12px;
-        font-weight: 600;
-        color: #374151;
-        min-width: 45px;
-        text-align: right;
-      `;
       container.appendChild(label);
     }
 
@@ -79,21 +58,13 @@ const ProgressBar = {
    */
   createDual(standard, dynamic, options = {}) {
     const container = document.createElement('div');
-    container.className = 'dual-progress-container';
-    container.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      width: 100%;
-    `;
+    container.className = 'ds-progress-dual';
 
     const { showLabels = true } = options;
 
-    // Standard row
     const standardRow = this._createLabeledRow('Standard', standard, '#3B82F6', showLabels);
     container.appendChild(standardRow);
 
-    // Dynamic row
     const dynamicRow = this._createLabeledRow('Dynamic', dynamic, '#10B981', showLabels, true);
     container.appendChild(dynamicRow);
 
@@ -102,54 +73,29 @@ const ProgressBar = {
 
   _createLabeledRow(label, value, color, showLabel, showBadge = false) {
     const row = document.createElement('div');
-    row.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-    `;
+    row.className = 'ds-progress-row';
 
     const labelEl = document.createElement('span');
+    labelEl.className = 'ds-progress-row-label';
     labelEl.textContent = label;
-    labelEl.style.cssText = `
-      font-size: 11px;
-      color: #6B7280;
-      min-width: 55px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    `;
     row.appendChild(labelEl);
 
     const bar = this.create(value, { height: '6px', color });
-    bar.style.flex = '1';
+    bar.classList.add('ds-progress-row-bar');
     row.appendChild(bar);
 
     if (showLabel) {
       const valueEl = document.createElement('span');
+      valueEl.className = 'ds-progress-row-value';
       valueEl.textContent = `${Number(value).toFixed(1)}%`;
-      valueEl.style.cssText = `
-        font-size: 11px;
-        font-weight: 600;
-        color: #374151;
-        min-width: 40px;
-        text-align: right;
-      `;
       row.appendChild(valueEl);
     }
 
     if (showBadge) {
       const badge = document.createElement('span');
+      badge.className = 'ds-progress-badge';
       badge.textContent = 'W';
       badge.title = 'Weighted';
-      badge.style.cssText = `
-        font-size: 9px;
-        font-weight: 700;
-        color: #10B981;
-        background: #D1FAE5;
-        padding: 2px 4px;
-        border-radius: 3px;
-        margin-left: 4px;
-      `;
       row.appendChild(badge);
     }
 

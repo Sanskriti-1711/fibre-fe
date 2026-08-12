@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LLD Review | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- MapLibre GL -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+
+  <style>
+    .ftth-basemap-switcher {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      background: #FFFFFF;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      padding: 4px;
+      gap: 2px;
+    }
+    .ftth-basemap-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      padding: 6px 0 4px;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #6B7280;
+      font-size: 10px;
+      font-weight: 500;
+      gap: 2px;
+    }
+    .ftth-basemap-btn .icon { font-size: 18px; line-height: 1; transition: transform 0.2s ease; }
+    .ftth-basemap-btn .label { font-size: 9px; line-height: 1; white-space: nowrap; }
+    .ftth-basemap-btn:hover { background: #F3F4F6; color: #374151; }
+    .ftth-basemap-btn:hover .icon { transform: scale(1.15); }
+    .ftth-basemap-btn.active { background: #E31837; color: #FFFFFF; box-shadow: 0 1px 4px rgba(227,24,55,0.3); }
+    .ftth-basemap-btn.active:hover { background: #C4142F; }
+  </style>
+</head>
+<body>
+
+<div id="sidebarContainer" style="display:none;"></div>
+
+<div class="layout" style="padding:0;">
+  <div class="lld-review-layout">
+
+    <!-- ============ Map pane ============ -->
+    <div class="lld-map-pane">
+      <div id="map"></div>
+
+      <div class="ftth-basemap-switcher" id="basemapSwitcher">
+        <button class="ftth-basemap-btn active" data-basemap="streets"><span class="icon">&#x1F5FA;&#xFE0F;</span><span class="label">Streets</span></button>
+        <button class="ftth-basemap-btn" data-basemap="light"><span class="icon">&#x1F319;</span><span class="label">Light</span></button>
+        <button class="ftth-basemap-btn" data-basemap="satellite"><span class="icon">&#x1F4F0;</span><span class="label">Satellite</span></button>
+        <button class="ftth-basemap-btn" data-basemap="dark"><span class="icon">&#x1F311;</span><span class="label">Dark</span></button>
+      </div>
+
+      <div id="mapLoading" class="ftth-map-loading">
+        <div><div class="spinner" style="margin:0 auto 12px;"></div><div style="font-size:14px;color:#6B7280;">Loading LLD review data&#x2026;</div></div>
+      </div>
+
+      <!-- Demo banner -->
+      <div id="demoBanner" class="lld-demo-banner">
+        <span class="icon">&#x1F6E0;&#xFE0F;</span>
+        <span>Demo mode &mdash; sample data. Wire up <code>/api/ftth/lld</code> endpoints to go live.</span>
+      </div>
+
+      <!-- Geometry focus view-mode (Original / Survey / Difference) -->
+      <div class="lld-view-mode" id="viewMode">
+        <button type="button" class="mode-btn" data-mode="original">Original</button>
+        <button type="button" class="mode-btn" data-mode="survey">Survey</button>
+        <button type="button" class="mode-btn active" data-mode="difference">Difference</button>
+      </div>
+
+      <!-- Legend / layer toggles -->
+      <div class="lld-map-legend" id="mapLegend"></div>
+
+      <!-- Detail drawer -->
+      <div class="lld-detail-drawer" id="detailDrawer">
+        <div class="lld-drawer-body" id="drawerBody"></div>
+      </div>
+    </div>
+
+    <!-- ============ Side pane ============ -->
+    <div class="lld-side-pane">
+      <div class="lld-side-pane-header">
+        <h2>LLD Review <a class="back-link" href="ftth-hld-results.html">&#x2190; HLD Results</a></h2>
+        <div class="project-name" id="projectName">Loading&#x2026;</div>
+        <div class="project-id">Project: <span id="projectId">&#x2014;</span> &middot; HLD: <span id="hldVersion">&#x2014;</span></div>
+      </div>
+
+      <!-- Readiness card -->
+      <div class="lld-side-pane-section">
+        <h3>LLD Readiness</h3>
+        <div id="readinessStatus" class="lld-readiness-status not-ready"><span class="dot"></span>LOADING</div>
+
+        <div class="lld-count-grid">
+          <div class="lld-count-item"><div class="value" id="countTotal">0</div><div class="label">Total</div></div>
+          <div class="lld-count-item approved"><div class="value" id="countApproved">0</div><div class="label">Approved</div></div>
+          <div class="lld-count-item rejected"><div class="value" id="countRejected">0</div><div class="label">Rejected</div></div>
+          <div class="lld-count-item correction"><div class="value" id="countCorrection">0</div><div class="label">Correction</div></div>
+          <div class="lld-count-item pending"><div class="value" id="countPending">0</div><div class="label">Pending</div></div>
+        </div>
+
+        <div class="lld-resolution">
+          <div class="label-row"><span id="resolveLabel">0 of 0 changes resolved</span><span id="resolvePct">0%</span></div>
+          <div class="track"><div class="fill" id="resolveFill" style="width:0%"></div></div>
+        </div>
+
+        <div class="lld-as-chip" id="asChip">
+          <span class="lock">&#x1F512;</span>
+          <span><strong id="asChipId">Approved Survey Version</strong><br style="line-height:2px;" /><span style="font-weight:400;font-size:11px;color:#047857;">Immutable &mdash; authoritative LLD input</span></span>
+        </div>
+
+        <button id="createAsBtn" class="lld-btn lld-btn-as" type="button" disabled>
+          <span class="spinner"></span>
+          <span class="btn-label">Create Approved Survey Version</span>
+        </button>
+
+        <button id="runLldBtn" class="lld-btn lld-btn-run" type="button" disabled>
+          <span class="spinner"></span>
+          <span class="btn-label">Run LLD</span>
+        </button>
+
+        <p class="lld-readiness-note" id="readinessNote">Loading review data&#x2026;</p>
+      </div>
+
+      <!-- Change queue -->
+      <div class="lld-side-pane-section" style="flex:1;">
+        <h3>Survey Changes <span class="badge" id="queueBadge">0</span></h3>
+        <div class="lld-filter-tabs" id="filterTabs"></div>
+        <input class="lld-search" id="searchInput" type="search" placeholder="Search feature, layer, reason&#x2026;" autocomplete="off" />
+        <div class="lld-change-list" id="changeList"><div class="ftth-empty-state"><div class="ftth-empty-state-icon">&#x23F3;</div><div class="ftth-empty-state-text">Loading changes&#x2026;</div></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script src="js/ftth-config.js"></script>
+<script src="fiber-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
+<script src="js/ftth-lld-review.js"></script>
+</body>
+</html>
