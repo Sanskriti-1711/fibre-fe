@@ -127,6 +127,24 @@ if (BUNDLE) {
         failures.push(`Deploy bundle missing LLD asset: ${f}`);
       }
     }
+
+    // Explicitly assert the self-hosted map libraries are bundled (the
+    // frontend no longer loads leaflet/maplibre from unpkg CDN, so maps
+    // depend on these vendor assets being deployed)
+    const vendorAssets = [
+      'vendor/leaflet/leaflet.js',
+      'vendor/leaflet/leaflet.css',
+      'vendor/leaflet/images/marker-icon.png',
+      'vendor/maplibre/maplibre-gl.js',
+      'vendor/maplibre/maplibre-gl.css',
+    ];
+    for (const f of vendorAssets) {
+      if (bundled.has(f)) {
+        console.log(`  ✅ Vendor asset bundled: ${f}`);
+      } else {
+        failures.push(`Deploy bundle missing vendor asset: ${f}`);
+      }
+    }
   }
   console.log('');
 }

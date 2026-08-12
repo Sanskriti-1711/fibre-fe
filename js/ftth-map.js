@@ -5,8 +5,8 @@
  * pipeline results, layer visibility toggling, and base map switching.
  *
  * Requires: maplibregl from MapLibre CDN
- *   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
- *   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+ *   <script src="vendor/maplibre/maplibre-gl.js"></script>
+ *   <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
  */
 
 (function () {

@@ -30,6 +30,7 @@ cp -r js public/js
 cp -r partials public/partials
 cp -r engineer public/engineer
 cp -r docs public/docs
+cp -r vendor public/vendor
 if node ci/link-check.js --bundle public; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 
 # ── Job 3: pages (deploy) — same build + both checks ─────────────────────

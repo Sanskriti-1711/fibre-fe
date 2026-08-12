@@ -48,6 +48,7 @@ bundle-check:
     - cp -r partials public/partials
     - cp -r engineer public/engineer
     - cp -r docs public/docs
+    - cp -r vendor public/vendor
     - node ci/link-check.js --bundle public
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -70,6 +71,7 @@ pages:
     - cp -r partials public/partials
     - cp -r engineer public/engineer
     - cp -r docs public/docs
+    - cp -r vendor public/vendor
     # Verify the bundle is complete and self-consistent (LLD pages + their
     # JS included, all internal links resolve inside the deployed site).
     - node ci/link-check.js --bundle public
