@@ -33,6 +33,28 @@ validate:
     - if: $CI_COMMIT_TAG
   interruptible: true
 
+# Build the deployable bundle exactly the way the pages job does, then
+# run the bundle-mode check (pages present, LLD assets bundled, links
+# resolve inside the bundle). Fast and cheap — runs on every push.
+bundle-check:
+  stage: validate
+  image: node:20-alpine
+  script:
+    - mkdir -p public
+    - cp -r *.html public/
+    - cp *.js public/
+    - cp -r css public/css
+    - cp -r js public/js
+    - cp -r partials public/partials
+    - cp -r engineer public/engineer
+    - cp -r docs public/docs
+    - node ci/link-check.js --bundle public
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+  interruptible: true
+
 # ── Stage 2: deploy to GitLab Pages ──────────────────────────────────────
 pages:
   stage: deploy
@@ -42,11 +64,15 @@ pages:
     # Build the deployable bundle: everything except git internals + CI
     - mkdir -p public
     - cp -r *.html public/
+    - cp *.js public/
     - cp -r css public/css
     - cp -r js public/js
     - cp -r partials public/partials
     - cp -r engineer public/engineer
     - cp -r docs public/docs
+    # Verify the bundle is complete and self-consistent (LLD pages + their
+    # JS included, all internal links resolve inside the deployed site).
+    - node ci/link-check.js --bundle public
   artifacts:
     paths:
       - public
