@@ -2,145 +2,143 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin Dashboard | Tech Mahindra</title>
+  <title>Dashboard | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .hub-stage-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 16px 0 24px;
+    }
+    .hub-stage-card {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .hub-stage-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: #C7D2FE;
+    }
+    .hub-stage-card .icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+    .hub-stage-card h3 { margin: 0 0 4px; font-size: 16px; color: #1F2937; }
+    .hub-stage-card p { margin: 0; font-size: 12px; color: #6B7280; line-height: 1.5; }
+    .hub-stage-card .count { font-size: 26px; font-weight: 800; color: #1F2937; margin-top: 10px; }
+    .hub-stage-card.hld .icon { background: #EEF2FF; }
+    .hub-stage-card.survey .icon { background: #ECFDF5; }
+    .hub-stage-card.lld .icon { background: #F5F3FF; }
+
+    .hub-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 16px 0 24px;
+    }
+    .hub-actions .create-btn { text-decoration: none; }
+  </style>
 </head>
 <body>
 
 <div class="layout">
-
   <div id="sidebarContainer"></div>
 
-  <!-- Main Content -->
   <main class="content">
 
     <div class="header">
-      <h1>Admin Dashboard</h1>
-      <p>Compliance & Audit Overview</p>
+      <h1>FTTH Pipeline Overview</h1>
+      <p>HLD &rarr; Survey &rarr; LLD &mdash; navigate any stage from here</p>
     </div>
 
     <!-- KPI Cards -->
     <div class="kpi-grid">
       <div class="kpi-card">
+        <div class="kpi-title">HLD Runs</div>
+        <div id="kpiHld" class="kpi-value">–</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">Pending Survey Changes</div>
+        <div id="kpiPending" class="kpi-value">–</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-title">LLD Runs</div>
+        <div id="kpiLld" class="kpi-value">–</div>
+      </div>
+      <div class="kpi-card">
         <div class="kpi-title">Total Projects</div>
-        <div id="kpiTotalProjects" class="kpi-value">48</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-title">Overall Completion</div>
-        <div id="kpiOverallCompletion" class="kpi-value">82%</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-title">Pending / Failed Audits</div>
-        <div id="kpiPendingFailed" class="kpi-value">6</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-title">Engineers Active Today</div>
-        <div id="kpiEngineersActive" class="kpi-value">19</div>
+        <div id="kpiTotal" class="kpi-value">–</div>
       </div>
     </div>
 
-    <!-- Latest Uploads -->
-    <div class="section">
-      <h3>Latest Uploads</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Uploaded By</th>
-            <th>Date</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="latestUploadsBody">
-          <tr>
-            <td>Fiber Rollout – Zone A</td>
-            <td>FE1023</td>
-            <td>Today</td>
-            <td class="status pending">Pending Audit</td>
-          </tr>
-          <tr>
-            <td>Metro Expansion – Phase 2</td>
-            <td>FE0891</td>
-            <td>Yesterday</td>
-            <td class="status completed">Completed</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Stage cards -->
+    <div class="hub-stage-grid">
+      <a class="hub-stage-card hld" href="ftth-hld-projects.html">
+        <div class="icon">&#x1F3D7;&#xFE0F;</div>
+        <h3>HLD Outputs</h3>
+        <p>High-level designs produced by the HLD pipeline. View results, download packages, or assign to an engineer.</p>
+        <div class="count" id="stageHld">–</div>
+      </a>
+      <a class="hub-stage-card survey" href="ftth-survey-changes.html">
+        <div class="icon">&#x1F9ED;</div>
+        <h3>Survey Changes</h3>
+        <p>Review engineer edits clubbed by project &mdash; approve, reject, or request correction before LLD.</p>
+        <div class="count" id="stageSurvey">–</div>
+      </a>
+      <a class="hub-stage-card lld" href="ftth-lld-outputs.html">
+        <div class="icon">&#x1F4D0;</div>
+        <h3>LLD Outputs</h3>
+        <p>Final detailed designs. View the map output or download the LLD layer zip per run.</p>
+        <div class="count" id="stageLld">–</div>
+      </a>
     </div>
 
-    <!-- Latest Audits -->
+    <!-- Quick actions -->
     <div class="section">
-      <h3>Recent Audits</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Auditor</th>
-            <th>Result</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Fiber Rollout – Zone C</td>
-            <td>Audit Team</td>
-            <td class="status failed">Failed</td>
-            <td>Today</td>
-          </tr>
-          <tr>
-            <td>City Core – Section 5</td>
-            <td>Audit Team</td>
-            <td class="status completed">Passed</td>
-            <td>Yesterday</td>
-          </tr>
-        </tbody>
-      </table>
+      <h3>Quick Actions</h3>
+      <div class="hub-actions">
+        <a class="create-btn" href="ftth-hld.html">&#x2B; Upload HLD</a>
+        <a class="create-btn" href="projects.html" style="background:#374151;">All Projects</a>
+        <a class="create-btn" href="ftth-survey-changes.html" style="background:#374151;">Review Survey Changes</a>
+      </div>
+    </div>
+
+    <!-- Recent pipeline runs -->
+    <div class="section">
+      <h3>Recent HLD Runs</h3>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Status</th>
+              <th>Progress</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="recentBody">
+            <tr><td colspan="5" style="padding:16px;color:#6B7280;">Loading&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </main>
 </div>
 
-<button id="notifFab" class="notif-fab" type="button" aria-label="Open notifications" aria-controls="notifSubstack" aria-expanded="false">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Z" fill="currentColor"/>
-    <path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  </svg>
-  <span class="notif-badge" id="notifBadge">3</span>
-</button>
-
-<div id="notifOverlay" class="notif-overlay" tabindex="-1" aria-hidden="true"></div>
-
-<aside id="notifSubstack" class="notif-substack" role="dialog" aria-modal="true" aria-label="Notifications" aria-hidden="true">
-  <div class="notif-substack-header">
-    <h4>Notifications</h4>
-    <button id="notifClose" class="notif-close" type="button" aria-label="Close notifications">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </button>
-  </div>
-  <div class="notif-list">
-    <div class="notif-item">
-      <div class="notif-item-title">Pending audit requires attention</div>
-      <div class="notif-item-body">Fiber Rollout – Zone A is pending audit. Review the latest upload status.</div>
-    </div>
-    <div class="notif-item">
-      <div class="notif-item-title">Audit failed</div>
-      <div class="notif-item-body">Fiber Rollout – Zone C has failed. Check the audit details for remediation.</div>
-    </div>
-    <div class="notif-item">
-      <div class="notif-item-title">Engineer activity spike</div>
-      <div class="notif-item-body">19 engineers active today. Consider monitoring workload distribution.</div>
-    </div>
-  </div>
-</aside>
-
-</body>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -148,173 +146,103 @@
   window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
+<script src="js/ftth-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
 
-  function handleLogout(e) {
-    if (e) e.preventDefault();
-    window.FiberAuth.clear();
-    window.location.href = "index.html";
-  }
-
-  (function () {
-    const fab = document.getElementById("notifFab");
-    const panel = document.getElementById("notifSubstack");
-    const overlay = document.getElementById("notifOverlay");
-    const closeBtn = document.getElementById("notifClose");
-
-    if (!fab || !panel || !overlay || !closeBtn) return;
-
-    function openNotifications() {
-      panel.classList.add("open");
-      overlay.classList.add("open");
-      panel.setAttribute("aria-hidden", "false");
-      overlay.setAttribute("aria-hidden", "false");
-      fab.setAttribute("aria-expanded", "true");
-      closeBtn.focus();
-    }
-
-    function closeNotifications() {
-      panel.classList.remove("open");
-      overlay.classList.remove("open");
-      panel.setAttribute("aria-hidden", "true");
-      overlay.setAttribute("aria-hidden", "true");
-      fab.setAttribute("aria-expanded", "false");
-      fab.focus();
-    }
-
-    function toggleNotifications() {
-      if (panel.classList.contains("open")) closeNotifications();
-      else openNotifications();
-    }
-
-    fab.addEventListener("click", toggleNotifications);
-    closeBtn.addEventListener("click", closeNotifications);
-    overlay.addEventListener("click", closeNotifications);
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && panel.classList.contains("open")) {
-        closeNotifications();
-      }
-    });
-  })();
-
   function setText(id, value) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = value;
+    var el = document.getElementById(id);
+    if (el) el.textContent = value;
   }
 
-  function pickProjectName(p) {
-    return (p && (p.name || p.title || p.project_name)) || "-";
-  }
-
-  function pickCompletion(p) {
-    const v = (p && (p.completion || p.completion_percent || p.progress || p.progress_percent)) || null;
-    if (v === null || v === undefined || v === "") return null;
-    const num = Number(v);
-    if (!isNaN(num)) return num;
-    return null;
-  }
-
-  function formatPercent(v) {
-    const num = Number(v);
-    if (!isNaN(num)) return Math.round(num) + "%";
-    return String(v);
-  }
-
-  function formatDate(value) {
-    if (!value) return "-";
-    try {
-      const d = new Date(value);
-      if (!isNaN(d.getTime())) return d.toLocaleString();
-    } catch (_) {}
-    return String(value);
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   }
 
   function statusClass(status) {
-    const s = String(status || "").toLowerCase();
-    if (s.includes("fail")) return "failed";
-    if (s.includes("complete") || s.includes("pass")) return "completed";
-    return "pending";
+    var s = String(status || '').toLowerCase();
+    if (s.includes('fail')) return 'failed';
+    if (s.includes('complete')) return 'completed';
+    if (s.includes('run')) return 'pending';
+    return 'pending';
   }
 
-  function normalizeLatest(item) {
-    if (!item || typeof item !== "object") return null;
-    return {
-      project: item.project_name || item.project || item.name || item.title,
-      uploader: item.uploaded_by || item.uploader || item.engineer || item.user || item.user_id,
-      date: item.date || item.created_at || item.updated_at || item.timestamp,
-      status: item.status || item.audit_status || item.result || "Pending"
-    };
-  }
-
-  async function loadDashboardData() {
+  function fmtDate(iso) {
+    if (!iso) return '—';
     try {
-      const projectsData = await window.FiberApi.listProjects();
-      const projects = Array.isArray(projectsData)
-        ? projectsData
-        : (projectsData && Array.isArray(projectsData.results) ? projectsData.results : []);
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleString();
+    } catch (_) { return '—'; }
+  }
 
-      if (projects.length) {
-        setText("kpiTotalProjects", projects.length.toString());
-
-        const completionValues = projects
-          .map(pickCompletion)
-          .filter((v) => typeof v === "number");
-        if (completionValues.length) {
-          const avg = completionValues.reduce((a, b) => a + b, 0) / completionValues.length;
-          setText("kpiOverallCompletion", formatPercent(avg));
-        }
-      }
-    } catch (_) {}
-
+  async function loadKpis() {
+    // HLD runs
     try {
-      const latestData = await window.FiberApi.listProjectLatest();
-      const latestList = Array.isArray(latestData)
-        ? latestData
-        : (latestData && Array.isArray(latestData.results) ? latestData.results : []);
+      var hld = await window.FtthApi.listProjects(100);
+      var hldList = Array.isArray(hld) ? hld : (hld && hld.results) || [];
+      setText('kpiHld', hldList.length);
+      setText('stageHld', hldList.length);
+      renderRecent(hldList);
+    } catch (_) { setText('kpiHld', '–'); }
 
-      if (!latestList.length) return;
+    // Survey changes (clubbed by project)
+    try {
+      var lp = await window.FtthLldApi.listProjects();
+      var projects = (lp && lp.projects) || [];
+      var pending = 0;
+      projects.forEach(function (p) { pending += (p.pending || 0); });
+      setText('kpiPending', pending);
+      setText('stageSurvey', projects.length);
+    } catch (_) { setText('kpiPending', '–'); }
 
-      let pendingFailedCount = 0;
-      const tbody = document.getElementById("latestUploadsBody");
-      if (tbody) tbody.innerHTML = "";
+    // LLD runs
+    try {
+      var lr = await window.FtthLldApi.listRuns();
+      var runs = (lr && lr.runs) || [];
+      setText('kpiLld', runs.length);
+      setText('stageLld', runs.length);
+    } catch (_) { setText('kpiLld', '–'); }
 
-      latestList.slice(0, 8).forEach(function (item) {
-        const row = normalizeLatest(item);
-        if (!row) return;
-        const status = row.status || "Pending";
-        const statusLower = String(status).toLowerCase();
-        if (statusLower.includes("pending") || statusLower.includes("fail")) {
-          pendingFailedCount += 1;
-        }
-
-        if (!tbody) return;
-        const tr = document.createElement("tr");
-        tr.innerHTML = ""
-          + "<td>" + escapeHtml(row.project || "-") + "</td>"
-          + "<td>" + escapeHtml(row.uploader || "-") + "</td>"
-          + "<td>" + escapeHtml(formatDate(row.date)) + "</td>"
-          + "<td class=\"status " + statusClass(status) + "\">" + escapeHtml(status) + "</td>";
-        tbody.appendChild(tr);
-      });
-
-      if (pendingFailedCount) {
-        setText("kpiPendingFailed", pendingFailedCount.toString());
-      }
-    } catch (_) {}
+    // Total projects (all kinds)
+    try {
+      var data = await window.FiberApi.listProjects();
+      var list = Array.isArray(data) ? data : (data && data.results) || [];
+      setText('kpiTotal', list.length);
+    } catch (_) { setText('kpiTotal', '–'); }
   }
 
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+  function renderRecent(hldList) {
+    var tbody = document.getElementById('recentBody');
+    if (!tbody) return;
+    var recent = hldList.slice(0, 8);
+    if (!recent.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;color:#6B7280;">No HLD runs yet. <a href="ftth-hld.html">Upload HLD</a> to start.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = '';
+    recent.forEach(function (p) {
+      var name = p.name || p.project_id || '—';
+      var pct = Number(p.progress) || 0;
+      var completed = String(p.status || '').toLowerCase() === 'completed';
+      var link = completed
+        ? 'ftth-hld-results.html?project_id=' + encodeURIComponent(p.project_id)
+        : 'ftth-hld-status.html?project_id=' + encodeURIComponent(p.project_id);
+      var tr = document.createElement('tr');
+      tr.innerHTML = ''
+        + '<td>' + esc(name) + '</td>'
+        + '<td class="status ' + statusClass(p.status) + '">' + esc(p.status || '—') + '</td>'
+        + '<td>' + pct + '%</td>'
+        + '<td>' + esc(fmtDate(p.created_at)) + '</td>'
+        + '<td><a class="action-link" href="' + link + '">View</a></td>';
+      tbody.appendChild(tr);
+    });
   }
 
-  loadDashboardData();
+  loadKpis();
 </script>
+</body>
 </html>

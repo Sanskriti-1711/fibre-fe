@@ -661,6 +661,18 @@
     return body;
   }
 
+  async function apiListRuns() {
+    var url = buildUrl(API_PREFIX + '/runs/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   // ==================================================================
   // Public API (real backend first, demo fallback on network error)
   // ==================================================================
@@ -738,6 +750,10 @@
     return apiLoadReview(projectId).then(function (r) { return r.project; });
   }
 
+  function listRuns() {
+    return apiListRuns();
+  }
+
   window.FtthLldApi = {
     loadReview: loadReview,
     submitAction: submitAction,
@@ -750,6 +766,7 @@
     getProject: getProject,
     resolveDefaultProject: resolveDefaultProject,
     listProjects: listProjects,
+    listRuns: listRuns,
     isDemo: function () { return demoMode; },
     buildApprovedGeoJSON: buildApprovedGeoJSON,
     readDemoState: readState,
