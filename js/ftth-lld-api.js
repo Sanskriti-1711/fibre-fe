@@ -434,7 +434,7 @@
 
   function demoCreateApprovedVersion() {
     var state = readState();
-    var pending = state.changes.filter(function (c) { return c.status === 'pending_review' || c.status === 'needs_correction'; });
+    var pending = state.changes.filter(function (c) { return c.status === 'pending_review'; });
     if (pending.length) {
       return Promise.reject(new Error('Cannot create Approved Survey Version while ' + pending.length + ' change(s) are unresolved.'));
     }
@@ -576,7 +576,7 @@
   // pages work out of the box when no ?project_id= is supplied.
   // ==================================================================
 
-  async function resolveDefaultProject() {
+  async  function resolveDefaultProject() {
     var url = buildUrl('/api/ftth/hld/projects/?limit=20');
     var response = await authFetch(url);
     var body = await parseBody(response);
@@ -585,6 +585,18 @@
     var completed = list.filter(function (p) { return p.status === 'completed'; });
     var pick = completed[0] || list[0];
     return pick ? { project_id: pick.project_id, name: pick.name } : null;
+  }
+
+  async function listProjects() {
+    var url = buildUrl(API_PREFIX + '/projects/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
   }
 
   // ==================================================================
@@ -643,6 +655,7 @@
     listVersions: listVersions,
     getProject: getProject,
     resolveDefaultProject: resolveDefaultProject,
+    listProjects: listProjects,
     isDemo: function () { return demoMode; },
     buildApprovedGeoJSON: buildApprovedGeoJSON,
     readDemoState: readState,

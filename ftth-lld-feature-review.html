@@ -631,12 +631,13 @@
   window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
   
   // Get parameters from URL (support both old and new parameter names)
   const urlParams = new URLSearchParams(window.location.search);
-  const projectId = urlParams.get('project_id') || urlParams.get('project');
+  let projectId = urlParams.get('project_id') || urlParams.get('project');
   const changeId = urlParams.get('change_id') || urlParams.get('feature');
   
   // State
@@ -660,7 +661,13 @@
   };
   
   // Initialize
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
+    if (!projectId && window.FtthLldApi && window.FtthLldApi.resolveDefaultProject) {
+      try {
+        const resolved = await window.FtthLldApi.resolveDefaultProject();
+        if (resolved && resolved.project_id) projectId = resolved.project_id;
+      } catch (_) { /* fall through */ }
+    }
     if (projectId) {
       document.getElementById('backLink').href = `ftth-survey-changes.html?project_id=${projectId}`;
       loadChanges();
@@ -692,27 +699,49 @@
     }
   }
   
-  // Load all changes
+  // Load all changes from the real LLD review backend
   async function loadChanges() {
     try {
-      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/survey-changes/`, {
-        headers: { 'Authorization': 'Bearer ' + window.FiberAuth.getToken() }
+      const review = await window.FtthLldApi.loadReview(projectId);
+      
+      // Adapt the LLD change payload to this page's field names.
+      allChanges = (review.changes || []).map(function(ch) {
+        var firstAttr = (ch.attributes && ch.attributes[0]) || {};
+        return {
+          id: ch.change_id,
+          feature_id_display: ch.feature_id,
+          layer_name: ch.layer,
+          change_type: ch.change_type,
+          change_type_display: ch.change_type,
+          reason: ch.reason,
+          engineer_notes: '',
+          created_by_email: ch.engineer || 'Unknown',
+          status: ch.status,
+          status_display: ch.status,
+          created_at: ch.timestamp,
+          changed_field: firstAttr.field || '',
+          original_value: firstAttr.hld_value,
+          proposed_value: firstAttr.survey_value,
+          original_geometry: ch.original_geometry,
+          proposed_geometry: ch.survey_geometry,
+          reviewer_email: null,
+          reviewed_at: null,
+          review_comments: (ch.comments && ch.comments.length) ? ch.comments[ch.comments.length - 1].text : ''
+        };
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        allChanges = data.results || data || [];
-        
-        // Find current change index
-        if (changeId) {
-          currentIndex = allChanges.findIndex(c => c.id === changeId);
-          if (currentIndex === -1) currentIndex = 0;
-        }
-        
-        loadFeature(currentIndex);
-      } else {
-        throw new Error('Failed to load changes');
+      // Find current change index
+      if (changeId) {
+        currentIndex = allChanges.findIndex(c => c.id === changeId);
+        if (currentIndex === -1) currentIndex = 0;
       }
+      
+      if (allChanges.length === 0) {
+        document.getElementById('loadingState').innerHTML = '<div style="text-align:center;color:#6B7280;padding:40px;">No survey changes found for this project.</div>';
+        return;
+      }
+      
+      loadFeature(currentIndex);
     } catch (err) {
       console.error('Failed to load changes:', err);
       showToast('Failed to load changes', 'error');
@@ -1030,7 +1059,7 @@
     }
   }
   
-  // Submit review
+  // Submit review (maps page actions to the LLD backend actions)
   async function submitReview(action) {
     const comment = document.getElementById('reviewComment').value.trim();
     
@@ -1045,39 +1074,27 @@
       return;
     }
     
+    const actionMap = { approved: 'approve', rejected: 'reject', needs_correction: 'correction' };
+    
     try {
-      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/survey-changes/${currentChange.id}/review/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + window.FiberAuth.getToken(),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: action,
-          review_comments: comment
-        })
-      });
+      await window.FtthLldApi.submitAction(projectId, currentChange.id, actionMap[action], comment);
       
-      if (response.ok) {
-        showToast(`Change ${action === 'approved' ? 'accepted' : action === 'rejected' ? 'sent for redo' : 'marked for correction'}`, 'success');
-        
-        // Update local data
-        currentChange.status = action;
-        currentChange.review_comments = comment;
-        currentChange.reviewer_email = window.FiberAuth.getUser()?.email;
-        currentChange.reviewed_at = new Date().toISOString();
-        
-        // Update UI
-        renderFeature();
-        
-        // Clear comment
-        document.getElementById('reviewComment').value = '';
-      } else {
-        throw new Error('Failed to submit review');
-      }
+      showToast(`Change ${action === 'approved' ? 'accepted' : action === 'rejected' ? 'sent for redo' : 'marked for correction'}`, 'success');
+      
+      // Update local data
+      currentChange.status = action;
+      currentChange.review_comments = comment;
+      currentChange.reviewer_email = window.FiberAuth.getUser()?.email;
+      currentChange.reviewed_at = new Date().toISOString();
+      
+      // Update UI
+      renderFeature();
+      
+      // Clear comment
+      document.getElementById('reviewComment').value = '';
     } catch (err) {
       console.error('Failed to submit review:', err);
-      showToast('Failed to submit review', 'error');
+      showToast('Failed to submit review: ' + (err.message || err), 'error');
     }
   }
   

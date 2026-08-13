@@ -4,20 +4,16 @@
   <meta charset="UTF-8" />
   <title>Survey Changes | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <!-- MapLibre GL -->
-  <script src="vendor/maplibre/maplibre-gl.js"></script>
-  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
-  
+
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/ftth.css" />
-  
+
   <style>
     .survey-changes-content {
       max-width: 1200px;
       margin: 0 auto;
     }
-    
+
     .survey-changes-header {
       display: flex;
       align-items: center;
@@ -26,108 +22,74 @@
       gap: 12px;
       margin-bottom: 20px;
     }
-    
-    .survey-changes-header h1 {
-      margin: 0;
-      font-size: 22px;
-    }
-    
-    .survey-changes-header .actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    
-    .survey-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    
-    .survey-stat-card {
+
+    .survey-changes-header h1 { margin: 0; font-size: 22px; }
+    .survey-changes-header .actions { display: flex; gap: 10px; align-items: center; }
+
+    /* ── Per-project block ─────────────────────────────────────────────── */
+    .project-block {
       background: #FFFFFF;
       border: 1px solid #E5E7EB;
       border-radius: 12px;
-      padding: 20px;
-      text-align: center;
+      margin-bottom: 24px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
-    
-    .survey-stat-value {
-      font-size: 32px;
-      font-weight: 700;
-      color: #1F2937;
-      margin-bottom: 4px;
-    }
-    
-    .survey-stat-label {
-      font-size: 12px;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .survey-stat-card.pending .survey-stat-value { color: #2563EB; }
-    .survey-stat-card.approved .survey-stat-value { color: #059669; }
-    .survey-stat-card.rejected .survey-stat-value { color: #DC2626; }
-    .survey-stat-card.correction .survey-stat-value { color: #D97706; }
-    
-    .survey-filters {
+
+    .project-block-header {
       display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
+      align-items: center;
+      justify-content: space-between;
       flex-wrap: wrap;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #E5E7EB;
+      background: #F9FAFB;
     }
-    
-    .survey-filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+
+    .project-block-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .project-block-title .name { font-size: 15px; font-weight: 700; color: #1F2937; }
+    .project-block-title .meta { font-size: 12px; color: #6B7280; }
+
+    .project-readiness {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
     }
-    
-    .survey-filter-group label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    
-    .survey-filter-group select,
-    .survey-filter-group input {
-      padding: 8px 12px;
-      border: 1px solid #D1D5DB;
+    .project-readiness.ready { background: #ECFDF5; color: #047857; }
+    .project-readiness.not-ready { background: #FFFBEB; color: #B45309; }
+    .project-readiness .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    .project-counts { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #6B7280; }
+    .project-counts b { font-size: 14px; margin-right: 3px; }
+    .count-approved b { color: #059669; }
+    .count-rejected b { color: #DC2626; }
+    .count-correction b { color: #D97706; }
+    .count-pending b { color: #2563EB; }
+
+    .run-lld-btn {
+      padding: 8px 16px;
       border-radius: 8px;
       font-size: 13px;
-      color: #1F2937;
-      background: #FFFFFF;
-      min-width: 150px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: #059669;
+      color: #FFFFFF;
+      transition: all 0.15s ease;
     }
-    
-    .survey-filter-group select:focus,
-    .survey-filter-group input:focus {
-      outline: none;
-      border-color: #E31837;
-      box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.1);
-    }
-    
-    .survey-table-container {
-      background: #FFFFFF;
-      border-radius: 12px;
-      border: 1px solid #E5E7EB;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      overflow: hidden;
-    }
-    
-    .survey-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    
+    .run-lld-btn:hover:not(:disabled) { background: #047857; }
+    .run-lld-btn:disabled { background: #D1D5DB; color: #9CA3AF; cursor: not-allowed; }
+
+    /* ── Table ─────────────────────────────────────────────────────────── */
+    .survey-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .survey-table th {
       text-align: left;
-      padding: 14px 16px;
+      padding: 12px 16px;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
@@ -137,23 +99,16 @@
       border-bottom: 1px solid #E5E7EB;
       white-space: nowrap;
     }
-    
     .survey-table td {
-      padding: 14px 16px;
+      padding: 12px 16px;
       border-bottom: 1px solid #F3F4F6;
       color: #374151;
       vertical-align: middle;
     }
-    
-    .survey-table tr:last-child td {
-      border-bottom: none;
-    }
-    
-    .survey-table tr:hover td {
-      background: #F9FAFB;
-    }
-    
-    .survey-table .change-type-badge {
+    .survey-table tr:last-child td { border-bottom: none; }
+    .survey-table tr:hover td { background: #F9FAFB; }
+
+    .change-type-badge {
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 11px;
@@ -161,13 +116,12 @@
       text-transform: uppercase;
       letter-spacing: 0.03em;
     }
-    
-    .survey-table .type-geometry { background: #F3E8FF; color: #7E22CE; }
-    .survey-table .type-attribute { background: #FEF3C7; color: #B45309; }
-    .survey-table .type-new { background: #D1FAE5; color: #047857; }
-    .survey-table .type-removed { background: #FEE2E2; color: #B91C1C; }
-    
-    .survey-table .status-badge {
+    .type-geometry { background: #F3E8FF; color: #7E22CE; }
+    .type-attribute { background: #FEF3C7; color: #B45309; }
+    .type-new { background: #D1FAE5; color: #047857; }
+    .type-removed { background: #FEE2E2; color: #B91C1C; }
+
+    .status-badge {
       display: inline-flex;
       align-items: center;
       gap: 5px;
@@ -176,62 +130,25 @@
       font-size: 11px;
       font-weight: 700;
     }
-    
-    .survey-table .status-badge .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
+    .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .status-pending { background: #EFF6FF; color: #1D4ED8; }
+    .status-approved { background: #ECFDF5; color: #047857; }
+    .status-rejected { background: #FEF2F2; color: #B91C1C; }
+    .status-correction { background: #FFFBEB; color: #B45309; }
+
+    .feature-id { font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace; font-size: 12px; color: #6B7280; }
+    .layer-name { font-weight: 600; color: #1F2937; }
+    .change-reason { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .engineer-info { display: flex; align-items: center; gap: 8px; }
+    .engineer-avatar {
+      width: 26px; height: 26px; border-radius: 50%; background: #E5E7EB;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 600; color: #6B7280;
     }
-    
-    .survey-table .status-pending { background: #EFF6FF; color: #1D4ED8; }
-    .survey-table .status-approved { background: #ECFDF5; color: #047857; }
-    .survey-table .status-rejected { background: #FEF2F2; color: #B91C1C; }
-    .survey-table .status-correction { background: #FFFBEB; color: #B45309; }
-    
-    .survey-table .feature-id {
-      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
-      font-size: 12px;
-      color: #6B7280;
-    }
-    
-    .survey-table .layer-name {
-      font-weight: 600;
-      color: #1F2937;
-    }
-    
-    .survey-table .change-reason {
-      max-width: 250px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    
-    .survey-table .engineer-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .survey-table .engineer-avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: #E5E7EB;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 600;
-      color: #6B7280;
-    }
-    
-    .survey-table .action-btns {
-      display: flex;
-      gap: 6px;
-    }
-    
-    .survey-table .action-btn {
+
+    .action-btn {
+      display: inline-block;
       padding: 6px 12px;
       border-radius: 6px;
       font-size: 11px;
@@ -239,307 +156,16 @@
       cursor: pointer;
       border: 1px solid transparent;
       transition: all 0.15s ease;
-    }
-    
-    .survey-table .action-btn-approve {
-      background: #ECFDF5;
-      color: #047857;
-      border-color: #A7F3D0;
-    }
-    
-    .survey-table .action-btn-approve:hover {
-      background: #D1FAE5;
-    }
-    
-    .survey-table .action-btn-reject {
-      background: #FEF2F2;
-      color: #B91C1C;
-      border-color: #FECACA;
-    }
-    
-    .survey-table .action-btn-reject:hover {
-      background: #FEE2E2;
-    }
-    
-    .survey-table .action-btn-correct {
-      background: #FFFBEB;
-      color: #B45309;
-      border-color: #FDE68A;
-    }
-    
-    .survey-table .action-btn-correct:hover {
-      background: #FEF3C7;
-    }
-    
-    .survey-table .action-btn-view {
       background: #F3F4F6;
       color: #374151;
       border-color: #D1D5DB;
+      text-decoration: none;
     }
-    
-    .survey-table .action-btn-view:hover {
-      background: #E5E7EB;
-    }
-    
-    .survey-table .action-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    /* Detail Modal */
-    .survey-detail-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    
-    .survey-detail-modal.visible {
-      display: flex;
-    }
-    
-    .survey-detail-content {
-      background: #FFFFFF;
-      border-radius: 16px;
-      max-width: 800px;
-      width: 100%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    
-    .survey-detail-header {
-      padding: 20px 24px;
-      border-bottom: 1px solid #E5E7EB;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      background: #FFFFFF;
-      z-index: 1;
-    }
-    
-    .survey-detail-header h2 {
-      margin: 0;
-      font-size: 18px;
-      color: #1F2937;
-    }
-    
-    .survey-detail-body {
-      padding: 24px;
-    }
-    
-    .survey-detail-section {
-      margin-bottom: 24px;
-    }
-    
-    .survey-detail-section h3 {
-      margin: 0 0 12px;
-      font-size: 14px;
-      font-weight: 700;
-      color: #1F2937;
-      border-bottom: 1px solid #E5E7EB;
-      padding-bottom: 8px;
-    }
-    
-    .survey-comparison-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    
-    .survey-comparison-box {
-      background: #F9FAFB;
-      border-radius: 10px;
-      padding: 16px;
-      border: 1px solid #E5E7EB;
-    }
-    
-    .survey-comparison-box h4 {
-      margin: 0 0 8px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #6B7280;
-    }
-    
-    .survey-comparison-box.original {
-      border-color: #93C5FD;
-      background: #EFF6FF;
-    }
-    
-    .survey-comparison-box.original h4 { color: #1D4ED8; }
-    
-    .survey-comparison-box.proposed {
-      border-color: #86EFAC;
-      background: #ECFDF5;
-    }
-    
-    .survey-comparison-box.proposed h4 { color: #047857; }
-    
-    .survey-attribute-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    
-    .survey-attribute-table th,
-    .survey-attribute-table td {
-      padding: 10px 12px;
-      border: 1px solid #E5E7EB;
-      text-align: left;
-    }
-    
-    .survey-attribute-table th {
-      background: #F9FAFB;
-      font-weight: 600;
-      color: #6B7280;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-    
-    .survey-attribute-table .changed {
-      background: #FEF3C7;
-      font-weight: 600;
-    }
-    
-    .survey-review-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid #E5E7EB;
-    }
-    
-    .survey-review-btn {
-      flex: 1;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s ease;
-    }
-    
-    .survey-review-btn-approve {
-      background: #059669;
-      color: #FFFFFF;
-    }
-    
-    .survey-review-btn-approve:hover {
-      background: #047857;
-    }
-    
-    .survey-review-btn-reject {
-      background: #DC2626;
-      color: #FFFFFF;
-    }
-    
-    .survey-review-btn-reject:hover {
-      background: #B91C1C;
-    }
-    
-    .survey-review-btn-correct {
-      background: #D97706;
-      color: #FFFFFF;
-    }
-    
-    .survey-review-btn-correct:hover {
-      background: #B45309;
-    }
-    
-    .survey-review-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .survey-comments-input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #D1D5DB;
-      border-radius: 8px;
-      font-size: 13px;
-      resize: vertical;
-      min-height: 80px;
-      margin-top: 12px;
-    }
-    
-    .survey-comments-input:focus {
-      outline: none;
-      border-color: #E31837;
-      box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.1);
-    }
-    
-    .survey-empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6B7280;
-    }
-    
-    .survey-empty-state .icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-    
-    .survey-empty-state h2 {
-      font-size: 18px;
-      color: #1F2937;
-      margin: 0 0 8px;
-    }
-    
-    .survey-pagination {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px;
-      border-top: 1px solid #E5E7EB;
-    }
-    
-    .survey-pagination-info {
-      font-size: 13px;
-      color: #6B7280;
-    }
-    
-    .survey-pagination-btns {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .survey-pagination-btn {
-      padding: 6px 12px;
-      border: 1px solid #D1D5DB;
-      border-radius: 6px;
-      background: #FFFFFF;
-      font-size: 12px;
-      font-weight: 600;
-      color: #374151;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    
-    .survey-pagination-btn:hover {
-      background: #F9FAFB;
-      border-color: #9CA3AF;
-    }
-    
-    .survey-pagination-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .survey-pagination-btn.active {
-      background: #E31837;
-      color: #FFFFFF;
-      border-color: #E31837;
-    }
+    .action-btn:hover { background: #E5E7EB; }
+
+    .survey-empty-state { text-align: center; padding: 60px 20px; color: #6B7280; }
+    .survey-empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .survey-empty-state h2 { font-size: 18px; color: #1F2937; margin: 0 0 8px; }
   </style>
 </head>
 <body>
@@ -555,148 +181,30 @@
         <div class="survey-changes-header">
           <div>
             <h1>Survey Changes</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:#6B7280;">Review and manage survey modifications before LLD generation</p>
+            <p style="margin:4px 0 0;font-size:13px;color:#6B7280;">Review survey modifications, grouped by project, before LLD generation</p>
           </div>
           <div class="actions">
             <button id="refreshBtn" class="ftth-refresh-btn" type="button">
               <span class="spin">&#x21bb;</span> Refresh
             </button>
-            <a id="llReviewBtn" href="#" class="ftth-new-btn" style="background:#5B21B6;">
-              &#x1F4CB; LLD Review
-            </a>
           </div>
         </div>
 
-        <!-- Project Info -->
-        <div id="projectInfo" style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px;margin-bottom:20px;display:none;">
-          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-            <div>
-              <div style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">Project</div>
-              <div id="projectName" style="font-size:16px;font-weight:700;color:#1F2937;">Loading...</div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">Project ID</div>
-              <div id="projectIdDisplay" style="font-family:monospace;font-size:12px;color:#6B7280;">--</div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:0.04em;font-weight:600;">HLD Version</div>
-              <div id="hldVersion" style="font-size:13px;font-weight:600;color:#374151;">--</div>
-            </div>
-          </div>
+        <!-- Projects container (one block per project) -->
+        <div id="projectsContainer">
+          <div style="text-align:center;padding:60px;color:#6B7280;">Loading survey changes...</div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="survey-stats-grid" id="statsGrid">
-          <div class="survey-stat-card">
-            <div class="survey-stat-value" id="statTotal">0</div>
-            <div class="survey-stat-label">Total Changes</div>
-          </div>
-          <div class="survey-stat-card pending">
-            <div class="survey-stat-value" id="statPending">0</div>
-            <div class="survey-stat-label">Pending Review</div>
-          </div>
-          <div class="survey-stat-card approved">
-            <div class="survey-stat-value" id="statApproved">0</div>
-            <div class="survey-stat-label">Approved</div>
-          </div>
-          <div class="survey-stat-card rejected">
-            <div class="survey-stat-value" id="statRejected">0</div>
-            <div class="survey-stat-label">Rejected</div>
-          </div>
-          <div class="survey-stat-card correction">
-            <div class="survey-stat-value" id="statCorrection">0</div>
-            <div class="survey-stat-label">Needs Correction</div>
-          </div>
-        </div>
-
-        <!-- Filters -->
-        <div class="survey-filters">
-          <div class="survey-filter-group">
-            <label>Status</label>
-            <select id="filterStatus">
-              <option value="">All Status</option>
-              <option value="pending_review">Pending Review</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-              <option value="needs_correction">Needs Correction</option>
-            </select>
-          </div>
-          <div class="survey-filter-group">
-            <label>Change Type</label>
-            <select id="filterType">
-              <option value="">All Types</option>
-              <option value="geometry">Geometry Change</option>
-              <option value="attribute">Attribute Change</option>
-              <option value="new_feature">New Feature</option>
-              <option value="removed_feature">Removed Feature</option>
-            </select>
-          </div>
-          <div class="survey-filter-group">
-            <label>Layer</label>
-            <select id="filterLayer">
-              <option value="">All Layers</option>
-            </select>
-          </div>
-          <div class="survey-filter-group">
-            <label>Search</label>
-            <input type="text" id="searchInput" placeholder="Search feature, layer, reason..." />
-          </div>
-        </div>
-
-        <!-- Table -->
-        <div id="tableContainer" class="survey-table-container">
-          <table class="survey-table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Layer</th>
-                <th>Type</th>
-                <th>Reason</th>
-                <th>Engineer</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="changesBody">
-              <tr>
-                <td colspan="8" style="text-align:center;padding:40px;color:#6B7280;">
-                  Loading survey changes...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <!-- Pagination -->
-          <div class="survey-pagination" id="pagination" style="display:none;">
-            <div class="survey-pagination-info" id="paginationInfo">Showing 0 of 0 changes</div>
-            <div class="survey-pagination-btns" id="paginationBtns"></div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
+        <!-- Empty state -->
         <div id="emptyState" class="survey-empty-state" style="display:none;">
           <div class="icon">&#x1F50D;</div>
           <h2>No Survey Changes Found</h2>
-          <p>No survey changes match your current filters.</p>
+          <p>No projects have survey changes yet.</p>
         </div>
 
       </div>
     </div>
   </main>
-</div>
-
-<!-- Detail Modal -->
-<div id="detailModal" class="survey-detail-modal">
-  <div class="survey-detail-content">
-    <div class="survey-detail-header">
-      <h2 id="detailTitle">Change Details</h2>
-      <button class="ftth-refresh-btn" onclick="closeDetailModal()" style="padding:6px 12px;">&times;</button>
-    </div>
-    <div class="survey-detail-body" id="detailBody">
-      <!-- Content loaded dynamically -->
-    </div>
-  </div>
 </div>
 
 <!-- Toast notification -->
@@ -709,390 +217,160 @@
   window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
-  
-  // Get project ID from URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectId = urlParams.get('project_id');
-  
-  // DOM refs
+
   const refreshBtn = document.getElementById('refreshBtn');
-  const changesBody = document.getElementById('changesBody');
-  const tableContainer = document.getElementById('tableContainer');
+  const projectsContainer = document.getElementById('projectsContainer');
   const emptyState = document.getElementById('emptyState');
   const toast = document.getElementById('toast');
-  const pagination = document.getElementById('pagination');
-  const paginationInfo = document.getElementById('paginationInfo');
-  const paginationBtns = document.getElementById('paginationBtns');
-  
-  let allChanges = [];
-  let currentPage = 1;
-  const pageSize = 20;
-  
-  // Initialize
-  document.addEventListener('DOMContentLoaded', function() {
-    if (projectId) {
-      loadProjectInfo();
-      loadChanges();
-    } else {
-      showToast('No project ID provided');
-    }
-  });
-  
+
   function showToast(msg) {
     toast.textContent = msg;
     toast.classList.add('show');
     setTimeout(function() { toast.classList.remove('show'); }, 3000);
   }
-  
+
   function escHtml(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
-  
+
   function formatDate(iso) {
     if (!iso) return '—';
     try {
       var d = new Date(iso);
       if (isNaN(d.getTime())) return '—';
       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    } catch (_) {
-      return iso.substring(0, 10);
-    }
+    } catch (_) { return iso.substring(0, 10); }
   }
-  
-  // Load project info
-  async function loadProjectInfo() {
-    try {
-      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/`, {
-        headers: { 'Authorization': 'Bearer ' + window.FiberAuth.getToken() }
-      });
-      if (response.ok) {
-        const project = await response.json();
-        document.getElementById('projectName').textContent = project.name || 'Unnamed Project';
-        document.getElementById('projectIdDisplay').textContent = projectId.substring(0, 16) + '...';
-        document.getElementById('hldVersion').textContent = project.source_ftth_project_id || '—';
-        document.getElementById('projectInfo').style.display = 'block';
-        document.getElementById('llReviewBtn').href = `ftth-lld-review.html?project_id=${projectId}`;
-      }
-    } catch (err) {
-      console.error('Failed to load project info:', err);
-    }
-  }
-  
-  // Load survey changes
+
+  const TYPE_LABEL = { geometry: 'Geometry', attribute: 'Attribute', new_feature: 'New', removed_feature: 'Removed' };
+  const TYPE_CLASS = { geometry: 'type-geometry', attribute: 'type-attribute', new_feature: 'type-new', removed_feature: 'type-removed' };
+  const STATUS_LABEL = { pending_review: 'Pending', approved: 'Approved', rejected: 'Rejected', needs_correction: 'Correction' };
+  const STATUS_CLASS = { pending_review: 'status-pending', approved: 'status-approved', rejected: 'status-rejected', needs_correction: 'status-correction' };
+
+  // Load all projects with survey changes, clubbed by project
   async function loadChanges() {
-    changesBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#6B7280;">Loading survey changes...</td></tr>';
-    
+    projectsContainer.innerHTML = '<div style="text-align:center;padding:60px;color:#6B7280;">Loading survey changes...</div>';
     try {
-      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/survey-changes/`, {
-        headers: { 'Authorization': 'Bearer ' + window.FiberAuth.getToken() }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        allChanges = data.results || data || [];
-        updateStats();
-        renderChanges();
-      } else {
-        throw new Error('Failed to load changes');
+      const data = await window.FtthLldApi.listProjects();
+      const projects = data.projects || [];
+      if (!projects.length) {
+        projectsContainer.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
       }
+      emptyState.style.display = 'none';
+      renderProjects(projects);
     } catch (err) {
-      console.error('Failed to load changes:', err);
-      changesBody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#DC2626;">Failed to load survey changes</td></tr>';
+      console.error('Failed to load survey changes:', err);
+      projectsContainer.innerHTML = '<div style="text-align:center;padding:60px;color:#DC2626;">Failed to load survey changes: ' + escHtml(err.message || err) + '</div>';
     }
   }
-  
-  // Update statistics
-  function updateStats() {
-    const stats = {
-      total: allChanges.length,
-      pending: allChanges.filter(c => c.status === 'pending_review').length,
-      approved: allChanges.filter(c => c.status === 'approved').length,
-      rejected: allChanges.filter(c => c.status === 'rejected').length,
-      correction: allChanges.filter(c => c.status === 'needs_correction').length
-    };
-    
-    document.getElementById('statTotal').textContent = stats.total;
-    document.getElementById('statPending').textContent = stats.pending;
-    document.getElementById('statApproved').textContent = stats.approved;
-    document.getElementById('statRejected').textContent = stats.rejected;
-    document.getElementById('statCorrection').textContent = stats.correction;
-    
-    // Update layer filter
-    const layers = [...new Set(allChanges.map(c => c.layer_name))];
-    const layerFilter = document.getElementById('filterLayer');
-    layerFilter.innerHTML = '<option value="">All Layers</option>';
-    layers.forEach(layer => {
-      layerFilter.innerHTML += `<option value="${escHtml(layer)}">${escHtml(layer)}</option>`;
+
+  function renderProjects(projects) {
+    projectsContainer.innerHTML = '';
+    projects.forEach(function(p) {
+      projectsContainer.appendChild(buildProjectBlock(p));
     });
   }
-  
-  // Render changes table
-  function renderChanges() {
-    const statusFilter = document.getElementById('filterStatus').value;
-    const typeFilter = document.getElementById('filterType').value;
-    const layerFilter = document.getElementById('filterLayer').value;
-    const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-    
-    let filtered = allChanges.filter(c => {
-      if (statusFilter && c.status !== statusFilter) return false;
-      if (typeFilter && c.change_type !== typeFilter) return false;
-      if (layerFilter && c.layer_name !== layerFilter) return false;
-      if (searchQuery) {
-        const searchStr = `${c.feature_id_display} ${c.layer_name} ${c.reason} ${c.changed_field}`.toLowerCase();
-        if (!searchStr.includes(searchQuery)) return false;
-      }
-      return true;
+
+  function buildProjectBlock(p) {
+    const block = document.createElement('div');
+    block.className = 'project-block';
+    block.dataset.projectId = p.project_id;
+
+    const ready = !!p.ready;
+
+    const header = document.createElement('div');
+    header.className = 'project-block-header';
+    header.innerHTML =
+      '<div class="project-block-title">' +
+        '<span class="name">' + escHtml(p.name) + '</span>' +
+        '<span class="meta">HLD ' + escHtml(p.hld_version || '—') + ' · ' + escHtml(p.project_id.substring(0, 16)) + '…</span>' +
+      '</div>' +
+      '<div class="project-readiness ' + (ready ? 'ready' : 'not-ready') + '">' +
+        '<span class="dot"></span>' + (ready ? 'LLD READY' : 'NOT READY') +
+      '</div>' +
+      '<div class="project-counts">' +
+        '<span class="count-approved"><b>' + (p.approved || 0) + '</b>Approved</span>' +
+        '<span class="count-rejected"><b>' + (p.rejected || 0) + '</b>Rejected</span>' +
+        '<span class="count-correction"><b>' + (p.needs_correction || 0) + '</b>Correction</span>' +
+        '<span class="count-pending"><b>' + (p.pending || 0) + '</b>Pending</span>' +
+      '</div>' +
+      '<button class="run-lld-btn" data-run="' + escHtml(p.project_id) + '" ' + (ready ? '' : 'disabled') + '>' +
+        (ready ? '&#x25B6; Run LLD' : 'Run LLD (review pending)') +
+      '</button>';
+
+    block.appendChild(header);
+    block.appendChild(buildTable(p.changes || [], p.project_id));
+    return block;
+  }
+
+  function buildTable(changes, projectId) {
+    const wrap = document.createElement('div');
+    wrap.style.overflowX = 'auto';
+
+    let html =
+      '<table class="survey-table"><thead><tr>' +
+      '<th>Feature</th><th>Layer</th><th>Type</th><th>Reason</th>' +
+      '<th>Engineer</th><th>Status</th><th>Created</th><th>Actions</th>' +
+      '</tr></thead><tbody>';
+
+    changes.forEach(function(change) {
+      const typeLabel = TYPE_LABEL[change.change_type] || change.change_type;
+      const typeClass = TYPE_CLASS[change.change_type] || '';
+      const statusLabel = STATUS_LABEL[change.status] || change.status;
+      const statusClass = STATUS_CLASS[change.status] || 'status-pending';
+      const initials = (change.engineer || '?').substring(0, 2).toUpperCase();
+      const reviewUrl = 'ftth-lld-feature-review.html?project_id=' + encodeURIComponent(projectId) +
+                        '&change_id=' + encodeURIComponent(change.change_id);
+
+      html += '<tr>' +
+        '<td><span class="feature-id">' + escHtml(change.feature_id) + '</span></td>' +
+        '<td><span class="layer-name">' + escHtml(change.layer) + '</span></td>' +
+        '<td><span class="change-type-badge ' + typeClass + '">' + typeLabel + '</span></td>' +
+        '<td><span class="change-reason" title="' + escHtml(change.reason) + '">' + escHtml(change.reason) + '</span></td>' +
+        '<td><div class="engineer-info"><div class="engineer-avatar">' + escHtml(initials) + '</div><span>' + escHtml(change.engineer || 'Unknown') + '</span></div></td>' +
+        '<td><span class="status-badge ' + statusClass + '"><span class="dot"></span>' + statusLabel + '</span></td>' +
+        '<td>' + formatDate(change.timestamp) + '</td>' +
+        '<td><a class="action-btn" href="' + reviewUrl + '">Review</a></td>' +
+      '</tr>';
     });
-    
-    if (filtered.length === 0) {
-      tableContainer.style.display = 'none';
-      emptyState.style.display = 'block';
-      pagination.style.display = 'none';
-      return;
-    }
-    
-    tableContainer.style.display = 'block';
-    emptyState.style.display = 'none';
-    
-    // Pagination
-    const totalPages = Math.ceil(filtered.length / pageSize);
-    const start = (currentPage - 1) * pageSize;
-    const end = start + pageSize;
-    const pageChanges = filtered.slice(start, end);
-    
-    changesBody.innerHTML = '';
-    pageChanges.forEach(change => {
-      const row = document.createElement('tr');
-      
-      const typeClass = {
-        'geometry': 'type-geometry',
-        'attribute': 'type-attribute',
-        'new_feature': 'type-new',
-        'removed_feature': 'type-removed'
-      }[change.change_type] || '';
-      
-      const statusClass = {
-        'pending_review': 'status-pending',
-        'approved': 'status-approved',
-        'rejected': 'status-rejected',
-        'needs_correction': 'status-correction'
-      }[change.status] || '';
-      
-      const statusLabel = {
-        'pending_review': 'Pending',
-        'approved': 'Approved',
-        'rejected': 'Rejected',
-        'needs_correction': 'Correction'
-      }[change.status] || change.status;
-      
-      const typeLabel = {
-        'geometry': 'Geometry',
-        'attribute': 'Attribute',
-        'new_feature': 'New',
-        'removed_feature': 'Removed'
-      }[change.change_type] || change.change_type;
-      
-      const initials = change.created_by_email ? change.created_by_email.substring(0, 2).toUpperCase() : '??';
-      
-      row.innerHTML = `
-        <td><span class="feature-id">${escHtml(change.feature_id_display)}</span></td>
-        <td><span class="layer-name">${escHtml(change.layer_name)}</span></td>
-        <td><span class="change-type-badge ${typeClass}">${typeLabel}</span></td>
-        <td><span class="change-reason" title="${escHtml(change.reason)}">${escHtml(change.reason)}</span></td>
-        <td>
-          <div class="engineer-info">
-            <div class="engineer-avatar">${initials}</div>
-            <span>${escHtml(change.created_by_email || 'Unknown')}</span>
-          </div>
-        </td>
-        <td><span class="status-badge ${statusClass}"><span class="dot"></span>${statusLabel}</span></td>
-        <td>${formatDate(change.created_at)}</td>
-        <td>
-          <div class="action-btns">
-            <a class="action-btn action-btn-view" href="ftth-lld-feature-review.html?project_id=${projectId}&change_id=${change.id}" style="text-decoration:none;">Review</a>
-          </div>
-        </td>
-      `;
-      
-      changesBody.appendChild(row);
-    });
-    
-    // Update pagination
-    if (totalPages > 1) {
-      pagination.style.display = 'flex';
-      paginationInfo.textContent = `Showing ${start + 1}-${Math.min(end, filtered.length)} of ${filtered.length} changes`;
-      
-      paginationBtns.innerHTML = '';
-      for (let i = 1; i <= totalPages; i++) {
-        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-          const btn = document.createElement('button');
-          btn.className = `survey-pagination-btn ${i === currentPage ? 'active' : ''}`;
-          btn.textContent = i;
-          btn.onclick = () => { currentPage = i; renderChanges(); };
-          paginationBtns.appendChild(btn);
-        } else if (i === currentPage - 2 || i === currentPage + 2) {
-          const span = document.createElement('span');
-          span.textContent = '...';
-          span.style.padding = '6px 8px';
-          span.style.color = '#6B7280';
-          paginationBtns.appendChild(span);
-        }
-      }
-    } else {
-      pagination.style.display = 'none';
-    }
+
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+    return wrap;
   }
-  
-  // View change details
-  async function viewChange(changeId) {
-    const change = allChanges.find(c => c.id === changeId);
-    if (!change) return;
-    
-    const modal = document.getElementById('detailModal');
-    const body = document.getElementById('detailBody');
-    const title = document.getElementById('detailTitle');
-    
-    title.textContent = `Change: ${change.feature_id_display}`;
-    
-    let html = `
-      <div class="survey-detail-section">
-        <h3>Change Information</h3>
-        <div class="survey-comparison-grid">
-          <div class="survey-comparison-box">
-            <h4>Change Type</h4>
-            <p style="margin:0;font-size:14px;font-weight:600;">${change.change_type_display || change.change_type}</p>
-          </div>
-          <div class="survey-comparison-box">
-            <h4>Layer</h4>
-            <p style="margin:0;font-size:14px;font-weight:600;">${escHtml(change.layer_name)}</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="survey-detail-section">
-        <h3>Reason for Change</h3>
-        <p style="margin:0;font-size:14px;line-height:1.6;">${escHtml(change.reason)}</p>
-        ${change.engineer_notes ? `<p style="margin:8px 0 0;font-size:13px;color:#6B7280;"><strong>Notes:</strong> ${escHtml(change.engineer_notes)}</p>` : ''}
-      </div>
-    `;
-    
-    if (change.change_type === 'attribute' && change.changed_field) {
-      html += `
-        <div class="survey-detail-section">
-          <h3>Attribute Change</h3>
-          <table class="survey-attribute-table">
-            <thead>
-              <tr>
-                <th>Field</th>
-                <th>HLD Value</th>
-                <th>Survey Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><strong>${escHtml(change.changed_field)}</strong></td>
-                <td>${escHtml(change.original_value)}</td>
-                <td class="changed">${escHtml(change.proposed_value)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      `;
-    }
-    
-    if (change.change_type === 'geometry') {
-      html += `
-        <div class="survey-detail-section">
-          <h3>Geometry Comparison</h3>
-          <div class="survey-comparison-grid">
-            <div class="survey-comparison-box original">
-              <h4>Original HLD</h4>
-              <pre style="margin:0;font-size:11px;overflow-x:auto;white-space:pre-wrap;">${JSON.stringify(change.original_geometry, null, 2)}</pre>
-            </div>
-            <div class="survey-comparison-box proposed">
-              <h4>Proposed Survey</h4>
-              <pre style="margin:0;font-size:11px;overflow-x:auto;white-space:pre-wrap;">${JSON.stringify(change.proposed_geometry, null, 2)}</pre>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-    
-    if (change.status !== 'pending_review') {
-      html += `
-        <div class="survey-detail-section">
-          <h3>Review Decision</h3>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <span class="status-badge status-${change.status === 'approved' ? 'approved' : change.status === 'rejected' ? 'rejected' : 'correction'}">
-              <span class="dot"></span>
-              ${change.status_display || change.status}
-            </span>
-            <span style="font-size:13px;color:#6B7280;">by ${escHtml(change.reviewer_email || 'Unknown')}</span>
-            <span style="font-size:12px;color:#9CA3AF;">${formatDate(change.reviewed_at)}</span>
-          </div>
-          ${change.review_comments ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.6;background:#F9FAFB;padding:12px;border-radius:8px;">${escHtml(change.review_comments)}</p>` : ''}
-        </div>
-      `;
-    }
-    
-    body.innerHTML = html;
-    modal.classList.add('visible');
-  }
-  
-  function closeDetailModal() {
-    document.getElementById('detailModal').classList.remove('visible');
-  }
-  
-  // Review change
-  async function reviewChange(changeId, action) {
-    const comments = prompt(`Enter review comments for ${action}:`);
-    if (comments === null) return;
-    
+
+  // Run LLD for a project (creates the Approved Survey Version if needed, then runs)
+  async function runProjectLld(projectId) {
+    if (!confirm('Run LLD for this project?')) return;
+    const btn = document.querySelector('[data-run="' + projectId + '"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Starting LLD…'; }
     try {
-      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/survey-changes/${changeId}/review/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer ' + window.FiberAuth.getToken(),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          action: action,
-          review_comments: comments
-        })
-      });
-      
-      if (response.ok) {
-        showToast(`Change ${action} successfully`);
-        loadChanges();
-      } else {
-        throw new Error('Failed to review change');
-      }
+      try { await window.FtthLldApi.createApprovedVersion(projectId); } catch (_) { /* may already exist */ }
+      const result = await window.FtthLldApi.runLld(projectId);
+      showToast('LLD started: ' + (result.lld_version || 'ok'));
+      setTimeout(function() {
+        window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId);
+      }, 800);
     } catch (err) {
-      console.error('Failed to review change:', err);
-      showToast('Failed to review change');
+      showToast('Run LLD failed: ' + (err.message || err));
+      if (btn) { btn.disabled = false; btn.textContent = '&#x25B6; Run LLD'; }
     }
   }
-  
-  // Filter event listeners
-  document.getElementById('filterStatus').addEventListener('change', () => { currentPage = 1; renderChanges(); });
-  document.getElementById('filterType').addEventListener('change', () => { currentPage = 1; renderChanges(); });
-  document.getElementById('filterLayer').addEventListener('change', () => { currentPage = 1; renderChanges(); });
-  document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderChanges(); });
-  
-  // Refresh button
+
+  // Delegate clicks for Run LLD buttons
+  projectsContainer.addEventListener('click', function(e) {
+    const btn = e.target.closest && e.target.closest('.run-lld-btn');
+    if (btn && btn.dataset.run) runProjectLld(btn.dataset.run);
+  });
+
   refreshBtn.addEventListener('click', loadChanges);
-  
-  // Close modal on ESC
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeDetailModal();
-  });
-  
-  // Close modal on backdrop click
-  document.getElementById('detailModal').addEventListener('click', function(e) {
-    if (e.target === this) closeDetailModal();
-  });
+
+  loadChanges();
 </script>
 </body>
 </html>

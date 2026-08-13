@@ -541,12 +541,13 @@
   window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
   
   // Get project ID from URL
   const urlParams = new URLSearchParams(window.location.search);
-  const projectId = urlParams.get('project_id');
+  let projectId = urlParams.get('project_id');
   
   // Layer colors
   const layerColors = {
@@ -567,7 +568,13 @@
   let approvedData = null;
   
   // Initialize
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', async function() {
+    if (!projectId && window.FtthLldApi && window.FtthLldApi.resolveDefaultProject) {
+      try {
+        const resolved = await window.FtthLldApi.resolveDefaultProject();
+        if (resolved && resolved.project_id) projectId = resolved.project_id;
+      } catch (_) { /* fall through */ }
+    }
     if (projectId) {
       document.getElementById('backLink').href = `ftth-lld-review.html?project_id=${projectId}`;
       document.getElementById('emptyReviewLink').href = `ftth-lld-review.html?project_id=${projectId}`;
@@ -600,24 +607,45 @@
     }
   }
   
-  // Load latest approved version
+  // Load latest approved survey from the real LLD review backend
   async function loadVersion() {
     try {
-      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/approved-survey/latest/`, {
-        headers: { 'Authorization': 'Bearer ' + window.FiberAuth.getToken() }
-      });
+      const review = await window.FtthLldApi.loadReview(projectId);
       
-      if (response.ok) {
-        currentVersion = await response.json();
-        approvedData = currentVersion.approved_data;
-        renderVersion();
-        initMap();
-      } else if (response.status === 404) {
+      if (!review.approved_survey_version) {
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('emptyState').style.display = 'block';
-      } else {
-        throw new Error('Failed to load version');
+        return;
       }
+      
+      // Adapt the review payload to this page's shape.
+      const approvedFc = review.approved || { features: [] };
+      approvedData = {
+        features: (approvedFc.features || []).map(function(f) {
+          const p = f.properties || {};
+          return {
+            id: p.feature_id || '',
+            layer_name: p.layer || 'unknown',
+            layer_id: p.layer || 'unknown',
+            geometry: f.geometry,
+            properties: p,
+            is_new: !!(p.change_id && p.approved)
+          };
+        })
+      };
+      
+      currentVersion = {
+        version_number: review.approved_survey_version,
+        hld_project_id: (review.project && review.project.hld_version) || '—',
+        created_at: review.approved_survey_created_at,
+        created_by_email: '',
+        approved_changes: (review.changes || []).filter(c => c.status === 'approved').length,
+        rejected_changes: (review.changes || []).filter(c => c.status === 'rejected').length,
+        status: 'ready'
+      };
+      
+      renderVersion();
+      initMap();
     } catch (err) {
       console.error('Failed to load version:', err);
       document.getElementById('loadingState').style.display = 'none';
@@ -630,7 +658,7 @@
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('versionContent').style.display = 'block';
     
-    document.getElementById('versionNumber').textContent = `V${currentVersion.version_number}`;
+    document.getElementById('versionNumber').textContent = currentVersion.version_number || 'V1';
     document.getElementById('hldSource').textContent = currentVersion.hld_project_id || '—';
     document.getElementById('createdDate').textContent = formatDate(currentVersion.created_at);
     document.getElementById('createdBy').textContent = currentVersion.created_by_email || '—';
@@ -885,10 +913,14 @@
   }
   
   // Run LLD button
-  document.getElementById('runLldBtn').addEventListener('click', function() {
-    if (confirm('Run LLD with this approved survey version?')) {
-      showToast('LLD generation would start here');
-      // TODO: Implement LLD run
+  document.getElementById('runLldBtn').addEventListener('click', async function() {
+    if (!confirm('Run LLD with this approved survey version?')) return;
+    try {
+      const result = await window.FtthLldApi.runLld(projectId);
+      showToast('LLD run started: ' + (result.lld_version || 'ok'));
+      setTimeout(function() { window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId); }, 800);
+    } catch (err) {
+      showToast('Failed to run LLD: ' + (err.message || err));
     }
   });
 </script>

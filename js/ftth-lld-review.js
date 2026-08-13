@@ -473,7 +473,7 @@
     countCorrection.textContent = c.correction;
     countPending.textContent = c.pending;
 
-    const resolved = c.approved + c.rejected;
+    const resolved = c.total - c.pending;
     const pct = c.total ? Math.round((resolved / c.total) * 100) : 0;
     resolveLabel.textContent = resolved + ' of ' + c.total + ' changes resolved';
     resolveFill.style.width = pct + '%';
@@ -482,7 +482,7 @@
     const qb = $('queueBadge');
     if (qb) qb.textContent = c.total;
 
-    const ready = c.pending === 0 && c.correction === 0;
+    const ready = c.pending === 0;
     readinessStatusEl.className = 'lld-readiness-status ' + (ready ? 'ready' : 'not-ready');
     readinessStatusEl.innerHTML = '<span class="dot"></span>' + (ready ? 'LLD READY' : 'NOT READY');
 
@@ -507,8 +507,8 @@
 
     // Note text
     if (!ready) {
-      const remaining = c.pending + c.correction;
-      readinessNote.innerHTML = '<strong>LLD cannot run</strong> while <strong>' + remaining + '</strong> change' + (remaining === 1 ? ' is' : 's are') + ' unresolved. Review the queue below — every change must be <strong>Approved</strong> or <strong>Rejected</strong>.';
+      const remaining = c.pending;
+      readinessNote.innerHTML = '<strong>LLD cannot run</strong> while <strong>' + remaining + '</strong> change' + (remaining === 1 ? ' is' : 's are') + ' pending review. Review the queue below — every change must be <strong>Approved</strong>, <strong>Rejected</strong>, or sent back for <strong>Correction</strong>.';
     } else if (!approvedVersion) {
       readinessNote.innerHTML = 'All changes resolved. Create the immutable <strong>Approved Survey Version</strong> (HLD + approved changes) before running LLD.';
     } else {
