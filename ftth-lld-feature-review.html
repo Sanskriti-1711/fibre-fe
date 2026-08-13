@@ -540,9 +540,9 @@
           </div>
         </div>
         
-        <!-- Attribute Comparison (for attribute changes) -->
+        <!-- Attribute Comparison (original HLD vs surveyed values) -->
         <div class="lld-feature-section" id="attributeSection" style="display:none;">
-          <h2>Attribute Change</h2>
+          <h2>Attributes (HLD &rarr; Survey)</h2>
           <table class="lld-attribute-table">
             <thead>
               <tr>
@@ -722,6 +722,9 @@
           changed_field: firstAttr.field || '',
           original_value: firstAttr.hld_value,
           proposed_value: firstAttr.survey_value,
+          attributes: ch.attributes || [],
+          original_attributes: ch.original_attributes || {},
+          survey_attributes: ch.survey_attributes || {},
           original_geometry: ch.original_geometry,
           proposed_geometry: ch.survey_geometry,
           reviewer_email: null,
@@ -803,20 +806,10 @@
       document.getElementById('geometrySection').style.display = 'none';
     }
     
-    // Attribute comparison
-    if (change.change_type === 'attribute' && change.changed_field) {
-      document.getElementById('attributeSection').style.display = 'block';
-      document.getElementById('attributeTableBody').innerHTML = `
-        <tr>
-          <td><strong>${escHtml(change.changed_field)}</strong></td>
-          <td>${escHtml(change.original_value)}</td>
-          <td class="arrow">&#x2192;</td>
-          <td class="changed">${escHtml(change.proposed_value)}</td>
-        </tr>
-      `;
-    } else {
-      document.getElementById('attributeSection').style.display = 'none';
-    }
+    // Attribute comparison — always shown when the change carries attributes,
+    // so reviewers see the full original attributes alongside the surveyed
+    // values, with edited fields highlighted.
+    renderAttributeComparison();
     
     // Previous review
     if (change.status !== 'pending_review') {
@@ -848,6 +841,48 @@
     document.getElementById('backLink').href = `ftth-survey-changes.html?project_id=${projectId}`;
   }
   
+  // Render the full attribute comparison (original HLD vs surveyed values),
+  // highlighting every field the engineer changed.
+  function renderAttributeComparison() {
+    const change = currentChange;
+    const orig = change.original_attributes || {};
+    const surv = change.survey_attributes || {};
+    const noise = new Set(['id', '_feature_id', 'feature_id', 'layer', 'layer_id', 'layer_name']);
+
+    const keys = Array.from(new Set(Object.keys(orig).concat(Object.keys(surv))))
+      .filter(function (k) { return !noise.has(k); });
+
+    const section = document.getElementById('attributeSection');
+    const body = document.getElementById('attributeTableBody');
+    if (!keys.length) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    body.innerHTML = keys.map(function (k) {
+      const o = orig[k];
+      const s = surv[k];
+      const isChanged = JSON.stringify(o) !== JSON.stringify(s);
+      const oText = (o === null || o === undefined || o === '') ? '\u2014' : formatValue(o);
+      const sText = (s === null || s === undefined || s === '') ? '\u2014' : formatValue(s);
+      return '<tr>'
+        + '<td><strong>' + escHtml(k) + '</strong></td>'
+        + '<td' + (isChanged ? ' class="changed"' : '') + '>' + escHtml(oText) + '</td>'
+        + '<td class="arrow">' + (isChanged ? '&#x2192;' : '') + '</td>'
+        + '<td' + (isChanged ? ' class="changed"' : '') + '>' + escHtml(sText) + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  function formatValue(v) {
+    if (v === null || v === undefined) return '\u2014';
+    if (typeof v === 'object') {
+      try { return JSON.stringify(v); } catch (_) { return String(v); }
+    }
+    return String(v);
+  }
+
   // Initialize map
   function initMap() {
     if (map) {
