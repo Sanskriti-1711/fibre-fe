@@ -52,6 +52,19 @@
       border:1px solid #E5E7EB; border-radius:999px; padding:6px 12px; font-size:13px;
     }
     .ov-member .role { font-size:10px; font-weight:700; text-transform:uppercase; color:#6B7280; }
+    .ov-member .ov-rm {
+      margin-left:2px; border:none; background:#FEF2F2; color:#B91C1C;
+      width:20px; height:20px; border-radius:50%; cursor:pointer;
+      font-size:12px; line-height:1; display:inline-flex; align-items:center; justify-content:center;
+    }
+    .ov-member .ov-rm:hover { background:#FECACA; }
+
+    .ov-addmember { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .ov-addmember select {
+      padding:7px 10px; border:1px solid #D1D5DB; border-radius:8px;
+      font-size:13px; color:#1F2937; background:#fff; min-width:200px;
+    }
+    .ov-addmember .create-btn { padding:7px 14px; font-size:13px; cursor:pointer; }
 
     .ov-timeline { list-style:none; margin:0; padding:0; }
     .ov-timeline li { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid #F3F4F6; font-size:13px; }
@@ -91,7 +104,10 @@
         <!-- Team -->
         <div class="ov-card">
           <div class="ov-card-head"><h2>&#x1F465; Team</h2></div>
-          <div class="ov-card-body"><div class="ov-team" id="ovTeam"><span style="color:#9CA3AF;font-size:13px;">—</span></div></div>
+          <div class="ov-card-body">
+            <div class="ov-team" id="ovTeam"><span style="color:#9CA3AF;font-size:13px;">—</span></div>
+            <div id="ovTeamManage" style="margin-top:14px;"></div>
+          </div>
         </div>
 
         <!-- Business / Technical -->
@@ -168,6 +184,101 @@
     return badge(lld.run+' '+lld.status,'b-gray');
   }
 
+  // ── Team management ────────────────────────────────────────────────
+  var isAdmin = false;
+  var rolesCache = [];
+
+  function currentUserIsAdmin() {
+    try {
+      var u = window.FiberAuth && window.FiberAuth.getUser ? window.FiberAuth.getUser() : null;
+      return Boolean(u && u.role === 'SUBADMIN');
+    } catch (_) { return false; }
+  }
+  function roleLabel(role) {
+    var map = { planner:'Planner', engineer:'Field Engineer', reviewer:'LLD Reviewer', contractor:'Contractor', observer:'Observer' };
+    return map[role] || role;
+  }
+  function memberChip(m) {
+    var name = m.full_name || m.user || '';
+    var rm = (isAdmin && m.managed)
+      ? '<button class="ov-rm" data-member="'+esc(m.member_id)+'" title="Remove" type="button">\u2715</button>'
+      : '';
+    return '<div class="ov-member">'
+      + '<span class="role">'+esc(roleLabel(m.role))+'</span>'
+      + '<span>'+esc(name)+'</span>'
+      + (m.managed ? '' : '<span class="role" style="opacity:.55;">auto</span>')
+      + rm
+      + '</div>';
+  }
+  function renderTeam(members) {
+    var el = document.getElementById('ovTeam');
+    el.innerHTML = members && members.length
+      ? members.map(memberChip).join('')
+      : '<span style="color:#9CA3AF;font-size:13px;">No team members recorded.</span>';
+    Array.prototype.forEach.call(el.querySelectorAll('.ov-rm'), function (btn) {
+      btn.addEventListener('click', function () { removeMember(btn.getAttribute('data-member')); });
+    });
+  }
+  function renderTeamManage(users) {
+    var box = document.getElementById('ovTeamManage');
+    if (!isAdmin) { box.innerHTML = ''; return; }
+    var roles = rolesCache.length
+      ? rolesCache
+      : [{value:'planner',label:'Planner'},{value:'engineer',label:'Field Engineer'},{value:'reviewer',label:'LLD Reviewer'},{value:'contractor',label:'Contractor'},{value:'observer',label:'Observer'}];
+    var roleOpts = roles.map(function (r) { return '<option value="'+esc(r.value)+'">'+esc(r.label)+'</option>'; }).join('');
+    var userOpts = users.map(function (u) {
+      return '<option value="'+esc(u.id)+'">'+esc(u.full_name || u.email)+' ('+esc(u.email)+')</option>';
+    }).join('');
+    box.innerHTML =
+      '<div class="ov-addmember">'
+      + '<select id="ovAddUser">'+userOpts+'</select>'
+      + '<select id="ovAddRole">'+roleOpts+'</select>'
+      + '<button id="ovAddBtn" class="create-btn" type="button">+ Add member</button>'
+      + '</div>'
+      + '<div id="ovTeamMsg" style="font-size:12px;color:#6B7280;margin-top:8px;"></div>';
+    document.getElementById('ovAddBtn').addEventListener('click', addMember);
+  }
+  async function loadTeamManagement() {
+    try {
+      var res = await window.FtthLldApi.listMembers(projectId);
+      renderTeam(res.members || []);
+      if (res.roles) rolesCache = res.roles;
+      if (isAdmin) {
+        try {
+          var users = await window.FtthLldApi.listUsers();
+          renderTeamManage(users || []);
+        } catch (e) {
+          document.getElementById('ovTeamManage').innerHTML =
+            '<span style="color:#B91C1C;font-size:12px;">Could not load users: '+esc(e.message || e)+'</span>';
+        }
+      }
+    } catch (e) {
+      document.getElementById('ovTeamManage').innerHTML = '';
+    }
+  }
+  async function addMember() {
+    var userId = document.getElementById('ovAddUser').value;
+    var role = document.getElementById('ovAddRole').value;
+    var msg = document.getElementById('ovTeamMsg');
+    if (!userId || !role) { msg.textContent = 'Select a user and role.'; return; }
+    try {
+      await window.FtthLldApi.addMember(projectId, userId, role);
+      msg.textContent = '';
+      await loadTeamManagement();
+    } catch (e) {
+      msg.textContent = 'Failed: ' + (e.message || e);
+    }
+  }
+  async function removeMember(memberId) {
+    if (!window.confirm('Remove this team member?')) return;
+    try {
+      await window.FtthLldApi.removeMember(projectId, memberId);
+      await loadTeamManagement();
+    } catch (e) {
+      window.alert('Failed to remove member: ' + (e.message || e));
+    }
+  }
+
   function render(d) {
     document.getElementById('ovName').textContent = d.name || d.project_id || 'Project';
     document.getElementById('ovFid').textContent = d.project_id || '';
@@ -197,14 +308,8 @@
       return '<div class="ov-stat"><div class="label">'+esc(s.label)+'</div><div class="value">'+s.value+'</div></div>';
     }).join('');
 
-    // Team
-    var team = d.team || [];
-    document.getElementById('ovTeam').innerHTML = team.length
-      ? team.map(function(t){
-          return '<div class="ov-member"><span class="role">'+esc(t.role)+'</span>'
-            + '<span>'+(esc(t.full_name||t.user))+'</span></div>';
-        }).join('')
-      : '<span style="color:#9CA3AF;font-size:13px;">No team members recorded.</span>';
+    // Team (static overview view; the manage UI refreshes it in loadTeamManagement)
+    renderTeam(d.team || []);
 
     // Business / technical
     var b = d.business || {};
@@ -269,9 +374,11 @@
       document.getElementById('ovError').style.display = 'block';
       return;
     }
+    isAdmin = currentUserIsAdmin();
     try {
       var d = await window.FtthLldApi.getProjectOverview(projectId);
       render(d);
+      await loadTeamManagement();
     } catch (err) {
       document.getElementById('ovError').textContent = 'Failed to load overview: ' + (err.message || err);
       document.getElementById('ovError').style.display = 'block';

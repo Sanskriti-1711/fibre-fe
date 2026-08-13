@@ -697,6 +697,58 @@
     return body;
   }
 
+  async function apiListUsers() {
+    var url = buildUrl('/api/users/all/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiListMembers(projectId) {
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/members/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiAddMember(projectId, userId, role) {
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/members/');
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId, role: role }),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiRemoveMember(projectId, memberId) {
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/members/' + encodeURIComponent(memberId) + '/');
+    var response = await authFetch(url, { method: 'DELETE' });
+    if (response.status === 204) return null;
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   // ==================================================================
   // Public API (real backend first, demo fallback on network error)
   // ==================================================================
@@ -786,6 +838,22 @@
     return apiGetProjectOverview(projectId);
   }
 
+  function listUsers() {
+    return apiListUsers();
+  }
+
+  function listMembers(projectId) {
+    return apiListMembers(projectId);
+  }
+
+  function addMember(projectId, userId, role) {
+    return apiAddMember(projectId, userId, role);
+  }
+
+  function removeMember(projectId, memberId) {
+    return apiRemoveMember(projectId, memberId);
+  }
+
   window.FtthLldApi = {
     loadReview: loadReview,
     submitAction: submitAction,
@@ -801,6 +869,10 @@
     listRuns: listRuns,
     getFeatureLineage: getFeatureLineage,
     getProjectOverview: getProjectOverview,
+    listUsers: listUsers,
+    listMembers: listMembers,
+    addMember: addMember,
+    removeMember: removeMember,
     isDemo: function () { return demoMode; },
     buildApprovedGeoJSON: buildApprovedGeoJSON,
     readDemoState: readState,
