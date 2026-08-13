@@ -685,6 +685,18 @@
     return body;
   }
 
+  async function apiGetProjectOverview(projectId) {
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/overview/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   // ==================================================================
   // Public API (real backend first, demo fallback on network error)
   // ==================================================================
@@ -770,6 +782,10 @@
     return apiGetFeatureLineage(projectId, featureId);
   }
 
+  function getProjectOverview(projectId) {
+    return apiGetProjectOverview(projectId);
+  }
+
   window.FtthLldApi = {
     loadReview: loadReview,
     submitAction: submitAction,
@@ -784,6 +800,7 @@
     listProjects: listProjects,
     listRuns: listRuns,
     getFeatureLineage: getFeatureLineage,
+    getProjectOverview: getProjectOverview,
     isDemo: function () { return demoMode; },
     buildApprovedGeoJSON: buildApprovedGeoJSON,
     readDemoState: readState,
