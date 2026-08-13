@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LLD Feature Review | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- MapLibre GL -->
+  <script src="vendor/maplibre/maplibre-gl.js"></script>
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+  
+  <style>
+    /* ── LLD Feature Review Layout ─────────────────────────────────────── */
+    .lld-feature-layout {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .lld-feature-map {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+    
+    .lld-feature-map #map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    .lld-feature-side {
+      width: 480px;
+      flex-shrink: 0;
+      background: #FFFFFF;
+      border-left: 1px solid #E5E7EB;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    
+    /* ── Header ────────────────────────────────────────────────────────── */
+    .lld-feature-header {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+      flex-shrink: 0;
+    }
+    
+    .lld-feature-header h1 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #1F2937;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .lld-feature-header h1 .back-link {
+      font-size: 12px;
+      font-weight: 400;
+      color: #6B7280;
+      text-decoration: none;
+      margin-left: auto;
+    }
+    
+    .lld-feature-header h1 .back-link:hover {
+      color: #E31837;
+    }
+    
+    .lld-feature-header .feature-id {
+      font-family: monospace;
+      font-size: 12px;
+      color: #6B7280;
+      margin-top: 4px;
+    }
+    
+    /* ── Feature Info Section ──────────────────────────────────────────── */
+    .lld-feature-section {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .lld-feature-section h2 {
+      margin: 0 0 16px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6B7280;
+    }
+    
+    .lld-feature-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .lld-meta-item {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    
+    .lld-meta-item .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9CA3AF;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .lld-meta-item .value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1F2937;
+    }
+    
+    /* ── Change Comparison ─────────────────────────────────────────────── */
+    .lld-comparison-box {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .lld-comparison-box.original {
+      border-color: #93C5FD;
+      background: #EFF6FF;
+    }
+    
+    .lld-comparison-box.original h3 {
+      color: #1D4ED8;
+    }
+    
+    .lld-comparison-box.proposed {
+      border-color: #86EFAC;
+      background: #ECFDF5;
+    }
+    
+    .lld-comparison-box.proposed h3 {
+      color: #047857;
+    }
+    
+    .lld-comparison-box h3 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .lld-comparison-box pre {
+      margin: 0;
+      font-size: 11px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(255,255,255,0.7);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .lld-attribute-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .lld-attribute-table th,
+    .lld-attribute-table td {
+      padding: 10px 12px;
+      border: 1px solid #E5E7EB;
+      text-align: left;
+    }
+    
+    .lld-attribute-table th {
+      background: #F9FAFB;
+      font-weight: 600;
+      color: #6B7280;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    
+    .lld-attribute-table .changed {
+      background: #FEF3C7;
+      font-weight: 600;
+    }
+    
+    .lld-attribute-table .arrow {
+      color: #6B7280;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    /* ── Review Actions (Inline) ───────────────────────────────────────── */
+    .lld-review-actions {
+      padding: 20px;
+      background: #F9FAFB;
+      border-top: 1px solid #E5E7EB;
+      flex-shrink: 0;
+    }
+    
+    .lld-review-actions h3 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1F2937;
+    }
+    
+    .lld-action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .lld-action-btn {
+      flex: 1;
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .lld-action-btn .icon {
+      font-size: 18px;
+    }
+    
+    .lld-action-btn-approve {
+      background: #059669;
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+    }
+    
+    .lld-action-btn-approve:hover {
+      background: #047857;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+    }
+    
+    .lld-action-btn-redo {
+      background: #DC2626;
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    }
+    
+    .lld-action-btn-redo:hover {
+      background: #B91C1C;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+    
+    .lld-action-btn-correct {
+      background: #D97706;
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+    }
+    
+    .lld-action-btn-correct:hover {
+      background: #B45309;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+    }
+    
+    .lld-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    
+    .lld-comment-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 80px;
+      font-family: inherit;
+    }
+    
+    .lld-comment-input:focus {
+      outline: none;
+      border-color: #E31837;
+      box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.1);
+    }
+    
+    .lld-comment-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6B7280;
+      margin-bottom: 6px;
+    }
+    
+    /* ── Status Badge ──────────────────────────────────────────────────── */
+    .lld-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    
+    .lld-status-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    
+    .lld-status-pending {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+    }
+    
+    .lld-status-approved {
+      background: #ECFDF5;
+      color: #047857;
+      border: 1px solid #A7F3D0;
+    }
+    
+    .lld-status-rejected {
+      background: #FEF2F2;
+      color: #B91C1C;
+      border: 1px solid #FECACA;
+    }
+    
+    .lld-status-correction {
+      background: #FFFBEB;
+      color: #B45309;
+      border: 1px solid #FDE68A;
+    }
+    
+    /* ── Navigation ────────────────────────────────────────────────────── */
+    .lld-nav-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    
+    .lld-nav-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      background: #FFFFFF;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+    
+    .lld-nav-btn:hover {
+      background: #F9FAFB;
+      border-color: #9CA3AF;
+    }
+    
+    .lld-nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .lld-nav-btn.primary {
+      background: #E31837;
+      color: #FFFFFF;
+      border-color: #E31837;
+    }
+    
+    .lld-nav-btn.primary:hover {
+      background: #C41230;
+    }
+    
+    /* ── Loading State ─────────────────────────────────────────────────── */
+    .lld-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .lld-loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #E5E7EB;
+      border-top-color: #E31837;
+      border-radius: 50%;
+      animation: ftth-spin 0.8s linear infinite;
+    }
+    
+    .lld-loading .text {
+      font-size: 14px;
+      color: #6B7280;
+    }
+    
+    /* ── Toast ─────────────────────────────────────────────────────────── */
+    .lld-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1F2937;
+      color: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .lld-toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .lld-toast.success {
+      background: #059669;
+    }
+    
+    .lld-toast.error {
+      background: #DC2626;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout" style="padding:0;">
+  <div id="sidebarContainer"></div>
+  
+  <div class="lld-feature-layout">
+    
+    <!-- Map Pane -->
+    <div class="lld-feature-map">
+      <div id="map"></div>
+      <div id="mapLoading" class="ftth-map-loading">
+        <div>
+          <div class="spinner" style="margin:0 auto 12px;"></div>
+          <div style="font-size:14px;color:#6B7280;">Loading feature data...</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Side Pane -->
+    <div class="lld-feature-side">
+      
+      <!-- Loading State -->
+      <div id="loadingState" class="lld-loading">
+        <div class="spinner"></div>
+        <div class="text">Loading feature...</div>
+      </div>
+      
+      <!-- Feature Content -->
+      <div id="featureContent" style="display:none;">
+        
+        <!-- Header -->
+        <div class="lld-feature-header">
+          <h1>
+            <span id="featureTitle">Feature Review</span>
+            <a class="back-link" href="#" id="backLink">&#x2190; Back to List</a>
+          </h1>
+          <div class="feature-id" id="featureIdDisplay">--</div>
+          <div style="margin-top:8px;">
+            <span class="lld-status-badge lld-status-pending" id="statusBadge">
+              <span class="dot"></span>
+              <span id="statusText">Pending Review</span>
+            </span>
+          </div>
+        </div>
+        
+        <!-- Feature Meta -->
+        <div class="lld-feature-section">
+          <h2>Feature Information</h2>
+          <div class="lld-feature-meta">
+            <div class="lld-meta-item">
+              <div class="label">Layer</div>
+              <div class="value" id="metaLayer">--</div>
+            </div>
+            <div class="lld-meta-item">
+              <div class="label">Change Type</div>
+              <div class="value" id="metaChangeType">--</div>
+            </div>
+            <div class="lld-meta-item">
+              <div class="label">Engineer</div>
+              <div class="value" id="metaEngineer">--</div>
+            </div>
+            <div class="lld-meta-item">
+              <div class="label">Created</div>
+              <div class="value" id="metaCreated">--</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Reason -->
+        <div class="lld-feature-section">
+          <h2>Reason for Change</h2>
+          <p id="changeReason" style="margin:0;font-size:14px;line-height:1.6;color:#374151;">--</p>
+          <p id="engineerNotes" style="margin:8px 0 0;font-size:13px;color:#6B7280;display:none;">
+            <strong>Notes:</strong> <span id="notesText">--</span>
+          </p>
+        </div>
+        
+        <!-- Geometry Comparison (for geometry changes) -->
+        <div class="lld-feature-section" id="geometrySection" style="display:none;">
+          <h2>Geometry Comparison</h2>
+          <div class="lld-comparison-box original">
+            <h3>Original HLD</h3>
+            <pre id="originalGeometry">--</pre>
+          </div>
+          <div class="lld-comparison-box proposed">
+            <h3>Proposed Survey</h3>
+            <pre id="proposedGeometry">--</pre>
+          </div>
+        </div>
+        
+        <!-- Attribute Comparison (for attribute changes) -->
+        <div class="lld-feature-section" id="attributeSection" style="display:none;">
+          <h2>Attribute Change</h2>
+          <table class="lld-attribute-table">
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>HLD Value</th>
+                <th></th>
+                <th>Survey Value</th>
+              </tr>
+            </thead>
+            <tbody id="attributeTableBody">
+              <tr>
+                <td colspan="4" style="text-align:center;color:#6B7280;">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Previous Review (if exists) -->
+        <div class="lld-feature-section" id="previousReviewSection" style="display:none;">
+          <h2>Previous Review</h2>
+          <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:8px;padding:12px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <span class="lld-status-badge" id="previousStatusBadge">
+                <span class="dot"></span>
+                <span id="previousStatusText">--</span>
+              </span>
+              <span style="font-size:12px;color:#6B7280;" id="previousReviewer">--</span>
+            </div>
+            <p style="margin:0;font-size:13px;color:#374151;" id="previousComments">--</p>
+          </div>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="lld-feature-section">
+          <div class="lld-nav-buttons">
+            <button class="lld-nav-btn" id="prevBtn" onclick="navigateFeature(-1)">
+              &#x2190; Previous
+            </button>
+            <button class="lld-nav-btn primary" id="nextBtn" onclick="navigateFeature(1)">
+              Next &#x2192;
+            </button>
+          </div>
+        </div>
+        
+      </div>
+      
+      <!-- Review Actions -->
+      <div class="lld-review-actions" id="reviewActions" style="display:none;">
+        <h3>Review Decision</h3>
+        
+        <div class="lld-action-buttons">
+          <button class="lld-action-btn lld-action-btn-approve" id="approveBtn" onclick="submitReview('approved')">
+            <span class="icon">&#x2705;</span>
+            <span>Accept</span>
+          </button>
+          <button class="lld-action-btn lld-action-btn-redo" id="redoBtn" onclick="submitReview('rejected')">
+            <span class="icon">&#x1F504;</span>
+            <span>Redo</span>
+          </button>
+          <button class="lld-action-btn lld-action-btn-correct" id="correctBtn" onclick="submitReview('needs_correction')">
+            <span class="icon">&#x270F;&#xFE0F;</span>
+            <span>Correct</span>
+          </button>
+        </div>
+        
+        <label class="lld-comment-label" for="reviewComment">Review Comments</label>
+        <textarea 
+          class="lld-comment-input" 
+          id="reviewComment" 
+          placeholder="Add comments for the engineer (required for Redo/Correct)..."
+        ></textarea>
+      </div>
+      
+    </div>
+    
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" class="lld-toast"></div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script src="js/ftth-config.js"></script>
+<script>
+  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+</script>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+  
+  // Get parameters from URL (support both old and new parameter names)
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id') || urlParams.get('project');
+  const changeId = urlParams.get('change_id') || urlParams.get('feature');
+  
+  // State
+  let currentChange = null;
+  let allChanges = [];
+  let currentIndex = 0;
+  let map = null;
+  
+  // Layer colors
+  const layerColors = {
+    'objects': '#3B82F6',
+    'polygons': '#8B5CF6',
+    'pdps': '#EC4899',
+    'mfg': '#F59E0B',
+    'trenches': '#EF4444',
+    'cables': '#10B981',
+    'ducts': '#6366F1',
+    'chambers': '#14B8A6',
+    'poles': '#F97316',
+    'brownfield': '#6B7280'
+  };
+  
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    if (projectId) {
+      document.getElementById('backLink').href = `ftth-survey-changes.html?project_id=${projectId}`;
+      loadChanges();
+    } else {
+      showToast('No project ID provided', 'error');
+      document.getElementById('loadingState').innerHTML = '<div style="text-align:center;color:#6B7280;">No project ID provided</div>';
+    }
+  });
+  
+  function showToast(msg, type = 'info') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = `lld-toast show ${type}`;
+    setTimeout(() => { toast.className = 'lld-toast'; }, 3000);
+  }
+  
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (_) {
+      return iso.substring(0, 10);
+    }
+  }
+  
+  // Load all changes
+  async function loadChanges() {
+    try {
+      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/survey-changes/`, {
+        headers: { 'Authorization': 'Bearer ' + window.FiberAuth.getToken() }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        allChanges = data.results || data || [];
+        
+        // Find current change index
+        if (changeId) {
+          currentIndex = allChanges.findIndex(c => c.id === changeId);
+          if (currentIndex === -1) currentIndex = 0;
+        }
+        
+        loadFeature(currentIndex);
+      } else {
+        throw new Error('Failed to load changes');
+      }
+    } catch (err) {
+      console.error('Failed to load changes:', err);
+      showToast('Failed to load changes', 'error');
+    }
+  }
+  
+  // Load feature at index
+  function loadFeature(index) {
+    if (index < 0 || index >= allChanges.length) return;
+    
+    currentIndex = index;
+    currentChange = allChanges[currentIndex];
+    
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('featureContent').style.display = 'block';
+    document.getElementById('reviewActions').style.display = 'block';
+    
+    renderFeature();
+    initMap();
+  }
+  
+  // Render feature details
+  function renderFeature() {
+    const change = currentChange;
+    
+    // Header
+    document.getElementById('featureTitle').textContent = change.feature_id_display || 'Feature Review';
+    document.getElementById('featureIdDisplay').textContent = `Change ID: ${change.id}`;
+    
+    // Status badge
+    const statusBadge = document.getElementById('statusBadge');
+    const statusText = document.getElementById('statusText');
+    statusBadge.className = `lld-status-badge lld-status-${change.status === 'pending_review' ? 'pending' : change.status}`;
+    statusText.textContent = change.status_display || change.status;
+    
+    // Meta
+    document.getElementById('metaLayer').textContent = change.layer_name || '—';
+    document.getElementById('metaChangeType').textContent = change.change_type_display || change.change_type;
+    document.getElementById('metaEngineer').textContent = change.created_by_email || '—';
+    document.getElementById('metaCreated').textContent = formatDate(change.created_at);
+    
+    // Reason
+    document.getElementById('changeReason').textContent = change.reason || '—';
+    
+    // Engineer notes
+    if (change.engineer_notes) {
+      document.getElementById('engineerNotes').style.display = 'block';
+      document.getElementById('notesText').textContent = change.engineer_notes;
+    } else {
+      document.getElementById('engineerNotes').style.display = 'none';
+    }
+    
+    // Geometry comparison
+    if (change.change_type === 'geometry' && (change.original_geometry || change.proposed_geometry)) {
+      document.getElementById('geometrySection').style.display = 'block';
+      document.getElementById('originalGeometry').textContent = JSON.stringify(change.original_geometry, null, 2);
+      document.getElementById('proposedGeometry').textContent = JSON.stringify(change.proposed_geometry, null, 2);
+    } else {
+      document.getElementById('geometrySection').style.display = 'none';
+    }
+    
+    // Attribute comparison
+    if (change.change_type === 'attribute' && change.changed_field) {
+      document.getElementById('attributeSection').style.display = 'block';
+      document.getElementById('attributeTableBody').innerHTML = `
+        <tr>
+          <td><strong>${escHtml(change.changed_field)}</strong></td>
+          <td>${escHtml(change.original_value)}</td>
+          <td class="arrow">&#x2192;</td>
+          <td class="changed">${escHtml(change.proposed_value)}</td>
+        </tr>
+      `;
+    } else {
+      document.getElementById('attributeSection').style.display = 'none';
+    }
+    
+    // Previous review
+    if (change.status !== 'pending_review') {
+      document.getElementById('previousReviewSection').style.display = 'block';
+      const prevBadge = document.getElementById('previousStatusBadge');
+      prevBadge.className = `lld-status-badge lld-status-${change.status === 'approved' ? 'approved' : change.status === 'rejected' ? 'rejected' : 'correction'}`;
+      document.getElementById('previousStatusText').textContent = change.status_display || change.status;
+      document.getElementById('previousReviewer').textContent = `by ${change.reviewer_email || 'Unknown'} on ${formatDate(change.reviewed_at)}`;
+      document.getElementById('previousComments').textContent = change.review_comments || 'No comments';
+      
+      // Disable review buttons if already reviewed
+      document.getElementById('approveBtn').disabled = true;
+      document.getElementById('redoBtn').disabled = true;
+      document.getElementById('correctBtn').disabled = true;
+      document.getElementById('reviewComment').disabled = true;
+    } else {
+      document.getElementById('previousReviewSection').style.display = 'none';
+      document.getElementById('approveBtn').disabled = false;
+      document.getElementById('redoBtn').disabled = false;
+      document.getElementById('correctBtn').disabled = false;
+      document.getElementById('reviewComment').disabled = false;
+    }
+    
+    // Navigation
+    document.getElementById('prevBtn').disabled = currentIndex === 0;
+    document.getElementById('nextBtn').disabled = currentIndex === allChanges.length - 1;
+    
+    // Update back link with current change
+    document.getElementById('backLink').href = `ftth-survey-changes.html?project_id=${projectId}`;
+  }
+  
+  // Initialize map
+  function initMap() {
+    if (map) {
+      map.remove();
+    }
+    
+    map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {
+          'osm': {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap contributors'
+          }
+        },
+        layers: [{
+          id: 'osm-layer',
+          type: 'raster',
+          source: 'osm'
+        }]
+      },
+      center: [0, 0],
+      zoom: 2
+    });
+    
+    map.on('load', function() {
+      document.getElementById('mapLoading').style.display = 'none';
+      loadFeatureOnMap();
+    });
+  }
+  
+  // Load feature geometry on map
+  function loadFeatureOnMap() {
+    const change = currentChange;
+    if (!change) return;
+    
+    const features = [];
+    
+    // Add original geometry (blue)
+    if (change.original_geometry) {
+      features.push({
+        type: 'Feature',
+        geometry: change.original_geometry,
+        properties: { _type: 'original', _color: '#3B82F6' }
+      });
+    }
+    
+    // Add proposed geometry (green)
+    if (change.proposed_geometry) {
+      features.push({
+        type: 'Feature',
+        geometry: change.proposed_geometry,
+        properties: { _type: 'proposed', _color: '#10B981' }
+      });
+    }
+    
+    if (features.length === 0) return;
+    
+    const geojson = {
+      type: 'FeatureCollection',
+      features: features
+    };
+    
+    map.addSource('feature-geometry', {
+      type: 'geojson',
+      data: geojson
+    });
+    
+    // Determine geometry type
+    const geomType = features[0]?.geometry?.type;
+    
+    if (geomType === 'Point' || geomType === 'MultiPoint') {
+      // Original point (blue)
+      map.addLayer({
+        id: 'feature-original',
+        type: 'circle',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'original'],
+        paint: {
+          'circle-radius': 10,
+          'circle-color': '#3B82F6',
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#FFFFFF'
+        }
+      });
+      
+      // Proposed point (green)
+      map.addLayer({
+        id: 'feature-proposed',
+        type: 'circle',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'proposed'],
+        paint: {
+          'circle-radius': 10,
+          'circle-color': '#10B981',
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#FFFFFF'
+        }
+      });
+    } else if (geomType === 'LineString' || geomType === 'MultiLineString') {
+      // Original line (blue)
+      map.addLayer({
+        id: 'feature-original',
+        type: 'line',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'original'],
+        paint: {
+          'line-color': '#3B82F6',
+          'line-width': 4,
+          'line-opacity': 0.8
+        }
+      });
+      
+      // Proposed line (green)
+      map.addLayer({
+        id: 'feature-proposed',
+        type: 'line',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'proposed'],
+        paint: {
+          'line-color': '#10B981',
+          'line-width': 4,
+          'line-opacity': 0.8
+        }
+      });
+    } else if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
+      // Original polygon (blue)
+      map.addLayer({
+        id: 'feature-original-fill',
+        type: 'fill',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'original'],
+        paint: {
+          'fill-color': '#3B82F6',
+          'fill-opacity': 0.3
+        }
+      });
+      map.addLayer({
+        id: 'feature-original-line',
+        type: 'line',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'original'],
+        paint: {
+          'line-color': '#3B82F6',
+          'line-width': 3
+        }
+      });
+      
+      // Proposed polygon (green)
+      map.addLayer({
+        id: 'feature-proposed-fill',
+        type: 'fill',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'proposed'],
+        paint: {
+          'fill-color': '#10B981',
+          'fill-opacity': 0.3
+        }
+      });
+      map.addLayer({
+        id: 'feature-proposed-line',
+        type: 'line',
+        source: 'feature-geometry',
+        filter: ['==', ['get', '_type'], 'proposed'],
+        paint: {
+          'line-color': '#10B981',
+          'line-width': 3
+        }
+      });
+    }
+    
+    // Fit bounds
+    const bounds = new maplibregl.LngLatBounds();
+    features.forEach(f => {
+      if (f.geometry?.coordinates) {
+        const coords = f.geometry.coordinates;
+        if (Array.isArray(coords[0])) {
+          coords.forEach(c => {
+            if (Array.isArray(c[0])) {
+              c.forEach(point => bounds.extend(point));
+            } else {
+              bounds.extend(c);
+            }
+          });
+        } else {
+          bounds.extend(coords);
+        }
+      }
+    });
+    
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, { padding: 50 });
+    }
+  }
+  
+  // Navigate between features
+  function navigateFeature(direction) {
+    const newIndex = currentIndex + direction;
+    if (newIndex >= 0 && newIndex < allChanges.length) {
+      // Update URL without reload
+      const newUrl = new URL(window.location);
+      newUrl.searchParams.set('change_id', allChanges[newIndex].id);
+      window.history.pushState({}, '', newUrl);
+      
+      loadFeature(newIndex);
+    }
+  }
+  
+  // Submit review
+  async function submitReview(action) {
+    const comment = document.getElementById('reviewComment').value.trim();
+    
+    // Validate comment for redo/correct
+    if ((action === 'rejected' || action === 'needs_correction') && !comment) {
+      showToast('Please add comments for this action', 'error');
+      document.getElementById('reviewComment').focus();
+      return;
+    }
+    
+    if (!confirm(`Are you sure you want to ${action === 'approved' ? 'accept' : action === 'rejected' ? 'redo' : 'request correction'} this change?`)) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/survey-changes/${currentChange.id}/review/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + window.FiberAuth.getToken(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: action,
+          review_comments: comment
+        })
+      });
+      
+      if (response.ok) {
+        showToast(`Change ${action === 'approved' ? 'accepted' : action === 'rejected' ? 'sent for redo' : 'marked for correction'}`, 'success');
+        
+        // Update local data
+        currentChange.status = action;
+        currentChange.review_comments = comment;
+        currentChange.reviewer_email = window.FiberAuth.getUser()?.email;
+        currentChange.reviewed_at = new Date().toISOString();
+        
+        // Update UI
+        renderFeature();
+        
+        // Clear comment
+        document.getElementById('reviewComment').value = '';
+      } else {
+        throw new Error('Failed to submit review');
+      }
+    } catch (err) {
+      console.error('Failed to submit review:', err);
+      showToast('Failed to submit review', 'error');
+    }
+  }
+  
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    
+    if (e.key === 'ArrowLeft') {
+      navigateFeature(-1);
+    } else if (e.key === 'ArrowRight') {
+      navigateFeature(1);
+    } else if (e.key === 'a' || e.key === 'A') {
+      if (!document.getElementById('approveBtn').disabled) {
+        submitReview('approved');
+      }
+    } else if (e.key === 'r' || e.key === 'R') {
+      if (!document.getElementById('redoBtn').disabled) {
+        submitReview('rejected');
+      }
+    }
+  });
+</script>
+</body>
+</html>

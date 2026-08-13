@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Approved Survey Version | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- MapLibre GL -->
+  <script src="vendor/maplibre/maplibre-gl.js"></script>
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+  
+  <style>
+    .approved-survey-layout {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .approved-survey-map {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+    
+    .approved-survey-map #map {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    .approved-survey-side {
+      width: 420px;
+      flex-shrink: 0;
+      background: #FFFFFF;
+      border-left: 1px solid #E5E7EB;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    
+    .approved-survey-header {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+      flex-shrink: 0;
+    }
+    
+    .approved-survey-header h1 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      color: #1F2937;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .approved-survey-header h1 .back-link {
+      font-size: 12px;
+      font-weight: 400;
+      color: #6B7280;
+      text-decoration: none;
+      margin-left: auto;
+    }
+    
+    .approved-survey-header h1 .back-link:hover {
+      color: #E31837;
+    }
+    
+    .approved-survey-header .project-info {
+      font-size: 13px;
+      color: #6B7280;
+      margin-top: 4px;
+    }
+    
+    .approved-survey-section {
+      padding: 20px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    
+    .approved-survey-section h2 {
+      margin: 0 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #6B7280;
+    }
+    
+    .version-card {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.15s ease;
+    }
+    
+    .version-card:hover {
+      border-color: #D1D5DB;
+    }
+    
+    .version-card.active {
+      border-color: #059669;
+      background: #ECFDF5;
+    }
+    
+    .version-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .version-number {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1F2937;
+    }
+    
+    .version-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    
+    .version-status.ready {
+      background: #ECFDF5;
+      color: #047857;
+      border: 1px solid #A7F3D0;
+    }
+    
+    .version-status.used {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+    }
+    
+    .version-status .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    
+    .version-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .version-stat {
+      text-align: center;
+      padding: 8px;
+      background: #FFFFFF;
+      border-radius: 8px;
+      border: 1px solid #E5E7EB;
+    }
+    
+    .version-stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1F2937;
+    }
+    
+    .version-stat-label {
+      font-size: 10px;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    
+    .version-stat.approved .version-stat-value { color: #059669; }
+    .version-stat.rejected .version-stat-value { color: #DC2626; }
+    
+    .version-meta {
+      font-size: 12px;
+      color: #6B7280;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .version-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .version-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .version-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+      text-align: center;
+      text-decoration: none;
+    }
+    
+    .version-btn-primary {
+      background: #059669;
+      color: #FFFFFF;
+    }
+    
+    .version-btn-primary:hover {
+      background: #047857;
+    }
+    
+    .version-btn-secondary {
+      background: #F3F4F6;
+      color: #374151;
+      border: 1px solid #D1D5DB;
+    }
+    
+    .version-btn-secondary:hover {
+      background: #E5E7EB;
+    }
+    
+    .version-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .immutable-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .immutable-notice .icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .immutable-notice .text {
+      font-size: 13px;
+      color: #92400E;
+      line-height: 1.5;
+    }
+    
+    .immutable-notice .text strong {
+      font-weight: 700;
+    }
+    
+    .feature-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid #F3F4F6;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+    
+    .feature-item:last-child {
+      border-bottom: none;
+    }
+    
+    .feature-item:hover {
+      background: #F9FAFB;
+    }
+    
+    .feature-item .layer-badge {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      background: #E5E7EB;
+      color: #374151;
+    }
+    
+    .feature-item .feature-id {
+      flex: 1;
+      font-family: monospace;
+      color: #6B7280;
+    }
+    
+    .feature-item .new-badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 700;
+      background: #D1FAE5;
+      color: #047857;
+    }
+    
+    .layer-toggle-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .layer-toggle-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    
+    .layer-toggle-item:hover {
+      background: #F3F4F6;
+    }
+    
+    .layer-toggle-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #E31837;
+    }
+    
+    .layer-toggle-item .layer-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1F2937;
+    }
+    
+    .layer-toggle-item .layer-count {
+      font-size: 11px;
+      color: #6B7280;
+    }
+    
+    .layer-color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    
+    .approved-survey-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: #6B7280;
+    }
+    
+    .approved-survey-empty .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    
+    .approved-survey-empty h2 {
+      font-size: 16px;
+      color: #1F2937;
+      margin: 0 0 8px;
+    }
+    
+    .approved-survey-empty p {
+      font-size: 13px;
+      margin: 0 0 16px;
+    }
+    
+    .approved-survey-empty a {
+      color: #E31837;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    
+    .approved-survey-empty a:hover {
+      text-decoration: underline;
+    }
+    
+    .loading-spinner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    
+    .loading-spinner .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #E5E7EB;
+      border-top-color: #E31837;
+      border-radius: 50%;
+      animation: ftth-spin 0.8s linear infinite;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout" style="padding:0;">
+  <div id="sidebarContainer"></div>
+  
+  <div class="approved-survey-layout">
+    
+    <!-- Map Pane -->
+    <div class="approved-survey-map">
+      <div id="map"></div>
+      <div id="mapLoading" class="ftth-map-loading">
+        <div>
+          <div class="spinner" style="margin:0 auto 12px;"></div>
+          <div style="font-size:14px;color:#6B7280;">Loading approved survey data...</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Side Pane -->
+    <div class="approved-survey-side">
+      
+      <!-- Header -->
+      <div class="approved-survey-header">
+        <h1>
+          Approved Survey Version
+          <a class="back-link" href="ftth-lld-review.html?project_id=" id="backLink">&#x2190; LLD Review</a>
+        </h1>
+        <div class="project-info" id="projectInfo">Loading...</div>
+      </div>
+      
+      <!-- Loading State -->
+      <div id="loadingState" class="loading-spinner">
+        <div class="spinner"></div>
+      </div>
+      
+      <!-- Empty State -->
+      <div id="emptyState" class="approved-survey-empty" style="display:none;">
+        <div class="icon">&#x1F512;</div>
+        <h2>No Approved Survey Version</h2>
+        <p>Create an approved survey version from the LLD Review page to proceed with LLD generation.</p>
+        <a href="#" id="emptyReviewLink">Go to LLD Review &#x2192;</a>
+      </div>
+      
+      <!-- Version Content -->
+      <div id="versionContent" style="display:none;">
+        
+        <!-- Immutable Notice -->
+        <div class="approved-survey-section">
+          <div class="immutable-notice">
+            <span class="icon">&#x1F512;</span>
+            <div class="text">
+              <strong>Immutable Version</strong><br>
+              This approved survey version cannot be modified. Once created, it serves as the authoritative input for LLD generation.
+            </div>
+          </div>
+          
+          <!-- Version Card -->
+          <div class="version-card active" id="versionCard">
+            <div class="version-card-header">
+              <span class="version-number" id="versionNumber">V1</span>
+              <span class="version-status ready" id="versionStatus">
+                <span class="dot"></span>
+                Ready for LLD
+              </span>
+            </div>
+            
+            <div class="version-stats">
+              <div class="version-stat">
+                <div class="version-stat-value" id="totalFeatures">0</div>
+                <div class="version-stat-label">Features</div>
+              </div>
+              <div class="version-stat approved">
+                <div class="version-stat-value" id="approvedChanges">0</div>
+                <div class="version-stat-label">Approved</div>
+              </div>
+              <div class="version-stat rejected">
+                <div class="version-stat-value" id="rejectedChanges">0</div>
+                <div class="version-stat-label">Rejected</div>
+              </div>
+            </div>
+            
+            <div class="version-meta">
+              <span>&#x1F4C4; HLD Source: <strong id="hldSource">--</strong></span>
+              <span>&#x1F4C5; Created: <strong id="createdDate">--</strong></span>
+              <span>&#x1F464; Created by: <strong id="createdBy">--</strong></span>
+            </div>
+            
+            <div class="version-actions">
+              <button class="version-btn version-btn-primary" id="runLldBtn" disabled>
+                Run LLD
+              </button>
+              <button class="version-btn version-btn-secondary" onclick="downloadVersion()">
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Layer Toggles -->
+        <div class="approved-survey-section">
+          <h2>Layers</h2>
+          <div class="layer-toggle-list" id="layerToggles">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+        
+        <!-- Feature List -->
+        <div class="approved-survey-section" style="flex:1;">
+          <h2>Features <span id="featureCount" style="font-weight:400;color:#9CA3AF;">(0)</span></h2>
+          <div class="feature-list" id="featureList">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+        
+      </div>
+      
+    </div>
+    
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div id="toast" class="ftth-toast"></div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script src="js/ftth-config.js"></script>
+<script>
+  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+</script>
+<script src="fiber-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+  
+  // Get project ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const projectId = urlParams.get('project_id');
+  
+  // Layer colors
+  const layerColors = {
+    'objects': '#3B82F6',
+    'polygons': '#8B5CF6',
+    'pdps': '#EC4899',
+    'mfg': '#F59E0B',
+    'trenches': '#EF4444',
+    'cables': '#10B981',
+    'ducts': '#6366F1',
+    'chambers': '#14B8A6',
+    'poles': '#F97316',
+    'brownfield': '#6B7280'
+  };
+  
+  let map = null;
+  let currentVersion = null;
+  let approvedData = null;
+  
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    if (projectId) {
+      document.getElementById('backLink').href = `ftth-lld-review.html?project_id=${projectId}`;
+      document.getElementById('emptyReviewLink').href = `ftth-lld-review.html?project_id=${projectId}`;
+      loadVersion();
+    } else {
+      showToast('No project ID provided');
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+  });
+  
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function() { toast.classList.remove('show'); }, 3000);
+  }
+  
+  function escHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  
+  function formatDate(iso) {
+    if (!iso) return '—';
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (_) {
+      return iso.substring(0, 10);
+    }
+  }
+  
+  // Load latest approved version
+  async function loadVersion() {
+    try {
+      const response = await fetch(`${window.FIBER_BASE_URL}/api/projects/${projectId}/approved-survey/latest/`, {
+        headers: { 'Authorization': 'Bearer ' + window.FiberAuth.getToken() }
+      });
+      
+      if (response.ok) {
+        currentVersion = await response.json();
+        approvedData = currentVersion.approved_data;
+        renderVersion();
+        initMap();
+      } else if (response.status === 404) {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+      } else {
+        throw new Error('Failed to load version');
+      }
+    } catch (err) {
+      console.error('Failed to load version:', err);
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+  }
+  
+  // Render version info
+  function renderVersion() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('versionContent').style.display = 'block';
+    
+    document.getElementById('versionNumber').textContent = `V${currentVersion.version_number}`;
+    document.getElementById('hldSource').textContent = currentVersion.hld_project_id || '—';
+    document.getElementById('createdDate').textContent = formatDate(currentVersion.created_at);
+    document.getElementById('createdBy').textContent = currentVersion.created_by_email || '—';
+    document.getElementById('approvedChanges').textContent = currentVersion.approved_changes;
+    document.getElementById('rejectedChanges').textContent = currentVersion.rejected_changes;
+    
+    const features = approvedData?.features || [];
+    document.getElementById('totalFeatures').textContent = features.length;
+    document.getElementById('featureCount').textContent = `(${features.length})`;
+    
+    // Update status badge
+    const statusEl = document.getElementById('versionStatus');
+    if (currentVersion.status === 'ready') {
+      statusEl.className = 'version-status ready';
+      statusEl.innerHTML = '<span class="dot"></span>Ready for LLD';
+      document.getElementById('runLldBtn').disabled = false;
+    } else if (currentVersion.status === 'used_for_lld') {
+      statusEl.className = 'version-status used';
+      statusEl.innerHTML = '<span class="dot"></span>Used for LLD';
+      document.getElementById('runLldBtn').disabled = true;
+    }
+    
+    // Render layer toggles
+    renderLayerToggles(features);
+    
+    // Render feature list
+    renderFeatureList(features);
+    
+    // Update project info
+    document.getElementById('projectInfo').textContent = `Project ID: ${projectId}`;
+  }
+  
+  // Render layer toggles
+  function renderLayerToggles(features) {
+    const layerCounts = {};
+    features.forEach(f => {
+      const layer = f.layer_name || 'unknown';
+      layerCounts[layer] = (layerCounts[layer] || 0) + 1;
+    });
+    
+    const container = document.getElementById('layerToggles');
+    container.innerHTML = '';
+    
+    Object.entries(layerCounts).forEach(([layer, count]) => {
+      const color = layerColors[layer] || '#6B7280';
+      const item = document.createElement('div');
+      item.className = 'layer-toggle-item';
+      item.innerHTML = `
+        <input type="checkbox" checked data-layer="${escHtml(layer)}" onchange="toggleLayer('${escHtml(layer)}', this.checked)" />
+        <span class="layer-color-dot" style="background:${color};"></span>
+        <span class="layer-name">${escHtml(layer)}</span>
+        <span class="layer-count">${count}</span>
+      `;
+      container.appendChild(item);
+    });
+  }
+  
+  // Render feature list
+  function renderFeatureList(features) {
+    const container = document.getElementById('featureList');
+    container.innerHTML = '';
+    
+    features.forEach(f => {
+      const item = document.createElement('div');
+      item.className = 'feature-item';
+      item.onclick = () => focusFeature(f);
+      
+      const layerColor = layerColors[f.layer_name] || '#6B7280';
+      item.innerHTML = `
+        <span class="layer-badge" style="background:${layerColor}20;color:${layerColor};">${escHtml(f.layer_name)}</span>
+        <span class="feature-id">${escHtml(f.id?.substring(0, 12) || '—')}</span>
+        ${f.is_new ? '<span class="new-badge">NEW</span>' : ''}
+      `;
+      container.appendChild(item);
+    });
+  }
+  
+  // Initialize map
+  function initMap() {
+    map = new maplibregl.Map({
+      container: 'map',
+      style: {
+        version: 8,
+        sources: {
+          'osm': {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap contributors'
+          }
+        },
+        layers: [{
+          id: 'osm-layer',
+          type: 'raster',
+          source: 'osm'
+        }]
+      },
+      center: [0, 0],
+      zoom: 2
+    });
+    
+    map.on('load', function() {
+      document.getElementById('mapLoading').style.display = 'none';
+      loadApprovedData();
+    });
+  }
+  
+  // Load approved data onto map
+  function loadApprovedData() {
+    if (!approvedData || !approvedData.features) return;
+    
+    const features = approvedData.features;
+    
+    // Group features by layer
+    const layerGroups = {};
+    features.forEach(f => {
+      const layer = f.layer_name || 'unknown';
+      if (!layerGroups[layer]) layerGroups[layer] = [];
+      if (f.geometry) {
+        layerGroups[layer].push({
+          type: 'Feature',
+          geometry: f.geometry,
+          properties: f.properties || {}
+        });
+      }
+    });
+    
+    // Add each layer to map
+    Object.entries(layerGroups).forEach(([layer, geojsonFeatures]) => {
+      if (geojsonFeatures.length === 0) return;
+      
+      const sourceId = `approved-${layer}`;
+      const layerId = `approved-layer-${layer}`;
+      const color = layerColors[layer] || '#6B7280';
+      
+      map.addSource(sourceId, {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: geojsonFeatures
+        }
+      });
+      
+      // Determine layer type based on geometry
+      const firstGeom = geojsonFeatures[0]?.geometry?.type;
+      let paint = {};
+      
+      if (firstGeom === 'Point' || firstGeom === 'MultiPoint') {
+        map.addLayer({
+          id: layerId,
+          type: 'circle',
+          source: sourceId,
+          paint: {
+            'circle-radius': 6,
+            'circle-color': color,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#FFFFFF'
+          }
+        });
+      } else if (firstGeom === 'LineString' || firstGeom === 'MultiLineString') {
+        map.addLayer({
+          id: layerId,
+          type: 'line',
+          source: sourceId,
+          paint: {
+            'line-color': color,
+            'line-width': 3,
+            'line-opacity': 0.8
+          }
+        });
+      } else if (firstGeom === 'Polygon' || firstGeom === 'MultiPolygon') {
+        map.addLayer({
+          id: layerId,
+          type: 'fill',
+          source: sourceId,
+          paint: {
+            'fill-color': color,
+            'fill-opacity': 0.3,
+            'fill-outline-color': color
+          }
+        });
+      }
+    });
+    
+    // Fit bounds to features
+    if (features.length > 0) {
+      const bounds = new maplibregl.LngLatBounds();
+      features.forEach(f => {
+        if (f.geometry?.coordinates) {
+          const coords = f.geometry.coordinates;
+          if (Array.isArray(coords[0])) {
+            coords.forEach(c => {
+              if (Array.isArray(c[0])) {
+                c.forEach(point => bounds.extend(point));
+              } else {
+                bounds.extend(c);
+              }
+            });
+          } else {
+            bounds.extend(coords);
+          }
+        }
+      });
+      
+      if (!bounds.isEmpty()) {
+        map.fitBounds(bounds, { padding: 50 });
+      }
+    }
+  }
+  
+  // Toggle layer visibility
+  function toggleLayer(layer, visible) {
+    const layerId = `approved-layer-${layer}`;
+    if (map.getLayer(layerId)) {
+      map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+    }
+  }
+  
+  // Focus on feature
+  function focusFeature(feature) {
+    if (!feature.geometry?.coordinates) return;
+    
+    const coords = feature.geometry.coordinates;
+    let center;
+    
+    if (feature.geometry.type === 'Point') {
+      center = coords;
+    } else if (Array.isArray(coords[0])) {
+      center = coords[0];
+    } else {
+      center = coords;
+    }
+    
+    map.flyTo({
+      center: center,
+      zoom: 16
+    });
+  }
+  
+  // Download version
+  function downloadVersion() {
+    if (!approvedData) return;
+    
+    const blob = new Blob([JSON.stringify(approvedData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `approved-survey-v${currentVersion.version_number}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Download started');
+  }
+  
+  // Run LLD button
+  document.getElementById('runLldBtn').addEventListener('click', function() {
+    if (confirm('Run LLD with this approved survey version?')) {
+      showToast('LLD generation would start here');
+      // TODO: Implement LLD run
+    }
+  });
+</script>
+</body>
+</html>

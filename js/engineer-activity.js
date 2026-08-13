@@ -502,7 +502,8 @@ function updateActivityTimeline(activity) {
 
 // Where the mobile app's web build lives (served from the Expo export).
 // Override for production via: window.SURVEY_MAP_BASE_URL = 'https://...'
-const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/, '');
+// Expo web build (survey map) is served on :8081 in dev.
+const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/,'');
 
 function viewAssignmentDetails(id) {
   const assignment = assignmentsData.find(a => String(a.id) === String(id));

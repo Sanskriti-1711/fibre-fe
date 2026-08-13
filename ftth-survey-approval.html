@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Project Approval Queue | Tech Mahindra</title>
+  <title>Survey Approval | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="css/main.css" />
@@ -18,7 +18,7 @@
 
     <div class="header">
       <div>
-        <h1>Project Approval Queue</h1>
+        <h1>Survey Approval</h1>
         <p>Review survey changes from submitted projects — approve, or request redo</p>
       </div>
       <div style="display: flex; gap: 12px;">
@@ -98,8 +98,8 @@
   let surveyChanges = [];
   let pendingSurveyRedoId = null;
 
-  // Survey map (mobile web build) base URL — localhost:8081 in dev
-  const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/, '');
+  // Survey map (mobile web build) base URL — Expo web build on :8081 in dev
+  const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/,'');
 
   // DOM Elements
   const filterProject = document.getElementById('filterProject');

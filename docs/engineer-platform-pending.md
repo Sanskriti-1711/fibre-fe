@@ -6,29 +6,29 @@ This document lists all pending implementation items for the Field Engineer Plat
 ## Critical Blocking Items
 
 ### 1. Feature Submit API
-- **Page**: `engineer-feature-submit.html`
+- **Page**: `engineer/engineer-feature-submit.html`
 - **Issue**: `submitFeature()` function only updates UI status but does NOT call the backend API. The feature data (measurements, media, GPS) never reaches the server.
 
 ### 2. Dynamic Project Loading
-- **Page**: `engineer-project-details.html`
+- **Page**: `engineer/engineer-project-details.html`
 - **Issue**: Projects are hardcoded in JavaScript array. Should fetch from `FiberApi.getEngineerAssignments()` to show real assigned projects.
 
 ### 3. Profile Data Integration
-- **Page**: `engineer-profile.html`
+- **Page**: `engineer/engineer-profile.html`
 - **Issue**: User data (name, email, role) is hardcoded placeholder. Needs to integrate with `FiberAuth.getUser()` to display authenticated user info.
 
 ### 4. Password Change API(IGNORE THIS FOR NOW)
-- **Page**: `engineer-profile.html`
+- **Page**: `engineer/engineer-profile.html`
 - **Issue**: "Change Password" button has no API call attached. Backend endpoint exists but frontend doesn't connect to it.
 
 ## Medium Priority Items
 
 ### 5. Project Map Integration
-- **Page**: `engineer-project-map.html`
+- **Page**: `engineer/engineer-project-map.html`
 - **Issue**: Page is a placeholder with no map library integrated. Engineers need to view their assigned project areas on a map.
 
 ### 6. Notifications API
-- **Page**: `engineer-notifications.html`
+- **Page**: `engineer/engineer-notifications.html`
 - **Issue**: Page shows static placeholder content. Needs to fetch real notifications from backend for new assignments and approval status changes.
 
 ## Backend API Gaps for Engineer Platform

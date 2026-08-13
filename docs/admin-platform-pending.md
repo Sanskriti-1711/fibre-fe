@@ -14,13 +14,13 @@ This document lists all pending implementation items for the Admin Platform to r
 - **Issue**: CSV and PDF export buttons are non-functional. Backend endpoints may exist but frontend doesn't implement the download logic.
 
 ### 3. Admin Settings Page
-- **Page**: `admin-settings.html`
+- **Page**: `admin-settings.html` (NEEDS CREATION)
 - **Issue**: Page does not exist. Platform needs a settings page for configuration parameters (default weights, notification settings, etc.).
 
 ## Medium Priority Items
 
 ### 4. Map Review Integration
-- **Page**: `project-map-review.html`
+- **Page**: `project-map-review.html` (NEEDS CREATION)
 - **Issue**: Map library (Leaflet/Mapbox) not integrated. Currently shows placeholder text instead of actual project map data.
 
 ### 5. Layer Details API
@@ -28,7 +28,7 @@ This document lists all pending implementation items for the Admin Platform to r
 - **Issue**: Layer edit form exists but doesn't connect to backend update endpoint. Changes are lost on refresh.
 
 ### 6. Audit Workflow
-- **Page**: `audit-detail.html`
+- **Page**: `audit-detail.html` (NEEDS CREATION)
 - **Issue**: Audit page shows static mock data. Pass/fail actions don't trigger actual status changes in backend.
 
 ## Backend API Gaps for Admin Platform
