@@ -205,6 +205,15 @@
       background: #DBEAFE;
     }
 
+    .ftth-action-overview {
+      background: #F5F3FF;
+      color: #6D28D9;
+      border-color: #DDD6FE;
+    }
+    .ftth-action-overview:hover {
+      background: #EDE9FE;
+    }
+
     .ftth-action-results {
       background: #ECFDF5;
       color: #065F46;
@@ -579,6 +588,7 @@
           + '<td style="font-size:12px;font-weight:600;color:' + (layerCount === '—' ? '#9CA3AF' : '#374151') + ';">' + layerCount + '</td>'
           + '<td style="text-align:right;">'
           +   '<div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;">'
+          +     '<a class="ftth-action-btn ftth-action-overview" href="ftth-project-overview.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F4CB; Overview</a>'
           +     '<a class="ftth-action-btn ftth-action-status" href="ftth-hld-status.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F50D; Status</a>'
           +     (isCompleted
           ? '<a class="ftth-action-btn ftth-action-results" href="ftth-hld-results.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F5FA;&#xFE0F; Results</a>'
