@@ -210,6 +210,50 @@
     return body;
   }
 
+  // ------------------------------------------------------------------
+  // BOQ / BOM (computed from the HLD layers, priced by the rate card)
+  // ------------------------------------------------------------------
+
+  /**
+   * Fetch the computed BOQ/BOM for a completed HLD run.
+   * Endpoint: GET /api/ftth/hld/results/<id>/boq/
+   */
+  async function getBoq(projectId) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/boq/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
+  /**
+   * Force-recompute the BOQ/BOM snapshot for a project.
+   * Endpoint: POST /api/ftth/hld/results/<id>/boq/regenerate/
+   */
+  async function regenerateBoq(projectId) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/boq/regenerate/');
+    var response = await authFetch(url, { method: 'POST' });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
+  /**
+   * Download the BOQ/BOM workbook (XLSX) with JWT auth.
+   * Endpoint: GET /api/ftth/hld/results/<id>/boq/download/
+   */
+  function downloadBoq(projectId) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/boq/download/');
+    downloadBlob(url, projectId + '_BOQ.xlsx');
+  }
+
 
 
   // ------------------------------------------------------------------
@@ -263,5 +307,8 @@
     downloadDesignPackage: downloadDesignPackage,
     listProjects: listProjects,
     deleteProject: deleteProject,
+    getBoq: getBoq,
+    regenerateBoq: regenerateBoq,
+    downloadBoq: downloadBoq,
   };
 })();

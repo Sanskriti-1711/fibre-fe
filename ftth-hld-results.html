@@ -143,6 +143,17 @@
             <span><div>Design Package</div><div class="sub">All layers + BOQ/BOM + documents (ZIP)</div></span>
           </button>
         </div>
+        <div id="boqContainer" style="display:none;margin-top:12px;">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button id="boqToggleBtn" class="ftth-design-btn" type="button">
+              <span class="icon">&#x1F4CA;</span>
+              <span><div>BOQ / BOM</div><div class="sub">Quantities computed from the design layers</div></span>
+            </button>
+            <button id="boqDownloadBtn" class="ftth-survey-btn" type="button" style="flex:0 0 auto;padding:8px 12px;font-size:12px;">&#x1F4E5; XLSX</button>
+            <button id="boqRegenBtn" class="ftth-survey-btn" type="button" style="flex:0 0 auto;padding:8px 12px;font-size:12px;background:linear-gradient(135deg,#F59E0B,#D97706);">&#x21BB; Recompute</button>
+          </div>
+          <div id="boqBody" style="display:none;margin-top:10px;max-height:320px;overflow:auto;border:1px solid #E5E7EB;border-radius:8px;"></div>
+        </div>
       </div>
 
     <div class="ftth-side-pane-section ftth-collapsible collapsed" id="surveyAssignmentSection">
@@ -350,6 +361,98 @@
   if (designPkgBtn) {
     designPkgBtn.addEventListener('click', function(){
       window.FtthApi.downloadDesignPackage(projectId);
+    });
+  }
+
+  // ------------------------------------------------------------------
+  // BOQ / BOM — computed from the design layers, priced by rate card
+  // ------------------------------------------------------------------
+  var boqContainer = document.getElementById('boqContainer');
+  var boqToggleBtn = document.getElementById('boqToggleBtn');
+  var boqDownloadBtn = document.getElementById('boqDownloadBtn');
+  var boqRegenBtn = document.getElementById('boqRegenBtn');
+  var boqBody = document.getElementById('boqBody');
+  var boqLoaded = false;
+
+  function renderBoqBody(data) {
+    if (!boqBody) return;
+    var rows = (data && data.boq_rows) || [];
+    var totals = (data && data.boq_totals) || {};
+    var perSection = (totals.per_section) || {};
+    var grand = totals.grand_total || 0;
+    if (!rows.length) {
+      boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;font-size:13px;">No BOQ rows computed yet.</div>';
+      return;
+    }
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+    html += '<thead><tr style="background:#F3F4F6;text-align:left;">';
+    ['Section','Code','Item','Unit','Qty','Material €','Labour €','Rent €','Total €'].forEach(function(h){
+      html += '<th style="padding:6px 8px;border-bottom:1px solid #E5E7EB;">' + h + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+    rows.forEach(function(r){
+      html += '<tr>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.section || '') + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.item_code || '') + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.item_name || '') + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.unit || '') + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number(r.quantity || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number(r.material_total || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number(r.labour_total || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number((r.rent_rate||0)*(r.quantity||0)).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
+      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;font-weight:600;">' + Number(r.amount || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
+      html += '</tr>';
+    });
+    html += '<tr style="background:#F9FAFB;font-weight:700;"><td colspan="8" style="padding:6px 8px;">Grand Total</td><td style="padding:6px 8px;text-align:right;">' + Number(grand).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td></tr>';
+    html += '</tbody></table>';
+    if (Object.keys(perSection).length) {
+      html += '<div style="padding:8px;font-size:11px;color:#6B7280;">';
+      Object.keys(perSection).forEach(function(s){
+        html += '<div>' + escapeHtml(s) + ': ' + Number(perSection[s] || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' €</div>';
+      });
+      html += '</div>';
+    }
+    boqBody.innerHTML = html;
+  }
+
+  function loadBoq() {
+    if (!window.FtthApi || !window.FtthApi.getBoq) return;
+    if (boqBody) boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;font-size:13px;">Loading BOQ…</div>';
+    window.FtthApi.getBoq(projectId).then(function(data){
+      boqLoaded = true;
+      renderBoqBody(data);
+      if (boqBody) boqBody.style.display = 'block';
+    }).catch(function(err){
+      if (boqBody) boqBody.innerHTML = '<div style="padding:16px;color:#DC2626;font-size:13px;">Failed to load BOQ: ' + escapeHtml((err && err.message) || err) + '</div>';
+    });
+  }
+
+  if (boqContainer && (statusData && (statusData.status === 'completed' || statusData.status === 'Completed'))) {
+    boqContainer.style.display = 'block';
+  }
+  if (boqToggleBtn) {
+    boqToggleBtn.addEventListener('click', function(){
+      if (!boqLoaded) { loadBoq(); }
+      else if (boqBody) { boqBody.style.display = (boqBody.style.display === 'none') ? 'block' : 'none'; }
+    });
+  }
+  if (boqDownloadBtn) {
+    boqDownloadBtn.addEventListener('click', function(){
+      window.FtthApi.downloadBoq(projectId);
+    });
+  }
+  if (boqRegenBtn) {
+    boqRegenBtn.addEventListener('click', function(){
+      if (boqRegenBtn) boqRegenBtn.disabled = true;
+      window.FtthApi.regenerateBoq(projectId).then(function(data){
+        boqLoaded = true;
+        renderBoqBody(data);
+        if (boqBody) boqBody.style.display = 'block';
+      }).catch(function(err){
+        alert('Failed to recompute BOQ: ' + ((err && err.message) || err));
+      }).finally(function(){
+        if (boqRegenBtn) boqRegenBtn.disabled = false;
+      });
     });
   }
 
