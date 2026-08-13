@@ -33,27 +33,6 @@
       gap: 12px;
     }
     .lld-header-row h1 { margin: 0; font-size: 20px; }
-    .lld-go-review-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 18px;
-      background: linear-gradient(135deg, #059669, #047857);
-      color: #FFF;
-      border: none;
-      border-radius: 10px;
-      font-size: 13.5px;
-      font-weight: 700;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 2px 8px rgba(5,150,105,0.3);
-    }
-    .lld-go-review-btn:hover {
-      background: linear-gradient(135deg, #047857, #065F46);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(5,150,105,0.4);
-    }
     .lld-demo-banner.inline {
       position: static;
       transform: none;
@@ -73,6 +52,78 @@
       margin-bottom: 16px;
     }
     .lld-run-table-wrap { overflow-x: auto; }
+
+    /* ---- Progress bar ---- */
+    .lld-progress-card {
+      display: none;
+      margin-bottom: 16px;
+      padding: 16px 18px;
+      background: #EEF2FF;
+      border: 1px solid #C7D2FE;
+      border-radius: 10px;
+    }
+    .lld-progress-card.show { display: block; }
+    .lld-progress-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #3730A3;
+      font-weight: 600;
+    }
+    .lld-progress-head .pct { font-size: 20px; font-weight: 800; color: #4338CA; }
+    .lld-progress-track {
+      height: 10px;
+      background: #E0E7FF;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .lld-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6366F1, #4F46E5);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .lld-progress-stage {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    /* ---- Action buttons ---- */
+    .lld-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      margin: 2px 4px 2px 0;
+      border: 1px solid #D1D5DB;
+      background: #FFFFFF;
+      color: #1F2937;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .lld-action-btn:hover { background: #F3F4F6; border-color: #9CA3AF; }
+    .lld-action-btn.view {
+      border-color: #A5B4FC;
+      color: #4338CA;
+      background: #EEF2FF;
+    }
+    .lld-action-btn.view:hover { background: #E0E7FF; }
+    .lld-action-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -97,7 +148,6 @@
                 <span>HLD Version: <strong id="hldVersion">&#x2014;</strong></span>
               </div>
             </div>
-            <a id="goReviewBtn" class="lld-go-review-btn" href="#">&#x1F504; Open LLD Review</a>
           </div>
         </div>
 
@@ -107,6 +157,16 @@
         </div>
 
         <div id="pageError" class="lld-page-error"></div>
+
+        <!-- Live progress -->
+        <div id="progressCard" class="lld-progress-card">
+          <div class="lld-progress-head">
+            <span>&#x2699;&#xFE0F; LLD run <span id="progressVersion" class="mono"></span> in progress</span>
+            <span class="pct"><span id="progressPct">0</span>%</span>
+          </div>
+          <div class="lld-progress-track"><div class="lld-progress-fill" id="progressFill"></div></div>
+          <div class="lld-progress-stage" id="progressStage">Submitting to the LLD engine&#x2026;</div>
+        </div>
 
         <!-- Version chain -->
         <div class="card">
@@ -137,17 +197,16 @@
                   <th>HLD</th>
                   <th>Run Date</th>
                   <th>Run By</th>
-                  <th>Algorithm</th>
-                  <th>Input Dataset</th>
                   <th>Status</th>
                   <th>Outputs</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="runsBody"></tbody>
             </table>
             <div id="runsEmpty" class="ftth-empty-state" style="display:none;">
               <div class="ftth-empty-state-icon">&#x1F5C2;&#xFE0F;</div>
-              <div class="ftth-empty-state-text">No LLD runs yet. Resolve all survey changes, create the Approved Survey Version, then run LLD from the review page.</div>
+              <div class="ftth-empty-state-text">No LLD runs yet. Resolve all survey changes, create the Approved Survey Version, then run LLD from the survey changes page.</div>
             </div>
           </div>
         </div>

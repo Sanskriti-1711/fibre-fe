@@ -5,6 +5,9 @@
  * run history with full provenance metadata, so any LLD output can be
  * reproduced from its exact inputs.
  *
+ * Also renders a live progress bar while a run is in flight, and exposes
+ * per-run "View Output" (MapLibre) and "Download ZIP" actions.
+ *
  * Requires: ftth-lld-api.js
  */
 (function () {
@@ -24,7 +27,13 @@
   const runsBody = $('runsBody');
   const runsCountEl = $('runsCount');
   const emptyState = $('runsEmpty');
-  const goReviewBtn = $('goReviewBtn');
+
+  // Progress card elements
+  const progressCard = $('progressCard');
+  const progressVersion = $('progressVersion');
+  const progressPct = $('progressPct');
+  const progressFill = $('progressFill');
+  const progressStage = $('progressStage');
 
   let data = null;
   let pollTimer = null;
@@ -46,9 +55,6 @@
     if (!projectId) projectId = 'ftth-001';
 
     projectIdEl.textContent = projectId;
-    if (goReviewBtn) {
-      goReviewBtn.href = 'ftth-lld-review.html?project_id=' + encodeURIComponent(projectId);
-    }
 
     await refresh();
     pollTimer = setInterval(refresh, 2000); // picks up "running" LLD runs finishing
@@ -109,12 +115,14 @@
         + '<td class="mono">' + esc(r.hld_version || '—') + '</td>'
         + '<td>' + esc(r.run_date || '—') + '</td>'
         + '<td>' + esc(r.run_by || '—') + '</td>'
-        + '<td class="mono">' + esc(r.algorithm_version || '—') + '</td>'
-        + '<td class="mono">' + esc(r.input_dataset_version || '—') + '</td>'
         + '<td>' + runBadge(r.status) + '</td>'
-        + '<td>' + (r.outputs ? r.outputs + ' files' : '—') + '</td>';
+        + '<td>' + (r.outputs != null ? r.outputs + ' layers' : '—') + '</td>'
+        + '<td>' + actionsHtml(r) + '</td>';
       runsBody.appendChild(tr);
     });
+
+    // ---- Progress card ----
+    renderProgress(runs);
 
     // If the latest run is still running, keep polling; otherwise we can idle.
     const anyRunning = runs.some((r) => r.status === 'running');
@@ -123,6 +131,49 @@
       pollTimer = null;
     }
   }
+
+  function renderProgress(runs) {
+    const running = runs.filter((r) => r.status === 'running').slice(-1)[0];
+    if (!running) {
+      progressCard.classList.remove('show');
+      return;
+    }
+    const pct = Math.max(0, Math.min(100, Number(running.progress) || 0));
+    progressCard.classList.add('show');
+    progressVersion.textContent = running.lld_version;
+    progressPct.textContent = pct;
+    progressFill.style.width = pct + '%';
+    progressStage.textContent = stageText(pct);
+  }
+
+  function stageText(pct) {
+    if (pct < 5) return 'Submitting the approved survey dataset to the LLD engine…';
+    if (pct < 20) return 'Applying approved survey changes to the HLD output…';
+    if (pct < 60) return 'Validating path continuity and attribute matching…';
+    if (pct < 95) return 'Writing final LLD layers and packaging the design…';
+    return 'Finalizing run and persisting outputs…';
+  }
+
+  function actionsHtml(r) {
+    const completed = r.status === 'completed';
+    const view = completed
+      ? '<a class="lld-action-btn view" href="ftth-lld-results.html?project_id=' + encodeURIComponent(projectId) + '&lld_version=' + encodeURIComponent(r.lld_version) + '">&#x1F5FA;&#xFE0F; View Output</a>'
+      : '<span class="lld-action-btn view" disabled>&#x1F5FA;&#xFE0F; View Output</span>';
+    const dl = completed
+      ? '<button class="lld-action-btn" type="button" data-download="' + esc(r.lld_version) + '">&#x1F4E5; Download</button>'
+      : '<span class="lld-action-btn" disabled>&#x1F4E5; Download</span>';
+    return view + dl;
+  }
+
+  // Delegate download clicks (buttons are created dynamically).
+  document.addEventListener('click', function (e) {
+    const btn = e.target && e.target.closest ? e.target.closest('button[data-download]') : null;
+    if (!btn) return;
+    const lldVersion = btn.getAttribute('data-download');
+    if (window.FtthLldApi && typeof window.FtthLldApi.downloadRunZip === 'function') {
+      window.FtthLldApi.downloadRunZip(projectId, lldVersion);
+    }
+  });
 
   function chainStep(key, icon, label, id, meta, immutable) {
     return '<div class="lld-chain-step">'

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LLD Output | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- MapLibre GL -->
+  <script src="vendor/maplibre/maplibre-gl.js"></script>
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+
+  <style>
+    .ftth-results-layout { display:flex; width:100%; height:100vh; overflow:hidden; }
+    .ftth-map-pane { flex:1; position:relative; min-width:0; }
+    .ftth-map-pane #map { width:100%; height:100%; position:absolute; top:0; left:0; }
+    .ftth-side-pane { width:380px; flex-shrink:0; background:#FFFFFF; border-left:1px solid #E5E7EB; display:flex; flex-direction:column; overflow-y:auto; }
+    .ftth-side-pane-header { padding:20px 20px 12px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+    .ftth-side-pane-header h2 { margin:0 0 4px; font-size:16px; color:#1F2937; display:flex; align-items:center; gap:8px; }
+    .ftth-side-pane-header h2 .back-link { font-size:13px; font-weight:400; color:#6B7280; text-decoration:none; margin-left:auto; }
+    .ftth-side-pane-header h2 .back-link:hover { color:#E31837; }
+    .ftth-side-pane-header .project-id { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; margin-top:4px; word-break:break-all; }
+    .ftth-side-pane-section { padding:16px 20px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+    .ftth-side-pane-section:last-child { border-bottom:none; }
+    .ftth-side-pane-section h3 { margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#6B7280; display:flex; align-items:center; justify-content:space-between; }
+    .ftth-side-pane-section h3 .badge { font-size:10px; font-weight:600; color:#6B7280; background:#F3F4F6; padding:2px 8px; border-radius:999px; }
+    .ftth-layer-controls { display:flex; flex-direction:column; }
+    .ftth-layer-toggle { display:flex; align-items:center; gap:10px; padding:9px 0; cursor:pointer; border-bottom:1px solid #F3F4F6; }
+    .ftth-layer-toggle .layer-name { font-size:13px; color:#1F2937; flex:1; }
+    .ftth-layer-toggle .layer-count { font-size:11px; color:#9CA3AF; }
+    .ftth-layer-color-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .ftth-empty-state { text-align:center; padding:40px 20px; color:#6B7280; }
+    .ftth-empty-state .icon { font-size:40px; margin-bottom:12px; }
+    .ftth-empty-state p { font-size:14px; margin:0 0 16px; }
+    .ftth-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .ftth-summary-item { background:#F9FAFB; border-radius:6px; padding:10px; text-align:center; }
+    .ftth-summary-item .value { font-size:20px; font-weight:700; color:#1F2937; }
+    .ftth-summary-item .label { font-size:10px; color:#6B7280; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+    .ftth-basemap-switcher { position:absolute; top:12px; right:12px; z-index:10; display:flex; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); padding:4px; gap:2px; }
+    .ftth-basemap-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; padding:6px 0 4px; border:none; background:transparent; border-radius:8px; cursor:pointer; transition:all 0.2s ease; color:#6B7280; font-size:10px; font-weight:500; gap:2px; }
+    .ftth-basemap-btn .icon { font-size:18px; line-height:1; }
+    .ftth-basemap-btn:hover { background:#F3F4F6; color:#374151; }
+    .ftth-basemap-btn.active { background:#4F46E5; color:#FFFFFF; box-shadow:0 1px 4px rgba(79,70,229,0.3); }
+    .ftth-lld-download-btn {
+      display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+      padding:13px 14px; margin-top:6px;
+      background:linear-gradient(135deg,#4F46E5,#4338CA);
+      border:none; border-radius:10px;
+      text-decoration:none; color:#FFFFFF;
+      font-size:14px; font-weight:700;
+      cursor:pointer; transition:all 0.2s ease;
+      box-shadow:0 2px 8px rgba(79,70,229,0.3);
+    }
+    .ftth-lld-download-btn:hover { background:linear-gradient(135deg,#4338CA,#3730A3); transform:translateY(-1px); }
+    .ftth-lld-download-btn:disabled { opacity:0.5; cursor:not-allowed; }
+    .ftth-validation-box { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:12px; font-size:12px; color:#374151; }
+    .ftth-validation-box .ok { color:#047857; font-weight:600; }
+    .ftth-validation-box .warn { color:#B45309; font-weight:600; }
+    @media (max-width:768px) {
+      .ftth-results-layout { flex-direction:column-reverse; }
+      .ftth-side-pane { width:100%; max-height:40vh; border-left:none; border-top:1px solid #E5E7EB; }
+      .ftth-map-pane #map { height:60vh; position:relative; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="sidebarContainer" style="display:none;"></div>
+
+<div class="layout" style="padding:0;">
+  <div class="ftth-results-layout">
+
+    <div class="ftth-map-pane">
+      <div id="map"></div>
+
+      <div class="ftth-basemap-switcher" id="basemapSwitcher">
+        <button class="ftth-basemap-btn active" data-basemap="streets"><span class="icon">&#x1F5FA;&#xFE0F;</span><span class="label">Streets</span></button>
+        <button class="ftth-basemap-btn" data-basemap="light"><span class="icon">&#x1F319;</span><span class="label">Light</span></button>
+        <button class="ftth-basemap-btn" data-basemap="satellite"><span class="icon">&#x1F4F0;</span><span class="label">Satellite</span></button>
+        <button class="ftth-basemap-btn" data-basemap="dark"><span class="icon">&#x1F311;</span><span class="label">Dark</span></button>
+      </div>
+
+      <div id="mapLoading" class="ftth-map-loading">
+        <div><div class="spinner" style="margin:0 auto 12px;"></div><div style="font-size:14px;color:#6B7280;">Loading LLD layers&#x2026;</div></div>
+      </div>
+    </div>
+
+    <div class="ftth-side-pane">
+      <div class="ftth-side-pane-header">
+        <h2>LLD Output <a class="back-link" href="#" id="backLink">&#x2190; Back</a></h2>
+        <div class="project-id">Project: <span id="projectIdDisplay">&#x2014;</span></div>
+        <div class="project-id">LLD: <span id="lldVersionDisplay">&#x2014;</span></div>
+      </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>Summary</h3>
+        <div class="ftth-summary-grid">
+          <div class="ftth-summary-item"><div class="value" id="layerCount">0</div><div class="label">Layers</div></div>
+          <div class="ftth-summary-item"><div class="value" id="totalFeatures">0</div><div class="label">Features</div></div>
+        </div>
+      </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>Validation</h3>
+        <div class="ftth-validation-box" id="validationBox">—</div>
+      </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>Layers <span class="badge" id="layerBadge">0</span></h3>
+        <div class="ftth-layer-controls" id="layerControls"><div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>Loading layers&#x2026;</p></div></div>
+      </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>Download</h3>
+        <button id="downloadBtn" class="ftth-lld-download-btn" type="button">
+          <span class="icon">&#x1F4E6;</span>
+          <span>Download LLD ZIP</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="partials/sidebar-loader.js" data-sidebar-base="../"></script>
+<script src="js/ftth-config.js"></script>
+<script src="fiber-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
+<script src="js/ftth-map.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  var params = new URLSearchParams(window.location.search);
+  var projectId = params.get('project_id') || '';
+  var lldVersion = params.get('lld_version') || '';
+
+  document.getElementById('projectIdDisplay').textContent = projectId || '—';
+  document.getElementById('lldVersionDisplay').textContent = lldVersion || '—';
+
+  var backLink = document.getElementById('backLink');
+  if (projectId) {
+    backLink.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId);
+  } else {
+    backLink.href = 'ftth-lld-versions.html';
+  }
+
+  var map = null;
+  var mapLoadingEl = document.getElementById('mapLoading');
+  var layerControlsEl = document.getElementById('layerControls');
+  var layerCountEl = document.getElementById('layerCount');
+  var totalFeaturesEl = document.getElementById('totalFeatures');
+  var layerBadgeEl = document.getElementById('layerBadge');
+  var validationBoxEl = document.getElementById('validationBox');
+  var downloadBtn = document.getElementById('downloadBtn');
+
+  var LLD_COLORS = {
+    objects: { fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4 },
+    polygons: { fill: '#00aa88', outline: '#006644', opacity: 0.3 },
+    pdps: { fill: '#06B6D4', outline: '#0891B2', opacity: 0.8, lineWidth: 5 },
+    final_trenches: { fill: '#3B82F6', outline: '#1D4ED8', opacity: 0.7, lineWidth: 3 },
+    feeder_cable: { fill: '#EF4444', outline: '#B91C1C', lineWidth: 4.5 },
+    distribution_cable: { fill: '#F97316', outline: '#C2410C', lineWidth: 3 },
+    feeder_ducts: { fill: '#F59E0B', outline: '#B45309', lineWidth: 4.5 },
+    distribution_ducts: { fill: '#EAB308', outline: '#A16207', lineWidth: 3 },
+    drop_ducts: { fill: '#EC4899', outline: '#9D174D', lineWidth: 2.5 },
+    chambers: { fill: '#92400E', outline: '#78350F', opacity: 0.8 },
+    existing_infrastructure: { fill: '#64748B', outline: '#475569', lineWidth: 2.5 },
+    existing_infrastructure_points: { fill: '#94A3B8', outline: '#334155', opacity: 0.8 },
+  };
+
+  function colorFor(name) {
+    return LLD_COLORS[name] || { fill: '#6B7280', outline: '#374151', opacity: 0.5 };
+  }
+
+  function initMap() {
+    try {
+      map = window.FtthMap.initMap('map', {
+        id: 'lld-results',
+        center: [13.405, 52.52],
+        zoom: 11,
+        basemap: 'streets',
+        onLoad: function () { loadLldData(); }
+      });
+      if (map.loaded()) loadLldData();
+    } catch (err) {
+      console.error('Map init failed:', err);
+      mapLoadingEl.innerHTML = '<p style="color:#DC2626;">Failed to initialize map: ' + escapeHtml(err.message) + '</p>';
+    }
+  }
+
+  async function loadLldData() {
+    if (!projectId || !lldVersion) {
+      mapLoadingEl.innerHTML = '<p style="color:#6B7280;font-size:16px;">No project or LLD version specified. <a href="ftth-lld-versions.html" style="color:#4F46E5;">Open LLD Versions</a></p>';
+      return;
+    }
+    try {
+      var status = await window.FtthLldApi.getRunStatus(projectId, lldVersion);
+      var layers = (status && status.layers) || [];
+      renderValidation(status && status.validation);
+      layerCountEl.textContent = layers.length;
+      layerBadgeEl.textContent = layers.length;
+      var total = 0;
+      layers.forEach(function (l) { total += (l.feature_count || 0); });
+      totalFeaturesEl.textContent = total;
+
+      if (!layers.length) {
+        mapLoadingEl.style.display = 'none';
+        layerControlsEl.innerHTML = '<div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>No output layers for this run yet.</p></div>';
+        return;
+      }
+
+      renderLayerControls(layers);
+      mapLoadingEl.style.display = 'flex';
+      await Promise.all(layers.map(function (layer, index) { return loadLayer(layer.name || layer, index); }));
+      setTimeout(function () { try { window.FtthMap.fitToLayers(map, 50); } catch (_) {} }, 500);
+      mapLoadingEl.style.display = 'none';
+    } catch (err) {
+      console.error('Failed to load LLD data:', err);
+      mapLoadingEl.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;">Failed to load LLD output: ' + escapeHtml(err.message) + '</p></div>';
+    }
+  }
+
+  function renderValidation(validation) {
+    if (!validation || typeof validation !== 'object') {
+      validationBoxEl.innerHTML = '<span class="warn">No validation data.</span>';
+      return;
+    }
+    var summary = validation.summary || validation;
+    var issues = validation.issues || [];
+    var total = summary.total_features != null ? summary.total_features : '—';
+    var cont = summary.continuity_issues != null ? summary.continuity_issues : '—';
+    var attr = summary.attribute_issues != null ? summary.attribute_issues : '—';
+    var clean = (cont === 0 && attr === 0);
+    validationBoxEl.innerHTML =
+      '<div class="' + (clean ? 'ok' : 'warn') + '">' + (clean ? '&#x2713; Path continuity &amp; attributes OK' : '&#x26A0;&#xFE0F; Issues detected') + '</div>'
+      + '<div style="margin-top:6px;">Features: <strong>' + escapeHtml(String(total)) + '</strong></div>'
+      + '<div>Continuity issues: <strong>' + escapeHtml(String(cont)) + '</strong></div>'
+      + '<div>Attribute issues: <strong>' + escapeHtml(String(attr)) + '</strong></div>'
+      + (issues.length ? '<div style="margin-top:6px;">' + issues.length + ' issue(s) flagged</div>' : '');
+  }
+
+  async function loadLayer(name, index) {
+    try {
+      var geojson = await window.FtthLldApi.getRunLayer(projectId, lldVersion, name);
+      if (!geojson || !geojson.features || !geojson.features.length) {
+        console.warn('Empty LLD layer:', name);
+        return;
+      }
+      var c = colorFor(name);
+      window.FtthMap.addGeoJSONLayer(map, 'lld-' + name, geojson, {
+        fillColor: c.fill,
+        outlineColor: c.outline,
+        fillOpacity: c.opacity !== undefined ? c.opacity : 0.6,
+        lineWidth: c.lineWidth,
+        visible: true,
+      });
+      updateToggleCount(name, geojson.features.length);
+    } catch (err) {
+      console.warn('Failed to load LLD layer ' + name + ':', err);
+    }
+  }
+
+  function renderLayerControls(layers) {
+    layerControlsEl.innerHTML = '';
+    layers.forEach(function (layer) {
+      var name = layer.name || layer;
+      var count = layer.feature_count || 0;
+      var label = document.createElement('label');
+      label.className = 'ftth-layer-toggle';
+      var cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.checked = true;
+      cb.style.cssText = 'width:16px;height:16px;accent-color:#4F46E5;cursor:pointer;';
+      cb.addEventListener('change', function () { toggleLayer(name, cb.checked); });
+      var dot = document.createElement('span');
+      dot.className = 'ftth-layer-color-dot';
+      dot.style.background = colorFor(name).fill;
+      var ns = document.createElement('span');
+      ns.className = 'layer-name'; ns.textContent = name;
+      var cs = document.createElement('span');
+      cs.className = 'layer-count';
+      cs.id = 'lld-count-' + name.replace(/\s+/g, '-');
+      cs.textContent = count + ' features';
+      label.appendChild(cb); label.appendChild(dot); label.appendChild(ns); label.appendChild(cs);
+      layerControlsEl.appendChild(label);
+    });
+  }
+
+  function updateToggleCount(name, count) {
+    var el = document.getElementById('lld-count-' + name.replace(/\s+/g, '-'));
+    if (el) el.textContent = count + ' features';
+  }
+
+  function toggleLayer(name, visible) {
+    window.FtthMap.setLayerVisible(map, 'lld-' + name, visible);
+  }
+
+  function initBasemapSwitcher() {
+    var switcher = document.getElementById('basemapSwitcher');
+    if (!switcher) return;
+    switcher.querySelectorAll('.ftth-basemap-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var styleName = btn.getAttribute('data-basemap');
+        switcher.querySelectorAll('.ftth-basemap-btn').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        window.FtthMap.setBaseStyle(map, styleName);
+      });
+    });
+  }
+
+  downloadBtn.addEventListener('click', function () {
+    if (!projectId || !lldVersion) { alert('No project or LLD version selected.'); return; }
+    window.FtthLldApi.downloadRunZip(projectId, lldVersion);
+  });
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+
+  initMap();
+  initBasemapSwitcher();
+</script>
+</body>
+</html>

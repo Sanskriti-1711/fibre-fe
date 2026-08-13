@@ -571,6 +571,68 @@
     return body;
   }
 
+  async function apiGetRunStatus(projectId, lldVersion) {
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/' + encodeURIComponent(lldVersion) + '/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiGetRunLayer(projectId, lldVersion, layer) {
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/' + encodeURIComponent(lldVersion) + '/layers/' + encodeURIComponent(layer) + '/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  function downloadBlob(url, defaultFileName) {
+    authFetch(url, { method: 'GET' })
+      .then(function (response) {
+        if (!response.ok) {
+          return response.json().then(function (err) {
+            throw new Error((err && err.detail) || 'Download failed (' + response.status + ')');
+          }).catch(function () {
+            throw new Error('Download failed (' + response.status + ')');
+          });
+        }
+        var disposition = response.headers.get('Content-Disposition') || '';
+        var match = disposition.match(/filename="?([^"]+)"?/);
+        var fileName = match ? match[1] : defaultFileName;
+        return response.blob().then(function (blob) {
+          var blobUrl = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = fileName;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function () {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+          }, 200);
+        });
+      })
+      .catch(function (err) {
+        console.error('Download error:', err);
+        alert('Download failed: ' + err.message);
+      });
+  }
+
+  function apiDownloadRunZip(projectId, lldVersion) {
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/' + encodeURIComponent(lldVersion) + '/download/');
+    downloadBlob(url, projectId + '_' + lldVersion + '_lld.zip');
+  }
+
   // ==================================================================
   // Project resolution — pick the latest completed HLD run so the LLD
   // pages work out of the box when no ?project_id= is supplied.
@@ -642,6 +704,35 @@
     });
   }
 
+  function getRunStatus(projectId, lldVersion) {
+    if (demoMode || isForceDemo()) {
+      var state = readState();
+      var run = (state.lld_runs || []).filter(function (r) { return r.lld_version === lldVersion; })[0];
+      if (!run) return Promise.reject(new Error('Run not found: ' + lldVersion));
+      return Promise.resolve({
+        lld_version: run.lld_version,
+        project_id: run.project_id,
+        status: run.status,
+        progress: run.status === 'completed' ? 100 : 50,
+        outputs: run.outputs,
+        validation: {},
+        layers: [],
+        run_date: run.run_date,
+      });
+    }
+    return apiGetRunStatus(projectId, lldVersion);
+  }
+
+  function getRunLayer(projectId, lldVersion, layer) {
+    if (demoMode || isForceDemo()) return Promise.resolve({ type: 'FeatureCollection', features: [] });
+    return apiGetRunLayer(projectId, lldVersion, layer);
+  }
+
+  function downloadRunZip(projectId, lldVersion) {
+    if (demoMode || isForceDemo()) { alert('Demo mode — no LLD zip available.'); return; }
+    apiDownloadRunZip(projectId, lldVersion);
+  }
+
   function getProject(projectId) {
     if (demoMode) return demoGetProject();
     return apiLoadReview(projectId).then(function (r) { return r.project; });
@@ -653,6 +744,9 @@
     createApprovedVersion: createApprovedVersion,
     runLld: runLld,
     listVersions: listVersions,
+    getRunStatus: getRunStatus,
+    getRunLayer: getRunLayer,
+    downloadRunZip: downloadRunZip,
     getProject: getProject,
     resolveDefaultProject: resolveDefaultProject,
     listProjects: listProjects,
