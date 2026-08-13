@@ -14,7 +14,6 @@
   'use strict';
 
   const params = new URLSearchParams(window.location.search);
-  const isDemo = params.get('demo') === '1';
   const requestedProject = params.get('project_id');
   let projectId = requestedProject || '';   // resolved to a real project in boot()
 
@@ -39,20 +38,25 @@
   let pollTimer = null;
 
   async function boot() {
-    if (!isDemo && typeof window.FiberAuth !== 'undefined' &&
+    if (typeof window.FiberAuth !== 'undefined' &&
         typeof window.FiberAuth.requireLogin === 'function') {
       window.FiberAuth.requireLogin();
     }
 
     // No explicit project? Resolve the latest completed HLD run from the
-    // real backend so the page opens with real data instead of demo stubs.
-    if (!projectId && !isDemo && typeof window.FtthLldApi.resolveDefaultProject === 'function') {
+    // real backend so the page opens with real data.
+    if (!projectId && typeof window.FtthLldApi.resolveDefaultProject === 'function') {
       try {
         const resolved = await window.FtthLldApi.resolveDefaultProject();
         if (resolved && resolved.project_id) projectId = resolved.project_id;
-      } catch (_) { /* fall through to demo default */ }
+      } catch (_) { /* fall through */ }
     }
-    if (!projectId) projectId = 'ftth-001';
+    if (!projectId) {
+      projectIdEl.textContent = '—';
+      $('pageError').style.display = 'block';
+      $('pageError').textContent = 'No project selected. Open this page from a project\'s LLD Versions link.';
+      return;
+    }
 
     projectIdEl.textContent = projectId;
 
@@ -78,10 +82,8 @@
     projectNameEl.textContent = project.name || projectId;
     hldVersionEl.textContent = (chain.hld && chain.hld.id) || project.hld_version || '—';
 
-    if (data.demo) $('demoBanner').style.display = 'block';
-
     // ---- Version chain ----
-    const hld = chain.hld || { id: 'HLD-V12', date: '—', by: 'HLD Pipeline' };
+    const hld = chain.hld || { id: '—', date: '—', by: '—' };
     const as = chain.approved_survey || { id: null };
     const runs = data.runs || [];
     const latestRun = runs.filter((r) => r.status === 'completed').slice(-1)[0];

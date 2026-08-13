@@ -24,7 +24,11 @@
     .ftth-side-pane-header .project-id { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; margin-top:4px; }
     .ftth-side-pane-section { padding:16px 20px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
     .ftth-side-pane-section:last-child { border-bottom:none; flex:1; }
-    .ftth-side-pane-section h3 { margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#6B7280; display:flex; align-items:center; justify-content:space-between; }
+    .ftth-side-pane-section h3 { margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#6B7280; display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
+    .ftth-side-pane-section h3 .chev { display:inline-block; margin-right:8px; transition:transform 0.15s ease; color:#9CA3AF; }
+    .ftth-side-pane-section.collapsed h3 { margin-bottom:0; }
+    .ftth-side-pane-section.collapsed h3 .chev { transform:rotate(-90deg); }
+    .ftth-side-pane-section.collapsed > *:not(h3) { display:none; }
     .ftth-side-pane-section h3 .badge { font-size:10px; font-weight:600; color:#6B7280; background:#F3F4F6; padding:2px 8px; border-radius:999px; }
     .ftth-layer-controls { display:flex; flex-direction:column; }
     .ftth-download-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; text-decoration:none; color:#1F2937; font-size:13px; font-weight:500; transition:all 0.15s ease; cursor:pointer; }
@@ -140,9 +144,8 @@
           </button>
         </div>
       </div>
-    </div>
 
-    <div class="ftth-side-pane-section">
+    <div class="ftth-side-pane-section ftth-collapsible collapsed" id="surveyAssignmentSection">
       <h3>Survey Assignment <span class="badge" id="surveyAssignBadge">—</span></h3>
       <div id="surveyAssignStatus" style="font-size:12px;color:#6B7280;margin-bottom:10px;">Checking assignment state…</div>
       <div id="surveyAssignEngineers" style="font-size:12px;margin-bottom:10px;"></div>
@@ -156,6 +159,7 @@
         </button>
       </div>
       <p id="surveyAssignMsg" style="margin:10px 0 0;font-size:12px;color:#6B7280;"></p>
+    </div>
     </div>
 
   </div>
@@ -450,7 +454,21 @@
     });
   }
 
+  function initCollapsibleSections() {
+    var sections = document.querySelectorAll('.ftth-side-pane-section');
+    sections.forEach(function(sec){
+      var h3 = sec.querySelector('h3');
+      if (!h3) return;
+      var chev = document.createElement('span');
+      chev.className = 'chev';
+      chev.textContent = '\u25BE';
+      h3.insertBefore(chev, h3.firstChild);
+      h3.addEventListener('click', function(){ sec.classList.toggle('collapsed'); });
+    });
+  }
+
   (function boot(){
+    initCollapsibleSections();
     if (projectId) {
       initResultsMap();
       initBaseMapSwitcher();

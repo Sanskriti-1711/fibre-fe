@@ -15,7 +15,6 @@
   'use strict';
 
   const params = new URLSearchParams(window.location.search);
-  const isDemo = params.get('demo') === '1';
   const requestedProject = params.get('project_id');
   let projectId = requestedProject || '';   // resolved to a real project in boot()
 
@@ -45,7 +44,6 @@
   const $ = (id) => document.getElementById(id);
   const mapEl = $('map');
   const mapLoading = $('mapLoading');
-  const demoBanner = $('demoBanner');
   const projectNameEl = $('projectName');
   const projectIdEl = $('projectId');
   const hldVersionEl = $('hldVersion');
@@ -74,21 +72,24 @@
   // Boot
   // ==================================================================
   async function boot() {
-    // Only enforce login when talking to a real backend (demo is offline).
-    if (!isDemo && typeof window.FiberAuth !== 'undefined' &&
+    if (typeof window.FiberAuth !== 'undefined' &&
         typeof window.FiberAuth.requireLogin === 'function') {
       window.FiberAuth.requireLogin();
     }
 
     // No explicit project? Resolve the latest completed HLD run from the
-    // real backend so the page opens with real data instead of demo stubs.
-    if (!projectId && !isDemo && typeof window.FtthLldApi.resolveDefaultProject === 'function') {
+    // real backend so the page opens with real data.
+    if (!projectId && typeof window.FtthLldApi.resolveDefaultProject === 'function') {
       try {
         const resolved = await window.FtthLldApi.resolveDefaultProject();
         if (resolved && resolved.project_id) projectId = resolved.project_id;
-      } catch (_) { /* fall through to demo default */ }
+      } catch (_) { /* fall through */ }
     }
-    if (!projectId) projectId = 'ftth-001';
+    if (!projectId) {
+      projectIdEl.textContent = '—';
+      mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;">No project selected. Open this page from a project\'s LLD Review link.</p></div>';
+      return;
+    }
 
     projectIdEl.textContent = projectId;
     renderFilterTabs();
@@ -106,7 +107,6 @@
     changes = review.changes || [];
     approvedVersion = review.approved_survey_version || null;
 
-    if (review.demo) demoBanner.classList.add('show');
     projectNameEl.textContent = review.project && review.project.name ? review.project.name : projectId;
     hldVersionEl.textContent = (review.project && review.project.hld_version) || '—';
 
