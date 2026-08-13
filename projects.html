@@ -19,7 +19,7 @@
     <div class="header">
       <div>
         <h1>Projects</h1>
-        <p>FTTH-HLD and Survey projects</p>
+        <p>FTTH-HLD, Survey and LLD projects</p>
       </div>
       <a class="create-btn" href="project-create.html">Create Project</a>
     </div>
@@ -32,6 +32,7 @@
             <option value="">All</option>
             <option value="hld">FTTH-HLD</option>
             <option value="survey">Survey</option>
+            <option value="lld">LLD</option>
           </select>
         </div>
         <div style="min-width:200px;">
@@ -176,8 +177,8 @@
   let currentLoadId = 0;
 
   async function fetchAllProjects(params) {
-    // This page shows only our FTTH kinds (survey + HLD pipeline runs).
-    // The Type dropdown maps to the ?kind= param (survey | hld | all).
+    // This page shows all FTTH stages (HLD pipeline runs + survey copies).
+    // The Type dropdown maps to ?kind= (hld) or ?kind=survey&stage= (survey|lld).
     const merged = Object.assign({}, params || {});
     if (!merged.kind) merged.kind = 'all';
     const first = await window.FiberApi.listProjectsFiltered(merged);
@@ -259,24 +260,31 @@
       const lastActivity = pickProjectLastActivity(p);
       // HLD pipeline runs (type='hld') render with a badge, inline progress
       // and links to the FTTH status/results pages.
-      const isHld = !!(p && p.type === 'hld');
+      const stage = (p && p.stage) || (p.type === 'hld' ? 'hld' : 'survey');
+      const isHld = stage === 'hld';
+      const isLld = stage === 'lld';
       const isHldDone = isHld && String(p.status || '').toLowerCase().indexOf('complete') !== -1;
-      // HLD -> FTTH results/status pages. Survey copies -> the mobile
-      // app's Expo web build (same MapLibre views the engineer sees),
-      // opened with the session token via a click handler below.
+      const srcFtth = (p && p.source_ftth_project_id) || null;
+      // HLD -> FTTH status/results pages. LLD -> the LLD review workspace
+      // (keyed by the source HLD run). Survey -> the mobile app's Expo web
+      // build (same MapLibre views the engineer sees).
       const link = id
         ? (isHld
             ? (isHldDone
                 ? 'ftth-hld-results.html?project_id=' + encodeURIComponent(id)
                 : 'ftth-hld-status.html?project_id=' + encodeURIComponent(id))
-            : null)
+            : (isLld && srcFtth
+                ? 'ftth-lld-review.html?project_id=' + encodeURIComponent(srcFtth)
+                : null))
         : 'projects.html';
       const deleteBtn = id
         ? '<button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
         : '';
       const badge = isHld
         ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
-        : '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#ECFDF5;color:#059669;margin-right:6px;vertical-align:middle;">Survey</span> ';
+        : (isLld
+            ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#F5F3FF;color:#6D28D9;margin-right:6px;vertical-align:middle;">LLD</span> '
+            : '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#ECFDF5;color:#059669;margin-right:6px;vertical-align:middle;">Survey</span> ');
       const stdCell = isHld ? buildStandardBar(Number(p.progress) || 0) : placeholder;
       const dynCell = isHld
         ? '<span style="font-size:11px;color:#9CA3AF;">' + (p.layers && p.layers.length ? p.layers.length + ' layers' : '\u2014') + '</span>'
@@ -290,7 +298,9 @@
               ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:' + (p.survey_status === 'active' ? '#ECFDF5' : '#FFFBEB') + ';color:' + (p.survey_status === 'active' ? '#059669' : '#B45309') + ';">Survey: ' + escapeHtml(p.survey_status) + '</span>'
               : '')
           : '<span style="font-size:11px;color:#9CA3AF;">\u2014</span>');
-      const assignBtn = '<button class="action-link assign-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" data-name="' + escapeHtml(name) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Assign</button>';
+      const assignBtn = isLld
+        ? ''
+        : '<button class="action-link assign-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" data-name="' + escapeHtml(name) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Assign</button>';
 
       const tr = document.createElement('tr');
       tr.innerHTML = ''
@@ -303,7 +313,9 @@
         + '<td>' + escapeHtml(lastActivity) + '</td>'
         + '<td>' + (isHld
             ? '<a class="action-link" href="' + link + '">View</a>'
-            : '<button class="action-link view-survey-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;background:none;border:none;padding:0;font:inherit;color:inherit;">View</button>')
+            : (isLld && srcFtth
+                ? '<a class="action-link" href="' + link + '">Review</a>'
+                : '<button class="action-link view-survey-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;background:none;border:none;padding:0;font:inherit;color:inherit;">View</button>'))
           + assignBtn + deleteBtn + '</td>';
       tbody.appendChild(tr);
       if (id) rowsById.set(id, tr);
@@ -375,11 +387,25 @@
     const kind = document.getElementById('filterKind');
     const status = document.getElementById('filterStatus');
     const region = document.getElementById('filterRegion');
-    return {
-      kind: kind ? kind.value : '',
+    const stageSel = kind ? kind.value : '';
+    const params = {
       status: status ? status.value : '',
       region: region ? region.value.trim() : ''
     };
+    // The Type dropdown maps to HLD / Survey / LLD stage flags.
+    // 'survey' and 'lld' are both survey copies, split by stage.
+    if (stageSel === 'hld') {
+      params.kind = 'hld';
+    } else if (stageSel === 'survey') {
+      params.kind = 'survey';
+      params.stage = 'survey';
+    } else if (stageSel === 'lld') {
+      params.kind = 'survey';
+      params.stage = 'lld';
+    } else {
+      params.kind = 'all';
+    }
+    return params;
   }
 
   const applyBtn = document.getElementById('applyFilters');
