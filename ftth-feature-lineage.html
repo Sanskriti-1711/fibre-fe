@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Feature Lineage | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+  <style>
+    .lineage-content { max-width: 960px; margin: 0 auto; }
+    .lineage-header { margin-bottom: 20px; }
+    .lineage-header h1 { margin: 0; font-size: 22px; }
+    .lineage-header .sub { margin: 6px 0 0; font-size: 13px; color: #6B7280; }
+    .lineage-fid {
+      font-family: 'SF Mono','Menlo','Monaco','Consolas',monospace;
+      font-size: 12px; color: #6B7280; background: #F3F4F6;
+      padding: 4px 10px; border-radius: 4px; word-break: break-all;
+    }
+
+    .stage {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .stage-head {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-bottom: 1px solid #E5E7EB;
+    }
+    .stage-head .num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .stage-head h2 { margin: 0; font-size: 15px; color: #1F2937; }
+    .stage-head .tag { margin-left: auto; font-size: 11px; font-weight: 600; }
+    .stage-body { padding: 16px 18px; }
+
+    .s1 .num { background: #3B82F6; }
+    .s2 .num { background: #F59E0B; }
+    .s3 .num { background: #8B5CF6; }
+    .s4 .num { background: #10B981; }
+
+    .kv { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 13px; }
+    .kv .k { color: #6B7280; font-weight: 600; }
+    .kv .v { color: #1F2937; word-break: break-word; }
+
+    .attr-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+    .attr-table th, .attr-table td {
+      padding: 7px 10px; border: 1px solid #E5E7EB; text-align: left; vertical-align: top;
+    }
+    .attr-table th { background: #F9FAFB; color: #6B7280; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .attr-table .changed { background: #FEF3C7; font-weight: 600; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+    }
+    .b-approved { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+    .b-rejected { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .b-pending  { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+    .b-correction { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+    .b-muted  { background: #F3F4F6; color: #6B7280; border: 1px solid #E5E7EB; }
+
+    .empty-stage { color: #9CA3AF; font-size: 13px; font-style: italic; }
+    pre.geo {
+      margin: 10px 0 0; font-size: 11px; background: #F9FAFB; border: 1px solid #E5E7EB;
+      border-radius: 6px; padding: 10px; overflow-x: auto; max-height: 220px;
+    }
+    .lineage-error {
+      display: none; background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B;
+      border-radius: 10px; padding: 14px 18px; font-size: 13px; margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <div id="sidebarContainer"></div>
+  <main class="content">
+    <div class="container">
+      <div class="lineage-content">
+
+        <div class="lineage-header">
+          <h1>Feature Lineage</h1>
+          <p class="sub">What happened to this feature at every stage — HLD &rarr; Survey &rarr; Approval &rarr; LLD</p>
+          <div class="lineage-fid" id="featureIdDisplay" style="margin-top:10px;display:inline-block;">--</div>
+        </div>
+
+        <div id="errorState" class="lineage-error"></div>
+
+        <!-- Stage 1: HLD -->
+        <div class="stage s1">
+          <div class="stage-head"><span class="num">1</span><h2>HLD Baseline</h2><span class="tag" id="hldLayer"></span></div>
+          <div class="stage-body" id="hldBody"><div class="empty-stage">Loading&hellip;</div></div>
+        </div>
+
+        <!-- Stage 2: Survey -->
+        <div class="stage s2">
+          <div class="stage-head"><span class="num">2</span><h2>Survey Change</h2><span class="tag" id="surveyTag"></span></div>
+          <div class="stage-body" id="surveyBody"><div class="empty-stage">Loading&hellip;</div></div>
+        </div>
+
+        <!-- Stage 3: Approval -->
+        <div class="stage s3">
+          <div class="stage-head"><span class="num">3</span><h2>Approval</h2><span class="tag" id="approvalTag"></span></div>
+          <div class="stage-body" id="approvalBody"><div class="empty-stage">Loading&hellip;</div></div>
+        </div>
+
+        <!-- Stage 4: LLD -->
+        <div class="stage s4">
+          <div class="stage-head"><span class="num">4</span><h2>LLD Final Design</h2><span class="tag" id="lldTag"></span></div>
+          <div class="stage-body" id="lldBody"><div class="empty-stage">Loading&hellip;</div></div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script src="js/ftth-config.js"></script>
+<script>
+  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+</script>
+<script src="fiber-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  var params = new URLSearchParams(window.location.search);
+  var projectId = params.get('project_id');
+  var featureId = params.get('feature_id');
+
+  function esc(s) {
+    return String(s === undefined || s === null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+  function fmt(v) {
+    if (v === null || v === undefined || v === '') return '—';
+    if (typeof v === 'object') { try { return JSON.stringify(v); } catch(_) { return String(v); } }
+    return String(v);
+  }
+
+  function attrTable(attrs, highlightKey) {
+    var keys = Object.keys(attrs || {}).filter(function(k){ return !/^(id|_feature_id|feature_id|layer)$/.test(k); });
+    if (!keys.length) return '<div class="empty-stage">No attributes.</div>';
+    var rows = keys.map(function(k){
+      var hl = highlightKey && highlightKey(k);
+      return '<tr><td'+(hl?' class="changed"':'')+'><strong>'+esc(k)+'</strong></td><td'+(hl?' class="changed"':'')+'>'+esc(fmt(attrs[k]))+'</td></tr>';
+    }).join('');
+    return '<table class="attr-table"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+
+  function statusBadge(status) {
+    var s = (status||'').toLowerCase();
+    if (s === 'approved') return '<span class="badge b-approved">&#x2705; Approved</span>';
+    if (s === 'rejected') return '<span class="badge b-rejected">&#x1F6AB; Rejected</span>';
+    if (s === 'needs_correction') return '<span class="badge b-correction">&#x270F;&#xFE0F; Needs Correction</span>';
+    return '<span class="badge b-pending">&#x23F3; Pending Review</span>';
+  }
+
+  function render(l) {
+    document.getElementById('featureIdDisplay').textContent = 'Feature: ' + l.feature_id;
+
+    // Stage 1 — HLD
+    if (l.hld) {
+      document.getElementById('hldLayer').textContent = l.hld.layer || '';
+      document.getElementById('hldLayer').className = 'tag badge b-muted';
+      document.getElementById('hldBody').innerHTML = attrTable(l.hld.attributes, null)
+        + '<pre class="geo">' + esc(JSON.stringify(l.hld.geometry, null, 2)) + '</pre>';
+    } else {
+      document.getElementById('hldBody').innerHTML = '<div class="empty-stage">No HLD baseline (engineer-added feature).</div>';
+    }
+
+    // Stage 2 — Survey
+    if (l.survey) {
+      var sv = l.survey;
+      var ct = (sv.change_type||'').replace(/_/g,' ');
+      document.getElementById('surveyTag').textContent = ct;
+      document.getElementById('surveyTag').className = 'tag badge b-pending';
+      var attrRows = '';
+      (sv.attributes || []).forEach(function(a){
+        attrRows += '<tr><td><strong>'+esc(a.field)+'</strong></td><td>'+esc(a.hld_value)+'</td><td class="changed">'+esc(a.survey_value)+'</td></tr>';
+      });
+      var attrHtml = (sv.attributes && sv.attributes.length)
+        ? '<table class="attr-table"><thead><tr><th>Field</th><th>HLD</th><th>Survey</th></tr></thead><tbody>'+attrRows+'</tbody></table>'
+        : '<div class="empty-stage">No attribute changes (geometry-only).</div>';
+      document.getElementById('surveyBody').innerHTML =
+        '<div class="kv">'
+        + '<div class="k">Change type</div><div class="v">'+esc(ct)+'</div>'
+        + '<div class="k">Engineer</div><div class="v">'+esc(sv.engineer||'—')+'</div>'
+        + '<div class="k">Timestamp</div><div class="v">'+esc(sv.timestamp||'—')+'</div>'
+        + '<div class="k">Reason</div><div class="v">'+esc(sv.reason||'—')+'</div>'
+        + '</div>' + attrHtml
+        + (sv.survey_geometry ? '<pre class="geo">'+esc(JSON.stringify(sv.survey_geometry,null,2))+'</pre>' : '');
+    } else {
+      document.getElementById('surveyBody').innerHTML = '<div class="empty-stage">No survey change recorded for this feature.</div>';
+    }
+
+    // Stage 3 — Approval
+    if (l.approval) {
+      var a = l.approval;
+      document.getElementById('approvalTag').textContent = a.status;
+      document.getElementById('approvalTag').className = 'tag ' + (function(){
+        var s=(a.status||'').toLowerCase();
+        return s==='approved'?'badge b-approved':s==='rejected'?'badge b-rejected':s==='needs_correction'?'badge b-correction':'badge b-pending';
+      })();
+      document.getElementById('approvalBody').innerHTML =
+        '<div class="kv">'
+        + '<div class="k">Decision</div><div class="v">'+statusBadge(a.status)+'</div>'
+        + '<div class="k">Reviewed by</div><div class="v">'+esc(a.reviewed_by||'—')+'</div>'
+        + '<div class="k">Reviewed at</div><div class="v">'+esc(a.reviewed_at||'—')+'</div>'
+        + '<div class="k">Notes</div><div class="v">'+esc(a.review_notes||'—')+'</div>'
+        + '</div>';
+    } else {
+      document.getElementById('approvalBody').innerHTML = '<div class="empty-stage">Not yet reviewed.</div>';
+    }
+
+    // Stage 4 — LLD
+    if (l.lld && l.lld.final) {
+      var ld = l.lld;
+      document.getElementById('lldTag').textContent = ld.run;
+      document.getElementById('lldTag').className = 'tag badge b-approved';
+      var finalAttrs = ld.final.attributes || {};
+      document.getElementById('lldBody').innerHTML =
+        '<div class="kv">'
+        + '<div class="k">LLD Run</div><div class="v">'+esc(ld.run)+'</div>'
+        + '<div class="k">Approved Survey</div><div class="v">'+esc(ld.approved_survey_version||'—')+'</div>'
+        + '<div class="k">Layer</div><div class="v">'+esc(ld.final.layer)+'</div>'
+        + '<div class="k">Run date</div><div class="v">'+esc(ld.run_date||'—')+'</div>'
+        + '</div>'
+        + attrTable(finalAttrs, null)
+        + '<pre class="geo">'+esc(JSON.stringify(ld.final.geometry,null,2))+'</pre>';
+    } else {
+      document.getElementById('lldBody').innerHTML = '<div class="empty-stage">No LLD output yet — run LLD after the change is approved.</div>';
+    }
+  }
+
+  (async function(){
+    if (!projectId || !featureId) {
+      document.getElementById('errorState').textContent = 'Missing project_id or feature_id.';
+      document.getElementById('errorState').style.display = 'block';
+      return;
+    }
+    if (typeof window.FtthLldApi.resolveDefaultProject === 'function' && !projectId) {
+      try { var r = await window.FtthLldApi.resolveDefaultProject(); if (r) projectId = r.project_id; } catch(_){}
+    }
+    try {
+      var lineage = await window.FtthLldApi.getFeatureLineage(projectId, featureId);
+      render(lineage);
+    } catch (err) {
+      document.getElementById('errorState').textContent = 'Failed to load lineage: ' + (err.message || err);
+      document.getElementById('errorState').style.display = 'block';
+    }
+  })();
+</script>
+</body>
+</html>
