@@ -356,8 +356,11 @@
     statusBadgeContainer.innerHTML = '';
     statusBadgeContainer.appendChild(newBadge);
 
-    // Update progress
-    const pct = data.progress !== undefined ? Number(data.progress) : 0;
+    // Update progress. A run is only ever 100% when it is actually
+    // completed — anything else is capped at 99% so the bar can never
+    // fill prematurely even if a backend reports a bad value.
+    const rawPct = data.progress !== undefined ? Number(data.progress) : 0;
+    const pct = data.status === 'completed' ? 100 : Math.min(99, Math.max(0, rawPct));
     window.FtthComponents.updateProgressBar(progressBar, pct);
     progressPct.textContent = Math.round(pct) + '%';
     progressValue.textContent = Math.round(pct) + '%';

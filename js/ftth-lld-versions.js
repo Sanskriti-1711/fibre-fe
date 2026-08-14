@@ -140,7 +140,9 @@
       progressCard.classList.remove('show');
       return;
     }
-    const pct = Math.max(0, Math.min(100, Number(running.progress) || 0));
+    // A running LLD run is never 100% — cap at 99 so the bar only fills
+    // completely once the run flips to completed and leaves this branch.
+    const pct = Math.min(99, Math.max(0, Number(running.progress) || 0));
     progressCard.classList.add('show');
     progressVersion.textContent = running.lld_version;
     progressPct.textContent = pct;
