@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Permit Tracker | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+  <style>
+    .pm-content { max-width: 1200px; margin: 0 auto; }
+
+    .pm-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+    .pm-header h1 { margin:0 0 4px; font-size:22px; }
+    .pm-header p { margin:0; font-size:13px; color:#6B7280; }
+
+    .pm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin:16px 0 20px; }
+    .pm-stat { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    .pm-stat .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; }
+    .pm-stat .value { font-size:24px; font-weight:800; color:#1F2937; margin-top:6px; }
+
+    .pm-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px; }
+    .pm-filters input, .pm-filters select {
+      padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px;
+      font-size:13px; color:#1F2937; background:#fff;
+    }
+    .pm-filters .pm-search { flex:1; min-width:220px; }
+    .pm-refresh { margin-left:auto; }
+
+    .pm-table-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { padding:11px 14px; border-bottom:1px solid #F3F4F6; text-align:left; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; }
+    tbody tr { cursor:pointer; transition:background 0.12s ease; }
+    tbody tr:hover { background:#F8FAFC; }
+    tbody tr:last-child td { border-bottom:none; }
+
+    .pm-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
+    .pm-badge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+    .b-green { background:#ECFDF5; color:#047857; border:1px solid #A7F3D0; }
+    .b-blue  { background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE; }
+    .b-red   { background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
+    .b-gray  { background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB; }
+    .b-amber { background:#FFFBEB; color:#B45309; border:1px solid #FDE68A; }
+
+    .pm-empty { padding:28px; text-align:center; color:#9CA3AF; font-size:13px; }
+    .pm-fid { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <div id="sidebarContainer"></div>
+  <main class="content">
+    <div class="pm-content">
+
+      <div class="pm-header">
+        <div>
+          <h1>&#x1F6E2;&#xFE0F; Permit Tracker</h1>
+          <p>Every identified permit across all projects — HLD identifies, Survey evidences, LLD packages.</p>
+        </div>
+        <span id="pmUpdated" style="font-size:12px;color:#9CA3AF;">—</span>
+      </div>
+
+      <div class="pm-grid" id="pmStats"></div>
+
+      <div class="pm-filters">
+        <input class="pm-search" id="pmSearch" type="text" placeholder="Search permit type or route section…" />
+        <select id="pmStatus">
+          <option value="">All statuses</option>
+          <option value="identified">Identified</option>
+          <option value="evidence_required">Evidence Required</option>
+          <option value="ready">Ready</option>
+          <option value="submitted">Submitted</option>
+          <option value="under_review">Under Review</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select id="pmProject">
+          <option value="">All projects</option>
+        </select>
+        <button id="pmRefresh" class="create-btn pm-refresh" type="button" style="background:#374151;">&#x21BB; Refresh</button>
+      </div>
+
+      <div class="pm-table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Permit Type</th>
+              <th>Route Section</th>
+              <th>Authority</th>
+              <th>Status</th>
+              <th>Readiness</th>
+              <th>Req.</th>
+            </tr>
+          </thead>
+          <tbody id="pmBody">
+            <tr><td colspan="7"><div class="pm-empty">Loading permits…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="partials/sidebar-loader.js"></script>
+<script src="js/ftth-config.js"></script>
+<script>
+  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+</script>
+<script src="fiber-api.js"></script>
+<script src="js/ftth-api.js"></script>
+<script src="js/ftth-lld-api.js"></script>
+<script>
+  window.FiberAuth.requireLogin();
+
+  function esc(s) {
+    return String(s === undefined || s === null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  var STATUS_META = {
+    approved:           { text:'Approved',           cls:'b-green' },
+    ready:              { text:'Ready',              cls:'b-green' },
+    under_review:       { text:'Under Review',       cls:'b-blue' },
+    submitted:          { text:'Submitted',          cls:'b-blue' },
+    evidence_required:  { text:'Evidence Required',  cls:'b-amber' },
+    identified:         { text:'Identified',         cls:'b-amber' },
+    rejected:           { text:'Rejected',           cls:'b-red' },
+    closed:             { text:'Closed',             cls:'b-gray' },
+    not_required:       { text:'Not Required',       cls:'b-gray' }
+  };
+  function statusBadge(s) {
+    var m = STATUS_META[s] || STATUS_META.identified;
+    return '<span class="pm-badge ' + m.cls + '"><span class="dot"></span>' + esc(m.text) + '</span>';
+  }
+
+  var allPermits = [];
+  var loading = false;
+
+  function renderStats() {
+    var el = document.getElementById('pmStats');
+    var counts = { ready:0, approved:0, under_review:0, submitted:0, identified:0, rejected:0 };
+    allPermits.forEach(function (p) { if (counts[p.status] !== undefined) counts[p.status]++; });
+    var total = allPermits.length;
+    var stats = [
+      { label:'Total Permits', value: total },
+      { label:'Ready', value: counts.ready, color:'#047857' },
+      { label:'Approved', value: counts.approved, color:'#047857' },
+      { label:'Under Review', value: counts.under_review + counts.submitted, color:'#1D4ED8' },
+      { label:'Identified', value: counts.identified, color:'#B45309' },
+      { label:'Rejected', value: counts.rejected, color:'#B91C1C' }
+    ];
+    el.innerHTML = stats.map(function (s) {
+      return '<div class="pm-stat"><div class="label">' + esc(s.label) + '</div>'
+        + '<div class="value"' + (s.color ? ' style="color:' + s.color + '"' : '') + '>' + s.value + '</div></div>';
+    }).join('');
+  }
+
+  function populateProjectFilter() {
+    var sel = document.getElementById('pmProject');
+    var projects = {};
+    allPermits.forEach(function (p) { projects[p.project_id] = p.project_name || p.project_id; });
+    var current = sel.value;
+    sel.innerHTML = '<option value="">All projects</option>'
+      + Object.keys(projects).sort().map(function (pid) {
+          return '<option value="' + esc(pid) + '">' + esc(projects[pid]) + '</option>';
+        }).join('');
+    sel.value = current;
+  }
+
+  function renderTable() {
+    var q = (document.getElementById('pmSearch').value || '').trim().toLowerCase();
+    var status = document.getElementById('pmStatus').value;
+    var project = document.getElementById('pmProject').value;
+    var rows = allPermits.filter(function (p) {
+      if (status && p.status !== status) return false;
+      if (project && p.project_id !== project) return false;
+      if (q && (p.permit_type || '').toLowerCase().indexOf(q) === -1
+          && (p.route_section || '').toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    var tbody = document.getElementById('pmBody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="pm-empty">'
+        + (allPermits.length ? 'No permits match your filters.' : 'No permits identified yet — run permit analysis from a project overview page.')
+        + '</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(function (p) {
+      return '<tr onclick="window.location.href=\'ftth-project-overview.html?project_id=' + encodeURIComponent(p.project_id) + '\'">'
+        + '<td><strong>' + esc(p.project_name || p.project_id) + '</strong></td>'
+        + '<td>' + esc(p.permit_type) + '</td>'
+        + '<td class="pm-fid">' + esc(String(p.route_section).slice(0, 18)) + '</td>'
+        + '<td>' + esc((p.authority && p.authority.name) || '—') + '</td>'
+        + '<td>' + statusBadge(p.status) + '</td>'
+        + '<td>' + (p.readiness_pct || 0) + '%</td>'
+        + '<td>' + (p.required ? '<span class="pm-badge b-red"><span class="dot"></span>Required</span>' : '<span class="pm-badge b-gray"><span class="dot"></span>Potential</span>') + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  async function load() {
+    if (loading) return;
+    loading = true;
+    var btn = document.getElementById('pmRefresh');
+    if (btn) btn.disabled = true;
+    try {
+      var d = await window.FtthLldApi.listAllPermits();
+      allPermits = d.permits || [];
+      renderStats();
+      populateProjectFilter();
+      renderTable();
+      document.getElementById('pmUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    } catch (err) {
+      document.getElementById('pmBody').innerHTML =
+        '<tr><td colspan="7"><div class="pm-empty" style="color:#B91C1C;">Failed to load permits: ' + esc(err.message || err) + '</div></td></tr>';
+    } finally {
+      loading = false;
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  document.getElementById('pmSearch').addEventListener('input', renderTable);
+  document.getElementById('pmStatus').addEventListener('change', renderTable);
+  document.getElementById('pmProject').addEventListener('change', renderTable);
+  document.getElementById('pmRefresh').addEventListener('click', load);
+
+  load();
+  setInterval(load, 60000);
+</script>
+</body>
+</html>

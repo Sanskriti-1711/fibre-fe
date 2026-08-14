@@ -308,6 +308,23 @@
     return body;
   }
 
+  async function apiListAllPermits(params) {
+    params = params || {};
+    var qs = Object.keys(params)
+      .filter(function (k) { return params[k]; })
+      .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
+      .join('&');
+    var url = buildUrl('/api/ftth/permits/' + (qs ? '?' + qs : ''));
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   async function apiRunPermitAnalysis(projectId) {
     var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/permits/analyze/');
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
@@ -362,6 +379,7 @@
     getFeatureLineage: getFeatureLineage,
     getProjectOverview: getProjectOverview,
     getProjectPermits: apiGetProjectPermits,
+    listAllPermits: apiListAllPermits,
     runPermitAnalysis: apiRunPermitAnalysis,
     listUsers: listUsers,
     listMembers: listMembers,
