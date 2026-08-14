@@ -227,6 +227,9 @@
 
     // If features carry an ASSET_TYPE field, build a per-type colour map using
     // shades of the group colour (e.g. all brownfield assets in one hue family).
+    // A MapLibre `match` expression needs at least one value/output pair — when
+    // no feature has the field, keep the plain group colour instead of building
+    // an invalid expression (MapLibre throws and the whole layer is dropped).
     var typeMatch = null;
     if (opts.assetTypeField) {
       var tm = ['match', ['get', opts.assetTypeField]];
@@ -237,8 +240,10 @@
         var c = LAYER_COLORS.ASSET_TYPE_COLORS[val] || fillColor;
         if (!usedTypes[val]) { tm.push(val, c); usedTypes[val] = true; }
       });
-      tm.push(fillColor);
-      typeMatch = tm;
+      if (Object.keys(usedTypes).length > 0) {
+        tm.push(fillColor);
+        typeMatch = tm;
+      }
     }
 
     map.addSource(sourceId, { type: 'geojson', data: geojson });
@@ -265,6 +270,9 @@
       } else if (opts.sublayerField) {
         // If the GeoJSON features carry a `sublayer` property (merged group
         // layer), color each sub-layer differently using a match expression.
+        // Only build the expression when at least one feature actually has a
+        // value — data served from PostGIS has no sublayer property, and an
+        // empty `match` makes MapLibre drop the layer entirely.
         var matchColor = ['match', ['get', opts.sublayerField]];
         var used = {};
         (geojson.features || []).forEach(function (feat) {
@@ -273,8 +281,10 @@
           var subColor = LAYER_COLORS.SUBLAYER_COLORS[val] || fillColor;
           if (!used[val]) { matchColor.push(val, subColor); used[val] = true; }
         });
-        matchColor.push(fillColor);
-        linePaint['line-color'] = matchColor;
+        if (Object.keys(used).length > 0) {
+          matchColor.push(fillColor);
+          linePaint['line-color'] = matchColor;
+        }
       }
       if (palette.lineDash && palette.lineDash.length > 0) {
         linePaint['line-dasharray'] = palette.lineDash;
