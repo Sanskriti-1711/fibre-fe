@@ -6,49 +6,289 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="css/main.css" />
   <style>
-    .hub-stage-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin: 16px 0 24px;
+    /* ══════════════════════ Dashboard — FTTH Command Center ══════════════════════ */
+
+    :root {
+      --dash-hld: #6366F1;      /* indigo  */
+      --dash-survey: #10B981;   /* emerald */
+      --dash-lld: #8B5CF6;      /* violet  */
+      --dash-red: #E31837;
+      --dash-ink: #111827;
+      --dash-muted: #6B7280;
+      --dash-line: #E5E7EB;
+      --dash-bg: #F4F5FA;
     }
-    .hub-stage-card {
-      background: #FFFFFF;
-      border: 1px solid #E5E7EB;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+
+    body { background: var(--dash-bg); }
+
+    .dash-content { padding-bottom: 48px; }
+
+    /* ── Hero ─────────────────────────────────────────────────────────── */
+    .dash-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      padding: 30px 34px;
+      margin-bottom: 24px;
+      color: #fff;
+      background:
+        radial-gradient(1100px 320px at 88% -40%, rgba(139,92,246,0.55), transparent 60%),
+        radial-gradient(900px 300px at 8% -30%, rgba(227,24,55,0.5), transparent 55%),
+        linear-gradient(135deg, #111827 0%, #1F2937 55%, #312E81 130%);
+      box-shadow: 0 18px 40px -18px rgba(17,24,39,0.55);
+    }
+    .dash-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+      background-size: 34px 34px;
+      pointer-events: none;
+    }
+    .dash-hero-inner { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; }
+    .dash-hero h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; }
+    .dash-hero .sub { margin-top: 6px; font-size: 13.5px; color: #C7CBD6; }
+    .dash-hero .hello { font-size: 13px; font-weight: 700; color: #FCA5A5; text-transform: uppercase; letter-spacing: 0.14em; }
+
+    .dash-hero-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+    .dash-clock {
+      text-align: right;
+      line-height: 1.2;
+    }
+    .dash-clock .time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
+    .dash-clock .date { font-size: 11.5px; color: #9CA3AF; margin-top: 2px; }
+
+    .dash-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #D1D5DB;
+      white-space: nowrap;
+    }
+    .dash-status .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #9CA3AF;
+      box-shadow: 0 0 0 0 rgba(156,163,175,0.5);
+    }
+    .dash-status.ok .dot { background: #34D399; animation: dash-pulse 2s infinite; }
+    .dash-status.warn .dot { background: #FBBF24; animation: dash-pulse 1.6s infinite; }
+    .dash-status.down .dot { background: #F87171; animation: dash-pulse 1s infinite; }
+    @keyframes dash-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.45); }
+      70% { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
+      100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+    }
+
+    .dash-refresh {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 14px; border-radius: 10px;
+      background: #fff; color: #1F2937;
+      border: none; font-size: 12.5px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 6px 16px -6px rgba(0,0,0,0.4);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .dash-refresh:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -6px rgba(0,0,0,0.45); }
+    .dash-refresh.spinning svg { animation: dash-spin 0.8s linear infinite; }
+    @keyframes dash-spin { to { transform: rotate(360deg); } }
+
+    /* ── Pipeline rail ────────────────────────────────────────────────── */
+    .dash-rail {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 0;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+    .dash-stage {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--dash-line);
+      border-radius: 16px;
+      padding: 18px 20px;
+      cursor: pointer;
       text-decoration: none;
       color: inherit;
-      display: block;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    }
-    .hub-stage-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-      border-color: #C7D2FE;
-    }
-    .hub-stage-card .icon {
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
-      margin-bottom: 12px;
-    }
-    .hub-stage-card h3 { margin: 0 0 4px; font-size: 16px; color: #1F2937; }
-    .hub-stage-card p { margin: 0; font-size: 12px; color: #6B7280; line-height: 1.5; }
-    .hub-stage-card .count { font-size: 26px; font-weight: 800; color: #1F2937; margin-top: 10px; }
-    .hub-stage-card.hld .icon { background: #EEF2FF; }
-    .hub-stage-card.survey .icon { background: #ECFDF5; }
-    .hub-stage-card.lld .icon { background: #F5F3FF; }
-
-    .hub-actions {
       display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 16px 0 24px;
+      gap: 14px;
+      align-items: center;
+      box-shadow: 0 4px 14px -8px rgba(0,0,0,0.12);
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      overflow: hidden;
     }
-    .hub-actions .create-btn { text-decoration: none; }
+    .dash-stage:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -14px rgba(0,0,0,0.22); }
+    .dash-stage .stage-glow {
+      position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      opacity: 0.9;
+    }
+    .dash-stage.hld .stage-glow { background: linear-gradient(90deg, #6366F1, #818CF8); }
+    .dash-stage.survey .stage-glow { background: linear-gradient(90deg, #10B981, #34D399); }
+    .dash-stage.lld .stage-glow { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+
+    .dash-stage .stage-icon {
+      width: 46px; height: 46px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .dash-stage.hld .stage-icon { background: #EEF2FF; }
+    .dash-stage.survey .stage-icon { background: #ECFDF5; }
+    .dash-stage.lld .stage-icon { background: #F5F3FF; }
+
+    .dash-stage .stage-meta { flex: 1; min-width: 0; }
+    .dash-stage .stage-name { font-size: 14.5px; font-weight: 800; color: var(--dash-ink); display: flex; align-items: center; gap: 8px; }
+    .dash-stage .stage-sub { font-size: 12px; color: var(--dash-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-stage .stage-count { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .dash-stage.hld .stage-count { color: var(--dash-hld); }
+    .dash-stage.survey .stage-count { color: var(--dash-survey); }
+    .dash-stage.lld .stage-count { color: var(--dash-lld); }
+
+    .dash-stage .stage-badge {
+      font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 999px;
+    }
+    .dash-stage .stage-badge.live { background: #ECFDF5; color: #047857; animation: dash-blink 1.8s ease-in-out infinite; }
+    .dash-stage .stage-badge.idle { background: #F3F4F6; color: #6B7280; }
+    @keyframes dash-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+    .dash-connector {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0 10px; color: #9CA3AF;
+    }
+    .dash-connector .chev { font-size: 20px; font-weight: 800; }
+
+    @media (max-width: 1080px) {
+      .dash-rail { grid-template-columns: 1fr; gap: 12px; }
+      .dash-connector { transform: rotate(90deg); padding: 2px 0; }
+    }
+
+    /* ── KPI grid ─────────────────────────────────────────────────────── */
+    .dash-kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .dash-kpi {
+      background: #fff;
+      border: 1px solid var(--dash-line);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 4px 14px -10px rgba(0,0,0,0.14);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .dash-kpi:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -14px rgba(0,0,0,0.24); }
+    .dash-kpi .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+    .dash-kpi .kpi-label { font-size: 12px; font-weight: 700; color: var(--dash-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+    .dash-kpi .kpi-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .dash-kpi .kpi-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+    .dash-kpi .kpi-value { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; line-height: 1; }
+    .dash-kpi .kpi-spark { width: 110px; height: 38px; flex-shrink: 0; }
+    .dash-kpi .kpi-note { font-size: 11.5px; color: var(--dash-muted); margin-top: 2px; }
+    .dash-kpi.kpi-hld .kpi-icon { background: #EEF2FF; }
+    .dash-kpi.kpi-survey .kpi-icon { background: #ECFDF5; }
+    .dash-kpi.kpi-lld .kpi-icon { background: #F5F3FF; }
+    .dash-kpi.kpi-total .kpi-icon { background: #FEF2F2; }
+
+    /* ── Charts row ───────────────────────────────────────────────────── */
+    .dash-charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .dash-card {
+      background: #fff;
+      border: 1px solid var(--dash-line);
+      border-radius: 16px;
+      padding: 20px 22px;
+      box-shadow: 0 4px 14px -10px rgba(0,0,0,0.14);
+    }
+    .dash-card .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .dash-card .card-title { font-size: 14.5px; font-weight: 800; color: var(--dash-ink); }
+    .dash-card .card-hint { font-size: 11.5px; color: var(--dash-muted); }
+    .dash-donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .dash-donut-wrap canvas { flex-shrink: 0; }
+    .dash-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 150px; }
+    .dash-legend .lg-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #374151; }
+    .dash-legend .lg-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+    .dash-legend .lg-val { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .dash-legend .lg-pct { color: var(--dash-muted); width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* LLD runs bar list */
+    .dash-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    .dash-bar-row { display: grid; grid-template-columns: minmax(90px, 150px) 1fr 40px; align-items: center; gap: 10px; }
+    .dash-bar-row .bar-label { font-size: 12px; font-weight: 600; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-bar-row .bar-track { height: 10px; background: #F3F4F6; border-radius: 999px; overflow: hidden; }
+    .dash-bar-row .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8B5CF6, #A78BFA); width: 0; transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+    .dash-bar-row .bar-val { font-size: 12px; font-weight: 800; color: var(--dash-ink); text-align: right; font-variant-numeric: tabular-nums; }
+    .dash-bar-empty { font-size: 12.5px; color: var(--dash-muted); padding: 14px 0; text-align: center; }
+
+    /* ── Queue table ──────────────────────────────────────────────────── */
+    .dash-card-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .dash-search {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid var(--dash-line); border-radius: 10px;
+      padding: 7px 12px; background: #F9FAFB; min-width: 220px;
+    }
+    .dash-search input { border: none; outline: none; background: transparent; font-size: 13px; width: 100%; color: var(--dash-ink); }
+    .dash-search svg { flex-shrink: 0; opacity: 0.55; }
+
+    .dash-queue-row { display: flex; align-items: center; gap: 8px; }
+    .dash-pill { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; }
+    .dash-pill.ready { background: #ECFDF5; color: #047857; }
+    .dash-pill.review { background: #FFFBEB; color: #B45309; }
+    .dash-pill.needs { background: #FEF2F2; color: #B91C1C; }
+
+    .dash-progress { display: flex; align-items: center; gap: 8px; min-width: 140px; }
+    .dash-progress .track { flex: 1; height: 7px; background: #F3F4F6; border-radius: 999px; overflow: hidden; }
+    .dash-progress .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #10B981, #34D399); width: 0; transition: width 0.8s ease; }
+    .dash-progress .pct { font-size: 11.5px; font-weight: 800; color: var(--dash-muted); width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+
+    .dash-counts { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .dash-counts .c { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 8px; }
+    .dash-counts .c-ok { background: #ECFDF5; color: #047857; }
+    .dash-counts .c-no { background: #FEF2F2; color: #B91C1C; }
+    .dash-counts .c-pen { background: #FFFBEB; color: #B45309; }
+
+    /* ── Timeline ─────────────────────────────────────────────────────── */
+    .dash-timeline { display: flex; flex-direction: column; gap: 0; margin-top: 6px; }
+    .dash-tl-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+    .dash-tl-item:last-child { border-bottom: none; }
+    .dash-tl-rail { display: flex; flex-direction: column; align-items: center; }
+    .dash-tl-dot { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .dash-tl-dot.hld { background: #EEF2FF; }
+    .dash-tl-dot.lld { background: #F5F3FF; }
+    .dash-tl-body { flex: 1; min-width: 0; }
+    .dash-tl-title { font-size: 13.5px; font-weight: 700; color: var(--dash-ink); }
+    .dash-tl-sub { font-size: 12px; color: var(--dash-muted); margin-top: 2px; }
+    .dash-tl-time { font-size: 11px; color: #9CA3AF; margin-top: 3px; }
+    .dash-tl-link { font-size: 12px; font-weight: 700; color: var(--dash-red); text-decoration: none; margin-top: 4px; display: inline-block; }
+    .dash-tl-link:hover { text-decoration: underline; }
+    .dash-empty { text-align: center; color: var(--dash-muted); font-size: 13px; padding: 26px 0; }
+
+    /* ── Skeleton ─────────────────────────────────────────────────────── */
+    .dash-skel { border-radius: 8px; background: linear-gradient(90deg, #F1F3F5 25%, #E8EAED 40%, #F1F3F5 60%); background-size: 300% 100%; animation: dash-shimmer 1.3s infinite; }
+    @keyframes dash-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+    /* ── Fade-in ──────────────────────────────────────────────────────── */
+    .dash-fade { opacity: 0; transform: translateY(8px); animation: dash-fadein 0.45s ease forwards; }
+    @keyframes dash-fadein { to { opacity: 1; transform: translateY(0); } }
+
+    .dash-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 1000px) { .dash-grid-2 { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -56,106 +296,228 @@
 <div class="layout">
   <div id="sidebarContainer"></div>
 
-  <main class="content">
+  <main class="content dash-content">
 
-    <div class="header">
-      <h1>FTTH Pipeline Overview</h1>
-      <p>HLD &rarr; Survey &rarr; LLD &mdash; navigate any stage from here</p>
-    </div>
-
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-title">HLD Runs</div>
-        <div id="kpiHld" class="kpi-value">–</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Pending Approvals</div>
-        <div id="kpiPending" class="kpi-value">–</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">LLD Runs</div>
-        <div id="kpiLld" class="kpi-value">–</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Total Projects</div>
-        <div id="kpiTotal" class="kpi-value">–</div>
+    <!-- ══════ Hero ══════ -->
+    <div class="dash-hero">
+      <div class="dash-hero-inner">
+        <div>
+          <div class="hello" id="heroHello">Loading…</div>
+          <h1>FTTH Pipeline Command Center</h1>
+          <p class="sub">One window into the HLD &rarr; Survey &rarr; LLD lifecycle &mdash; every stage, every approval, every run.</p>
+        </div>
+        <div class="dash-hero-right">
+          <div class="dash-clock">
+            <div class="time" id="heroTime">--:--:--</div>
+            <div class="date" id="heroDate">—</div>
+          </div>
+          <span class="dash-status" id="heroStatus"><span class="dot"></span><span id="heroStatusText">Checking systems…</span></span>
+          <button class="dash-refresh" id="btnRefresh" title="Refresh data">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+            Refresh
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Stage cards -->
-    <div class="hub-stage-grid">
-      <a class="hub-stage-card hld" href="ftth-hld-projects.html">
-        <div class="icon">&#x1F3D7;&#xFE0F;</div>
-        <h3>HLD Outputs</h3>
-        <p>High-level designs produced by the HLD pipeline. View results, download packages, or assign to an engineer.</p>
-        <div class="count" id="stageHld">–</div>
+    <!-- ══════ Pipeline rail ══════ -->
+    <div class="dash-rail" id="pipelineRail">
+      <a class="dash-stage hld" href="ftth-hld-projects.html">
+        <span class="stage-glow"></span>
+        <div class="stage-icon">🏗️</div>
+        <div class="stage-meta">
+          <div class="stage-name">HLD <span class="stage-badge idle" id="hldBadge">…</span></div>
+          <div class="stage-sub" id="hldSub">Loading…</div>
+        </div>
+        <div class="stage-count" id="hldCount">–</div>
       </a>
-      <a class="hub-stage-card survey" href="ftth-survey-changes.html">
-        <div class="icon">&#x1F9ED;</div>
-        <h3>LLD Approval Queue</h3>
-        <p>Review engineer edits clubbed by project &mdash; approve, reject, or request correction before LLD.</p>
-        <div class="count" id="stageSurvey">–</div>
+      <div class="dash-connector"><span class="chev">➜</span></div>
+      <a class="dash-stage survey" href="ftth-survey-changes.html">
+        <span class="stage-glow"></span>
+        <div class="stage-icon">🗺️</div>
+        <div class="stage-meta">
+          <div class="stage-name">Survey <span class="stage-badge idle" id="surveyBadge">…</span></div>
+          <div class="stage-sub" id="surveySub">Loading…</div>
+        </div>
+        <div class="stage-count" id="surveyCount">–</div>
       </a>
-      <a class="hub-stage-card lld" href="ftth-lld-outputs.html">
-        <div class="icon">&#x1F4D0;</div>
-        <h3>LLD Outputs</h3>
-        <p>Final detailed designs. View the map output or download the LLD layer zip per run.</p>
-        <div class="count" id="stageLld">–</div>
+      <div class="dash-connector"><span class="chev">➜</span></div>
+      <a class="dash-stage lld" href="ftth-lld-outputs.html">
+        <span class="stage-glow"></span>
+        <div class="stage-icon">📐</div>
+        <div class="stage-meta">
+          <div class="stage-name">LLD <span class="stage-badge idle" id="lldBadge">…</span></div>
+          <div class="stage-sub" id="lldSub">Loading…</div>
+        </div>
+        <div class="stage-count" id="lldCount">–</div>
       </a>
     </div>
 
-    <!-- Quick actions -->
-    <div class="section">
-      <h3>Quick Actions</h3>
-      <div class="hub-actions">
-        <a class="create-btn" href="ftth-hld.html">&#x2B; Upload HLD</a>
-        <a class="create-btn" href="projects.html" style="background:#374151;">All Projects</a>
-        <a class="create-btn" href="ftth-survey-changes.html" style="background:#374151;">LLD Approval Queue</a>
+    <!-- ══════ KPI grid ══════ -->
+    <div class="dash-kpis">
+      <a class="dash-kpi kpi-hld" href="ftth-hld-projects.html">
+        <div class="kpi-top">
+          <span class="kpi-label">HLD Runs</span>
+          <span class="kpi-icon">🏗️</span>
+        </div>
+        <div class="kpi-bottom">
+          <div>
+            <div class="kpi-value" id="kpiHld">–</div>
+            <div class="kpi-note" id="kpiHldNote">loading…</div>
+          </div>
+          <canvas class="kpi-spark" id="sparkHld"></canvas>
+        </div>
+      </a>
+      <a class="dash-kpi kpi-survey" href="ftth-survey-changes.html">
+        <div class="kpi-top">
+          <span class="kpi-label">Pending Reviews</span>
+          <span class="kpi-icon">🗺️</span>
+        </div>
+        <div class="kpi-bottom">
+          <div>
+            <div class="kpi-value" id="kpiPending">–</div>
+            <div class="kpi-note" id="kpiPendingNote">loading…</div>
+          </div>
+          <canvas class="kpi-spark" id="sparkPending"></canvas>
+        </div>
+      </a>
+      <a class="dash-kpi kpi-lld" href="ftth-lld-outputs.html">
+        <div class="kpi-top">
+          <span class="kpi-label">LLD Runs</span>
+          <span class="kpi-icon">📐</span>
+        </div>
+        <div class="kpi-bottom">
+          <div>
+            <div class="kpi-value" id="kpiLld">–</div>
+            <div class="kpi-note" id="kpiLldNote">loading…</div>
+          </div>
+          <canvas class="kpi-spark" id="sparkLld"></canvas>
+        </div>
+      </a>
+      <a class="dash-kpi kpi-total" href="projects.html">
+        <div class="kpi-top">
+          <span class="kpi-label">Total Projects</span>
+          <span class="kpi-icon">🗃️</span>
+        </div>
+        <div class="kpi-bottom">
+          <div>
+            <div class="kpi-value" id="kpiTotal">–</div>
+            <div class="kpi-note" id="kpiTotalNote">loading…</div>
+          </div>
+          <canvas class="kpi-spark" id="sparkTotal"></canvas>
+        </div>
+      </a>
+    </div>
+
+    <!-- ══════ Charts ══════ -->
+    <div class="dash-charts">
+
+      <div class="dash-card dash-fade">
+        <div class="card-head">
+          <span class="card-title">HLD Pipeline Status</span>
+          <span class="card-hint" id="hldChartHint">–</span>
+        </div>
+        <div class="dash-donut-wrap">
+          <canvas id="donutHld" width="220" height="170"></canvas>
+          <div class="dash-legend" id="legendHld"></div>
+        </div>
+      </div>
+
+      <div class="dash-card dash-fade">
+        <div class="card-head">
+          <span class="card-title">Survey Review Status</span>
+          <span class="card-hint" id="queueChartHint">–</span>
+        </div>
+        <div class="dash-donut-wrap">
+          <canvas id="donutQueue" width="220" height="170"></canvas>
+          <div class="dash-legend" id="legendQueue"></div>
+        </div>
+      </div>
+
+      <div class="dash-card dash-fade">
+        <div class="card-head">
+          <span class="card-title">LLD Runs by Project</span>
+          <span class="card-hint" id="lldChartHint">–</span>
+        </div>
+        <div class="dash-bars" id="lldBars">
+          <div class="dash-bar-empty">Loading…</div>
+        </div>
       </div>
     </div>
 
-    <!-- LLD Approval Queue -->
-    <div class="section">
-      <h3>LLD Approval Queue <span id="queueCount" style="font-size:12px;font-weight:600;color:#6B7280;background:#F3F4F6;padding:2px 10px;border-radius:999px;margin-left:6px;">0</span></h3>
-      <div class="table-card">
+    <!-- ══════ Approval queue ══════ -->
+    <div class="dash-card dash-fade" style="margin-bottom:24px;">
+      <div class="dash-card-head-row">
+        <div>
+          <span class="card-title">LLD Approval Queue</span>
+          <span class="card-hint" id="queueHint" style="margin-left:8px;">–</span>
+        </div>
+        <div class="dash-search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="queueSearch" type="text" placeholder="Search projects…" />
+        </div>
+      </div>
+      <div class="table-card" style="box-shadow:none;border:1px solid var(--dash-line);">
         <table>
           <thead>
             <tr>
               <th>Project</th>
+              <th>Changes</th>
               <th>Approved</th>
               <th>Rejected</th>
-              <th>Needs Correction</th>
+              <th>Needs Fix</th>
               <th>Pending</th>
+              <th>Progress</th>
               <th>Status</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="queueBody">
-            <tr><td colspan="7" style="padding:16px;color:#6B7280;">Loading&hellip;</td></tr>
+            <tr><td colspan="9"><div class="dash-empty">Loading…</div></td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- Recent pipeline runs -->
-    <div class="section">
-      <h3>Recent HLD Runs</h3>
-      <div class="table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Project</th>
-              <th>Status</th>
-              <th>Progress</th>
-              <th>Created</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="recentBody">
-            <tr><td colspan="5" style="padding:16px;color:#6B7280;">Loading&hellip;</td></tr>
-          </tbody>
-        </table>
+    <!-- ══════ Activity timeline ══════ -->
+    <div class="dash-grid-2">
+      <div class="dash-card dash-fade">
+        <div class="card-head">
+          <span class="card-title">Recent Activity</span>
+          <span class="card-hint" id="activityHint">–</span>
+        </div>
+        <div class="dash-timeline" id="timeline">
+          <div class="dash-empty">Loading…</div>
+        </div>
+      </div>
+
+      <div class="dash-card dash-fade">
+        <div class="card-head">
+          <span class="card-title">Pipeline Quick Actions</span>
+          <span class="card-hint">Jump straight to the work</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <a class="dash-stage hld" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="ftth-hld.html">
+            <span class="stage-glow"></span>
+            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;">📤</div>
+            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">Upload &amp; Run HLD</div><div class="stage-sub">Kick off a new high-level design</div></div>
+          </a>
+          <a class="dash-stage survey" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="ftth-survey-changes.html">
+            <span class="stage-glow"></span>
+            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;">✔️</div>
+            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">Review Survey Changes</div><div class="stage-sub">Approve, reject or request corrections</div></div>
+          </a>
+          <a class="dash-stage lld" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="ftth-lld-outputs.html">
+            <span class="stage-glow"></span>
+            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;">🚀</div>
+            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">Run &amp; View LLD</div><div class="stage-sub">Generate the detailed network design</div></div>
+          </a>
+          <a class="dash-stage" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="projects.html">
+            <span class="stage-glow" style="background:linear-gradient(90deg,#374151,#6B7280);"></span>
+            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;background:#F3F4F6;">🗃️</div>
+            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">All Projects</div><div class="stage-sub">Browse every project by stage flag</div></div>
+          </a>
+        </div>
       </div>
     </div>
 
@@ -172,128 +534,463 @@
 <script src="js/ftth-api.js"></script>
 <script src="js/ftth-lld-api.js"></script>
 <script>
-  window.FiberAuth.requireLogin();
+(function () {
+  'use strict';
 
-  function setText(id, value) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = value;
+  if (window.FiberAuth && window.FiberAuth.requireLogin) {
+    window.FiberAuth.requireLogin();
   }
 
+  /* ── tiny helpers ─────────────────────────────────────────────── */
+  function $(id) { return document.getElementById(id); }
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
   }
-
-  function statusClass(status) {
-    var s = String(status || '').toLowerCase();
-    if (s.includes('fail')) return 'failed';
-    if (s.includes('complete')) return 'completed';
-    if (s.includes('run')) return 'pending';
-    return 'pending';
-  }
-
   function fmtDate(iso) {
     if (!iso) return '—';
     try {
       var d = new Date(iso);
       if (isNaN(d.getTime())) return '—';
-      return d.toLocaleString();
+      return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     } catch (_) { return '—'; }
   }
+  function daysAgo(iso) {
+    if (!iso) return -1;
+    var t = new Date(iso).getTime();
+    if (isNaN(t)) return -1;
+    return Math.max(0, Math.floor((Date.now() - t) / 86400000));
+  }
+  function asArray(x) { return Array.isArray(x) ? x : (x && Array.isArray(x.results) ? x.results : []); }
 
-  async function loadKpis() {
-    // HLD runs
+  /* ── live clock ───────────────────────────────────────────────── */
+  function tickClock() {
+    var now = new Date();
+    var t = $('heroTime');
+    if (t) t.textContent = now.toLocaleTimeString(undefined, { hour12: false });
+    var d = $('heroDate');
+    if (d) d.textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  }
+  setInterval(tickClock, 1000);
+  tickClock();
+
+  (function greet() {
+    var h = new Date().getHours();
+    var msg = h < 5 ? 'Night shift running' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    var el = $('heroHello');
+    if (el) el.textContent = msg + ' · FTTH Network Ops';
+  })();
+
+  /* ── canvas helpers ───────────────────────────────────────────── */
+  function prepCanvas(cv, cssW, cssH) {
+    var dpr = window.devicePixelRatio || 1;
+    cv.style.width = cssW + 'px';
+    cv.style.height = cssH + 'px';
+    cv.width = Math.round(cssW * dpr);
+    cv.height = Math.round(cssH * dpr);
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  function drawDonut(cv, segments, center, sub) {
+    var w = 220, h = 170;
+    var ctx = prepCanvas(cv, w, h);
+    ctx.clearRect(0, 0, w, h);
+    var cx = w / 2, cy = h / 2 - 4, r = 56, lw = 15;
+    var total = segments.reduce(function (s, x) { return s + (x.value || 0); }, 0);
+    // soft backdrop ring
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = '#F1F3F5'; ctx.lineWidth = lw; ctx.stroke();
+    if (total > 0) {
+      var start = -Math.PI / 2;
+      segments.forEach(function (seg) {
+        if (!seg.value) return;
+        var ang = seg.value / total * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, start, start + ang - 0.015);
+        ctx.strokeStyle = seg.color;
+        ctx.lineWidth = lw;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        start += ang;
+      });
+    }
+    ctx.fillStyle = '#111827';
+    ctx.font = '800 26px system-ui';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(center), cx, cy - 5);
+    ctx.fillStyle = '#6B7280';
+    ctx.font = '600 11px system-ui';
+    ctx.fillText(sub || '', cx, cy + 17);
+  }
+
+  function drawSpark(cv, values, color) {
+    var w = 110, h = 38;
+    var ctx = prepCanvas(cv, w, h);
+    ctx.clearRect(0, 0, w, h);
+    values = (values || []).filter(function (v) { return v != null; });
+    if (values.length < 2) {
+      // flat baseline
+      values = values.length === 1 ? [0, values[0]] : [0, 0];
+    }
+    var max = Math.max.apply(null, values.concat([1]));
+    var step = w / (values.length - 1);
+    ctx.beginPath();
+    values.forEach(function (v, i) {
+      var x = i * step, y = h - 3 - ((v || 0) / max) * (h - 8);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = color; ctx.lineWidth = 1.8; ctx.lineJoin = 'round'; ctx.stroke();
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+    ctx.fillStyle = color; ctx.globalAlpha = 0.10; ctx.fill(); ctx.globalAlpha = 1;
+    // end dot
+    var lx = (values.length - 1) * step, ly = h - 3 - ((values[values.length - 1] || 0) / max) * (h - 8);
+    ctx.beginPath(); ctx.arc(lx, ly, 2.6, 0, Math.PI * 2);
+    ctx.fillStyle = color; ctx.globalAlpha = 1; ctx.fill();
+  }
+
+  function dailySeries(items, getTime) {
+    var out = [];
+    var now = Date.now();
+    for (var d = 13; d >= 0; d--) {
+      var dayStart = new Date(now - d * 86400000);
+      dayStart.setHours(0, 0, 0, 0);
+      var dayEnd = dayStart.getTime() + 86400000;
+      var n = 0;
+      items.forEach(function (it) {
+        var t = new Date(getTime(it)).getTime();
+        if (!isNaN(t) && t >= dayStart.getTime() && t < dayEnd) n++;
+      });
+      out.push(n);
+    }
+    return out;
+  }
+
+  /* ── state ────────────────────────────────────────────────────── */
+  var state = { hld: [], queue: [], runs: [], total: 0, ok: 0, fail: 0 };
+  var loading = false;
+
+  function countUp(el, target, suffix) {
+    if (!el) return;
+    suffix = suffix || '';
+    var start = 0, dur = 600, t0 = null;
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(start + (target - start) * eased) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ── loaders ──────────────────────────────────────────────────── */
+  async function loadHld() {
     try {
-      var hld = await window.FtthApi.listProjects(100);
-      var hldList = Array.isArray(hld) ? hld : (hld && hld.results) || [];
-      setText('kpiHld', hldList.length);
-      setText('stageHld', hldList.length);
-      renderRecent(hldList);
-    } catch (_) { setText('kpiHld', '–'); }
+      var list = await window.FtthApi.listProjects(200);
+      state.hld = asArray(list);
+      state.ok++;
+    } catch (e) { state.fail++; state.hld = []; }
+  }
 
-    // Survey changes (clubbed by project)
+  async function loadQueue() {
     try {
       var lp = await window.FtthLldApi.listProjects();
-      var projects = (lp && lp.projects) || [];
-      var pending = 0;
-      projects.forEach(function (p) { pending += (p.pending || 0); });
-      setText('kpiPending', pending);
-      setText('stageSurvey', projects.length);
-      renderQueue(projects);
-    } catch (_) { setText('kpiPending', '–'); }
+      state.queue = (lp && lp.projects) || [];
+      state.ok++;
+    } catch (e) { state.fail++; state.queue = []; }
+  }
 
-    // LLD runs
+  async function loadRuns() {
     try {
       var lr = await window.FtthLldApi.listRuns();
-      var runs = (lr && lr.runs) || [];
-      setText('kpiLld', runs.length);
-      setText('stageLld', runs.length);
-    } catch (_) { setText('kpiLld', '–'); }
+      state.runs = (lr && lr.runs) || [];
+      state.ok++;
+    } catch (e) { state.fail++; state.runs = []; }
+  }
 
-    // Total projects (all kinds)
+  async function loadTotal() {
     try {
       var data = await window.FiberApi.listProjects();
-      var list = Array.isArray(data) ? data : (data && data.results) || [];
-      setText('kpiTotal', list.length);
-    } catch (_) { setText('kpiTotal', '–'); }
+      state.total = asArray(data).length;
+      state.ok++;
+    } catch (e) { state.fail++; state.total = 0; }
   }
 
-  function renderQueue(projects) {
-    var tbody = document.getElementById('queueBody');
-    var countEl = document.getElementById('queueCount');
-    if (countEl) countEl.textContent = projects.length;
-    if (!tbody) return;
-    if (!projects.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">No projects in the approval queue yet.</td></tr>';
+  /* ── renderers ────────────────────────────────────────────────── */
+  function renderRail() {
+    var hld = state.hld, queue = state.queue, runs = state.runs;
+
+    var hldDone = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
+    var hldBusy = hld.length - hldDone;
+    $('hldCount').textContent = hld.length;
+    $('hldSub').textContent = hld.length ? (hldDone + ' completed · ' + hldBusy + ' in progress') : 'No HLD runs yet — upload one to start';
+    var hldBadge = $('hldBadge');
+    hldBadge.textContent = hldBusy ? 'LIVE' : 'IDLE';
+    hldBadge.className = 'stage-badge ' + (hldBusy ? 'live' : 'idle');
+
+    var pendingAll = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
+    var readyCount = queue.filter(function (p) { return p.ready; }).length;
+    $('surveyCount').textContent = queue.length;
+    $('surveySub').textContent = queue.length ? (pendingAll + ' pending · ' + readyCount + ' ready for LLD') : 'No survey changes yet';
+    var surveyBadge = $('surveyBadge');
+    surveyBadge.textContent = pendingAll ? 'LIVE' : 'IDLE';
+    surveyBadge.className = 'stage-badge ' + (pendingAll ? 'live' : 'idle');
+
+    $('lldCount').textContent = runs.length;
+    var last = runs[0];
+    $('lldSub').textContent = runs.length
+      ? 'latest: ' + (last.lld_version || 'V?') + ' · ' + esc(last.project_name || '')
+      : 'No LLD runs yet — review survey changes first';
+    var lldBadge = $('lldBadge');
+    lldBadge.textContent = runs.length ? 'RUNS' : 'IDLE';
+    lldBadge.className = 'stage-badge ' + (runs.length ? 'live' : 'idle');
+  }
+
+  function renderKpis() {
+    var hld = state.hld, queue = state.queue, runs = state.runs;
+
+    countUp($('kpiHld'), hld.length);
+    var hldDone = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
+    $('kpiHldNote').textContent = hldDone + ' completed';
+    drawSpark($('sparkHld'), dailySeries(hld, function (p) { return p.created_at; }), '#6366F1');
+
+    var pending = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
+    countUp($('kpiPending'), pending);
+    var readyCount = queue.filter(function (p) { return p.ready; }).length;
+    $('kpiPendingNote').textContent = readyCount + ' projects LLD-ready';
+    drawSpark($('sparkPending'), queue.map(function (p) { return p.pending || 0; }), '#10B981');
+
+    countUp($('kpiLld'), runs.length);
+    var done = runs.filter(function (r) { return String(r.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
+    $('kpiLldNote').textContent = done + ' completed runs';
+    drawSpark($('sparkLld'), dailySeries(runs, function (r) { return r.run_date; }), '#8B5CF6');
+
+    countUp($('kpiTotal'), state.total);
+    $('kpiTotalNote').textContent = 'across all stage flags';
+    drawSpark($('sparkTotal'), dailySeries(asArray(window.__allProjects || []), function (p) { return p.created_at; }), '#E31837');
+  }
+
+  function renderDonuts() {
+    // HLD status donut
+    var hld = state.hld;
+    var comp = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
+    var run = hld.filter(function (p) { return /run|progress|queue/.test(String(p.status || '').toLowerCase()); }).length;
+    var fail = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('fail') !== -1; }).length;
+    var other = hld.length - comp - run - fail;
+    var hldSegs = [
+      { label: 'Completed', value: comp, color: '#10B981' },
+      { label: 'In progress', value: run, color: '#F59E0B' },
+      { label: 'Failed', value: fail, color: '#EF4444' },
+      { label: 'Other', value: other, color: '#9CA3AF' }
+    ];
+    drawDonut($('donutHld'), hldSegs, hld.length, 'projects');
+    $('hldChartHint').textContent = hld.length + ' HLD runs';
+    $('legendHld').innerHTML = hldSegs.map(function (s) {
+      var pct = hld.length ? Math.round(s.value / hld.length * 100) : 0;
+      return '<div class="lg-row"><span class="lg-swatch" style="background:' + s.color + '"></span>' + s.label +
+        '<span class="lg-pct">' + pct + '%</span><span class="lg-val">' + s.value + '</span></div>';
+    }).join('');
+
+    // queue status donut
+    var queue = state.queue;
+    var qApproved = queue.reduce(function (s, p) { return s + (p.approved || 0); }, 0);
+    var qRejected = queue.reduce(function (s, p) { return s + (p.rejected || 0); }, 0);
+    var qNeeds = queue.reduce(function (s, p) { return s + (p.needs_correction || 0); }, 0);
+    var qPending = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
+    var qTotal = qApproved + qRejected + qNeeds + qPending;
+    var qSegs = [
+      { label: 'Approved', value: qApproved, color: '#10B981' },
+      { label: 'Rejected', value: qRejected, color: '#EF4444' },
+      { label: 'Needs correction', value: qNeeds, color: '#F59E0B' },
+      { label: 'Pending', value: qPending, color: '#9CA3AF' }
+    ];
+    drawDonut($('donutQueue'), qSegs, qTotal, 'changes');
+    $('queueChartHint').textContent = qTotal + ' changes · ' + queue.length + ' projects';
+    $('legendQueue').innerHTML = qSegs.map(function (s) {
+      var pct = qTotal ? Math.round(s.value / qTotal * 100) : 0;
+      return '<div class="lg-row"><span class="lg-swatch" style="background:' + s.color + '"></span>' + s.label +
+        '<span class="lg-pct">' + pct + '%</span><span class="lg-val">' + s.value + '</span></div>';
+    }).join('');
+
+    // LLD runs bars
+    var runs = state.runs;
+    $('lldChartHint').textContent = runs.length + ' runs';
+    var barEl = $('lldBars');
+    if (!runs.length) {
+      barEl.innerHTML = '<div class="dash-bar-empty">No LLD runs yet — run LLD after survey approval.</div>';
       return;
     }
-    tbody.innerHTML = '';
-    projects.forEach(function (p) {
-      var ready = p.ready
-        ? '<span style="color:#059669;font-weight:700;">Ready</span>'
-        : '<span style="color:#B45309;font-weight:700;">Reviewing</span>';
-      var tr = document.createElement('tr');
-      tr.innerHTML = ''
-        + '<td>' + esc(p.name || p.project_id) + '</td>'
-        + '<td style="color:#059669;font-weight:600;">' + (p.approved || 0) + '</td>'
-        + '<td style="color:#DC2626;font-weight:600;">' + (p.rejected || 0) + '</td>'
-        + '<td style="color:#B45309;font-weight:600;">' + (p.needs_correction || 0) + '</td>'
-        + '<td>' + (p.pending || 0) + '</td>'
-        + '<td>' + ready + '</td>'
-        + '<td><a class="action-link" href="ftth-survey-changes.html?project_id=' + encodeURIComponent(p.project_id) + '">Review</a></td>';
-      tbody.appendChild(tr);
+    var byProject = {};
+    runs.forEach(function (r) {
+      var key = r.project_id || r.project_name;
+      if (!byProject[key]) byProject[key] = { name: r.project_name || r.project_id, n: 0 };
+      byProject[key].n++;
+    });
+    var rows = Object.keys(byProject).map(function (k) { return byProject[k]; })
+      .sort(function (a, b) { return b.n - a.n; }).slice(0, 7);
+    var maxN = Math.max.apply(null, rows.map(function (r) { return r.n; }).concat([1]));
+    barEl.innerHTML = rows.map(function (r, i) {
+      return '<div class="dash-bar-row" style="animation-delay:' + (i * 60) + 'ms">' +
+        '<span class="bar-label" title="' + esc(r.name) + '">' + esc(r.name) + '</span>' +
+        '<span class="bar-track"><span class="bar-fill" data-w="' + Math.round(r.n / maxN * 100) + '%"></span></span>' +
+        '<span class="bar-val">' + r.n + '</span></div>';
+    }).join('');
+    requestAnimationFrame(function () {
+      barEl.querySelectorAll('.bar-fill').forEach(function (f) { f.style.width = f.getAttribute('data-w'); });
     });
   }
 
-  function renderRecent(hldList) {
-    var tbody = document.getElementById('recentBody');
-    if (!tbody) return;
-    var recent = hldList.slice(0, 8);
-    if (!recent.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="padding:16px;color:#6B7280;">No HLD runs yet. <a href="ftth-hld.html">Upload HLD</a> to start.</td></tr>';
+  function renderQueueTable(filter) {
+    var tbody = $('queueBody');
+    var queue = state.queue.slice();
+    if (filter) {
+      var q = filter.toLowerCase();
+      queue = queue.filter(function (p) { return String(p.name || '').toLowerCase().indexOf(q) !== -1; });
+    }
+    var pendingAll = state.queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
+    $('queueHint').textContent = state.queue.length + ' projects · ' + pendingAll + ' pending reviews';
+
+    if (!queue.length) {
+      tbody.innerHTML = '<tr><td colspan="9"><div class="dash-empty">' +
+        (state.queue.length ? 'No projects match your search.' : 'No projects in the approval queue yet.') +
+        '</div></td></tr>';
       return;
     }
     tbody.innerHTML = '';
-    recent.forEach(function (p) {
-      var name = p.name || p.project_id || '—';
-      var pct = Number(p.progress) || 0;
-      var completed = String(p.status || '').toLowerCase() === 'completed';
-      var link = completed
-        ? 'ftth-hld-results.html?project_id=' + encodeURIComponent(p.project_id)
-        : 'ftth-hld-status.html?project_id=' + encodeURIComponent(p.project_id);
+    queue.forEach(function (p, i) {
+      var total = p.total || 0;
+      var resolved = (p.approved || 0) + (p.rejected || 0);
+      var pct = total ? Math.round(resolved / total * 100) : 0;
+      var ready = p.ready;
       var tr = document.createElement('tr');
-      tr.innerHTML = ''
-        + '<td>' + esc(name) + '</td>'
-        + '<td class="status ' + statusClass(p.status) + '">' + esc(p.status || '—') + '</td>'
-        + '<td>' + pct + '%</td>'
-        + '<td>' + esc(fmtDate(p.created_at)) + '</td>'
-        + '<td><a class="action-link" href="' + link + '">View</a></td>';
+      tr.style.animation = 'dash-fadein 0.4s ease ' + (i * 40) + 'ms both';
+      tr.innerHTML =
+        '<td style="font-weight:700;">' + esc(p.name || p.project_id) + '</td>' +
+        '<td style="font-variant-numeric:tabular-nums;">' + (p.total || 0) + '</td>' +
+        '<td style="color:#047857;font-weight:700;font-variant-numeric:tabular-nums;">' + (p.approved || 0) + '</td>' +
+        '<td style="color:#B91C1C;font-weight:700;font-variant-numeric:tabular-nums;">' + (p.rejected || 0) + '</td>' +
+        '<td style="color:#B45309;font-weight:700;font-variant-numeric:tabular-nums;">' + (p.needs_correction || 0) + '</td>' +
+        '<td style="color:#6B7280;font-variant-numeric:tabular-nums;">' + (p.pending || 0) + '</td>' +
+        '<td><div class="dash-progress"><span class="track"><span class="fill" data-w="' + pct + '%"></span></span><span class="pct">' + pct + '%</span></div></td>' +
+        '<td><span class="dash-pill ' + (ready ? 'ready' : 'review') + '">' + (ready ? 'LLD READY' : 'REVIEWING') + '</span></td>' +
+        '<td><a class="action-link" href="ftth-survey-changes.html?project_id=' + encodeURIComponent(p.project_id) + '">Review →</a></td>';
       tbody.appendChild(tr);
+      requestAnimationFrame(function () {
+        tr.querySelectorAll('.fill').forEach(function (f) { f.style.width = f.getAttribute('data-w'); });
+      });
     });
   }
 
-  loadKpis();
+  function renderTimeline() {
+    var events = [];
+    state.hld.forEach(function (p) {
+      events.push({
+        t: p.created_at,
+        kind: 'hld',
+        icon: '🏗️',
+        title: 'HLD pipeline ' + (String(p.status || '').toLowerCase().indexOf('complete') !== -1 ? 'completed' : 'created'),
+        sub: p.name || p.project_id,
+        link: 'ftth-hld-results.html?project_id=' + encodeURIComponent(p.project_id),
+        linkText: 'View results'
+      });
+    });
+    state.runs.forEach(function (r) {
+      var done = String(r.status || '').toLowerCase().indexOf('complete') !== -1;
+      events.push({
+        t: r.run_date,
+        kind: 'lld',
+        icon: '📐',
+        title: (done ? 'LLD ' : 'LLD run ') + (r.lld_version || '') + (done ? ' completed' : ' started'),
+        sub: r.project_name || r.project_id + (r.run_by ? ' · by ' + r.run_by : ''),
+        link: 'ftth-lld-outputs.html',
+        linkText: 'View outputs'
+      });
+    });
+    events.sort(function (a, b) { return new Date(b.t) - new Date(a.t); });
+    events = events.slice(0, 10);
+    $('activityHint').textContent = events.length + ' events';
+
+    var tl = $('timeline');
+    if (!events.length) {
+      tl.innerHTML = '<div class="dash-empty">No activity yet — the story starts with your first HLD run.</div>';
+      return;
+    }
+    tl.innerHTML = events.map(function (e) {
+      return '<div class="dash-tl-item">' +
+        '<div class="dash-tl-rail"><span class="dash-tl-dot ' + e.kind + '">' + e.icon + '</span></div>' +
+        '<div class="dash-tl-body"><div class="dash-tl-title">' + esc(e.title) + '</div>' +
+        '<div class="dash-tl-sub">' + esc(e.sub) + '</div>' +
+        '<div class="dash-tl-time">' + fmtDate(e.t) + ' · ' + daysAgo(e.t) + 'd ago</div>' +
+        '<a class="dash-tl-link" href="' + e.link + '">' + esc(e.linkText) + ' →</a></div></div>';
+    }).join('');
+  }
+
+  function renderStatus() {
+    var el = $('heroStatus'), txt = $('heroStatusText');
+    el.className = 'dash-status';
+    if (state.fail === 0 && state.ok > 0) {
+      el.classList.add('ok');
+      txt.textContent = 'All systems operational';
+    } else if (state.ok > 0) {
+      el.classList.add('warn');
+      txt.textContent = state.fail + ' service(s) unreachable';
+    } else {
+      el.classList.add('down');
+      txt.textContent = 'Backend unreachable';
+    }
+  }
+
+  /* ── master loader ────────────────────────────────────────────── */
+  async function loadAll() {
+    if (loading) return;
+    loading = true;
+    $('btnRefresh').classList.add('spinning');
+    state.ok = 0; state.fail = 0;
+
+    await Promise.all([
+      loadHld(),
+      loadQueue(),
+      loadRuns(),
+      loadTotal().then(function () {
+        // keep raw list for total-projects sparkline
+        return window.FiberApi.listProjects().then(function (data) {
+          window.__allProjects = asArray(data);
+        }).catch(function () { window.__allProjects = []; });
+      })
+    ]);
+
+    renderRail();
+    renderKpis();
+    renderDonuts();
+    renderQueueTable($('queueSearch').value.trim());
+    renderTimeline();
+    renderStatus();
+
+    loading = false;
+    $('btnRefresh').classList.remove('spinning');
+  }
+
+  /* ── wire up ──────────────────────────────────────────────────── */
+  $('btnRefresh').addEventListener('click', loadAll);
+  $('queueSearch').addEventListener('input', function () {
+    renderQueueTable(this.value.trim());
+  });
+
+  // subtle stagger reveal for the sections
+  var cards = document.querySelectorAll('.dash-card, .dash-stage, .dash-kpi');
+  cards.forEach(function (c, i) {
+    if (c.classList.contains('dash-fade')) {
+      c.style.animationDelay = (i * 40) + 'ms';
+      c.style.animationDuration = '0.45s';
+    }
+  });
+
+  loadAll();
+  setInterval(loadAll, 30000);
+})();
 </script>
 </body>
 </html>
