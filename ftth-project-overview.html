@@ -133,6 +133,18 @@
           <div class="ov-card-body" id="ovApproval"></div>
         </div>
 
+        <!-- Permits -->
+        <div class="ov-card">
+          <div class="ov-card-head">
+            <h2>&#x1F6E2;&#xFE0F; Permits</h2>
+            <span id="ovPermitBadge"></span>
+            <span style="margin-left:auto;">
+              <button id="ovPermitAnalyze" class="create-btn" style="padding:6px 12px;font-size:12px;background:#374151;" type="button">&#x21BB; Re-run analysis</button>
+            </span>
+          </div>
+          <div class="ov-card-body" id="ovPermits"><span style="color:#9CA3AF;font-size:13px;">—</span></div>
+        </div>
+
         <!-- Timeline -->
         <div class="ov-card">
           <div class="ov-card-head"><h2>&#x1F4C5; Timeline</h2></div>
@@ -365,7 +377,88 @@
     }
   }
 
+  // ── Permits (Phase 1) ───────────────────────────────────────────────────
+  var permitStatus = {
+    approved: { text:'Approved', cls:'b-green' },
+    ready: { text:'Ready', cls:'b-green' },
+    under_review: { text:'Under Review', cls:'b-blue' },
+    submitted: { text:'Submitted', cls:'b-blue' },
+    evidence_required: { text:'Evidence Required', cls:'b-amber' },
+    identified: { text:'Identified', cls:'b-amber' },
+    rejected: { text:'Rejected', cls:'b-red' },
+    closed: { text:'Closed', cls:'b-gray' },
+    not_required: { text:'Not Required', cls:'b-gray' }
+  };
+  function permitStatusChip(s) {
+    var m = permitStatus[s] || permitStatus.identified;
+    return badge(m.text, m.cls);
+  }
+
+  async function renderPermits() {
+    var bodyEl = document.getElementById('ovPermits');
+    var badgeEl = document.getElementById('ovPermitBadge');
+    var analyzeBtn = document.getElementById('ovPermitAnalyze');
+    if (!bodyEl) return;
+    bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Loading permits…</span>';
+    if (analyzeBtn) analyzeBtn.disabled = true;
+    try {
+      var d = await window.FtthLldApi.getProjectPermits(projectId);
+      var total = d.total || 0;
+      var byStatus = d.by_status || {};
+      if (badgeEl) badgeEl.innerHTML = total ? badge(total + ' identified', 'b-amber') : badge('0', 'b-gray');
+      if (!total) {
+        bodyEl.innerHTML = '<div style="font-size:13px;color:#6B7280;">No permits identified yet. '
+          + '<button id="ovPermitAnalyzeEmpty" class="create-btn" style="padding:6px 12px;font-size:12px;" type="button">&#x21BB; Run permit analysis</button></div>';
+        var emptyBtn = document.getElementById('ovPermitAnalyzeEmpty');
+        if (emptyBtn) emptyBtn.addEventListener('click', runPermitAnalysis);
+        return;
+      }
+      var stats = [
+        { label:'Total Permits', value: total },
+        { label:'Readiness', value: (d.readiness_pct || 0) + '%' },
+        { label:'Ready', value: byStatus.ready || 0 },
+        { label:'Approved', value: byStatus.approved || 0 },
+        { label:'Under Review', value: byStatus.under_review || 0 },
+        { label:'Identified', value: byStatus.identified || 0 }
+      ];
+      var rows = (d.permits || []).slice(0, 8).map(function (p) {
+        return '<tr>'
+          + '<td><strong>' + esc(p.permit_type) + '</strong></td>'
+          + '<td style="font-family:monospace;font-size:11px;color:#6B7280;">' + esc(String(p.route_section).slice(0, 14)) + '</td>'
+          + '<td>' + esc((p.authority && p.authority.name) || '—') + '</td>'
+          + '<td>' + permitStatusChip(p.status) + '</td>'
+          + '<td>' + (p.readiness_pct || 0) + '%</td>'
+          + '</tr>';
+      }).join('');
+      bodyEl.innerHTML =
+        '<div class="ov-grid" style="margin:0 0 14px;">'
+        + stats.map(function (s) { return '<div class="ov-stat"><div class="label">' + esc(s.label) + '</div><div class="value">' + s.value + '</div></div>'; }).join('')
+        + '</div>'
+        + (rows
+            ? '<table class="ov-table"><thead><tr><th>Permit Type</th><th>Route Section</th><th>Authority</th><th>Status</th><th>Readiness</th></tr></thead><tbody>' + rows + '</tbody></table>'
+              + (total > 8 ? '<div style="font-size:12px;color:#9CA3AF;margin-top:8px;">Showing first 8 of ' + total + ' permits</div>' : '')
+            : '');
+    } catch (err) {
+      bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Permits unavailable: ' + esc(err.message || err) + '</span>';
+    } finally {
+      if (analyzeBtn) analyzeBtn.disabled = false;
+    }
+  }
+
+  async function runPermitAnalysis() {
+    var bodyEl = document.getElementById('ovPermits');
+    if (bodyEl) bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Running permit analysis…</span>';
+    try {
+      await window.FtthLldApi.runPermitAnalysis(projectId);
+      await renderPermits();
+    } catch (err) {
+      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Analysis failed: ' + esc(err.message || err) + '</span>';
+    }
+  }
+
   (async function(){
+    var analyzeBtn = document.getElementById('ovPermitAnalyze');
+    if (analyzeBtn) analyzeBtn.addEventListener('click', runPermitAnalysis);
     if (!projectId && typeof window.FtthLldApi.resolveDefaultProject === 'function') {
       try { var r = await window.FtthLldApi.resolveDefaultProject(); if (r) projectId = r.project_id; } catch(_){}
     }
@@ -379,6 +472,7 @@
       var d = await window.FtthLldApi.getProjectOverview(projectId);
       render(d);
       await loadTeamManagement();
+      await renderPermits();
     } catch (err) {
       document.getElementById('ovError').textContent = 'Failed to load overview: ' + (err.message || err);
       document.getElementById('ovError').style.display = 'block';

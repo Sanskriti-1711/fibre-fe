@@ -293,6 +293,34 @@
   }
 
   // ==================================================================
+  // Permits (Phase 1 — /api/ftth/permits/*)
+  // ==================================================================
+
+  async function apiGetProjectPermits(projectId) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/permits/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiRunPermitAnalysis(projectId) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/permits/analyze/');
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  // ==================================================================
   // Public API
   // ==================================================================
 
@@ -333,6 +361,8 @@
     listRuns: listRuns,
     getFeatureLineage: getFeatureLineage,
     getProjectOverview: getProjectOverview,
+    getProjectPermits: apiGetProjectPermits,
+    runPermitAnalysis: apiRunPermitAnalysis,
     listUsers: listUsers,
     listMembers: listMembers,
     addMember: addMember,
