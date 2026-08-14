@@ -337,6 +337,18 @@
     return body;
   }
 
+  async function apiGetPermitSummary() {
+    var url = buildUrl('/api/ftth/permits/summary/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   // ==================================================================
   // Public API
   // ==================================================================
@@ -381,6 +393,7 @@
     getProjectPermits: apiGetProjectPermits,
     listAllPermits: apiListAllPermits,
     runPermitAnalysis: apiRunPermitAnalysis,
+    getPermitSummary: apiGetPermitSummary,
     listUsers: listUsers,
     listMembers: listMembers,
     addMember: addMember,

@@ -201,6 +201,7 @@
     .dash-kpi.kpi-survey .kpi-icon { background: #ECFDF5; }
     .dash-kpi.kpi-lld .kpi-icon { background: #F5F3FF; }
     .dash-kpi.kpi-total .kpi-icon { background: #FEF2F2; }
+    .dash-kpi.kpi-permit .kpi-icon { background: #FFFBEB; }
 
     /* ── Charts row ───────────────────────────────────────────────────── */
     .dash-charts {
@@ -405,6 +406,19 @@
             <div class="kpi-note" id="kpiTotalNote">loading…</div>
           </div>
           <canvas class="kpi-spark" id="sparkTotal"></canvas>
+        </div>
+      </a>
+      <a class="dash-kpi kpi-permit" href="ftth-permits.html">
+        <div class="kpi-top">
+          <span class="kpi-label">Permits</span>
+          <span class="kpi-icon">🪪</span>
+        </div>
+        <div class="kpi-bottom">
+          <div>
+            <div class="kpi-value" id="kpiPermit">–</div>
+            <div class="kpi-note" id="kpiPermitNote">loading…</div>
+          </div>
+          <canvas class="kpi-spark" id="sparkPermit"></canvas>
         </div>
       </a>
     </div>
@@ -669,7 +683,7 @@
   }
 
   /* ── state ────────────────────────────────────────────────────── */
-  var state = { hld: [], queue: [], runs: [], total: 0, ok: 0, fail: 0 };
+  var state = { hld: [], queue: [], runs: [], total: 0, permits: null, ok: 0, fail: 0 };
   var loading = false;
 
   function countUp(el, target, suffix) {
@@ -717,6 +731,13 @@
       state.total = asArray(data).length;
       state.ok++;
     } catch (e) { state.fail++; state.total = 0; }
+  }
+
+  async function loadPermits() {
+    try {
+      state.permits = await window.FtthLldApi.getPermitSummary();
+      state.ok++;
+    } catch (e) { state.fail++; state.permits = null; }
   }
 
   /* ── renderers ────────────────────────────────────────────────── */
@@ -771,6 +792,20 @@
     countUp($('kpiTotal'), state.total);
     $('kpiTotalNote').textContent = 'across all stage flags';
     drawSpark($('sparkTotal'), dailySeries(asArray(window.__allProjects || []), function (p) { return p.created_at; }), '#E31837');
+
+    var pm = state.permits;
+    if (pm && pm.total) {
+      countUp($('kpiPermit'), pm.total);
+      var readyN = pm.ready || 0;
+      var identN = (pm.by_status && pm.by_status.identified) || 0;
+      $('kpiPermitNote').textContent = readyN + ' ready · ' + identN + ' identified · ' + (pm.projects_with_permits || 0) + ' project(s)';
+      var sparkVals = (pm.projects || []).map(function (p) { return p.permits || 0; });
+      drawSpark($('sparkPermit'), sparkVals.length ? sparkVals : [0], '#D97706');
+    } else {
+      $('kpiPermit').textContent = 0;
+      $('kpiPermitNote').textContent = 'no analysis run yet';
+      drawSpark($('sparkPermit'), [0], '#D97706');
+    }
   }
 
   function renderDonuts() {
@@ -954,6 +989,7 @@
       loadHld(),
       loadQueue(),
       loadRuns(),
+      loadPermits(),
       loadTotal().then(function () {
         // keep raw list for total-projects sparkline
         return window.FiberApi.listProjects().then(function (data) {
