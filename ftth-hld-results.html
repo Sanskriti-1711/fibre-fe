@@ -234,6 +234,10 @@
       if (!statusData) { showEmpty('Pipeline data not found'); return; }
       window.FtthState.setResults(statusData);
       renderSurveyAssignment(statusData.survey);
+      if (boqContainer) {
+        boqContainer.style.display =
+          (statusData.status === 'completed' || statusData.status === 'Completed') ? 'block' : 'none';
+      }
       allLayers = statusData.layers || [];
       allDownloads = statusData.downloads || [];
       layerCountEl.textContent = allLayers.length;
@@ -427,9 +431,6 @@
     });
   }
 
-  if (boqContainer && (statusData && (statusData.status === 'completed' || statusData.status === 'Completed'))) {
-    boqContainer.style.display = 'block';
-  }
   if (boqToggleBtn) {
     boqToggleBtn.addEventListener('click', function(){
       if (!boqLoaded) { loadBoq(); }
