@@ -129,8 +129,7 @@
       </div>
 
       <div class="ftth-side-pane-section">
-        <h3>Downloads <span class="badge" id="downloadBadge">0</span></h3>
-        <div id="downloadList"><div class="ftth-empty-state"><div class="icon">&#x1F4C1;</div><p>No downloadable files yet</p></div></div>
+        <h3>Packages</h3>
         <div id="surveyPackageContainer" style="display:none;">
           <button id="surveyPackageBtn" class="ftth-survey-btn" type="button">
             <span class="icon">&#x1F9F0;</span>
@@ -205,14 +204,12 @@
     document.getElementById('projectIdDisplay').textContent = 'Project: ' + projectId;
   }
 
-  var map = null, allLayers = [], allDownloads = [];
+  var map = null, allLayers = [];
   var layerControlsEl = document.getElementById('layerControls');
-  var downloadListEl = document.getElementById('downloadList');
   var mapLoadingEl = document.getElementById('mapLoading');
   var layerCountEl = document.getElementById('layerCount');
   var totalFeaturesEl = document.getElementById('totalFeatures');
   var layerBadgeEl = document.getElementById('layerBadge');
-  var downloadBadgeEl = document.getElementById('downloadBadge');
   var surveyPkgContainer = document.getElementById('surveyPackageContainer');
   var surveyPkgBtn = document.getElementById('surveyPackageBtn');
   var designPkgContainer = document.getElementById('designPackageContainer');
@@ -239,15 +236,13 @@
           (statusData.status === 'completed' || statusData.status === 'Completed') ? 'block' : 'none';
       }
       allLayers = statusData.layers || [];
-      allDownloads = statusData.downloads || [];
       layerCountEl.textContent = allLayers.length;
       layerBadgeEl.textContent = allLayers.length;
-      downloadBadgeEl.textContent = allDownloads.length;
       var totalFeat = 0;
       allLayers.forEach(function(l){ totalFeat += (l.count || 0); });
       totalFeaturesEl.textContent = totalFeat;
       renderLayerControls(allLayers);
-      renderDownloads(allDownloads);
+      renderPackages(statusData.downloads || []);
       if (allLayers.length > 0) {
         mapLoadingEl.style.display = 'flex';
         mapLoadingEl.querySelector('.spinner').style.display = 'block';
@@ -326,34 +321,12 @@
     return colors[name] || '#6B7280';
   }
 
-  function renderDownloads(downloads) {
-    if (!downloads || !downloads.length) {
-      downloadListEl.innerHTML = '<div class="ftth-empty-state"><div class="icon">\uD83D\uDCC1</div><p>No downloadable files</p></div>';
-      surveyPkgContainer.style.display = 'none';
-      designPkgContainer.style.display = 'none';
-      return;
-    }
-    downloadListEl.innerHTML = '';
-    downloads.forEach(function(dl){
-      var fileName = dl.name || dl.file_name || dl.filename || 'download';
-      var fileSize = dl.size || dl.file_size || '';
-      // Use a button that calls downloadFile() with JWT auth,
-      // instead of an <a> href which does NOT send auth headers.
-      var btn = document.createElement('button');
-      btn.className = 'ftth-download-btn';
-      btn.type = 'button';
-      btn.title = 'Download ' + fileName;
-      btn.innerHTML = '<span class="ftth-download-btn-icon">\uD83D\uDCE5</span><span class="ftth-download-btn-name">' + escapeHtml(fileName) + '</span>' + (fileSize ? '<span class="ftth-download-btn-size">' + escapeHtml(fileSize) + '</span>' : '') + '<span class="ftth-download-btn-arrow">\u2192</span>';
-      // Pass projectId from the closure scope
-      (function(fn) {
-        btn.addEventListener('click', function() {
-          window.FtthApi.downloadFile(projectId, fn);
-        });
-      })(fileName);
-      downloadListEl.appendChild(btn);
-    });
-    surveyPkgContainer.style.display = 'block';
-    designPkgContainer.style.display = 'block';
+  // Show the package downloads only when the engine has produced output files.
+  // Individual per-layer outputs are intentionally not listed here.
+  function renderPackages(downloads) {
+    var hasOutputs = !!(downloads && downloads.length);
+    surveyPkgContainer.style.display = hasOutputs ? 'block' : 'none';
+    designPkgContainer.style.display = hasOutputs ? 'block' : 'none';
   }
 
   if (surveyPkgBtn) {
