@@ -31,6 +31,10 @@
     .ftth-side-pane-section.collapsed > *:not(h3) { display:none; }
     .ftth-side-pane-section h3 .badge { font-size:10px; font-weight:600; color:#6B7280; background:#F3F4F6; padding:2px 8px; border-radius:999px; }
     .ftth-layer-controls { display:flex; flex-direction:column; }
+    .ftth-permit-legend { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:8px 12px; font-size:12px; color:#374151; }
+    .ftth-permit-legend .permit-row { display:flex; align-items:center; gap:8px; padding:3px 0; }
+    .ftth-permit-legend .permit-dot { width:10px; height:10px; border-radius:999px; flex-shrink:0; }
+    .ftth-permit-legend .permit-count { margin-left:auto; font-weight:600; color:#6B7280; font-size:11px; }
     .ftth-download-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; text-decoration:none; color:#1F2937; font-size:13px; font-weight:500; transition:all 0.15s ease; cursor:pointer; }
     .ftth-download-btn:hover { background:#F3F4F6; border-color:#D1D5DB; }
     .ftth-empty-state { text-align:center; padding:40px 20px; color:#6B7280; }
@@ -129,6 +133,11 @@
       </div>
 
       <div class="ftth-side-pane-section">
+        <h3>Permits <span class="badge" id="permitBadge">0</span></h3>
+        <div class="ftth-permit-legend" id="permitLegend"></div>
+      </div>
+
+      <div class="ftth-side-pane-section">
         <h3>Packages</h3>
         <div id="surveyPackageContainer" style="display:none;">
           <button id="surveyPackageBtn" class="ftth-survey-btn" type="button">
@@ -205,6 +214,23 @@
   }
 
   var map = null, allLayers = [];
+  var permitByLayer = {};
+  // Permit-status colouring: worst (most blocking) status wins per feature.
+  var PERMIT_STATUS_COLORS = {
+    approved: '#10B981',
+    ready: '#10B981',
+    submitted: '#3B82F6',
+    under_review: '#3B82F6',
+    evidence_required: '#F59E0B',
+    identified: '#F59E0B',
+    rejected: '#EF4444',
+    closed: '#9CA3AF',
+    not_required: '#9CA3AF',
+  };
+  var PERMIT_STATUS_PRIORITY = {
+    rejected: 0, under_review: 1, submitted: 2, evidence_required: 3, identified: 4,
+    ready: 5, approved: 6, closed: 7, not_required: 8,
+  };
   var layerControlsEl = document.getElementById('layerControls');
   var mapLoadingEl = document.getElementById('mapLoading');
   var layerCountEl = document.getElementById('layerCount');
@@ -243,6 +269,37 @@
       totalFeaturesEl.textContent = totalFeat;
       renderLayerControls(allLayers);
       renderPackages(statusData.downloads || []);
+
+      // Fetch permits for this project and index them by layer + feature id
+      // so trench segments can be coloured by their worst permit status.
+      permitByLayer = {};
+      var permitCounts = { total: 0, rejected: 0, under_review: 0, submitted: 0, evidence_required: 0, identified: 0, ready: 0, approved: 0, closed: 0, not_required: 0 };
+      try {
+        var permitData = await window.FtthApi.getProjectPermits(projectId);
+        (permitData && permitData.permits || []).forEach(function (p) {
+          permitCounts.total++;
+          var st = p.status || 'identified';
+          if (permitCounts[st] !== undefined) permitCounts[st]++;
+          // HLD permits key off the gis table name (trench_layer); the map
+          // layer is the public name (trenches). Normalise both sides.
+          var layerKey = p.layer === 'trench_layer' ? 'trenches'
+            : p.layer === 'duct_layer' ? 'ducts'
+            : p.layer === 'cable_layer' ? 'cables'
+            : p.layer === 'object_layer' ? 'objects'
+            : p.layer === 'polygon_layer' ? 'polygons' : p.layer;
+          var cur = permitByLayer[layerKey] || (permitByLayer[layerKey] = {});
+          var rs = String(p.route_section != null ? p.route_section : '');
+          if (!rs) return;
+          var prev = cur[rs];
+          if (!prev || (PERMIT_STATUS_PRIORITY[st] !== undefined && PERMIT_STATUS_PRIORITY[st] < PERMIT_STATUS_PRIORITY[prev])) {
+            cur[rs] = st;
+          }
+        });
+      } catch (permitErr) {
+        console.warn('Failed to load permits for colouring:', permitErr);
+      }
+      renderPermitLegend(permitCounts);
+
       if (allLayers.length > 0) {
         mapLoadingEl.style.display = 'flex';
         mapLoadingEl.querySelector('.spinner').style.display = 'block';
@@ -265,13 +322,48 @@
       var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
       if (!geojson || !geojson.features || !geojson.features.length) { console.warn('Empty GeoJSON:', layerName); return; }
       var isPolygon = geojson.features[0] && geojson.features[0].geometry && geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
+      // Inject the worst permit status per feature so trench segments are
+      // coloured by their permit state (permits key off the feature fid).
+      var layerPermits = permitByLayer[layerName];
+      if (layerPermits) {
+        geojson.features.forEach(function (f) {
+          var props = f.properties || (f.properties = {});
+          var fid = props.feature_id != null ? String(props.feature_id)
+            : (f.id != null ? String(f.id)
+              : (props.id != null ? String(props.id) : null));
+          if (fid && layerPermits[fid]) props.permit_status = layerPermits[fid];
+        });
+      }
       // Only the brownfield layer shades by ASSET_TYPE (all existing infra
       // under one toggle, in shades of one colour). Other layers keep their
       // sublayer colour coding (Feeder/Distribution/Drop etc.).
       var assetTypeField = layerName === 'brownfield' ? 'ASSET_TYPE' : undefined;
-      window.FtthMap.addGeoJSONLayer(map, layerName, geojson, { flagField: isPolygon ? 'REVIEW' : undefined, flagValue: isPolygon ? 1 : undefined, visible: true, sublayerField: 'sublayer', assetTypeField: assetTypeField });
+      window.FtthMap.addGeoJSONLayer(map, layerName, geojson, { flagField: isPolygon ? 'REVIEW' : undefined, flagValue: isPolygon ? 1 : undefined, visible: true, sublayerField: 'sublayer', assetTypeField: assetTypeField, permitField: 'permit_status', permitColors: PERMIT_STATUS_COLORS });
       updateToggleStatus(layerName, geojson.features.length);
     } catch(err) { console.warn('Failed to load layer ' + layerName + ':', err); }
+  }
+
+  function renderPermitLegend(counts) {
+    var badge = document.getElementById('permitBadge');
+    var el = document.getElementById('permitLegend');
+    if (!el) return;
+    if (!counts.total) {
+      if (badge) badge.textContent = '0';
+      el.innerHTML = '<div class="ftth-empty-state" style="padding:10px;"><p style="font-size:12px;">No permits — run analysis from the project overview.</p></div>';
+      return;
+    }
+    if (badge) badge.textContent = counts.total;
+    var rows = [
+      ['#EF4444', 'Rejected', counts.rejected],
+      ['#3B82F6', 'Submitted / Under Review', counts.under_review + counts.submitted],
+      ['#F59E0B', 'Identified / Evidence', counts.evidence_required + counts.identified],
+      ['#10B981', 'Ready / Approved', counts.ready + counts.approved],
+      ['#9CA3AF', 'Closed / Not Required', counts.closed + counts.not_required],
+    ].filter(function (r) { return r[2] > 0; });
+    if (!rows.length) rows = [['#F59E0B', 'Identified', counts.identified || 0]];
+    el.innerHTML = rows.map(function (r) {
+      return '<div class="permit-row"><span class="permit-dot" style="background:' + r[0] + ';"></span><span>' + r[1] + '</span><span class="permit-count">' + r[2] + '</span></div>';
+    }).join('');
   }
 
   function renderLayerControls(layers) {

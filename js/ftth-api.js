@@ -158,6 +158,24 @@
     return body;
   }
 
+  /**
+   * Permit matrix for a project (used by the HLD results map colouring).
+   * Rows carry { layer, route_section, status } keyed against the layer
+   * feature ids the GeoJSON endpoints serve.
+   */
+  async function getProjectPermits(projectId) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl('/api/ftth/permits/projects/' + id + '/permits/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   function getDownloadUrl(projectId, fileName) {
     var id = encodeURIComponent(projectId);
     var fn = encodeURIComponent(fileName);
@@ -299,6 +317,7 @@
     runPipeline: runPipeline,
     getPipelineStatus: getPipelineStatus,
     getPipelineLayer: getPipelineLayer,
+    getProjectPermits: getProjectPermits,
     getDownloadUrl: getDownloadUrl,
     downloadFile: downloadFile,
     getSurveyPackageUrl: getSurveyPackageUrl,
