@@ -159,10 +159,43 @@
           <div id="brownfieldDropzone"></div>
         </div>
 
-        <!-- Step 4: Project Name (optional) -->
+        <!-- Step 4: OSM reference layers (optional) -->
         <div class="ftth-step">
           <div class="ftth-step-title">
             <span class="ftth-step-number" style="background: #6B7280;">4</span>
+            OSM Reference Layers <span style="font-weight:400;color:#6B7280;font-size:13px;">(optional)</span>
+          </div>
+          <p style="margin: -4px 0 12px; font-size: 13px; color: #6B7280; padding-left: 36px;">
+            Routing constraints from the OSM extract — stored with the project for future use (railway/waterway crossings, environmental zones). Does not affect the current design run.
+          </p>
+          <div style="padding-left: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">🚃 Railways</div>
+              <div id="railwaysDropzone"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">💧 Waterways</div>
+              <div id="waterwaysDropzone"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">🌊 Water</div>
+              <div id="waterDropzone"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">🌲 Landuse</div>
+              <div id="landuseDropzone"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;">🌿 Natural</div>
+              <div id="naturalDropzone"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5: Project Name (optional) -->
+        <div class="ftth-step">
+          <div class="ftth-step-title">
+            <span class="ftth-step-number" style="background: #6B7280;">5</span>
             Project Name <span style="font-weight:400;color:#6B7280;font-size:13px;">(optional)</span>
           </div>
           <p style="margin: -4px 0 12px; font-size: 13px; color: #6B7280; padding-left: 36px;">
@@ -211,6 +244,11 @@
   let excelFile = null;
   let roadsFile = null;
   let brownfieldFile = null;
+  let railwaysFile = null;
+  let waterwaysFile = null;
+  let waterFile = null;
+  let landuseFile = null;
+  let naturalFile = null;
   let isRunning = false;
 
   const errorEl = document.getElementById('ftthError');
@@ -253,6 +291,27 @@
     })
   );
 
+  // Optional OSM reference layers (stored with the project; not consumed
+  // by the design algorithm yet — they will feed routing constraints later).
+  function bindOsmDropzone(id, onChange) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.appendChild(
+      FtthComponents.createDropzone({
+        label: 'Choose .zip / .geojson / .shp / .gpkg',
+        accept: '.zip,.geojson,.json,.shp,.gpkg',
+        hint: 'OSM layer (optional)',
+        icon: '🗂️',
+        onChange: onChange
+      })
+    );
+  }
+  bindOsmDropzone('railwaysDropzone', function (file) { railwaysFile = file; });
+  bindOsmDropzone('waterwaysDropzone', function (file) { waterwaysFile = file; });
+  bindOsmDropzone('waterDropzone', function (file) { waterFile = file; });
+  bindOsmDropzone('landuseDropzone', function (file) { landuseFile = file; });
+  bindOsmDropzone('naturalDropzone', function (file) { naturalFile = file; });
+
   // ----------------------------------------------------------------
   // Project name input
   // ----------------------------------------------------------------
@@ -292,7 +351,13 @@
     const projectName = projectNameInput.value.trim() || null;
 
     try {
-      const result = await FtthApi.runPipeline(excelFile, roadsFile, projectName, undefined, brownfieldFile);
+      const result = await FtthApi.runPipeline(excelFile, roadsFile, projectName, undefined, brownfieldFile, {
+        railwaysFile: railwaysFile,
+        waterwaysFile: waterwaysFile,
+        waterFile: waterFile,
+        landuseFile: landuseFile,
+        naturalFile: naturalFile
+      });
       const projectId = result && (result.project_id || result.id);
       if (!projectId) {
         throw new Error('Backend did not return a project ID.');

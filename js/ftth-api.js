@@ -107,13 +107,27 @@
 
 
 
-  async function runPipeline(excelFile, roadsFile, name, polyMethod, brownfieldFile) {
+  async function runPipeline(excelFile, roadsFile, name, polyMethod, brownfieldFile, osmLayers) {
     var fd = new FormData();
     fd.append('excel', excelFile);
     fd.append('roads', roadsFile);
     if (brownfieldFile) fd.append('brownfield', brownfieldFile);
     if (name) fd.append('name', name);
     if (polyMethod !== undefined) fd.append('poly_method', String(polyMethod));
+
+    // Optional OSM reference layers (railways / waterways / water / landuse /
+    // natural). Stored with the project for future routing-constraint use.
+    osmLayers = osmLayers || {};
+    var layerFields = [
+      ['railways', osmLayers.railwaysFile],
+      ['waterways', osmLayers.waterwaysFile],
+      ['water', osmLayers.waterFile],
+      ['landuse', osmLayers.landuseFile],
+      ['natural', osmLayers.naturalFile]
+    ];
+    for (var i = 0; i < layerFields.length; i++) {
+      if (layerFields[i][1]) fd.append(layerFields[i][0], layerFields[i][1]);
+    }
 
     var url = buildUrl(API_PREFIX + '/run/');
     var headers = new Headers();
