@@ -349,6 +349,34 @@
     return body;
   }
 
+  async function apiGeneratePermitPackage(projectId) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/package/');
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiGetPermitPackage(projectId) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/package/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  function getPermitPackageDownloadUrl(projectId) {
+    return buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/package/download/');
+  }
+
   // ==================================================================
   // Public API
   // ==================================================================
@@ -394,6 +422,9 @@
     listAllPermits: apiListAllPermits,
     runPermitAnalysis: apiRunPermitAnalysis,
     getPermitSummary: apiGetPermitSummary,
+    generatePermitPackage: apiGeneratePermitPackage,
+    getPermitPackage: apiGetPermitPackage,
+    getPermitPackageDownloadUrl: getPermitPackageDownloadUrl,
     listUsers: listUsers,
     listMembers: listMembers,
     addMember: addMember,

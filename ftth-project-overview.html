@@ -138,7 +138,8 @@
           <div class="ov-card-head">
             <h2>&#x1F6E2;&#xFE0F; Permits</h2>
             <span id="ovPermitBadge"></span>
-            <span style="margin-left:auto;">
+            <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+              <button id="ovPermitPackage" class="create-btn" style="padding:6px 12px;font-size:12px;background:#065F46;display:none;" type="button">&#x1F4E6; Generate package</button>
               <button id="ovPermitAnalyze" class="create-btn" style="padding:6px 12px;font-size:12px;background:#374151;" type="button">&#x21BB; Re-run analysis</button>
             </span>
           </div>
@@ -398,6 +399,7 @@
     var bodyEl = document.getElementById('ovPermits');
     var badgeEl = document.getElementById('ovPermitBadge');
     var analyzeBtn = document.getElementById('ovPermitAnalyze');
+    var pkgBtn = document.getElementById('ovPermitPackage');
     if (!bodyEl) return;
     bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Loading permits…</span>';
     if (analyzeBtn) analyzeBtn.disabled = true;
@@ -411,6 +413,7 @@
           + '<button id="ovPermitAnalyzeEmpty" class="create-btn" style="padding:6px 12px;font-size:12px;" type="button">&#x21BB; Run permit analysis</button></div>';
         var emptyBtn = document.getElementById('ovPermitAnalyzeEmpty');
         if (emptyBtn) emptyBtn.addEventListener('click', runPermitAnalysis);
+        if (pkgBtn) pkgBtn.style.display = 'none';
         return;
       }
       var stats = [
@@ -430,6 +433,26 @@
           + '<td>' + (p.readiness_pct || 0) + '%</td>'
           + '</tr>';
       }).join('');
+      // Permit package (Phase 2): latest version + download, generated docs.
+      var pkgHtml = '';
+      try {
+        var pkg = await window.FtthLldApi.getPermitPackage(projectId);
+        var versions = pkg.versions || [];
+        var latest = versions.length ? Math.max.apply(null, versions) : null;
+        var dl = latest != null
+          ? '<a href="' + window.FtthLldApi.getPermitPackageDownloadUrl(projectId)
+            + '" class="create-btn" style="padding:5px 12px;font-size:12px;text-decoration:none;background:#065F46;display:inline-block;">&#x2B07; Download package v' + latest + '</a>'
+          : '';
+        pkgHtml = '<div style="border-top:1px solid #E5E7EB;margin-top:12px;padding-top:12px;">'
+          + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+          + '<strong style="font-size:13px;">&#x1F4E6; Permit Package</strong>'
+          + (latest != null ? '<span style="font-size:12px;color:#6B7280;">v' + latest + ' · ' + (pkg.total_files || 0) + ' files</span>' : '<span style="font-size:12px;color:#6B7280;">Not generated yet</span>')
+          + '<span style="margin-left:auto;display:flex;gap:8px;">' + dl
+          + '<button id="ovPermitPackageGen" class="create-btn" style="padding:5px 12px;font-size:12px;background:#065F46;" type="button">' + (latest != null ? '&#x21BB; Regenerate' : '&#x1F4E6; Generate') + '</button>'
+          + '</span></div></div>';
+      } catch (pkgErr) {
+        pkgHtml = '';
+      }
       bodyEl.innerHTML =
         '<div class="ov-grid" style="margin:0 0 14px;">'
         + stats.map(function (s) { return '<div class="ov-stat"><div class="label">' + esc(s.label) + '</div><div class="value">' + s.value + '</div></div>'; }).join('')
@@ -437,11 +460,28 @@
         + (rows
             ? '<table class="ov-table"><thead><tr><th>Permit Type</th><th>Route Section</th><th>Authority</th><th>Status</th><th>Readiness</th></tr></thead><tbody>' + rows + '</tbody></table>'
               + (total > 8 ? '<div style="font-size:12px;color:#9CA3AF;margin-top:8px;">Showing first 8 of ' + total + ' permits</div>' : '')
-            : '');
+            : '')
+        + pkgHtml;
+      var pkgGen = document.getElementById('ovPermitPackageGen');
+      if (pkgGen) pkgGen.addEventListener('click', generatePermitPackage);
+      if (pkgBtn) pkgBtn.style.display = 'none';  // inline actions are in the card body
     } catch (err) {
       bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Permits unavailable: ' + esc(err.message || err) + '</span>';
     } finally {
       if (analyzeBtn) analyzeBtn.disabled = false;
+    }
+  }
+
+  async function generatePermitPackage() {
+    var bodyEl = document.getElementById('ovPermits');
+    var btn = document.getElementById('ovPermitPackageGen');
+    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+    try {
+      var summary = await window.FtthLldApi.generatePermitPackage(projectId);
+      await renderPermits();
+    } catch (err) {
+      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Package generation failed: ' + esc(err.message || err) + '</span>';
+      if (btn) btn.disabled = false;
     }
   }
 
