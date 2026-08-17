@@ -246,12 +246,32 @@
       }
     }
 
+    // Permit-status colouring: per-feature colours keyed by a property that
+    // the caller injects (e.g. 'permit_status'). Takes precedence over the
+    // asset-type/sublayer matches since it is the most specific signal.
+    var permitMatch = null;
+    if (opts.permitField && opts.permitColors) {
+      var pm = ['match', ['get', opts.permitField]];
+      var usedPermit = {};
+      (geojson.features || []).forEach(function (feat) {
+        var val = feat.properties && feat.properties[opts.permitField];
+        if (!val) return;
+        var c = opts.permitColors[val] || fillColor;
+        if (!usedPermit[val]) { pm.push(val, c); usedPermit[val] = true; }
+      });
+      if (Object.keys(usedPermit).length > 0) {
+        pm.push(fillColor);
+        permitMatch = pm;
+      }
+    }
+
     map.addSource(sourceId, { type: 'geojson', data: geojson });
     var renderedLayers = [];
 
     if (hasPolygon) {
       var fillPaint = { 'fill-opacity': fillOpacity };
       if (flagField) { fillPaint['fill-color'] = ['match', ['get', flagField], flagValue, fillFlagged, fillColor]; }
+      else if (permitMatch) { fillPaint['fill-color'] = permitMatch; }
       else if (typeMatch) { fillPaint['fill-color'] = typeMatch; }
       else { fillPaint['fill-color'] = fillColor; }
       map.addLayer({ id: fillLayerId, type: 'fill', source: sourceId, paint: fillPaint, layout: { visibility: visible ? 'visible' : 'none' } });
@@ -265,7 +285,9 @@
         'line-width': palette.lineWidth !== undefined ? palette.lineWidth : 3,
         'line-opacity': fillOpacity + 0.2,
       };
-      if (typeMatch) {
+      if (permitMatch) {
+        linePaint['line-color'] = permitMatch;
+      } else if (typeMatch) {
         linePaint['line-color'] = typeMatch;
       } else if (opts.sublayerField) {
         // If the GeoJSON features carry a `sublayer` property (merged group

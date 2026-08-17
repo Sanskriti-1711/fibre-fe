@@ -58,6 +58,7 @@
     .ftth-validation-box { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:12px; font-size:12px; color:#374151; }
     .ftth-validation-box .ok { color:#047857; font-weight:600; }
     .ftth-validation-box .warn { color:#B45309; font-weight:600; }
+    .ftth-permit-legend { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:8px 12px; font-size:12px; color:#374151; }
     @media (max-width:768px) {
       .ftth-results-layout { flex-direction:column-reverse; }
       .ftth-side-pane { width:100%; max-height:40vh; border-left:none; border-top:1px solid #E5E7EB; }
@@ -108,6 +109,11 @@
       </div>
 
       <div class="ftth-side-pane-section">
+        <h3>Permits <span class="badge" id="permitBadge">0</span></h3>
+        <div class="ftth-permit-legend" id="permitLegend"></div>
+      </div>
+
+      <div class="ftth-side-pane-section">
         <h3>Layers <span class="badge" id="layerBadge">0</span></h3>
         <div class="ftth-layer-controls" id="layerControls"><div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>Loading layers&#x2026;</p></div></div>
       </div>
@@ -155,6 +161,24 @@
   var validationBoxEl = document.getElementById('validationBox');
   var downloadBtn = document.getElementById('downloadBtn');
 
+  // Permit-status colouring: worst (most blocking) status wins per feature.
+  var PERMIT_STATUS_COLORS = {
+    approved: '#10B981',
+    ready: '#10B981',
+    submitted: '#3B82F6',
+    under_review: '#3B82F6',
+    evidence_required: '#F59E0B',
+    identified: '#F59E0B',
+    rejected: '#EF4444',
+    closed: '#9CA3AF',
+    not_required: '#9CA3AF',
+  };
+  var PERMIT_STATUS_PRIORITY = {
+    rejected: 0, under_review: 1, submitted: 2, evidence_required: 3, identified: 4,
+    ready: 5, approved: 6, closed: 7, not_required: 8,
+  };
+  var permitByLayer = {};
+
   var LLD_COLORS = {
     objects: { fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4 },
     polygons: { fill: '#00aa88', outline: '#006644', opacity: 0.3 },
@@ -172,6 +196,30 @@
 
   function colorFor(name) {
     return LLD_COLORS[name] || { fill: '#6B7280', outline: '#374151', opacity: 0.5 };
+  }
+
+  function renderPermitLegend(counts) {
+    var badge = document.getElementById('permitBadge');
+    var el = document.getElementById('permitLegend');
+    if (!counts.total) {
+      badge.textContent = '0';
+      el.innerHTML = '<div class="ftth-empty-state" style="padding:10px;"><p style="font-size:12px;">No permits — run analysis from the project overview.</p></div>';
+      return;
+    }
+    badge.textContent = counts.total;
+    var rows = [
+      ['#EF4444', 'Rejected', counts.rejected],
+      ['#3B82F6', 'Submitted / Under Review', counts.under_review + counts.submitted],
+      ['#F59E0B', 'Identified / Evidence', counts.evidence_required + counts.identified],
+      ['#10B981', 'Ready / Approved', counts.ready + counts.approved],
+      ['#9CA3AF', 'Closed / Not Required', counts.closed + counts.not_required],
+    ];
+    el.innerHTML = rows.map(function (r) {
+      return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">'
+        + '<span style="width:14px;height:4px;border-radius:2px;background:' + r[0] + ';flex-shrink:0;"></span>'
+        + '<span style="flex:1;color:#374151;">' + r[1] + '</span>'
+        + '<strong>' + r[2] + '</strong></div>';
+    }).join('');
   }
 
   function initMap() {
@@ -199,6 +247,28 @@
       var status = await window.FtthLldApi.getRunStatus(projectId, lldVersion);
       var layers = (status && status.layers) || [];
       renderValidation(status && status.validation);
+
+      // Fetch permits for this project and index them by layer + feature id so
+      // segments can be coloured by their worst permit status.
+      permitByLayer = {};
+      var permitCounts = { total: 0, rejected: 0, under_review: 0, submitted: 0, evidence_required: 0, identified: 0, ready: 0, approved: 0, closed: 0, not_required: 0 };
+      try {
+        var permitData = await window.FtthLldApi.getProjectPermits(projectId);
+        (permitData && permitData.permits || []).forEach(function (p) {
+          if (!p.layer || !p.route_section) return;
+          permitCounts.total++;
+          var st = p.status || 'identified';
+          if (permitCounts[st] !== undefined) permitCounts[st]++;
+          var cur = permitByLayer[p.layer] || (permitByLayer[p.layer] = {});
+          var existing = cur[p.route_section];
+          if (!existing || (PERMIT_STATUS_PRIORITY[st] || 9) < (PERMIT_STATUS_PRIORITY[existing] || 9)) {
+            cur[p.route_section] = st;
+          }
+        });
+      } catch (permitErr) {
+        console.warn('Failed to load permits for colouring:', permitErr);
+      }
+      renderPermitLegend(permitCounts);
       layerCountEl.textContent = layers.length;
       layerBadgeEl.textContent = layers.length;
       var total = 0;
@@ -249,12 +319,27 @@
         return;
       }
       var c = colorFor(name);
+
+      // Inject the worst permit status per feature so segments are coloured by
+      // their permit state (permits key off feature_id, which the LLD layers carry).
+      var layerPermits = permitByLayer[name];
+      if (layerPermits) {
+        geojson.features.forEach(function (f) {
+          var props = f.properties || (f.properties = {});
+          var fid = props.feature_id != null ? String(props.feature_id)
+            : (props.id != null ? String(props.id) : null);
+          if (fid && layerPermits[fid]) props.permit_status = layerPermits[fid];
+        });
+      }
+
       window.FtthMap.addGeoJSONLayer(map, 'lld-' + name, geojson, {
         fillColor: c.fill,
         outlineColor: c.outline,
         fillOpacity: c.opacity !== undefined ? c.opacity : 0.6,
         lineWidth: c.lineWidth,
         visible: true,
+        permitField: 'permit_status',
+        permitColors: PERMIT_STATUS_COLORS,
       });
       updateToggleCount(name, geojson.features.length);
     } catch (err) {
