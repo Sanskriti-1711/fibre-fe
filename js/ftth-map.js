@@ -131,6 +131,12 @@
   // ------------------------------------------------------------------
   const _maps = {};
 
+  // Identify/highlight mode. When active, layer clicks highlight the clicked
+  // feature on a dedicated highlight layer and hand it to the page callback
+  // (full attribute table) instead of showing the small default popup.
+  let _identifyActive = false;
+  let _identifyCallback = null;
+
   // ------------------------------------------------------------------
   // Internal helpers
   // ------------------------------------------------------------------
@@ -325,8 +331,25 @@
     renderedLayers.forEach(function (lid) {
       map.on('click', lid, function (e) {
         if (!e.features || !e.features[0]) return;
-        var props = e.features[0].properties || {};
+        var feature = e.features[0];
+        var props = feature.properties || {};
         var coords = e.lngLat;
+
+        // Identify mode: highlight the feature on the dedicated highlight
+        // layer and let the page render the full attribute table. Only the
+        // fill/points layer of a geometry group does the highlight so the
+        // outline layer (same source) does not re-fire it.
+        if (_identifyActive) {
+          var publicLayerId = lid.replace(/^ftth-(fill|outline|points)-/, '');
+          if (lid.indexOf('ftth-fill-') === 0 || lid.indexOf('ftth-points-') === 0) {
+            highlightFeatureData(map, feature);
+            if (typeof _identifyCallback === 'function') {
+              _identifyCallback(feature, publicLayerId, coords);
+            }
+          }
+          return;
+        }
+
         var html = '<div style="font-size:13px;line-height:1.5;max-width:280px;">';
         var keys = Object.keys(props).slice(0, 12);
         keys.forEach(function (k) {
@@ -336,7 +359,7 @@
         html += '</div>';
         new maplibregl.Popup({ closeButton: true, maxWidth: '320px' }).setLngLat(coords).setHTML(html).addTo(map);
       });
-      map.on('mouseenter', lid, function () { map.getCanvas().style.cursor = 'pointer'; });
+      map.on('mouseenter', lid, function () { map.getCanvas().style.cursor = _identifyActive ? 'crosshair' : 'pointer'; });
       map.on('mouseleave', lid, function () { map.getCanvas().style.cursor = ''; });
     });
 
@@ -352,6 +375,62 @@
     if (map.getLayer(fillLayer)) { map.setLayoutProperty(fillLayer, 'visibility', visibility); }
     if (map.getLayer(outlineLayer)) { map.setLayoutProperty(outlineLayer, 'visibility', visibility); }
     if (map.getLayer(pointsLayer)) { map.setLayoutProperty(pointsLayer, 'visibility', visibility); }
+  }
+
+  /**
+   * Toggle identify/highlight mode. While active, clicking a design feature
+   * paints it on a bright highlight layer above everything and calls
+   * onSelect(feature, layerName, lngLat) instead of the small popup.
+   */
+  function setIdentifyActive(map, active, onSelect) {
+    _identifyActive = !!active;
+    _identifyCallback = typeof onSelect === 'function' ? onSelect : null;
+    if (map) {
+      map.getCanvas().style.cursor = active ? 'crosshair' : '';
+      if (!active) { clearHighlightLayer(map); }
+    }
+  }
+
+  function isIdentifyActive() { return _identifyActive; }
+
+  /** Idempotent: create the bright highlight source + layers above the data. */
+  function ensureHighlightLayer(map) {
+    if (!map || map.getSource('ftth-highlight-src')) return;
+    map.addSource('ftth-highlight-src', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    });
+    map.addLayer({
+      id: 'ftth-highlight-fill', type: 'fill', source: 'ftth-highlight-src',
+      paint: { 'fill-color': '#FDE047', 'fill-opacity': 0.40 },
+    });
+    map.addLayer({
+      id: 'ftth-highlight-line', type: 'line', source: 'ftth-highlight-src',
+      paint: { 'line-color': '#FFD600', 'line-width': 6, 'line-opacity': 0.95 },
+    });
+    map.addLayer({
+      id: 'ftth-highlight-points', type: 'circle', source: 'ftth-highlight-src',
+      paint: {
+        'circle-color': '#FFD600', 'circle-radius': 10, 'circle-opacity': 0.95,
+        'circle-stroke-color': '#000000', 'circle-stroke-width': 1.5,
+      },
+    });
+  }
+
+  /** Paint the clicked feature on the highlight layer. */
+  function highlightFeatureData(map, feature) {
+    if (!map || !feature || !feature.geometry) return;
+    ensureHighlightLayer(map);
+    var src = map.getSource('ftth-highlight-src');
+    if (src) {
+      src.setData({ type: 'FeatureCollection', features: [feature] });
+    }
+  }
+
+  /** Clear the highlight layer (kept around, just emptied). */
+  function clearHighlightLayer(map) {
+    if (!map || !map.getSource || !map.getSource('ftth-highlight-src')) return;
+    map.getSource('ftth-highlight-src').setData({ type: 'FeatureCollection', features: [] });
   }
 
   function fitToLayers(map, padding) {
@@ -408,5 +487,7 @@
     setLayerVisible: setLayerVisible, fitToLayers: fitToLayers,
     getBaseStyles: getBaseStyles, setBaseStyle: setBaseStyle,
     SUBLAYER_COLORS: LAYER_COLORS.SUBLAYER_COLORS,
+    setIdentifyActive: setIdentifyActive, isIdentifyActive: isIdentifyActive,
+    highlightFeature: highlightFeatureData, clearHighlight: clearHighlightLayer,
   };
 })();
