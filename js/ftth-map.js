@@ -338,9 +338,12 @@
         // Identify mode: highlight the feature on the dedicated highlight
         // layer and let the page render the full attribute table. Only the
         // fill/points layer of a geometry group does the highlight so the
-        // outline layer (same source) does not re-fire it.
+        // outline layer (same source) does not re-fire it. Strip the generic
+        // group prefix AND the page-specific prefix (LLD pages add 'lld-').
         if (_identifyActive) {
-          var publicLayerId = lid.replace(/^ftth-(fill|outline|points)-/, '');
+          var publicLayerId = lid
+            .replace(/^ftth-(fill|outline|points)-/, '')
+            .replace(/^lld-/, '');
           if (lid.indexOf('ftth-fill-') === 0 || lid.indexOf('ftth-points-') === 0) {
             highlightFeatureData(map, feature);
             if (typeof _identifyCallback === 'function') {

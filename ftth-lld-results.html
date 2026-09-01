@@ -43,6 +43,57 @@
     .ftth-basemap-btn .icon { font-size:18px; line-height:1; }
     .ftth-basemap-btn:hover { background:#F3F4F6; color:#374151; }
     .ftth-basemap-btn.active { background:#4F46E5; color:#FFFFFF; box-shadow:0 1px 4px rgba(79,70,229,0.3); }
+
+    /* ── Identify / highlight tool ─────────────────────────────────── */
+    .ftth-identify-btn {
+      position:absolute; top:64px; right:12px; z-index:10;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      width:52px; padding:6px 0 4px;
+      border:none; background:#FFFFFF; border-radius:8px;
+      cursor:pointer; transition:all 0.2s ease;
+      color:#6B7280; font-size:10px; font-weight:500; gap:2px;
+      box-shadow:0 2px 12px rgba(0,0,0,0.15);
+    }
+    .ftth-identify-btn .icon { font-size:18px; line-height:1; transition:transform 0.2s ease; }
+    .ftth-identify-btn .label { font-size:9px; line-height:1; white-space:nowrap; }
+    .ftth-identify-btn:hover { background:#F3F4F6; color:#374151; }
+    .ftth-identify-btn.active { background:#4F46E5; color:#FFFFFF; box-shadow:0 1px 4px rgba(79,70,229,0.3); }
+    .ftth-identify-btn.active:hover { background:#4338CA; }
+    .ftth-identify-btn.active .icon { transform:scale(1.1); }
+
+    .ftth-inspector {
+      position:absolute; top:122px; right:12px; z-index:9;
+      width:330px; max-width:calc(100% - 24px); max-height:calc(100% - 150px);
+      display:flex; flex-direction:column;
+      background:#FFFFFF; border-radius:12px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.18); overflow:hidden;
+    }
+    .ftth-inspector-header {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      padding:10px 14px; background:#1F2937; color:#FFFFFF; flex-shrink:0;
+    }
+    .ftth-inspector-title { min-width:0; }
+    .ftth-inspector-layer { font-size:13px; font-weight:700; display:block; }
+    .ftth-inspector-fid { font-size:10px; color:#9CA3AF; font-family:'SF Mono','Menlo',monospace; }
+    .ftth-inspector-close {
+      border:none; background:transparent; color:#9CA3AF;
+      font-size:20px; line-height:1; cursor:pointer; padding:0 4px; flex-shrink:0;
+    }
+    .ftth-inspector-close:hover { color:#FFFFFF; }
+    .ftth-inspector-body { overflow-y:auto; }
+    .ftth-inspector-empty { padding:20px; text-align:center; color:#6B7280; font-size:13px; }
+    .ftth-inspector-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .ftth-inspector-table tr { border-bottom:1px solid #F3F4F6; }
+    .ftth-inspector-table tr:nth-child(even) { background:#F9FAFB; }
+    .ftth-inspector-table td { padding:6px 10px; vertical-align:top; word-break:break-word; }
+    .ftth-inspector-table td.k { color:#6B7280; font-weight:600; white-space:nowrap; width:38%; }
+    .ftth-inspector-table td.v { color:#1F2937; font-family:'SF Mono','Menlo','Consolas',monospace; }
+    .ftth-inspector-footer { padding:8px 10px; border-top:1px solid #E5E7EB; flex-shrink:0; }
+    .ftth-inspector-footer button {
+      width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px;
+      background:#F9FAFB; color:#374151; font-size:12px; font-weight:600; cursor:pointer;
+    }
+    .ftth-inspector-footer button:hover { background:#F3F4F6; }
     .ftth-lld-download-btn {
       display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
       padding:13px 14px; margin-top:6px;
@@ -81,6 +132,24 @@
         <button class="ftth-basemap-btn" data-basemap="light"><span class="icon">&#x1F319;</span><span class="label">Light</span></button>
         <button class="ftth-basemap-btn" data-basemap="satellite"><span class="icon">&#x1F4F0;</span><span class="label">Satellite</span></button>
         <button class="ftth-basemap-btn" data-basemap="dark"><span class="icon">&#x1F311;</span><span class="label">Dark</span></button>
+      </div>
+
+      <button class="ftth-identify-btn" id="identifyBtn" type="button" title="Turn on to click a cable, trench or any component and view its full attributes">
+        <span class="icon">&#x1F3AF;</span><span class="label">Inspect</span>
+      </button>
+
+      <div class="ftth-inspector" id="inspectorPanel" style="display:none;">
+        <div class="ftth-inspector-header">
+          <div class="ftth-inspector-title">
+            <span class="ftth-inspector-layer" id="inspectorLayer">—</span>
+            <span class="ftth-inspector-fid" id="inspectorFid">—</span>
+          </div>
+          <button class="ftth-inspector-close" id="inspectorClose" type="button" title="Close">&times;</button>
+        </div>
+        <div class="ftth-inspector-body" id="inspectorBody"></div>
+        <div class="ftth-inspector-footer">
+          <button id="inspectorClear" type="button">Clear selection</button>
+        </div>
       </div>
 
       <div id="mapLoading" class="ftth-map-loading">
@@ -395,6 +464,63 @@
   function toggleLayer(name, visible) {
     window.FtthMap.setLayerVisible(map, 'lld-' + name, visible);
   }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // Identify / highlight tool: click any LLD output component to highlight
+  // it and view the COMPLETE attribute table (shared FtthMap helpers).
+  // ─────────────────────────────────────────────────────────────────────
+  var identifyBtn = document.getElementById('identifyBtn');
+  var inspectorPanel = document.getElementById('inspectorPanel');
+  var inspectorLayer = document.getElementById('inspectorLayer');
+  var inspectorFid = document.getElementById('inspectorFid');
+  var inspectorBody = document.getElementById('inspectorBody');
+  var inspectorClose = document.getElementById('inspectorClose');
+  var inspectorClear = document.getElementById('inspectorClear');
+  var identifyOn = false;
+
+  function showInspector(feature, layerName, coords) {
+    var props = feature.properties || {};
+    var fid = props.feature_id != null ? props.feature_id
+      : (feature.id != null ? feature.id
+        : (props.id != null ? props.id : '—'));
+    inspectorLayer.textContent = layerName || 'Layer';
+    inspectorFid.textContent = 'ID: ' + String(fid);
+    var keys = Object.keys(props).sort();
+    if (!keys.length) {
+      inspectorBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
+    } else {
+      var html = '<table class="ftth-inspector-table">';
+      keys.forEach(function (k) {
+        var v = props[k];
+        if (v === null || v === undefined || v === '') return;
+        var disp = (typeof v === 'object') ? JSON.stringify(v) : String(v);
+        if (disp.length > 400) disp = disp.slice(0, 397) + '\u2026';
+        html += '<tr><td class="k">' + escapeHtml(k) + '</td><td class="v">' + escapeHtml(disp) + '</td></tr>';
+      });
+      html += '</table>';
+      inspectorBody.innerHTML = html;
+    }
+    inspectorPanel.style.display = 'flex';
+  }
+
+  function clearInspector() {
+    if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
+    inspectorPanel.style.display = 'none';
+  }
+
+  if (identifyBtn) {
+    identifyBtn.addEventListener('click', function () {
+      identifyOn = !identifyOn;
+      identifyBtn.classList.toggle('active', identifyOn);
+      identifyBtn.title = identifyOn
+        ? 'Click any component on the map to view its full attributes'
+        : 'Turn on to click a cable, trench or any component and view its full attributes';
+      window.FtthMap.setIdentifyActive(map, identifyOn, showInspector);
+      if (!identifyOn) clearInspector();
+    });
+  }
+  if (inspectorClose) { inspectorClose.addEventListener('click', clearInspector); }
+  if (inspectorClear) { inspectorClear.addEventListener('click', clearInspector); }
 
   function initBasemapSwitcher() {
     var switcher = document.getElementById('basemapSwitcher');
