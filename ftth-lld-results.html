@@ -421,7 +421,7 @@
         outlineColor: c.outline,
         fillOpacity: c.opacity !== undefined ? c.opacity : 0.6,
         lineWidth: c.lineWidth,
-        visible: true,
+        visible: !DEFAULT_HIDDEN_LAYERS[name],
         permitField: 'permit_status',
         permitColors: PERMIT_STATUS_COLORS,
       });
@@ -431,15 +431,30 @@
     }
   }
 
+  // Layers that duplicate what final_trenches (the combination of feeder +
+  // distribution + garden) already shows, or pure context/input echoes, are
+  // rendered UNCHECKED by default — available on demand, off by default so
+  // the map is not cluttered with duplicated geometry.
+  var DEFAULT_HIDDEN_LAYERS = {
+    feeder_trench: 1,
+    distribution_trench: 1,
+    drill_trench: 1,
+    existing_infrastructure: 1,
+    existing_infrastructure_points: 1,
+    aerial_drop_trenches: 1,
+    aerial_cable: 1
+  };
+
   function renderLayerControls(layers) {
     layerControlsEl.innerHTML = '';
     layers.forEach(function (layer) {
       var name = layer.name || layer;
       var count = layer.feature_count || 0;
+      if (!count) return;  // never show a toggle for an empty layer
       var label = document.createElement('label');
       label.className = 'ftth-layer-toggle';
       var cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.checked = true;
+      cb.type = 'checkbox'; cb.checked = !DEFAULT_HIDDEN_LAYERS[name];
       cb.style.cssText = 'width:16px;height:16px;accent-color:#4F46E5;cursor:pointer;';
       cb.addEventListener('change', function () { toggleLayer(name, cb.checked); });
       var dot = document.createElement('span');
