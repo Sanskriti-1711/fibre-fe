@@ -85,6 +85,14 @@
     .run-lld-btn:hover:not(:disabled) { background: #047857; }
     .run-lld-btn:disabled { background: #D1D5DB; color: #9CA3AF; cursor: not-allowed; }
 
+    .project-run-actions { display: flex; gap: 8px; align-items: center; }
+    .project-run-actions .replan-btn {
+      background: #4F46E5;
+      font-size: 12.5px;
+    }
+    .project-run-actions .replan-btn:hover:not(:disabled) { background: #4338CA; }
+    .project-run-actions .replan-btn:disabled { background: #D1D5DB; color: #9CA3AF; cursor: not-allowed; }
+
     /* ── Table ─────────────────────────────────────────────────────────── */
     .survey-table { width: 100%; border-collapse: collapse; font-size: 13px; }
     .survey-table th {
@@ -299,9 +307,14 @@
         '<span class="count-correction"><b>' + (p.needs_correction || 0) + '</b>Correction</span>' +
         '<span class="count-pending"><b>' + (p.pending || 0) + '</b>Pending</span>' +
       '</div>' +
-      '<button class="run-lld-btn" data-run="' + escHtml(p.project_id) + '" ' + (ready ? '' : 'disabled') + '>' +
-        (ready ? '&#x25B6; Run LLD' : 'Run LLD (review pending)') +
-      '</button>';
+      '<div class="project-run-actions">' +
+        '<button class="run-lld-btn" data-run="' + escHtml(p.project_id) + '" data-mode="verify" ' + (ready ? '' : 'disabled') + '>' +
+          (ready ? '&#x25B6; Run LLD' : 'Run LLD (review pending)') +
+        '</button>' +
+        '<button class="run-lld-btn replan-btn" data-run="' + escHtml(p.project_id) + '" data-mode="replan" ' + (ready ? '' : 'disabled') + '>' +
+          '&#x1F504; Full re-plan' +
+        '</button>' +
+      '</div>';
 
     block.appendChild(header);
     block.appendChild(buildTable(p.changes || [], p.project_id));
@@ -345,27 +358,39 @@
   }
 
   // Run LLD for a project (creates the Approved Survey Version if needed, then runs)
-  async function runProjectLld(projectId) {
-    if (!confirm('Run LLD for this project?')) return;
-    const btn = document.querySelector('[data-run="' + projectId + '"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Starting LLD…'; }
+  // mode = 'verify' (apply survey changes, fast) | 'replan' (re-run the design
+  // algorithm with the survey as brownfield, 10-40 min).
+  async function runProjectLld(projectId, mode) {
+    const isReplan = mode === 'replan';
+    const confirmMsg = isReplan
+      ? 'Run a FULL RE-PLAN? This re-runs the routing algorithm with the approved survey as brownfield and takes 10–40 minutes. Only needed for structural changes (moved PDP, re-zoning, aerial conversion).'
+      : 'Run LLD for this project? (applies survey changes to the HLD design — fast)';
+    if (!confirm(confirmMsg)) return;
+    const btn = document.querySelector('[data-run="' + projectId + '"][data-mode="' + mode + '"]');
+    const all = document.querySelectorAll('[data-run="' + projectId + '"]');
+    all.forEach(function(b) { b.disabled = true; });
+    if (btn) { btn.textContent = isReplan ? 'Re-planning…' : 'Starting LLD…'; }
     try {
       try { await window.FtthLldApi.createApprovedVersion(projectId); } catch (_) { /* may already exist */ }
-      const result = await window.FtthLldApi.runLld(projectId);
-      showToast('LLD started: ' + (result.lld_version || 'ok'));
+      const result = await window.FtthLldApi.runLld(projectId, mode);
+      showToast((isReplan ? 'Full re-plan started: ' : 'LLD started: ') + (result.lld_version || 'ok'));
       setTimeout(function() {
         window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId);
       }, 800);
     } catch (err) {
-      showToast('Run LLD failed: ' + (err.message || err));
-      if (btn) { btn.disabled = false; btn.textContent = '&#x25B6; Run LLD'; }
+      showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + (err.message || err));
+      all.forEach(function(b) {
+        b.disabled = false;
+        if (b.dataset.mode === 'verify') b.textContent = '&#x25B6; Run LLD';
+        if (b.dataset.mode === 'replan') b.textContent = '&#x1F504; Full re-plan';
+      });
     }
   }
 
-  // Delegate clicks for Run LLD buttons
+  // Delegate clicks for Run LLD / Full re-plan buttons
   projectsContainer.addEventListener('click', function(e) {
     const btn = e.target.closest && e.target.closest('.run-lld-btn');
-    if (btn && btn.dataset.run) runProjectLld(btn.dataset.run);
+    if (btn && btn.dataset.run) runProjectLld(btn.dataset.run, btn.dataset.mode || 'verify');
   });
 
   refreshBtn.addEventListener('click', loadChanges);

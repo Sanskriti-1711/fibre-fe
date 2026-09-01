@@ -125,6 +125,21 @@
           <span>Download LLD ZIP</span>
         </button>
       </div>
+
+      <div class="ftth-side-pane-section">
+        <h3>BOQ / BOM</h3>
+        <div id="boqSection" style="font-size:12px;color:#6B7280;">
+          <button id="boqToggleBtn" class="ftth-lld-download-btn" type="button" style="width:100%;margin-bottom:6px;">
+            <span class="icon">&#x1F4CA;</span>
+            <span>Show BOQ / BOM</span>
+          </button>
+          <button id="boqDownloadBtn" class="ftth-lld-download-btn" type="button" style="width:100%;background:#059669;">
+            <span class="icon">&#x1F4E5;</span>
+            <span>Download BOQ XLSX</span>
+          </button>
+        </div>
+        <div id="boqBody" style="display:none;max-height:300px;overflow-y:auto;margin-top:8px;"></div>
+      </div>
     </div>
 
   </div>
@@ -398,6 +413,96 @@
     if (!projectId || !lldVersion) { alert('No project or LLD version selected.'); return; }
     window.FtthLldApi.downloadRunZip(projectId, lldVersion);
   });
+
+  // ── BOQ / BOM section ─────────────────────────────────────────
+  var boqToggleBtn = document.getElementById('boqToggleBtn');
+  var boqDownloadBtn = document.getElementById('boqDownloadBtn');
+  var boqBody = document.getElementById('boqBody');
+  var boqLoaded = false;
+
+  function renderBoqBody(data) {
+    if (!boqBody) return;
+    var rows = (data && data.boq_rows) || [];
+    var totals = (data && data.boq_totals) || {};
+    var grand = totals.grand_total || 0;
+    if (!rows.length) {
+      boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;">No BOQ rows computed yet.</div>';
+      return;
+    }
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+    html += '<thead><tr style="background:#F3F4F6;text-align:left;">';
+    ['Code','Item','Unit','Qty','Total \u20AC'].forEach(function(h){
+      html += '<th style="padding:4px 6px;border-bottom:1px solid #E5E7EB;">' + h + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+    rows.forEach(function(r){
+      if (!r.amount) return;
+      html += '<tr>';
+      html += '<td style="padding:3px 6px;">' + escapeHtml(r.item_code || '') + '</td>';
+      html += '<td style="padding:3px 6px;">' + escapeHtml(r.item_name || '') + '</td>';
+      html += '<td style="padding:3px 6px;">' + escapeHtml(r.unit || '') + '</td>';
+      html += '<td style="padding:3px 6px;text-align:right;">' + Number(r.quantity || 0).toLocaleString(undefined, {maximumFractionDigits:1}) + '</td>';
+      html += '<td style="padding:3px 6px;text-align:right;font-weight:600;">\u20AC' + Number(r.amount || 0).toLocaleString(undefined, {maximumFractionDigits:0}) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<div style="padding:8px 6px;font-weight:700;text-align:right;border-top:2px solid #E5E7EB;margin-top:4px;">Grand Total: \u20AC' + Number(grand).toLocaleString(undefined, {maximumFractionDigits:0}) + '</div>';
+    boqBody.innerHTML = html;
+  }
+
+  if (boqToggleBtn) {
+    boqToggleBtn.addEventListener('click', function(){
+      if (!projectId) return;
+      if (!boqLoaded) {
+        boqToggleBtn.disabled = true;
+        var url = '/api/ftth/hld/results/' + encodeURIComponent(projectId) + '/boq/';
+        window.FiberApi.apiFetch(url, { method: 'GET' })
+          .then(function(data) { boqLoaded = true; renderBoqBody(data); if (boqBody) boqBody.style.display = 'block'; })
+          .catch(function(err) { alert('Failed to load BOQ: ' + err.message); })
+          .finally(function() { boqToggleBtn.disabled = false; });
+      } else if (boqBody) {
+        boqBody.style.display = (boqBody.style.display === 'none') ? 'block' : 'none';
+      }
+    });
+  }
+
+  if (boqDownloadBtn) {
+    boqDownloadBtn.addEventListener('click', function(){
+      if (!projectId) return;
+      var url = '/api/ftth/hld/results/' + encodeURIComponent(projectId) + '/boq/download/';
+      var token = (window.FiberAuth && window.FiberAuth.getAccess()) || '';
+      window.FiberApi.rawFetch(url, { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) {
+          if (!r.ok) throw new Error('Download failed (status ' + r.status + ')');
+          var disp = r.headers.get('Content-Disposition') || '';
+          var match = disp.match(/filename="?([^"]+)"?/);
+          var fname = match ? match[1] : 'BOQ_BOM.xlsx';
+          return r.blob().then(function(blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fname;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
+          });
+        })
+        .catch(function(err) { alert('Download failed: ' + err.message); });
+    });
+  }
+
+  function getToken() {
+    try {
+      if (window.FiberAuth && typeof window.FiberAuth.getAccess === 'function') {
+        return window.FiberAuth.getAccess() || '';
+      }
+    } catch (_) { /* ignore */ }
+    try {
+      var raw = localStorage.getItem('fiber_auth');
+      if (!raw) return '';
+      var parsed = JSON.parse(raw);
+      return parsed.token || parsed.access || parsed.refresh || '';
+    } catch (_) { return ''; }
+  }
 
   function escapeHtml(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');

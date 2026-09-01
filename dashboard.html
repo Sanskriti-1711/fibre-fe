@@ -794,12 +794,15 @@
     drawSpark($('sparkTotal'), dailySeries(asArray(window.__allProjects || []), function (p) { return p.created_at; }), '#E31837');
 
     var pm = state.permits;
-    if (pm && pm.total) {
-      countUp($('kpiPermit'), pm.total);
+    if (pm && (pm.total || pm.total_groups)) {
+      // Clubbed street-level permits (one per street per rule); the raw
+      // segment count is shown in the note for context.
+      var groups = pm.total_groups || pm.total;
+      countUp($('kpiPermit'), groups);
       var readyN = pm.ready || 0;
-      var identN = (pm.by_status && pm.by_status.identified) || 0;
-      $('kpiPermitNote').textContent = readyN + ' ready · ' + identN + ' identified · ' + (pm.projects_with_permits || 0) + ' project(s)';
-      var sparkVals = (pm.projects || []).map(function (p) { return p.permits || 0; });
+      var identN = (pm.group_by_status && pm.group_by_status.identified) || 0;
+      $('kpiPermitNote').textContent = readyN + ' ready · ' + identN + ' identified · ' + (pm.projects_with_permits || 0) + ' project(s) · ' + pm.total + ' sections';
+      var sparkVals = (pm.projects || []).map(function (p) { return p.groups || p.permits || 0; });
       drawSpark($('sparkPermit'), sparkVals.length ? sparkVals : [0], '#D97706');
     } else {
       $('kpiPermit').textContent = 0;

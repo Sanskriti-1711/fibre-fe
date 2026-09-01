@@ -94,12 +94,13 @@
     return body;
   }
 
-  async function apiRunLld(projectId) {
+  async function apiRunLld(projectId, mode) {
     var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/');
-    var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
-    var body = await parseBody(response);
-    if (!response.ok) throw new Error((body && body.detail) || response.statusText);
-    return body;
+    var body = JSON.stringify(mode ? { mode: mode } : {});
+    var response = await authFetch(url, { method: 'POST', body: body });
+    var bodyParsed = await parseBody(response);
+    if (!response.ok) throw new Error((bodyParsed && bodyParsed.detail) || response.statusText);
+    return bodyParsed;
   }
 
   async function apiListVersions(projectId) {
@@ -378,13 +379,64 @@
   }
 
   // ==================================================================
+  // Permit submissions (Phase 3 — /api/ftth/permits/submissions/*)
+  // ==================================================================
+
+  async function apiListSubmissions(params) {
+    params = params || {};
+    var qs = Object.keys(params)
+      .filter(function (k) { return params[k]; })
+      .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
+      .join('&');
+    var url = buildUrl('/api/ftth/permits/submissions/' + (qs ? '?' + qs : ''));
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiCreateSubmission(payload) {
+    var url = buildUrl('/api/ftth/permits/submissions/');
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload || {}),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function apiTransitionSubmission(submissionId, payload) {
+    var url = buildUrl('/api/ftth/permits/submissions/' + encodeURIComponent(submissionId) + '/transition/');
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload || {}),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
+  // ==================================================================
   // Public API
   // ==================================================================
 
   function loadReview(projectId) { return apiLoadReview(projectId); }
   function submitAction(projectId, changeId, action, comment) { return apiSubmitAction(projectId, changeId, action, comment); }
   function createApprovedVersion(projectId) { return apiCreateApprovedVersion(projectId); }
-  function runLld(projectId) { return apiRunLld(projectId); }
+  function runLld(projectId, mode) { return apiRunLld(projectId, mode); }
   function listVersions(projectId) { return apiListVersions(projectId); }
   function getRunStatus(projectId, lldVersion) { return apiGetRunStatus(projectId, lldVersion); }
   function getRunLayer(projectId, lldVersion, layer) { return apiGetRunLayer(projectId, lldVersion, layer); }
@@ -425,6 +477,9 @@
     generatePermitPackage: apiGeneratePermitPackage,
     getPermitPackage: apiGetPermitPackage,
     getPermitPackageDownloadUrl: getPermitPackageDownloadUrl,
+    listSubmissions: apiListSubmissions,
+    createSubmission: apiCreateSubmission,
+    transitionSubmission: apiTransitionSubmission,
     listUsers: listUsers,
     listMembers: listMembers,
     addMember: addMember,

@@ -65,40 +65,31 @@
    * creating a temporary anchor to trigger the browser download.
    * This is necessary because <a href="..."> cannot send custom headers.
    */
-  function downloadBlob(url, defaultFileName) {
-    // Show a brief "downloading" indicator if available
-    authFetch(url, { method: 'GET' })
-      .then(function (response) {
-        if (!response.ok) {
-          // Try to get error detail
-          return response.json().then(function (err) {
-            throw new Error(err.detail || 'Download failed (' + response.status + ')');
-          }).catch(function () {
-            throw new Error('Download failed (' + response.status + ')');
-          });
-        }
-        // Determine filename from Content-Disposition or fallback
-        var disposition = response.headers.get('Content-Disposition') || '';
-        var match = disposition.match(/filename="?([^"]+)"?/);
-        var fileName = match ? match[1] : defaultFileName;
-        return response.blob().then(function (blob) {
-          var blobUrl = URL.createObjectURL(blob);
-          var a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = fileName;
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(function () {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-          }, 200);
-        });
-      })
-      .catch(function (err) {
-        console.error('Download error:', err);
-        alert('Download failed: ' + err.message);
-      });
+  async function downloadBlob(url, defaultFileName) {
+    var response = await authFetch(url, { method: 'GET' });
+    if (!response.ok) {
+      var detail = 'Download failed (' + response.status + ')';
+      try {
+        var errorBody = await response.json();
+        detail = errorBody.detail || detail;
+      } catch (_) { /* keep HTTP fallback */ }
+      throw new Error(detail);
+    }
+    var disposition = response.headers.get('Content-Disposition') || '';
+    var match = disposition.match(/filename="?([^";]+)"?/);
+    var fileName = match ? match[1] : defaultFileName;
+    var blob = await response.blob();
+    var blobUrl = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    }, 200);
   }
 
   // ------------------------------------------------------------------
@@ -151,6 +142,8 @@
 
   async function getPipelineStatus(projectId) {
     var id = encodeURIComponent(projectId);
+    // Keep polling on the canonical Django route; the trailing slash is
+    // required by Django's URL resolver and prevents redirect/404 noise.
     var url = buildUrl(API_PREFIX + '/results/' + id + '/');
     var response = await authFetch(url);
     var body = await parseBody(response);
@@ -215,7 +208,10 @@
    */
   function downloadSurveyPackage(projectId) {
     var url = getSurveyPackageUrl(projectId);
-    downloadBlob(url, projectId + '_survey_package.zip');
+    return downloadBlob(url, projectId + '_survey_package.zip').catch(function (err) {
+      console.error('Download error:', err);
+      alert('Download failed: ' + err.message);
+    });
   }
 
   function getDesignPackageUrl(projectId) {
@@ -228,7 +224,10 @@
    */
   function downloadDesignPackage(projectId) {
     var url = getDesignPackageUrl(projectId);
-    downloadBlob(url, projectId + '_design_package.zip');
+    return downloadBlob(url, projectId + '_design_package.zip').catch(function (err) {
+      console.error('Download error:', err);
+      alert('Download failed: ' + err.message);
+    });
   }
 
   async function listProjects(limit) {
@@ -283,7 +282,10 @@
   function downloadBoq(projectId) {
     var id = encodeURIComponent(projectId);
     var url = buildUrl(API_PREFIX + '/results/' + id + '/boq/download/');
-    downloadBlob(url, projectId + '_BOQ.xlsx');
+    return downloadBlob(url, projectId + '_BOQ.xlsx').catch(function (err) {
+      console.error('Download error:', err);
+      alert('Download failed: ' + err.message);
+    });
   }
 
 

@@ -345,6 +345,7 @@
   let startTime = Date.now();
   let prevMessageCount = 0;
   let seenMessageIds = new Set();
+  let terminalStateHandled = false;
 
   // ----------------------------------------------------------------
   // Polling callbacks
@@ -368,11 +369,14 @@
 
     // Append new messages — all messages shown verbatim for verbose logging
     if (data.messages && Array.isArray(data.messages)) {
-      const newMessages = data.messages.slice(prevMessageCount);
-      newMessages.forEach(function (m) {
-        logViewer._append(m.text || m.message || String(m), m.level || 'info');
+      data.messages.forEach(function (m, index) {
+        const text = m && (m.text || m.message) || String(m);
+        const key = String((m && (m.id || m.timestamp || m.created_at)) || index) + '|' + text;
+        if (seenMessageIds.has(key)) return;
+        seenMessageIds.add(key);
+        logViewer._append(text, m && m.level || 'info');
       });
-      prevMessageCount = data.messages.length;
+      prevMessageCount = seenMessageIds.size;
     }
 
     logLineCount.textContent = prevMessageCount + ' lines';
@@ -386,6 +390,8 @@
   }
 
   function onComplete(data) {
+    if (terminalStateHandled) return;
+    terminalStateHandled = true;
     stopPollBtn.style.display = 'none';
 
     if (data.status === 'completed') {
@@ -429,6 +435,10 @@
   // ----------------------------------------------------------------
   // Start polling
   // ----------------------------------------------------------------
+  // Explicitly stop any previous page-level poll before starting this one.
+  // This protects against browser back/forward cache restoring an old status
+  // page with a stale timer still alive.
+  window.FtthState.stopPolling();
   var stopFn = window.FtthState.startPolling(projectId, onMessage, onComplete, onError, 3000);
   stopPollBtn.style.display = 'inline-block';
 

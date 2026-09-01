@@ -113,6 +113,7 @@
       const tr = document.createElement('tr');
       tr.innerHTML = ''
         + '<td class="mono">' + esc(r.lld_version) + '</td>'
+        + '<td>' + modeBadge(r.mode) + '</td>'
         + '<td class="mono">' + esc(r.approved_survey_version || '—') + '</td>'
         + '<td class="mono">' + esc(r.hld_version || '—') + '</td>'
         + '<td>' + esc(r.run_date || '—') + '</td>'
@@ -151,6 +152,14 @@
   }
 
   function stageText(pct) {
+    const running = (data && data.runs || []).filter((r) => r.status === 'running').slice(-1)[0];
+    if (running && (running.mode || '').toLowerCase() === 'replan') {
+      if (pct < 5) return 'Submitting the approved survey dataset as brownfield to the design pipeline…';
+      if (pct < 20) return 'Feeding approved segments into the routing graph and re-running the shortest-route algorithm…';
+      if (pct < 60) return 'Re-deriving network / trench / duct / cable design from the survey constraints…';
+      if (pct < 95) return 'Validating the fresh design and packaging the re-plan output…';
+      return 'Finalizing re-plan run and persisting outputs…';
+    }
     if (pct < 5) return 'Submitting the approved survey dataset to the LLD engine…';
     if (pct < 20) return 'Applying approved survey changes to the HLD output…';
     if (pct < 60) return 'Validating path continuity and attribute matching…';
@@ -187,6 +196,14 @@
       + '<div class="v-label">' + esc(label) + (immutable ? ' (immutable)' : '') + '</div>'
       + '<div class="v-meta">' + meta + '</div>'
       + '</div>';
+  }
+
+  function modeBadge(mode) {
+    const m = (mode || 'verify').toLowerCase();
+    if (m === 'replan') {
+      return '<span class="lld-badge" style="background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;">Full re-plan</span>';
+    }
+    return '<span class="lld-badge" style="background:#ECFDF5;color:#047857;border:1px solid #A7F3D0;">Verify</span>';
   }
 
   function runBadge(status) {

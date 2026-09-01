@@ -44,6 +44,8 @@
 
     .pm-empty { padding:28px; text-align:center; color:#9CA3AF; font-size:13px; }
     .pm-fid { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; }
+    .sub-act { padding:4px 10px; border:1px solid #D1D5DB; border-radius:6px; background:#fff; font-size:11px; font-weight:600; color:#374151; cursor:pointer; margin:2px; white-space:nowrap; }
+    .sub-act:hover { background:#F3F4F6; }
   </style>
 </head>
 <body>
@@ -67,6 +69,7 @@
         <input class="pm-search" id="pmSearch" type="text" placeholder="Search permit type or route section…" />
         <select id="pmStatus">
           <option value="">All statuses</option>
+          <option value="not_required">Not Required</option>
           <option value="identified">Identified</option>
           <option value="evidence_required">Evidence Required</option>
           <option value="ready">Ready</option>
@@ -80,23 +83,55 @@
           <option value="">All projects</option>
         </select>
         <button id="pmRefresh" class="create-btn pm-refresh" type="button" style="background:#374151;">&#x21BB; Refresh</button>
+        <button id="pmSubmit" class="create-btn" type="button" style="display:none;background:#047857;">&#x1F4E8; Submit Selected (0)</button>
+        <button id="pmGenHldPackage" class="create-btn" type="button" style="background:#B45309;">&#x1F4C4; Generate HLD Rough Package</button>
+        <button id="pmDownloadHldPkg" class="create-btn" type="button" style="background:#D97706;display:none;">&#x1F4E5; Download HLD Package</button>
+        <button id="pmGenPackage" class="create-btn" type="button" style="background:#7C3AED;">&#x1F4C4; Generate Final LLD Package</button>
+        <button id="pmDownloadPkg" class="create-btn" type="button" style="background:#2563EB;display:none;">&#x1F4E5; Download LLD Package ZIP</button>
       </div>
 
       <div class="pm-table-card">
         <table>
           <thead>
             <tr>
+              <th style="width:36px;" title="Select READY permits to submit"><input type="checkbox" id="pmSelectAll" /></th>
               <th>Project</th>
               <th>Permit Type</th>
               <th>Route Section</th>
               <th>Authority</th>
               <th>Status</th>
               <th>Readiness</th>
+              <th>Rev.</th>
               <th>Req.</th>
             </tr>
           </thead>
           <tbody id="pmBody">
-            <tr><td colspan="7"><div class="pm-empty">Loading permits…</div></td></tr>
+            <tr><td colspan="9"><div class="pm-empty">Loading permits…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pm-table-card" style="margin-top:22px;">
+        <div style="padding:14px 18px 0;">
+          <h2 style="margin:0;font-size:16px;">&#x1F4E8; Authority Submissions</h2>
+          <p style="margin:4px 0 10px;font-size:12px;color:#6B7280;">Applications sent to authorities — review progress and decisions. Status sync (portal/email/API) writes through the same transitions.</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Permit</th>
+              <th>Authority</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th>Ref.</th>
+              <th>Rev.</th>
+              <th>Sections</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pmSubBody">
+            <tr><td colspan="9"><div class="pm-empty">Loading submissions…</div></td></tr>
           </tbody>
         </table>
       </div>
@@ -142,21 +177,53 @@
   var allPermits = [];
   var loading = false;
 
+  // Worst-first status rank: a group's status is its least-favourable member.
+  var STATUS_RANK = {
+    rejected: 9, under_review: 8, submitted: 7, evidence_required: 6,
+    identified: 5, ready: 4, approved: 3, closed: 2, not_required: 1
+  };
+
+  // Club per-segment rows into one permit per (project, type, street). Rows
+  // without a street (e.g. UTILITY_REUSE, unnamed sections) stay individual.
+  function groupPermits() {
+    var groups = {};
+    allPermits.forEach(function (p) {
+      var key = p.project_id + '|' + p.permit_type + '|' + (p.permit_group || p.route_section);
+      if (!groups[key]) {
+        groups[key] = {
+          project_id: p.project_id, project_name: p.project_name,
+          permit_type: p.permit_type, permit_group: p.permit_group || '',
+          authority: p.authority, required: p.required,
+          sections: [], status: p.status, readiness_pct: p.readiness_pct, revision: p.revision
+        };
+      }
+      var g = groups[key];
+      g.sections.push(p);
+      if ((STATUS_RANK[p.status] || 0) > (STATUS_RANK[g.status] || 0)) g.status = p.status;
+      if (p.readiness_pct < g.readiness_pct) g.readiness_pct = p.readiness_pct;
+      if (p.revision > g.revision) g.revision = p.revision;
+      if (p.required) g.required = true;
+    });
+    return Object.keys(groups).map(function (k) { return groups[k]; });
+  }
+
   function renderStats() {
     var el = document.getElementById('pmStats');
+    var groups = groupPermits();
     var counts = { ready:0, approved:0, under_review:0, submitted:0, identified:0, rejected:0 };
-    allPermits.forEach(function (p) { if (counts[p.status] !== undefined) counts[p.status]++; });
-    var total = allPermits.length;
+    groups.forEach(function (g) { if (counts[g.status] !== undefined) counts[g.status]++; });
     var stats = [
-      { label:'Total Permits', value: total },
+      { label:'Total Permits', value: groups.length, title:'One permit per (type × street) — sections on the same street are clubbed together' },
+      { label:'Route Sections', value: allPermits.length, title:'Raw count of individual route segments needing the permit — several sections belong to one permit' },
       { label:'Ready', value: counts.ready, color:'#047857' },
       { label:'Approved', value: counts.approved, color:'#047857' },
       { label:'Under Review', value: counts.under_review + counts.submitted, color:'#1D4ED8' },
       { label:'Identified', value: counts.identified, color:'#B45309' },
-      { label:'Rejected', value: counts.rejected, color:'#B91C1C' }
+      { label:'Rejected', value: counts.rejected, color:'#B91C1C' },
+      { label:'Submissions', value: allSubmissions.length, color:'#1D4ED8', title:'Applications sent to authorities (Phase 3)' }
     ];
     el.innerHTML = stats.map(function (s) {
-      return '<div class="pm-stat"><div class="label">' + esc(s.label) + '</div>'
+      return '<div class="pm-stat"' + (s.title ? ' title="' + esc(s.title) + '"' : '') + '><div class="label">' + esc(s.label) + '</div>'
         + '<div class="value"' + (s.color ? ' style="color:' + s.color + '"' : '') + '>' + s.value + '</div></div>';
     }).join('');
   }
@@ -177,29 +244,44 @@
     var q = (document.getElementById('pmSearch').value || '').trim().toLowerCase();
     var status = document.getElementById('pmStatus').value;
     var project = document.getElementById('pmProject').value;
-    var rows = allPermits.filter(function (p) {
-      if (status && p.status !== status) return false;
-      if (project && p.project_id !== project) return false;
-      if (q && (p.permit_type || '').toLowerCase().indexOf(q) === -1
-          && (p.route_section || '').toLowerCase().indexOf(q) === -1) return false;
+    var rows = groupPermits().filter(function (g) {
+      if (status && g.status !== status) return false;
+      if (project && g.project_id !== project) return false;
+      if (q) {
+        var street = (g.permit_group || '').toLowerCase();
+        var hit = (g.permit_type || '').toLowerCase().indexOf(q) !== -1
+          || street.indexOf(q) !== -1
+          || g.sections.some(function (p) { return (p.route_section || '').toLowerCase().indexOf(q) !== -1; });
+        if (!hit) return false;
+      }
       return true;
     });
     var tbody = document.getElementById('pmBody');
     if (!rows.length) {
-      tbody.innerHTML = '<tr><td colspan="7"><div class="pm-empty">'
+      tbody.innerHTML = '<tr><td colspan="9"><div class="pm-empty">'
         + (allPermits.length ? 'No permits match your filters.' : 'No permits identified yet — run permit analysis from a project overview page.')
         + '</div></td></tr>';
       return;
     }
-    tbody.innerHTML = rows.map(function (p) {
-      return '<tr onclick="window.location.href=\'ftth-project-overview.html?project_id=' + encodeURIComponent(p.project_id) + '\'">'
-        + '<td><strong>' + esc(p.project_name || p.project_id) + '</strong></td>'
-        + '<td>' + esc(p.permit_type) + '</td>'
-        + '<td class="pm-fid">' + esc(String(p.route_section).slice(0, 18)) + '</td>'
-        + '<td>' + esc((p.authority && p.authority.name) || '—') + '</td>'
-        + '<td>' + statusBadge(p.status) + '</td>'
-        + '<td>' + (p.readiness_pct || 0) + '%</td>'
-        + '<td>' + (p.required ? '<span class="pm-badge b-red"><span class="dot"></span>Required</span>' : '<span class="pm-badge b-gray"><span class="dot"></span>Potential</span>') + '</td>'
+    tbody.innerHTML = rows.map(function (g) {
+      var street = g.permit_group
+        ? '<strong>' + esc(g.permit_group) + '</strong> <span class="pm-fid">· ' + g.sections.length + ' sections</span>'
+        : '<span class="pm-fid">' + esc(String(g.sections[0].route_section).slice(0, 18)) + '</span>';
+      var gkey = groupKey(g);
+      var checked = selected[gkey] ? ' checked' : '';
+      var selectable = g.status === 'ready';
+      return '<tr onclick="window.location.href=\'ftth-project-overview.html?project_id=' + encodeURIComponent(g.project_id) + '\'">'
+        + '<td onclick="event.stopPropagation()"><input type="checkbox" data-group="' + esc(gkey) + '" title="' + (selectable ? 'Submit this permit' : 'Only READY permits can be submitted') + '"' + (selectable ? '' : ' disabled') + checked + ' /></td>'
+        + '<td><strong>' + esc(g.project_name || g.project_id) + '</strong></td>'
+        + '<td>' + esc(g.permit_type) + '</td>'
+        + '<td>' + street + '</td>'
+        + '<td>' + esc((g.authority && g.authority.name) || '—') + '</td>'
+        + '<td>' + statusBadge(g.status) + '</td>'
+        + '<td>' + (g.readiness_pct || 0) + '%</td>'
+        + '<td>' + (g.revision > 1
+            ? '<span class="pm-badge b-amber"><span class="dot"></span>r' + g.revision + ' (variation)</span>'
+            : '<span class="pm-fid">r' + (g.revision || 0) + '</span>') + '</td>'
+        + '<td>' + (g.required ? '<span class="pm-badge b-red"><span class="dot"></span>Required</span>' : '<span class="pm-badge b-gray"><span class="dot"></span>Potential</span>') + '</td>'
         + '</tr>';
     }).join('');
   }
@@ -218,20 +300,304 @@
       document.getElementById('pmUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
     } catch (err) {
       document.getElementById('pmBody').innerHTML =
-        '<tr><td colspan="7"><div class="pm-empty" style="color:#B91C1C;">Failed to load permits: ' + esc(err.message || err) + '</div></td></tr>';
+        '<tr><td colspan="9"><div class="pm-empty" style="color:#B91C1C;">Failed to load permits: ' + esc(err.message || err) + '</div></td></tr>';
     } finally {
       loading = false;
       if (btn) btn.disabled = false;
     }
   }
 
+  // ------------------------------------------------------------------
+  // Phase 3 — submission workflow (select READY groups, submit, review)
+  // ------------------------------------------------------------------
+
+  var selected = {};  // group key -> true (only READY groups are selectable)
+  var allSubmissions = [];
+
+  function groupKey(g) {
+    return g.project_id + '|' + g.permit_type + '|' + (g.permit_group || '');
+  }
+
+  function selectedPermitIds() {
+    var ids = [];
+    groupPermits().forEach(function (g) {
+      if (selected[groupKey(g)]) {
+        g.sections.forEach(function (p) { ids.push(p.permit_id); });
+      }
+    });
+    return ids;
+  }
+
+  function updateSubmitButton() {
+    var n = Object.keys(selected).length;
+    var btn = document.getElementById('pmSubmit');
+    btn.style.display = n ? '' : 'none';
+    btn.textContent = '\u{1F4E8} Submit Selected (' + n + ')';
+  }
+
+  async function submitSelected() {
+    var ids = selectedPermitIds();
+    if (!ids.length) return;
+    var nApps = Object.keys(selected).length;
+    if (!confirm('Submit ' + ids.length + ' section(s) as ' + nApps + ' application(s)?\n\nOnly READY permits are submitted — the rest stay behind.')) return;
+    var btn = document.getElementById('pmSubmit');
+    btn.disabled = true;
+    try {
+      var res = await window.FtthLldApi.createSubmission({ permit_ids: ids });
+      alert('Created ' + res.created + ' submission(s) — tracker refreshed.');
+      selected = {};
+      updateSubmitButton();
+      renderTable();
+      load();
+      loadSubmissions();
+    } catch (err) {
+      alert('Submit failed: ' + (err.message || err));
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  var SUB_STATUS_META = {
+    submitted:    { text: 'Submitted',    cls: 'b-blue' },
+    under_review: { text: 'Under Review', cls: 'b-blue' },
+    approved:     { text: 'Approved',     cls: 'b-green' },
+    rejected:     { text: 'Rejected',     cls: 'b-red' },
+    closed:       { text: 'Closed',       cls: 'b-gray' }
+  };
+
+  function submissionActions(s) {
+    var actions = [];
+    if (s.status === 'submitted') actions.push(['Under Review', 'under_review']);
+    if (s.status === 'under_review') actions.push(['Approve', 'approved'], ['Reject', 'rejected']);
+    if (s.status === 'rejected') actions.push(['Resubmit', 'submitted']);
+    if (s.status === 'approved') actions.push(['Close', 'closed']);
+    return actions.map(function (a) {
+      return '<button class="sub-act" data-sid="' + esc(s.submission_id) + '" data-to="' + a[1] + '" type="button">' + esc(a[0]) + '</button>';
+    }).join(' ');
+  }
+
+  function renderSubmissions() {
+    var tbody = document.getElementById('pmSubBody');
+    if (!allSubmissions.length) {
+      tbody.innerHTML = '<tr><td colspan="9"><div class="pm-empty">No submissions yet — select READY permits above and click Submit Selected.</div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = allSubmissions.map(function (s) {
+      var m = SUB_STATUS_META[s.status] || SUB_STATUS_META.submitted;
+      var badge = '<span class="pm-badge ' + m.cls + '"><span class="dot"></span>' + esc(m.text) + '</span>';
+      var street = s.permit_group
+        ? '<strong>' + esc(s.permit_group) + '</strong>'
+        : '<span class="pm-fid">asset-level</span>';
+      var rev = s.revision > 0
+        ? '<span class="pm-badge b-amber"><span class="dot"></span>r' + s.revision + '</span>'
+        : '<span class="pm-fid">r0</span>';
+      return '<tr>'
+        + '<td><strong>' + esc(s.project_name || s.project_id) + '</strong></td>'
+        + '<td>' + esc(s.permit_type) + '<br/>' + street + '</td>'
+        + '<td>' + esc((s.authority && s.authority.name) || '—') + '</td>'
+        + '<td>' + badge + '</td>'
+        + '<td>' + (s.submission_date ? new Date(s.submission_date).toLocaleDateString() : '—') + '</td>'
+        + '<td class="pm-fid">' + esc(s.reference || '—') + '</td>'
+        + '<td>' + rev + '</td>'
+        + '<td>' + s.section_count + '</td>'
+        + '<td>' + submissionActions(s) + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  async function runTransition(sid, to) {
+    var payload = { status: to };
+    if (to === 'under_review') {
+      var ref = prompt('Authority application reference (optional):');
+      if (ref === null) return;
+      payload.reference = ref;
+    } else if (to === 'approved') {
+      var cond = prompt('Approval conditions (optional, e.g. "work 22:00–06:00"):');
+      if (cond === null) return;
+      payload.conditions = cond;
+      var exp = prompt('Expiry date (optional, YYYY-MM-DD):');
+      if (exp === null) return;
+      if (exp.trim()) payload.expiry_date = exp.trim();
+    } else if (to === 'rejected') {
+      var reason = prompt('Rejection reason:');
+      if (reason === null) return;
+      payload.notes = reason;
+    } else if (to === 'submitted') {
+      if (!confirm('Re-submit this application as a new revision?')) return;
+    } else if (to === 'closed') {
+      if (!confirm('Close this approved permit after construction?')) return;
+    }
+    try {
+      await window.FtthLldApi.transitionSubmission(sid, payload);
+      load();
+      loadSubmissions();
+    } catch (err) {
+      alert('Transition failed: ' + (err.message || err));
+    }
+  }
+
+  async function loadSubmissions() {
+    try {
+      var d = await window.FtthLldApi.listSubmissions();
+      allSubmissions = d.submissions || [];
+      renderSubmissions();
+      renderStats();  // Submissions stat card
+    } catch (err) {
+      document.getElementById('pmSubBody').innerHTML =
+        '<tr><td colspan="9"><div class="pm-empty" style="color:#B91C1C;">Failed to load submissions: ' + esc(err.message || err) + '</div></td></tr>';
+    }
+  }
+
+  document.getElementById('pmBody').addEventListener('change', function (e) {
+    var cb = e.target;
+    if (!cb || cb.dataset.group === undefined) return;
+    if (cb.checked) selected[cb.dataset.group] = true;
+    else delete selected[cb.dataset.group];
+    updateSubmitButton();
+  });
+
+  document.getElementById('pmSelectAll').addEventListener('change', function () {
+    var on = this.checked;
+    groupPermits().forEach(function (g) {
+      var key = groupKey(g);
+      if (g.status === 'ready') {
+        if (on) selected[key] = true;
+        else delete selected[key];
+      }
+    });
+    updateSubmitButton();
+    renderTable();
+  });
+
+  document.getElementById('pmSubmit').addEventListener('click', submitSelected);
+
+  document.getElementById('pmSubBody').addEventListener('click', function (e) {
+    var btn = e.target.closest ? e.target.closest('.sub-act') : null;
+    if (!btn) return;
+    runTransition(btn.dataset.sid, btn.dataset.to);
+  });
+
   document.getElementById('pmSearch').addEventListener('input', renderTable);
   document.getElementById('pmStatus').addEventListener('change', renderTable);
   document.getElementById('pmProject').addEventListener('change', renderTable);
-  document.getElementById('pmRefresh').addEventListener('click', load);
+  document.getElementById('pmRefresh').addEventListener('click', function () { load(); loadSubmissions(); });
+
+  // ── Permit Package: generate + download ──────────────────────────
+  var pmGenHldBtn = document.getElementById('pmGenHldPackage');
+  var pmDlHldBtn = document.getElementById('pmDownloadHldPkg');
+  var pmGenBtn = document.getElementById('pmGenPackage');
+  var pmDlBtn = document.getElementById('pmDownloadPkg');
+
+  // Resolve current project from URL or dropdown
+  function currentProjectId() {
+    var sel = document.getElementById('pmProject');
+    return (sel && sel.value) || new URLSearchParams(window.location.search).get('project_id') || '';
+  }
+
+  function getToken() {
+    try {
+      if (window.FiberAuth && typeof window.FiberAuth.getAccess === 'function') {
+        return window.FiberAuth.getAccess() || '';
+      }
+    } catch (_) { /* ignore */ }
+    try {
+      var raw = localStorage.getItem('fiber_auth');
+      if (!raw) return '';
+      var parsed = JSON.parse(raw);
+      return parsed.token || parsed.access || parsed.refresh || '';
+    } catch (_) { return ''; }
+  }
+
+  // Check if a final LLD package exists and show/hide its download button.
+  function checkPackage(pid) {
+    if (!pid || !pmDlBtn) return;
+    window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/', { method: 'GET' })
+      .then(function(d) {
+        var files = d && d.files || [];
+        pmDlBtn.style.display = files.length ? 'inline-flex' : 'none';
+      }).catch(function() { if (pmDlBtn) pmDlBtn.style.display = 'none'; });
+  }
+
+  function checkHldPackage(pid) {
+    if (!pid || !pmDlHldBtn) return;
+    window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/', { method: 'GET' })
+      .then(function(d) { pmDlHldBtn.style.display = (d && d.files && d.files.length) ? 'inline-flex' : 'none'; })
+      .catch(function() { pmDlHldBtn.style.display = 'none'; });
+  }
+
+  if (pmGenHldBtn) {
+    pmGenHldBtn.addEventListener('click', function() {
+      var pid = currentProjectId();
+      if (!pid) { alert('Select a project first.'); return; }
+      pmGenHldBtn.disabled = true;
+      pmGenHldBtn.textContent = '⏳ Generating…';
+      window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/', { method: 'POST', body: JSON.stringify({}) })
+        .then(function(body) { alert('HLD preliminary package generated! (' + ((body && body.files) || []).length + ' files)'); checkHldPackage(pid); })
+        .catch(function(err) { alert('HLD package error: ' + err.message); })
+        .finally(function() { pmGenHldBtn.disabled = false; pmGenHldBtn.textContent = '📄 Generate HLD Rough Package'; });
+    });
+  }
+
+  if (pmDlHldBtn) {
+    pmDlHldBtn.addEventListener('click', function() {
+      var pid = currentProjectId();
+      if (!pid) return;
+      var token = (window.FiberAuth && window.FiberAuth.getAccess()) || '';
+      window.FiberApi.rawFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/download/', { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { if (!r.ok) throw new Error('Download failed (status ' + r.status + ')'); return r.blob(); })
+        .then(function(blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = pid + '_hld_preliminary_package.zip'; document.body.appendChild(a); a.click(); setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200); })
+        .catch(function(err) { alert('HLD download failed: ' + err.message); });
+    });
+  }
+
+  if (pmGenBtn) {
+    pmGenBtn.addEventListener('click', function() {
+      var pid = currentProjectId();
+      if (!pid) { alert('Select a project first.'); return; }
+      pmGenBtn.disabled = true;
+      pmGenBtn.textContent = '\u23F3 Generating\u2026';
+      window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/', {
+        method: 'POST',
+        body: JSON.stringify({})
+      })
+      .then(function(body) {
+        alert('Permit package generated! (' + ((body && body.files) || []).length + ' files)');
+        checkPackage(pid);
+      }).catch(function(err) { alert('Error: ' + err.message); })
+      .finally(function() { pmGenBtn.disabled = false; pmGenBtn.textContent = '\uD83D\uDCC4 Generate Permit Package'; });
+    });
+  }
+
+  if (pmDlBtn) {
+    pmDlBtn.addEventListener('click', function() {
+      var pid = currentProjectId();
+      if (!pid) return;
+      var url = '/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/download/';
+      var token = (window.FiberAuth && window.FiberAuth.getAccess()) || '';
+      window.FiberApi.rawFetch(url, { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function(r) {
+          if (!r.ok) throw new Error('Download failed (status ' + r.status + ')');
+          var disp = r.headers.get('Content-Disposition') || '';
+          var match = disp.match(/filename="?([^"]+)"?/);
+          var fname = match ? match[1] : 'permit_package.zip';
+          return r.blob().then(function(blob) {
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = fname;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
+          });
+        })
+        .catch(function(err) { alert('Download failed: ' + err.message); });
+    });
+  }
 
   load();
-  setInterval(load, 60000);
+  loadSubmissions();
+  checkPackage(currentProjectId());
+  checkHldPackage(currentProjectId());
+  setInterval(function () { load(); loadSubmissions(); }, 60000);
 </script>
 </body>
 </html>

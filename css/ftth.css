@@ -708,6 +708,19 @@
   box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45);
 }
 
+.lld-btn-replan {
+  background: linear-gradient(135deg, #4F46E5, #4338CA);
+  box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);
+  font-size: 13px;
+  padding: 13px 10px;
+}
+
+.lld-btn-replan:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4338CA, #3730A3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+}
+
 .lld-btn-as {
   background: #FFFFFF;
   color: #1F2937;

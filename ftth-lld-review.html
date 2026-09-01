@@ -124,10 +124,20 @@
           <span class="btn-label">Create Approved Survey Version</span>
         </button>
 
-        <button id="runLldBtn" class="lld-btn lld-btn-run" type="button" disabled>
-          <span class="spinner"></span>
-          <span class="btn-label">Run LLD</span>
-        </button>
+        <div class="lld-run-group" style="display:flex;gap:6px;">
+          <button id="runLldBtn" class="lld-btn lld-btn-run" type="button" disabled style="flex:1.4;">
+            <span class="spinner"></span>
+            <span class="btn-label">Run LLD</span>
+          </button>
+          <button id="replanLldBtn" class="lld-btn lld-btn-run lld-btn-replan" type="button" disabled style="flex:1;">
+            <span class="spinner"></span>
+            <span class="btn-label">Full re-plan</span>
+          </button>
+        </div>
+        <p style="margin:2px 0 0;font-size:10.5px;color:#6b7280;line-height:1.4;">
+          <strong>Run LLD</strong> applies survey changes to the HLD design (fast).
+          <strong>Full re-plan</strong> re-runs the routing algorithm with the survey as brownfield (10&ndash;40&nbsp;min) &mdash; use for structural changes like a moved PDP.
+        </p>
 
         <p class="lld-readiness-note" id="readinessNote">Loading review data&#x2026;</p>
       </div>

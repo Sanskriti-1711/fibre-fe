@@ -57,6 +57,7 @@
   const resolveFill = $('resolveFill');
   const createAsBtn = $('createAsBtn');
   const runLldBtn = $('runLldBtn');
+  const replanLldBtn = $('replanLldBtn');
   const asChip = $('asChip');
   const asChipId = $('asChipId');
   const readinessNote = $('readinessNote');
@@ -492,12 +493,16 @@
     createAsBtn.querySelector('.btn-label').textContent =
       approvedVersion ? 'Approved Survey Created' : 'Create Approved Survey Version';
 
-    // Run LLD button
+    // Run LLD buttons (verify + full re-plan)
     const canRun = ready && !!approvedVersion;
     runLldBtn.disabled = !canRun;
+    replanLldBtn.disabled = !canRun;
     runLldBtn.querySelector('.btn-label').textContent = approvedVersion
       ? 'Run LLD on ' + approvedVersion
       : 'Run LLD';
+    replanLldBtn.querySelector('.btn-label').textContent = approvedVersion
+      ? 'Re-plan on ' + approvedVersion
+      : 'Full re-plan';
 
     // Approved version chip
     asChip.classList.toggle('show', !!approvedVersion);
@@ -924,26 +929,43 @@
     }
   });
 
-  runLldBtn.addEventListener('click', async () => {
+  function startLld(mode) {
     if (!approvedVersion) return;
-    runLldBtn.disabled = true;
-    runLldBtn.classList.add('loading');
-    runLldBtn.querySelector('.btn-label').textContent = 'Starting LLD…';
+    const btn = mode === 'replan' ? replanLldBtn : runLldBtn;
+    const other = mode === 'replan' ? runLldBtn : replanLldBtn;
+    const verb = mode === 'replan' ? 'Full re-plan' : 'LLD';
+    const confirmMsg = mode === 'replan'
+      ? 'Run a FULL RE-PLAN? This re-runs the routing algorithm with the approved survey as brownfield and takes 10–40 minutes. Only needed for structural changes (moved PDP, re-zoning, aerial conversion).'
+      : 'Run LLD on ' + approvedVersion + '? (applies survey changes to the HLD design — fast)';
+    if (!confirm(confirmMsg)) return;
+    btn.disabled = true;
+    other.disabled = true;
+    btn.classList.add('loading');
+    btn.querySelector('.btn-label').textContent = mode === 'replan' ? 'Re-planning…' : 'Starting LLD…';
 
-    try {
-      const res = await window.FtthLldApi.runLld(projectId);
-      const ver = res.lld_version || 'LLD-V01';
-      mapLoading.style.display = 'flex';
-      mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#059669;font-size:15px;font-weight:600;margin-bottom:8px;">🚀 LLD ' + esc(ver) + ' started on ' + esc(approvedVersion) + '</p>'
-        + '<a href="ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId) + '" style="display:inline-block;padding:9px 18px;background:#059669;color:#FFF;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View LLD Versions →</a></div>';
-      runLldBtn.querySelector('.btn-label').textContent = 'Run LLD on ' + approvedVersion;
-    } catch (err) {
-      alert('Run LLD failed: ' + (err.message || err));
-      runLldBtn.querySelector('.btn-label').textContent = 'Run LLD on ' + approvedVersion;
-    } finally {
-      runLldBtn.classList.remove('loading');
-    }
-  });
+    (async () => {
+      try {
+        const res = await window.FtthLldApi.runLld(projectId, mode);
+        const ver = res.lld_version || 'LLD-V01';
+        const label = mode === 'replan' ? 're-plan' : 'LLD';
+        mapLoading.style.display = 'flex';
+        mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#059669;font-size:15px;font-weight:600;margin-bottom:8px;">🚀 ' + (mode === 'replan' ? 'Full re-plan' : 'LLD') + ' ' + esc(ver) + ' started on ' + esc(approvedVersion) + '</p>'
+          + '<a href="ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId) + '" style="display:inline-block;padding:9px 18px;background:#059669;color:#FFF;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View LLD Versions →</a></div>';
+        btn.querySelector('.btn-label').textContent = label;
+      } catch (err) {
+        alert('Run ' + verb + ' failed: ' + (err.message || err));
+        btn.querySelector('.btn-label').textContent = mode === 'replan' ? 'Full re-plan' : 'Run LLD on ' + approvedVersion;
+      } finally {
+        btn.classList.remove('loading');
+        const canRun = ready && !!approvedVersion;
+        btn.disabled = !canRun;
+        other.disabled = !canRun;
+      }
+    })();
+  }
+
+  runLldBtn.addEventListener('click', () => startLld('verify'));
+  replanLldBtn.addEventListener('click', () => startLld('replan'));
 
   // ==================================================================
   // Legend + view mode + basemap

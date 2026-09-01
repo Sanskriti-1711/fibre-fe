@@ -390,9 +390,33 @@
     closed: { text:'Closed', cls:'b-gray' },
     not_required: { text:'Not Required', cls:'b-gray' }
   };
+  var PERMIT_STATUS_RANK = {
+    rejected: 9, under_review: 8, submitted: 7, evidence_required: 6,
+    identified: 5, ready: 4, approved: 3, closed: 2, not_required: 1
+  };
   function permitStatusChip(s) {
     var m = permitStatus[s] || permitStatus.identified;
     return badge(m.text, m.cls);
+  }
+  // Club per-segment rows into one permit per (type, street) — same rule as
+  // the tracker page: worst status + min readiness drive the group.
+  function clubPermits(permits) {
+    var groups = {};
+    (permits || []).forEach(function (p) {
+      var key = p.permit_type + '|' + (p.permit_group || p.route_section);
+      if (!groups[key]) {
+        groups[key] = {
+          permit_type: p.permit_type, group: p.permit_group || '',
+          authority: p.authority, firstSection: p.route_section,
+          status: p.status, readiness_pct: p.readiness_pct, sections: 0
+        };
+      }
+      var g = groups[key];
+      g.sections++;
+      if ((PERMIT_STATUS_RANK[p.status] || 0) > (PERMIT_STATUS_RANK[g.status] || 0)) g.status = p.status;
+      if (p.readiness_pct < g.readiness_pct) g.readiness_pct = p.readiness_pct;
+    });
+    return Object.keys(groups).map(function (k) { return groups[k]; });
   }
 
   async function renderPermits() {
@@ -406,8 +430,9 @@
     try {
       var d = await window.FtthLldApi.getProjectPermits(projectId);
       var total = d.total || 0;
+      var totalGroups = d.total_groups || total;
       var byStatus = d.by_status || {};
-      if (badgeEl) badgeEl.innerHTML = total ? badge(total + ' identified', 'b-amber') : badge('0', 'b-gray');
+      if (badgeEl) badgeEl.innerHTML = total ? badge(totalGroups + ' identified', 'b-amber') : badge('0', 'b-gray');
       if (!total) {
         bodyEl.innerHTML = '<div style="font-size:13px;color:#6B7280;">No permits identified yet. '
           + '<button id="ovPermitAnalyzeEmpty" class="create-btn" style="padding:6px 12px;font-size:12px;" type="button">&#x21BB; Run permit analysis</button></div>';
@@ -417,20 +442,26 @@
         return;
       }
       var stats = [
-        { label:'Total Permits', value: total },
+        { label:'Total Permits', value: totalGroups },
+        { label:'Sections', value: total },
         { label:'Readiness', value: (d.readiness_pct || 0) + '%' },
         { label:'Ready', value: byStatus.ready || 0 },
         { label:'Approved', value: byStatus.approved || 0 },
         { label:'Under Review', value: byStatus.under_review || 0 },
         { label:'Identified', value: byStatus.identified || 0 }
       ];
-      var rows = (d.permits || []).slice(0, 8).map(function (p) {
+      // One row per street-level permit group (worst status / min readiness).
+      var groups = clubPermits(d.permits || []);
+      var rows = groups.slice(0, 8).map(function (g) {
+        var route = g.group
+          ? '<strong>' + esc(g.group) + '</strong> <span style="font-family:monospace;font-size:11px;color:#6B7280;">· ' + g.sections + ' sections</span>'
+          : '<span style="font-family:monospace;font-size:11px;color:#6B7280;">' + esc(String(g.firstSection).slice(0, 14)) + '</span>';
         return '<tr>'
-          + '<td><strong>' + esc(p.permit_type) + '</strong></td>'
-          + '<td style="font-family:monospace;font-size:11px;color:#6B7280;">' + esc(String(p.route_section).slice(0, 14)) + '</td>'
-          + '<td>' + esc((p.authority && p.authority.name) || '—') + '</td>'
-          + '<td>' + permitStatusChip(p.status) + '</td>'
-          + '<td>' + (p.readiness_pct || 0) + '%</td>'
+          + '<td><strong>' + esc(g.permit_type) + '</strong></td>'
+          + '<td>' + route + '</td>'
+          + '<td>' + esc((g.authority && g.authority.name) || '—') + '</td>'
+          + '<td>' + permitStatusChip(g.status) + '</td>'
+          + '<td>' + (g.readiness_pct || 0) + '%</td>'
           + '</tr>';
       }).join('');
       // Permit package (Phase 2): latest version + download, generated docs.
@@ -459,7 +490,7 @@
         + '</div>'
         + (rows
             ? '<table class="ov-table"><thead><tr><th>Permit Type</th><th>Route Section</th><th>Authority</th><th>Status</th><th>Readiness</th></tr></thead><tbody>' + rows + '</tbody></table>'
-              + (total > 8 ? '<div style="font-size:12px;color:#9CA3AF;margin-top:8px;">Showing first 8 of ' + total + ' permits</div>' : '')
+              + (groups.length > 8 ? '<div style="font-size:12px;color:#9CA3AF;margin-top:8px;">Showing first 8 of ' + groups.length + ' permit groups (' + total + ' sections)</div>' : '')
             : '')
         + pkgHtml;
       var pkgGen = document.getElementById('ovPermitPackageGen');

@@ -89,9 +89,11 @@
     persist();
 
     const ms = intervalMs || 3000;
+    let requestInFlight = false;
 
     async function tick() {
-      if (!_state.polling) return;
+      if (!_state.polling || requestInFlight) return;
+      requestInFlight = true;
       try {
         const data = await window.FtthApi.getPipelineStatus(projectId);
         if (!_state.polling) return; // stopped while fetch was in-flight
@@ -101,19 +103,28 @@
 
         if (data.status === 'completed' || data.status === 'failed' || data.status === 'error') {
           _state.polling = false;
-          clearInterval(_state.pollTimerId);
-          _state.pollTimerId = null;
+          if (_state.pollTimerId) {
+            clearTimeout(_state.pollTimerId);
+            _state.pollTimerId = null;
+          }
           onComplete && onComplete(data);
+          return;
         }
       } catch (err) {
-        if (!_state.polling) return;
-        onError && onError(err);
+        if (_state.polling) onError && onError(err);
+      } finally {
+        requestInFlight = false;
+        // Schedule only after the previous request has completed. This
+        // prevents overlapping polls and stale responses when the backend
+        // takes longer than the configured interval.
+        if (_state.polling) {
+          _state.pollTimerId = setTimeout(tick, ms);
+        }
       }
     }
 
-    // Fire immediately, then every `ms`
+    // Fire immediately, then schedule one request at a time.
     tick();
-    _state.pollTimerId = setInterval(tick, ms);
 
     // Return a stop handle
     return function stop() {
