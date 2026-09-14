@@ -283,6 +283,12 @@
   }
 
   var map = null, allLayers = [];
+  // For grouped layers (cables/ducts), sublayerRegistry maps group name ->
+  // sublayer names (e.g. cables -> [Feeder_Cable, Distribution_Cable]) and
+  // sublayerCounts maps group -> sublayer -> feature count. The layers pane
+  // renders one toggle per sublayer so feeder/distribution can be switched
+  // independently.
+  var sublayerRegistry = {}, sublayerCounts = {};
   var permitByLayer = {};
   // Permit-status colouring: worst (most blocking) status wins per feature.
   var PERMIT_STATUS_COLORS = {
@@ -312,7 +318,18 @@
 
   function initResultsMap() {
     try {
-      map = window.FtthMap.initMap('map', { id:'results', center:[13.405,52.52], zoom:11, basemap:'streets', onLoad:function(){ loadPipelineData(); } });
+      var initCenter = [13.405, 52.52], initZoom = 11;
+      var c = params.get('center');
+      var z = params.get('zoom');
+      if (c) {
+        var parts = c.split(',').map(parseFloat);
+        if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) { initCenter = [parts[0], parts[1]]; }
+      }
+      if (z) {
+        var zv = parseFloat(z);
+        if (!isNaN(zv) && zv >= 1 && zv <= 20) { initZoom = zv; }
+      }
+      map = window.FtthMap.initMap('map', { id:'results', center:initCenter, zoom:initZoom, basemap:'streets', onLoad:function(){ loadPipelineData(); } });
       if (map.loaded()) { loadPipelineData(); }
     } catch(err) {
       console.error('Map init failed:', err);
@@ -374,7 +391,7 @@
         mapLoadingEl.querySelector('.spinner').style.display = 'block';
         mapLoadingEl.querySelector('div > div').textContent = 'Loading GIS layers\u2026';
         await Promise.all(allLayers.map(function(layer, index){ return loadLayerGeoJSON(layer, index); }));
-        setTimeout(function(){ try{ window.FtthMap.fitToLayers(map, 50); }catch(_){} }, 500);
+        setTimeout(function(){ try{ if (!params.get('center') && !params.get('zoom')) { window.FtthMap.fitToLayers(map, 50); } }catch(_){} }, 500);
       } else {
         showEmpty('No layers generated.');
       }
@@ -402,6 +419,33 @@
               : (props.id != null ? String(props.id) : null));
           if (fid && layerPermits[fid]) props.permit_status = layerPermits[fid];
         });
+      }
+      // Grouped layers (cables/ducts) carry a per-feature `sublayer` property
+      // (Feeder_Cable / Distribution_Cable / Feeder_Ducts / Distribution_Ducts /
+      // Drop_Ducts). Split them into one map layer per sublayer so the layers
+      // pane can toggle feeder vs distribution independently.
+      var SUBLAYER_COLORS = window.FtthMap.SUBLAYER_COLORS || {};
+      var subByFeat = {};
+      (geojson.features || []).forEach(function (f) {
+        var s = f.properties && f.properties.sublayer;
+        if (s && SUBLAYER_COLORS[s]) subByFeat[s] = (subByFeat[s] || 0) + 1;
+      });
+      var subNames = Object.keys(subByFeat);
+      if (subNames.length > 0) {
+        sublayerRegistry[layerName] = subNames;
+        sublayerCounts[layerName] = subByFeat;
+        subNames.forEach(function (sub) {
+          var subGeo = { type: 'FeatureCollection', features: [] };
+          (geojson.features || []).forEach(function (f) {
+            if (f.properties && f.properties.sublayer === sub) subGeo.features.push(f);
+          });
+          window.FtthMap.addGeoJSONLayer(map, layerName + '::' + sub, subGeo, {
+            fillColor: SUBLAYER_COLORS[sub], visible: true,
+            permitField: 'permit_status', permitColors: PERMIT_STATUS_COLORS,
+          });
+        });
+        expandLayerControls(layerName);
+        return;
       }
       // Only the brownfield layer shades by ASSET_TYPE (all existing infra
       // under one toggle, in shades of one colour). Other layers keep their
@@ -460,15 +504,61 @@
       cs.textContent = count + ' features';
       label.appendChild(cb); label.appendChild(dot); label.appendChild(ns); label.appendChild(cs);
       layerControlsEl.appendChild(label);
+      // Grouped layers (cables/ducts) get their group row replaced by one
+      // toggle per sublayer once the GeoJSON has loaded and the sublayer
+      // breakdown is known. Add an empty placeholder container now so the
+      // expansion has a stable anchor.
+      var groupAnchor = document.createElement('div');
+      groupAnchor.id = 'layer-group-' + name.replace(/\s+/g,'-');
+      groupAnchor.style.display = 'none';
+      layerControlsEl.appendChild(groupAnchor);
     });
   }
+
+  // Replace a grouped layer's single row with one toggle per sublayer
+  // (e.g. cables -> Feeder_Cable + Distribution_Cable).
+  function expandLayerControls(groupName) {
+    var anchor = document.getElementById('layer-group-' + groupName.replace(/\s+/g,'-'));
+    if (!anchor) return;
+    var subs = sublayerRegistry[groupName] || [];
+    var counts = sublayerCounts[groupName] || {};
+    var total = 0;
+    subs.forEach(function(s){ total += (counts[s] || 0); });
+    var html = '';
+    // Group header row (keeps the group name visible, shows the total count)
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 2px;font-size:13px;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB;">';
+    html += '<span>' + escapeHtml(groupName) + '</span>';
+    html += '<span class="layer-count" style="font-weight:500;color:#6B7280;font-size:12px;">' + total + ' features</span>';
+    html += '</div>';
+    subs.forEach(function(sub){
+      var subKey = groupName + '::' + sub;
+      var subColor = (window.FtthMap.SUBLAYER_COLORS || {})[sub] || getLayerColor(groupName);
+      html += '<label class="ftth-layer-toggle" style="display:flex;align-items:center;gap:10px;padding:8px 0 8px 14px;cursor:pointer;border-bottom:1px solid #F3F4F6;">';
+      html += '<input type="checkbox" checked style="width:16px;height:16px;accent-color:#E31837;cursor:pointer;" data-layer-name="' + escapeHtml(subKey) + '">';
+      html += '<span class="ftth-layer-color-dot" style="background:' + subColor + ';"></span>';
+      html += '<span class="layer-name">' + escapeHtml(sub) + '</span>';
+      html += '<span class="layer-count" id="layer-count-' + subKey.replace(/\s+/g,'-') + '">' + (counts[sub] || 0) + ' features</span>';
+      html += '</label>';
+    });
+    anchor.innerHTML = html;
+    anchor.style.display = 'block';
+    // Hide the original single group row (it sits right before the anchor).
+    var prev = anchor.previousElementSibling;
+    if (prev && prev.tagName === 'LABEL') prev.style.display = 'none';
+    // Wire the sublayer checkboxes
+    anchor.querySelectorAll('input[data-layer-name]').forEach(function(cb2){
+      cb2.addEventListener('change', function(){ toggleLayerVisibility(cb2.dataset.layerName, cb2.checked); });
+    });
+  }
+
+  // Sublayer layer names look like 'cables::Feeder_Cable'; the map module
+  // registers them with the same id, so the standard visibility toggle works.
+  function toggleLayerVisibility(layerName, visible) { window.FtthMap.setLayerVisible(map, layerName, visible); }
 
   function updateToggleStatus(layerName, count) {
     var el = document.getElementById('layer-count-' + layerName.replace(/\s+/g,'-'));
     if (el) el.textContent = count + ' features';
   }
-
-  function toggleLayerVisibility(layerName, visible) { window.FtthMap.setLayerVisible(map, layerName, visible); }
 
   function getLayerColor(name) {
     var colors = {
@@ -476,6 +566,7 @@
       objects: '#8B5CF6', pdps: '#06B6D4', mfg: '#10B981',
       feeder_cable: '#EF4444', distribution_cable: '#F97316',
       feeder_ducts: '#F59E0B', distribution_ducts: '#EAB308', drop_ducts: '#EC4899',
+      coupleurs: '#14B8A6',
       chambers: '#92400E', poles: '#475569', brownfield: '#64748B',
       buildings: '#8B5CF6'
     };

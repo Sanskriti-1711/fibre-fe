@@ -83,6 +83,11 @@
     drop_ducts: {
       fill: '#EC4899', outline: '#9D174D', opacity: 0.6, lineWidth: 2.5, lineDash: [2, 2], label: 'Drop Ducts',
     },
+    coupleurs: {
+      // Couplers at pseudo → object duct connections: distinct diamond-ish
+      // teal point so they never read as a chamber or PDP.
+      fill: '#14B8A6', outline: '#0F766E', opacity: 0.95, lineWidth: 2, lineDash: [], pointRadius: 6, label: 'Couplers',
+    },
     objects: {
       fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4, label: 'Objects',
     },
