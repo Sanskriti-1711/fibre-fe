@@ -372,10 +372,34 @@
     }
 
     renderLayerControls(present);
-    // fitToLayers walks every registered source; treat a failure as cosmetic
-    // (the layers are already drawn) so the loading overlay never stays up.
-    try { window.FtthMap.fitToLayers(map, 40); } catch (_) { /* ignore */ }
+    // Fit to the design itself (the shared helper walks every registered
+    // source and can throw, which would leave the camera on the default city
+    // centre with the design off-screen).
+    try { fitToDesign(layers); } catch (_) { /* cosmetic */ }
     mapLoadingEl.style.display = 'none';
+  }
+
+  /** Zoom/centre the map on the designed geometry. */
+  function fitToDesign(layers) {
+    var bounds = new maplibregl.LngLatBounds();
+    var found = false;
+    function walk(c) {
+      if (!c) { return; }
+      if (typeof c[0] === 'number') {
+        if (c.length >= 2 && isFinite(c[0]) && isFinite(c[1])) {
+          bounds.extend([c[0], c[1]]);
+          found = true;
+        }
+        return;
+      }
+      for (var i = 0; i < c.length; i++) { walk(c[i]); }
+    }
+    ['trenches', 'aerial_drops', 'nodes', 'crossings', 'aerial_zones'].forEach(function (key) {
+      var layer = layers[key];
+      var feats = (layer && layer.geojson && layer.geojson.features) || [];
+      feats.forEach(function (f) { walk(f.geometry && f.geometry.coordinates); });
+    });
+    if (found) { map.fitBounds(bounds, { padding: 50, maxZoom: 18 }); }
   }
 
   // ── identify / inspector (shared FtthMap tool) ─────────────────────────
