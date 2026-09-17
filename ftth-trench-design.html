@@ -195,9 +195,9 @@
 </script>
 <script src="fiber-api.js"></script>
 <script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
-<script src="js/ftth-api.js"></script>
+<script src="js/ftth-api.js?v=20260917b"></script>
 <script src="js/ftth-state.js"></script>
-<script src="js/ftth-map.js"></script>
+<script src="js/ftth-map.js?v=20260917b"></script>
 <script src="js/ftth-components.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -236,6 +236,12 @@
   }
 
   function fetchDesign(includeLayers) {
+    // The trench-design calls live in ftth-api.js; a browser that cached an
+    // older copy would fail here with no network request at all, which looks
+    // like "the page does nothing". Fail loudly instead.
+    if (!window.FtthApi || typeof window.FtthApi.getTrenchDesign !== 'function') {
+      return Promise.reject(new Error('ftth-api.js is out of date — hard-refresh the page (Ctrl+Shift+R).'));
+    }
     return window.FtthApi.getTrenchDesign(projectId, includeLayers);
   }
 
@@ -465,7 +471,7 @@
       var state = payload.status || 'missing';
       statusEl.dataset.state = state;
       setStatus(state, payload.stage);
-      msgEl.textContent = payload.error || '';
+      msgEl.textContent = payload.error ? ('Design failed: ' + payload.error) : '';
       if (state === 'completed' && payload.layers) {
         renderKpis(payload);
         mapLoadingEl.style.display = 'none';
@@ -476,8 +482,13 @@
         }
         runLabel.textContent = 'Re-run trench design';
       } else if (state === 'missing') {
+        // Nothing to show yet — design it now instead of making the user hunt
+        // for the button (the run reads the project's own HLD outputs).
         mapLoadingEl.style.display = 'flex';
-        mapLoadingEl.innerHTML = '<p style="color:#6B7280;font-size:15px;text-align:center;max-width:340px;">No trench design yet for this project.<br>Press <strong>Run trench design</strong> to design the civil network from its HLD outputs.</p>';
+        mapLoadingEl.innerHTML = '<div style="text-align:center;"><div class="spinner" style="margin:0 auto 12px;"></div>'
+          + '<div style="font-size:14px;color:#6B7280;">No design yet for this project &mdash; designing it now&hellip;</div></div>';
+        setRunning(true, 'Queued\u2026');
+        return startDesignRun(false).then(function () { pollDesign(); });
       } else if (state === 'failed') {
         mapLoadingEl.style.display = 'none';
       } else {
