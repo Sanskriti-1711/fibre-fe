@@ -128,6 +128,12 @@
       'cabinet': '#5B6B7E',
       'pdp': '#3F4D61',
       'mfg': '#334155',
+      // Structural node types from the trench designer (uppercase NODE_TYPE).
+      'HDD_PIT': '#B91C1C',
+      'PDP': '#06B6D4',
+      'BEND': '#6B7280',
+      'JUNCTION': '#7C3AED',
+      'PULL': '#F59E0B',
     },
   };
 
@@ -141,6 +147,126 @@
   // (full attribute table) instead of showing the small default popup.
   let _identifyActive = false;
   let _identifyCallback = null;
+  let _identifyClickHandler = null;
+
+  // ------------------------------------------------------------------
+  // Source registry — every GeoJSON source we add keeps its full feature
+  // list here so a click can be expanded back to the COMPLETE feature it
+  // belongs to. MapLibre answers queries from its internal tiles, so the
+  // geometry it hands back is clipped to the tile the click landed in: a
+  // grouped trench (e.g. "Open Cut" with hundreds of parts) or a long duct
+  // would otherwise highlight only the fragment under the cursor instead of
+  // the whole run.
+  // ------------------------------------------------------------------
+  var _sourceFeatures = {};
+  var _sourceKeyIndex = {};
+
+  // Attribute names that carry a stable per-feature identity. Layers written
+  // by the pipeline stamp `feature_id`; grouped layers that omit it (the
+  // trench layer) fall back to a fingerprint of their attributes below.
+  var _ID_FIELDS = ['feature_id', 'FEATURE_ID', 'id', 'SRC_ID', 'ASSET_ID', 'DUCT_ID', 'CABLE_ID', 'PDP_ID', 'MFG_ID', 'STRUCT_ID',
+    // Trench-designer outputs (design.trench_design): spans, structural nodes,
+    // HDD drills and aerial drops each carry their own stable id.
+    'TRENCH_ID', 'SPAN_ID', 'NODE_ID', 'DRILL_ID', 'DROP_ID'];
+
+  function _featureIdentity(props) {
+    if (!props) return null;
+    for (var i = 0; i < _ID_FIELDS.length; i++) {
+      var f = _ID_FIELDS[i];
+      if (props[f] !== undefined && props[f] !== null && props[f] !== '') { return f + '=' + String(props[f]); }
+    }
+    var keys = Object.keys(props).sort(), parts = [];
+    for (var k = 0; k < keys.length; k++) {
+      var v = props[keys[k]];
+      if (v === undefined || v === null || v === '') continue;
+      parts.push(keys[k] + '=' + String(v));
+    }
+    return parts.length ? 'fp:' + parts.join('|') : null;
+  }
+
+  function _registerSourceFeatures(sourceId, geojson) {
+    var feats = (geojson && geojson.features) || [];
+    _sourceFeatures[sourceId] = feats;
+    var idx = {};
+    for (var i = 0; i < feats.length; i++) {
+      var key = _featureIdentity(feats[i] && feats[i].properties);
+      if (!key) continue;
+      if (!idx[key]) idx[key] = [];
+      idx[key].push(feats[i]);
+    }
+    _sourceKeyIndex[sourceId] = idx;
+  }
+
+  /** First coordinate of any (multi) geometry, used for locality tests. */
+  function _firstCoord(feature) {
+    var g = feature && feature.geometry;
+    var c = g && g.coordinates;
+    while (c && c.length && typeof c[0] !== 'number') { c = c[0]; }
+    return (c && c.length >= 2) ? c : null;
+  }
+
+  /** True when any vertex of `feature` sits within `eps` degrees of `pt`. */
+  function _hasVertexNear(feature, pt, eps) {
+    var found = false;
+    function walk(c) {
+      if (found || !c || !c.length) return;
+      if (typeof c[0] === 'number') {
+        if (Math.abs(c[0] - pt[0]) <= eps && Math.abs(c[1] - pt[1]) <= eps) { found = true; }
+        return;
+      }
+      for (var i = 0; i < c.length && !found; i++) { walk(c[i]); }
+    }
+    walk(feature && feature.geometry && feature.geometry.coordinates);
+    return found;
+  }
+
+  /**
+   * Expand a clicked (possibly tile-clipped) query result back to every source
+   * feature that belongs to the same logical asset. Returns an array of
+   * features — usually one complete feature, or the several parts of it.
+   */
+  function resolveFullFeatures(sourceId, clicked) {
+    var idx = _sourceKeyIndex[sourceId];
+    if (!clicked) return [];
+    if (!idx) return [clicked];
+    var key = _featureIdentity(clicked.properties);
+    var cands = (key && idx[key]) ? idx[key].slice() : [];
+    if (!cands.length) return [clicked];
+    // A fingerprint can collide between genuinely separate features; keep only
+    // the candidates that actually touch the clicked geometry.
+    if (cands.length > 1) {
+      var pt = _firstCoord(clicked);
+      if (pt) {
+        var local = cands.filter(function (f) { return _hasVertexNear(f, pt, 1e-6); });
+        if (local.length) cands = local;
+      }
+    }
+    return cands;
+  }
+
+  /** Collapse the parts of one asset into a single Feature (for the inspector). */
+  function combineFeatureParts(list) {
+    if (!list || !list.length) return null;
+    if (list.length === 1) return list[0];
+    var lines = [], polys = [], pts = [], fam = null, mixed = false;
+    list.forEach(function (f) {
+      var g = f && f.geometry;
+      if (!g || !g.coordinates) return;
+      var t = g.type;
+      if (t === 'LineString') { lines.push(g.coordinates); fam = fam || 'line'; if (fam !== 'line') mixed = true; return; }
+      if (t === 'MultiLineString') { fam = fam || 'line'; if (fam !== 'line') mixed = true; g.coordinates.forEach(function (l) { lines.push(l); }); return; }
+      if (t === 'Polygon') { fam = fam || 'poly'; if (fam !== 'poly') mixed = true; polys.push(g.coordinates); return; }
+      if (t === 'MultiPolygon') { fam = fam || 'poly'; if (fam !== 'poly') mixed = true; g.coordinates.forEach(function (p) { polys.push(p); }); return; }
+      if (t === 'Point') { fam = fam || 'point'; if (fam !== 'point') mixed = true; pts.push(g.coordinates); return; }
+      if (t === 'MultiPoint') { fam = fam || 'point'; if (fam !== 'point') mixed = true; g.coordinates.forEach(function (p) { pts.push(p); }); return; }
+    });
+    var geometry = null;
+    if (!mixed && lines.length) geometry = { type: 'MultiLineString', coordinates: lines };
+    else if (!mixed && polys.length) geometry = { type: 'MultiPolygon', coordinates: polys };
+    else if (!mixed && pts.length) geometry = { type: 'MultiPoint', coordinates: pts };
+    if (!geometry) geometry = list[0].geometry;
+    return { type: 'Feature', id: list[0].id, properties: list[0].properties, geometry: geometry };
+  }
 
   // ------------------------------------------------------------------
   // Internal helpers
@@ -213,6 +339,10 @@
     var fillFlagged = opts.fillFlagged || palette.fillFlagged || fillColor;
     var outlineColor = opts.outlineColor || palette.outline;
     var fillOpacity = opts.fillOpacity !== undefined ? opts.fillOpacity : palette.opacity;
+    // MapLibre rejects out-of-range paint values and then DROPS the layer
+    // (it only fires an error event), so clamp: a line derived opacity of
+    // fillOpacity + 0.2 above 1 would silently lose the whole layer.
+    function clamp01(v) { return Math.max(0, Math.min(1, Number(v) || 0)); }
     var visible = opts.visible !== false;
     var flagField = opts.flagField;
     var flagValue = opts.flagValue;
@@ -221,6 +351,10 @@
     var fillLayerId = 'ftth-fill-' + layerId;
     var outlineLayerId = 'ftth-outline-' + layerId;
     var pointsLayerId = 'ftth-points-' + layerId;
+
+    // Keep the complete feature list for this source so identify clicks can be
+    // expanded from a tile-clipped fragment back to the whole feature.
+    _registerSourceFeatures(sourceId, geojson);
 
     if (map.getSource(sourceId)) return { sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId, pointsLayerId: pointsLayerId };
 
@@ -280,7 +414,7 @@
     var renderedLayers = [];
 
     if (hasPolygon) {
-      var fillPaint = { 'fill-opacity': fillOpacity };
+      var fillPaint = { 'fill-opacity': clamp01(fillOpacity) };
       if (flagField) { fillPaint['fill-color'] = ['match', ['get', flagField], flagValue, fillFlagged, fillColor]; }
       else if (permitMatch) { fillPaint['fill-color'] = permitMatch; }
       else if (typeMatch) { fillPaint['fill-color'] = typeMatch; }
@@ -294,7 +428,7 @@
       var linePaint = {
         'line-color': fillColor,
         'line-width': palette.lineWidth !== undefined ? palette.lineWidth : 3,
-        'line-opacity': fillOpacity + 0.2,
+        'line-opacity': clamp01(fillOpacity + 0.2),
       };
       if (permitMatch) {
         linePaint['line-color'] = permitMatch;
@@ -340,23 +474,12 @@
         var props = feature.properties || {};
         var coords = e.lngLat;
 
-        // Identify mode: highlight the feature on the dedicated highlight
-        // layer and let the page render the full attribute table. Only the
-        // fill/points layer of a geometry group does the highlight so the
-        // outline layer (same source) does not re-fire it. Strip the generic
-        // group prefix AND the page-specific prefix (LLD pages add 'lld-').
-        if (_identifyActive) {
-          var publicLayerId = lid
-            .replace(/^ftth-(fill|outline|points)-/, '')
-            .replace(/^lld-/, '');
-          if (lid.indexOf('ftth-fill-') === 0 || lid.indexOf('ftth-points-') === 0) {
-            highlightFeatureData(map, feature);
-            if (typeof _identifyCallback === 'function') {
-              _identifyCallback(feature, publicLayerId, coords);
-            }
-          }
-          return;
-        }
+        // Identify mode is served by one map-level click handler (see
+        // handleIdentifyClick) so the TOP-MOST rendered feature wins. Every
+        // layer stacked under the cursor fires its own click listener, which
+        // made the selection depend on style order — clicking a trench that
+        // carries a duct inside it could select the duct instead.
+        if (_identifyActive) { return; }
 
         var html = '<div style="font-size:13px;line-height:1.5;max-width:280px;">';
         var keys = Object.keys(props).slice(0, 12);
@@ -394,12 +517,55 @@
     _identifyActive = !!active;
     _identifyCallback = typeof onSelect === 'function' ? onSelect : null;
     if (map) {
+      if (_identifyClickHandler) {
+        map.off('click', _identifyClickHandler);
+        _identifyClickHandler = null;
+      }
+      if (active) {
+        _identifyClickHandler = function (e) { handleIdentifyClick(map, e); };
+        map.on('click', _identifyClickHandler);
+      }
       map.getCanvas().style.cursor = active ? 'crosshair' : '';
       if (!active) { clearHighlightLayer(map); }
     }
   }
 
   function isIdentifyActive() { return _identifyActive; }
+
+  /**
+   * One identify click for the whole map: resolve the top-most design feature
+   * under the cursor, expand it to its complete geometry and hand it to the
+   * page. Returns the picked feature (for tests / callers).
+   */
+  function handleIdentifyClick(map, e) {
+    if (!_identifyActive || !map) return null;
+    var feats = [];
+    try { feats = map.queryRenderedFeatures(e.point) || []; } catch (_) { return null; }
+    var styleLayers = (map.getStyle() && map.getStyle().layers) || [];
+    var rank = {};
+    for (var i = 0; i < styleLayers.length; i++) { rank[styleLayers[i].id] = i; }
+    var pick = null, pickRank = -1;
+    for (var j = 0; j < feats.length; j++) {
+      var f = feats[j];
+      var lid = f && f.layer && f.layer.id;
+      if (!lid || lid.indexOf('ftth-highlight-') === 0) continue;
+      if (lid.indexOf('ftth-fill-') !== 0 && lid.indexOf('ftth-points-') !== 0) continue;
+      var r = rank[lid] === undefined ? 0 : rank[lid];
+      if (r >= pickRank) { pickRank = r; pick = f; }
+    }
+    if (!pick) return null;
+
+    var publicLayerId = pick.layer.id
+      .replace(/^ftth-(fill|outline|points)-/, '')
+      .replace(/^lld-/, '');
+    var sourceId = 'ftth-source-' + pick.layer.id.replace(/^ftth-(fill|points)-/, '');
+    var parts = resolveFullFeatures(sourceId, pick);
+    highlightFeatureData(map, parts);
+    if (typeof _identifyCallback === 'function') {
+      _identifyCallback(combineFeatureParts(parts) || pick, publicLayerId, e.lngLat);
+    }
+    return pick;
+  }
 
   /** Idempotent: create the bright highlight source + layers above the data. */
   function ensureHighlightLayer(map) {
@@ -425,13 +591,19 @@
     });
   }
 
-  /** Paint the clicked feature on the highlight layer. */
+  /**
+   * Paint a feature (or every part of one asset) on the highlight layer.
+   * Accepts a single Feature or an array of them.
+   */
   function highlightFeatureData(map, feature) {
-    if (!map || !feature || !feature.geometry) return;
+    if (!map || !feature) return;
+    var list = Array.isArray(feature) ? feature : [feature];
+    list = list.filter(function (f) { return f && f.geometry; });
+    if (!list.length) return;
     ensureHighlightLayer(map);
     var src = map.getSource('ftth-highlight-src');
     if (src) {
-      src.setData({ type: 'FeatureCollection', features: [feature] });
+      src.setData({ type: 'FeatureCollection', features: list });
     }
   }
 
@@ -497,5 +669,6 @@
     SUBLAYER_COLORS: LAYER_COLORS.SUBLAYER_COLORS,
     setIdentifyActive: setIdentifyActive, isIdentifyActive: isIdentifyActive,
     highlightFeature: highlightFeatureData, clearHighlight: clearHighlightLayer,
+    resolveFullFeatures: resolveFullFeatures, identifyClick: handleIdentifyClick,
   };
 })();

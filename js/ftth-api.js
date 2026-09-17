@@ -312,6 +312,46 @@
     return body;
   }
 
+  /**
+   * Trench design (Phase A of TRENCH_DESIGN.md).
+   *
+   * The designed civil network for a project: status + report + one
+   * FeatureCollection per design layer (trench spans, structural nodes, HDD
+   * crossings, aerial drops, aerial zones).
+   *
+   * @param {string} projectId
+   * @param {boolean} [includeLayers=true]
+   */
+  async function getTrenchDesign(projectId, includeLayers) {
+    var id = encodeURIComponent(projectId);
+    var suffix = includeLayers === false ? '?layers=false' : '';
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/trench-design/' + suffix);
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
+  /**
+   * Start (or re-run) the trench designer for a project. Returns immediately
+   * with the queued status; poll ``getTrenchDesign`` for progress.
+   */
+  async function runTrenchDesign(projectId, force) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/trench-design/run/');
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ force: !!force }),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
   // ------------------------------------------------------------------
   // Internal helpers
   // ------------------------------------------------------------------
@@ -345,5 +385,7 @@
     getBoq: getBoq,
     regenerateBoq: regenerateBoq,
     downloadBoq: downloadBoq,
+    getTrenchDesign: getTrenchDesign,
+    runTrenchDesign: runTrenchDesign,
   };
 })();

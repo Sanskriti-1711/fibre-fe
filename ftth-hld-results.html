@@ -207,6 +207,14 @@
       </div>
 
       <div class="ftth-side-pane-section">
+        <h3>Trench Design</h3>
+        <button id="trenchDesignBtn" class="ftth-design-btn" type="button" style="margin-top:0;">
+          <span class="icon">&#x1F6E0;&#xFE0F;</span>
+          <span><div>Open Trench Design</div><div class="sub">Designed civil network: chamber-to-chamber spans, Open Cut / HDD / Garden, aerial drops</div></span>
+        </button>
+      </div>
+
+      <div class="ftth-side-pane-section">
         <h3>Packages</h3>
         <div id="surveyPackageContainer" style="display:none;">
           <button id="surveyPackageBtn" class="ftth-survey-btn" type="button">
@@ -374,7 +382,9 @@
             : p.layer === 'object_layer' ? 'objects'
             : p.layer === 'polygon_layer' ? 'polygons' : p.layer;
           var cur = permitByLayer[layerKey] || (permitByLayer[layerKey] = {});
-          var rs = String(p.route_section != null ? p.route_section : '');
+          // Section-keyed rows are "<gis_id>#<SECTION_ID>"; the map feature is
+          // the parent trench, so match on the part before the '#'.
+          var rs = String(p.route_section != null ? p.route_section : '').split('#')[0];
           if (!rs) return;
           var prev = cur[rs];
           if (!prev || (PERMIT_STATUS_PRIORITY[st] !== undefined && PERMIT_STATUS_PRIORITY[st] < PERMIT_STATUS_PRIORITY[prev])) {
@@ -425,6 +435,20 @@
       // Drop_Ducts). Split them into one map layer per sublayer so the layers
       // pane can toggle feeder vs distribution independently.
       var SUBLAYER_COLORS = window.FtthMap.SUBLAYER_COLORS || {};
+      // Runs ingested before the tier tag was persisted can lack `sublayer`.
+      // The cable tier is authoritative in the served attributes (CABLE_TYPE
+      // is exactly "Feeder" / "Distribution"), so derive it instead of
+      // collapsing every cable into one toggle. Ducts carry no tier marker of
+      // their own — those rely on the tag written at ingest.
+      if (layerName === 'cables') {
+        var CABLE_SUB = { 'Feeder': 'Feeder_Cable', 'Distribution': 'Distribution_Cable' };
+        (geojson.features || []).forEach(function (f) {
+          var p = f.properties || (f.properties = {});
+          if (p.sublayer) return;
+          var sub = CABLE_SUB[p.CABLE_TYPE];
+          if (sub) p.sublayer = sub;
+        });
+      }
       var subByFeat = {};
       (geojson.features || []).forEach(function (f) {
         var s = f.properties && f.properties.sublayer;
@@ -579,6 +603,14 @@
     var hasOutputs = !!(downloads && downloads.length);
     surveyPkgContainer.style.display = hasOutputs ? 'block' : 'none';
     designPkgContainer.style.display = hasOutputs ? 'block' : 'none';
+  }
+
+  var trenchDesignBtn = document.getElementById('trenchDesignBtn');
+  if (trenchDesignBtn) {
+    trenchDesignBtn.addEventListener('click', function(){
+      if (!projectId) { return; }
+      window.location.href = 'ftth-trench-design.html?project_id=' + encodeURIComponent(projectId);
+    });
   }
 
   if (surveyPkgBtn) {
