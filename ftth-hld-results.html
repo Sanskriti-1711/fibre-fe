@@ -196,14 +196,6 @@
         </div>
       </div>
 
-      <div class="ftth-side-pane-section" id="trenchDesignSection">
-        <h3>Trench Design</h3>
-        <a id="trenchDesignBtn" class="ftth-design-btn" href="#" style="margin-top:0;">
-          <span class="icon">&#x1F6E0;&#xFE0F;</span>
-          <span><div>Open Trench Design</div><div class="sub">Designed civil network: chamber-to-chamber spans, Open Cut / HDD / Garden, aerial drops &amp; zones</div></span>
-        </a>
-      </div>
-
       <div class="ftth-side-pane-section">
         <h3>Layers <span class="badge" id="layerBadge">0</span></h3>
         <div class="ftth-layer-controls" id="layerControls"><div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>Loading layers&#x2026;</p></div></div>
@@ -603,18 +595,6 @@
     var hasOutputs = !!(downloads && downloads.length);
     surveyPkgContainer.style.display = hasOutputs ? 'block' : 'none';
     designPkgContainer.style.display = hasOutputs ? 'block' : 'none';
-  }
-
-  var trenchDesignBtn = document.getElementById('trenchDesignBtn');
-  if (trenchDesignBtn) {
-    if (projectId) {
-      trenchDesignBtn.href = 'ftth-trench-design.html?project_id=' + encodeURIComponent(projectId);
-    }
-    trenchDesignBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      if (!projectId) { return; }
-      window.location.href = 'ftth-trench-design.html?project_id=' + encodeURIComponent(projectId);
-    });
   }
 
   if (surveyPkgBtn) {
