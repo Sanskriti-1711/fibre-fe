@@ -150,12 +150,15 @@
   //   MFG        hexagon (green)          Trench Open Cut  solid
   //   PDP        triangle (cyan)          Trench HDD       long dash
   //   Chamber    square (by subtype)      Trench Garden    dotted
-  //   Coupler    diamond (teal)           Feeder duct      solid, wide
-  //   Pole       cross (brown)            Distribution duct med dash
-  //   Premise    pin (violet)             Drop duct        dotted, thin
-  //   Existing   circle (grey shades)     Feeder cable     solid
-  //                                       Distribution     dash
-  //                                       Drop cable       dotted, thin
+  //   Coupler    diamond (teal)
+  //   Pole       cross (brown)
+  //   Premise    pin (violet)
+  //   Existing   circle (grey shades)
+  //
+  // ONLY the glyphs and the trench stroke pattern are opinionated: every other
+  // layer keeps the colour, width and dash it always had, so a map that was
+  // already legible stays legible and the change reads as "now I can tell the
+  // components apart" rather than "the map was redesigned".
   // ------------------------------------------------------------------
   const SHAPE_PATHS = {
     hexagon: 'M12 2.6 L20.1 7.3 V16.7 L12 21.4 L3.9 16.7 V7.3 Z',
@@ -170,19 +173,20 @@
   // Point symbol per component. ``field`` + ``values`` picks the shape from a
   // feature property (chambers by SUBTYPE, existing infra by ASSET_TYPE).
   const SYMBOL_SPEC = {
-    mfg: { shape: 'hexagon', color: '#059669' },
-    pdps: { shape: 'triangle', color: '#0891B2' },
+    // Colours are the ones the palette already used for these layers.
+    mfg: { shape: 'hexagon', color: '#10B981' },
+    pdps: { shape: 'triangle', color: '#06B6D4' },
     chambers: {
       shape: 'square', color: '#475569', field: 'SUBTYPE',
       values: {
         Bore: { shape: 'ringSquare', color: '#B91C1C' },
-        Manhole: { shape: 'square', color: '#0F172A' },
+        Manhole: { shape: 'square', color: '#1E293B' },
         Handhole: { shape: 'square', color: '#64748B' },
       },
     },
-    coupleurs: { shape: 'diamond', color: '#0D9488' },
+    coupleurs: { shape: 'diamond', color: '#14B8A6' },
     poles: { shape: 'cross', color: '#A16207' },
-    objects: { shape: 'pin', color: '#6D28D9' },
+    objects: { shape: 'pin', color: '#8B5CF6' },
     brownfield: {
       shape: 'circle', color: '#64748B', field: 'ASSET_TYPE',
       values: {
@@ -198,40 +202,18 @@
     },
   };
 
-  // Line stroke pattern per component/tier. Buckets are matched on a feature
-  // property so one published layer (e.g. Final_Trenches) still reads as
-  // Open Cut / HDD / Garden on the map.
+  // Trench stroke pattern by construction class — the one line layer that
+  // needed a representation, because Final_Trenches publishes Open Cut, HDD and
+  // Garden in a single layer. Same blue as before: the class is carried by the
+  // PATTERN, not by a new colour. Every other layer (ducts, cables, existing
+  // infra) keeps its own palette colour, width and dash untouched.
   const LINE_SPEC = {
     trenches: {
       field: 'trench_type',
       buckets: [
-        { value: 'Open Cut', color: '#2563EB', width: 5, dash: null, aliases: ['opencut'] },
-        { value: 'HDD', color: '#7C3AED', width: 5, dash: [12, 5], aliases: ['hdd', 'drill', 'bore'] },
-        { value: 'Garden', color: '#22D3EE', width: 2.5, dash: [1.5, 3], aliases: ['garden', 'drop'] },
-      ],
-    },
-    ducts: {
-      field: 'DUCT_TYPE',
-      buckets: [
-        { value: '4-Way HDPE', color: '#F59E0B', width: 6, dash: null, aliases: ['feeder'] },
-        { value: '2-Way HDPE', color: '#EAB308', width: 4.5, dash: [9, 4], aliases: ['distribution', 'dist'] },
-        { value: '1-Way HDPE', color: '#EC4899', width: 2.5, dash: [2, 3], aliases: ['drop', 'garden'] },
-      ],
-    },
-    cables: {
-      field: 'CABLE_TYPE',
-      buckets: [
-        { value: 'Feeder', color: '#EF4444', width: 5, dash: null, aliases: ['feeder'] },
-        { value: 'Distribution', color: '#F97316', width: 3.5, dash: [7, 3], aliases: ['distribution', 'dist'] },
-        { value: 'Drop', color: '#FB923C', width: 2, dash: [2.5, 2.5], aliases: ['drop', 'garden'] },
-      ],
-    },
-    brownfield: {
-      field: 'ASSET_TYPE',
-      buckets: [
-        { value: 'trench', color: '#94A3B8', width: 3, dash: [4, 3] },
-        { value: 'duct', color: '#64748B', width: 3.5, dash: [8, 4] },
-        { value: 'fibre', color: '#7D8BA6', width: 2.5, dash: [2, 3] },
+        { value: 'Open Cut', color: '#3B82F6', width: 3.5, dash: null, aliases: ['opencut'] },
+        { value: 'HDD', color: '#3B82F6', width: 3.5, dash: [10, 4], aliases: ['hdd', 'drill', 'bore'] },
+        { value: 'Garden', color: '#3B82F6', width: 2, dash: [1.5, 3], aliases: ['garden', 'drop'] },
       ],
     },
   };
@@ -313,6 +295,25 @@
     return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
       + '<path d="' + geom + '" fill="' + (ring ? '#FFFFFF' : color) + '" stroke="' + (ring ? color : '#FFFFFF') + '" stroke-width="' + (ring ? 3.6 : 2.2) + '" stroke-linejoin="round"/>'
       + '</svg>';
+  }
+
+  /**
+   * Register every glyph the symbol table can ask for, once, at map init.
+   * The images are inline SVG data URIs (a few hundred bytes), so this costs
+   * one frame and removes the async-load placeholder entirely: a symbol layer
+   * added later always finds its image already registered.
+   */
+  function _installAllIcons(map) {
+    if (!map || !map.addImage) return;
+    Object.keys(SYMBOL_SPEC).forEach(function (key) {
+      var s = SYMBOL_SPEC[key];
+      _installIcon(map, s.shape, s.color);
+      if (s.values) {
+        Object.keys(s.values).forEach(function (v) {
+          _installIcon(map, s.values[v].shape, s.values[v].color);
+        });
+      }
+    });
   }
 
   function _installIcon(map, shape, color) {
@@ -512,8 +513,13 @@
     map.addControl(new maplibregl.NavigationControl(), 'top-left');
     map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
     map.addControl(new maplibregl.AttributionControl({ compact: true }));
-    map.on('load', function () { _addAllBaseLayers(map, basemap); if (typeof onLoad === 'function') { onLoad(map); } });
-    if (map.loaded()) { _addAllBaseLayers(map, basemap); if (typeof onLoad === 'function') { onLoad(map); } }
+    function onReady() {
+      _addAllBaseLayers(map, basemap);
+      _installAllIcons(map);
+      if (typeof onLoad === 'function') { onLoad(map); }
+    }
+    map.on('load', onReady);
+    if (map.loaded()) { onReady(); }
     _maps[id] = map;
     return map;
   }
@@ -682,8 +688,11 @@
 
     if (lineBuckets) {
       lineBuckets.forEach(function (b) {
+        // A caller that supplied its own colour keeps it (the LLD viewer has
+        // its own trench palette); the bucket only contributes the pattern, so
+        // adding a class distinction never recolours an existing map.
         var bPaint = {
-          'line-color': permitMatch || b.color,
+          'line-color': permitMatch || opts.fillColor || b.color,
           'line-width': b.width,
           'line-opacity': clamp01(fillOpacity + 0.2),
         };
@@ -733,10 +742,9 @@
 
     if (hasPoint) {
       // Point symbol: a fixed glyph per component (hexagon = MFG, triangle =
-      // PDP, square = chamber...) so a dot is never ambiguous. A translucent
-      // circle halo is drawn underneath, because the icon images load
-      // asynchronously: the halo is on screen immediately and the glyph
-      // appears the moment MapLibre has the image.
+      // PDP, square = chamber...) so a dot is never ambiguous. The images are
+      // registered at map init (see _installAllIcons), so the glyph is there on
+      // the first frame and no placeholder is needed.
       var symSpec = _specFor(SYMBOL_SPEC, _layerKey(layerId));
       if (symSpec) {
         var defaultIcon = _installIcon(map, symSpec.shape, symSpec.color);
@@ -764,16 +772,6 @@
             iconImage.push(defaultIcon);
           }
         }
-        var haloId = 'ftth-halo-' + layerId;
-        map.addLayer({
-          id: haloId, type: 'circle', source: sourceId,
-          paint: {
-            'circle-color': symSpec.color, 'circle-radius': 10,
-            'circle-opacity': 0.16, 'circle-stroke-color': symSpec.color,
-            'circle-stroke-width': 1.1, 'circle-stroke-opacity': 0.55,
-          },
-          layout: { visibility: visible ? 'visible' : 'none' },
-        });
         map.addLayer({
           id: pointsLayerId, type: 'symbol', source: sourceId,
           layout: {
@@ -782,7 +780,7 @@
             visibility: visible ? 'visible' : 'none',
           },
         });
-        renderedLayers.push(haloId, pointsLayerId);
+        renderedLayers.push(pointsLayerId);
       } else {
         var pointRadius = palette.pointRadius !== undefined ? palette.pointRadius : 5;
         var circlePaint = { 'circle-color': typeMatch || fillColor, 'circle-radius': pointRadius, 'circle-opacity': 0.85, 'circle-stroke-color': outlineColor, 'circle-stroke-width': 1 };
@@ -1040,6 +1038,9 @@
     coupleurs: 'Coupler', poles: 'Pole (aerial)', objects: 'Premise / object',
     brownfield: 'Existing infra', trenches: 'Trench', ducts: 'Duct', cables: 'Cable',
   };
+  // Only the trench line rows are worth legend space: ducts and cables keep the
+  // colours their layer toggles already show a dot for.
+  var LEGEND_LINE_KEYS = ['trenches'];
 
   function legendSpec() {
     var icons = [], lines = [];
@@ -1052,7 +1053,8 @@
       }
       icons.push({ label: LEGEND_LABELS[key] || key, shape: s.shape, color: s.color });
     });
-    Object.keys(LINE_SPEC).forEach(function (key) {
+    LEGEND_LINE_KEYS.forEach(function (key) {
+      if (!LINE_SPEC[key]) return;
       LINE_SPEC[key].buckets.forEach(function (b) {
         lines.push({ label: (LEGEND_LABELS[key] || key) + ' — ' + b.value, color: b.color, width: b.width, dash: b.dash });
       });
@@ -1069,7 +1071,7 @@
         + _legendGlyph(it.shape, it.color, 18) + '</span><span class="ftth-legend-label">'
         + escapeHtmlProp(it.label) + '</span></div>';
     });
-    html += '</div><div class="ftth-legend-group"><div class="ftth-legend-title">Lines (stroke = construction class / tier)</div>';
+    html += '</div><div class="ftth-legend-group"><div class="ftth-legend-title">Trench class (stroke pattern)</div>';
     spec.lines.forEach(function (it) {
       var dash = (it.dash && it.dash.length) ? ' stroke-dasharray="' + it.dash.join(' ') + '"' : '';
       var w = Math.max(3, Math.min(7, it.width));
