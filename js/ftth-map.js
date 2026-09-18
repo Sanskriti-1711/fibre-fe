@@ -84,6 +84,11 @@
     drop_cable: {
       fill: '#22C55E', outline: '#15803D', opacity: 0.85, lineWidth: 1, lineDash: [], label: 'Drop Cable',
     },
+    // Aerial spans carry fibre on poles instead of in a duct: same thin
+    // weight as a cable, amber so it reads as "not underground".
+    aerial_cable: {
+      fill: '#F59E0B', outline: '#B45309', opacity: 0.85, lineWidth: 1.6, lineDash: [], label: 'Aerial Cable',
+    },
     feeder_ducts: {
       fill: '#F59E0B', outline: '#B45309', opacity: 0.75, lineWidth: 3.6, lineDash: [], label: 'Feeder Ducts (trunk)',
     },
@@ -243,6 +248,17 @@
     // Garden leg is hand-dug to one house, and an Aerial leg is never dug at
     // all (it is a span on a pole). The designer classifies every span into
     // exactly these four, so the map can too.
+    // Aerial legs: the trench designer's `Aerial_Drops` (classified, never dug)
+    // and the pole stage's `Aerial_Drop_Trenches`. Checked BEFORE `trenches`,
+    // because `aerial_drop_trenches` also contains the word "trench" and would
+    // otherwise be drawn as an excavated span.
+    aerial_drops: {
+      field: 'TRENCH_TYPE',
+      useBucketColor: true,
+      buckets: [
+        { value: 'Aerial', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+      ],
+    },
     trenches: {
       field: 'trench_type',
       buckets: [
@@ -348,6 +364,15 @@
     var ring = shape === 'ringSquare';
     var bare = shape === 'cross';
     var geom = ring ? SHAPE_PATHS.square : body;
+    // `circle` / `dot` are SVG ELEMENTS, not path data. Wrapping them in
+    // <path d="..."> produced invalid path data and the glyph rendered as
+    // nothing at all (premises and brownfield points disappeared), so an
+    // element body is emitted as-is with the fill/stroke applied to a <g>.
+    if (geom.charAt(0) === '<') {
+      return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
+        + '<g fill="' + color + '" stroke="#FFFFFF" stroke-width="2.2">'
+        + geom + '</g></svg>';
+    }
     if (bare) {
       // Two strokes so the cross keeps a white halo on any basemap.
       return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
