@@ -63,15 +63,18 @@
     return '';
   }
 
-  var state = {}; // module-level accumulation across pages is not needed; one instance per page
+  function emptyState() {
+    return { trenches: {}, ducts: {}, cables: {}, chambers: {}, poles: 0, aerial: 0, _lat: null };
+  }
+
+  var state = emptyState();
 
   var api = {
-    /** Reset accumulated stats (call before re-loading layers). */
-    reset: function () { state = { trenches: {}, ducts: {}, cables: {}, chambers: {}, poles: 0, aerial: 0, _lat: null }; },
+    /** Reset accumulated stats (the page calls this before loading layers). */
+    reset: function () { state = emptyState(); },
 
     /** Accumulate one layer's GeoJSON. layerName is the public layer name. */
     accumulate: function (layerName, geojson) {
-      if (!state._reset) api.reset();
       var feats = (geojson && geojson.features) || [];
       feats.forEach(function (f) {
         var p = (f && f.properties) || {};
@@ -117,7 +120,6 @@
     /** Render the KPI cards into the element (replaces its content). */
     render: function (el) {
       if (!el) return;
-      if (!state._reset) api.reset();
       var cards = [];
 
       // Trenches by construction class
