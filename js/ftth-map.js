@@ -138,9 +138,210 @@
   };
 
   // ------------------------------------------------------------------
+  // Visual language — one distinguishable shape/line style per component
+  //
+  // A map that draws every layer as a coloured line or a circle is
+  // unreadable: a trench, a duct and a cable along the same street are
+  // three overlaid lines, and a PDP, a chamber and a premise are three
+  // identical dots. Every component therefore gets a FIXED shape (points)
+  // and a FIXED stroke pattern (lines), so the legend alone explains the
+  // whole network:
+  //
+  //   MFG        hexagon (green)          Trench Open Cut  solid
+  //   PDP        triangle (cyan)          Trench HDD       long dash
+  //   Chamber    square (by subtype)      Trench Garden    dotted
+  //   Coupler    diamond (teal)           Feeder duct      solid, wide
+  //   Pole       cross (brown)            Distribution duct med dash
+  //   Premise    pin (violet)             Drop duct        dotted, thin
+  //   Existing   circle (grey shades)     Feeder cable     solid
+  //                                       Distribution     dash
+  //                                       Drop cable       dotted, thin
+  // ------------------------------------------------------------------
+  const SHAPE_PATHS = {
+    hexagon: 'M12 2.6 L20.1 7.3 V16.7 L12 21.4 L3.9 16.7 V7.3 Z',
+    triangle: 'M12 3.2 L21.2 20.2 H2.8 Z',
+    square: 'M4.4 4.4 H19.6 V19.6 H4.4 Z',
+    diamond: 'M12 2.4 L21.6 12 L12 21.6 L2.4 12 Z',
+    circle: '<circle cx="12" cy="12" r="8.2"/>',
+    pin: 'M12 2.4 C17.2 2.4 21.2 6.5 21.2 11.7 C21.2 17.1 12 21.8 12 21.8 C12 21.8 2.8 17.1 2.8 11.7 C2.8 6.5 6.8 2.4 12 2.4 Z',
+    cross: 'M12 2.8 V21.2 M2.8 12 H21.2',
+  };
+
+  // Point symbol per component. ``field`` + ``values`` picks the shape from a
+  // feature property (chambers by SUBTYPE, existing infra by ASSET_TYPE).
+  const SYMBOL_SPEC = {
+    mfg: { shape: 'hexagon', color: '#059669' },
+    pdps: { shape: 'triangle', color: '#0891B2' },
+    chambers: {
+      shape: 'square', color: '#475569', field: 'SUBTYPE',
+      values: {
+        Bore: { shape: 'ringSquare', color: '#B91C1C' },
+        Manhole: { shape: 'square', color: '#0F172A' },
+        Handhole: { shape: 'square', color: '#64748B' },
+      },
+    },
+    coupleurs: { shape: 'diamond', color: '#0D9488' },
+    poles: { shape: 'cross', color: '#A16207' },
+    objects: { shape: 'pin', color: '#6D28D9' },
+    brownfield: {
+      shape: 'circle', color: '#64748B', field: 'ASSET_TYPE',
+      values: {
+        pdp: { shape: 'triangle', color: '#0E7490' },
+        mfg: { shape: 'hexagon', color: '#047857' },
+        chamber: { shape: 'square', color: '#334155' },
+        pole: { shape: 'cross', color: '#92400E' },
+        cabinet: { shape: 'square', color: '#475569' },
+        duct: { shape: 'circle', color: '#64748B' },
+        trench: { shape: 'circle', color: '#94A3B8' },
+        fibre: { shape: 'circle', color: '#7D8BA6' },
+      },
+    },
+  };
+
+  // Line stroke pattern per component/tier. Buckets are matched on a feature
+  // property so one published layer (e.g. Final_Trenches) still reads as
+  // Open Cut / HDD / Garden on the map.
+  const LINE_SPEC = {
+    trenches: {
+      field: 'trench_type',
+      buckets: [
+        { value: 'Open Cut', color: '#2563EB', width: 5, dash: null, aliases: ['opencut'] },
+        { value: 'HDD', color: '#7C3AED', width: 5, dash: [12, 5], aliases: ['hdd', 'drill', 'bore'] },
+        { value: 'Garden', color: '#22D3EE', width: 2.5, dash: [1.5, 3], aliases: ['garden', 'drop'] },
+      ],
+    },
+    ducts: {
+      field: 'DUCT_TYPE',
+      buckets: [
+        { value: '4-Way HDPE', color: '#F59E0B', width: 6, dash: null, aliases: ['feeder'] },
+        { value: '2-Way HDPE', color: '#EAB308', width: 4.5, dash: [9, 4], aliases: ['distribution', 'dist'] },
+        { value: '1-Way HDPE', color: '#EC4899', width: 2.5, dash: [2, 3], aliases: ['drop', 'garden'] },
+      ],
+    },
+    cables: {
+      field: 'CABLE_TYPE',
+      buckets: [
+        { value: 'Feeder', color: '#EF4444', width: 5, dash: null, aliases: ['feeder'] },
+        { value: 'Distribution', color: '#F97316', width: 3.5, dash: [7, 3], aliases: ['distribution', 'dist'] },
+        { value: 'Drop', color: '#FB923C', width: 2, dash: [2.5, 2.5], aliases: ['drop', 'garden'] },
+      ],
+    },
+    brownfield: {
+      field: 'ASSET_TYPE',
+      buckets: [
+        { value: 'trench', color: '#94A3B8', width: 3, dash: [4, 3] },
+        { value: 'duct', color: '#64748B', width: 3.5, dash: [8, 4] },
+        { value: 'fibre', color: '#7D8BA6', width: 2.5, dash: [2, 3] },
+      ],
+    },
+  };
+
+  // Draw order, bottom → top: areas, existing infra, trenches, ducts, cables,
+  // furniture. Keywords are matched against the layer key so both the HLD
+  // (`trenches`, `cables`) and the LLD (`distribution_cable`, `drop_ducts`)
+  // naming schemes land in the same stack.
+  var Z_KEYWORDS = [
+    ['polygon', 'coverage'],
+    ['building'],
+    ['object', 'premise'],
+    ['brownfield', 'existing'],
+    ['trench'],
+    ['duct'],
+    ['cable', 'fibre', 'fiber'],
+    ['coupl', 'coupler'],
+    ['chamber', 'handhole', 'manhole'],
+    ['pole'],
+    ['pdp', 'splitter'],
+    ['mfg', 'mainframe'],
+  ];
+
+  /** Strip the render-prefix and sublayer suffix from a map layer id. */
+  function _layerKey(id) {
+    var k = String(id || '').replace(/^ftth-(fill|outline|points|halo)-/, '');
+    var b = k.indexOf('__b');
+    if (b >= 0) k = k.slice(0, b);
+    var s = k.indexOf('::');
+    if (s >= 0) k = k.slice(0, s);
+    return k.toLowerCase();
+  }
+
+  /** First Z_KEYWORDS row whose keyword appears in the layer key. */
+  function _zRank(key) {
+    for (var i = 0; i < Z_KEYWORDS.length; i++) {
+      for (var j = 0; j < Z_KEYWORDS[i].length; j++) {
+        if (key.indexOf(Z_KEYWORDS[i][j]) !== -1) return i;
+      }
+    }
+    return Z_KEYWORDS.length;
+  }
+
+  /** Resolve the SYMBOL_SPEC / LINE_SPEC entry for an arbitrary layer key. */
+  function _specFor(spec, key) {
+    if (spec[key]) return spec[key];
+    var stripped = key.replace(/^lld-/, '');
+    if (spec[stripped]) return spec[stripped];
+    var order = Object.keys(spec);
+    for (var i = 0; i < order.length; i++) {
+      var probe = order[i];
+      var stem = probe.replace(/s$/, '');   // pdps -> pdp, cables -> cable
+      if (stripped.indexOf(stem) !== -1) return spec[probe];
+    }
+    return null;
+  }
+
+  // Icons are SVG data URIs rasterised once per (shape, colour) pair. MapLibre
+  // renders a symbol layer only once the image exists, so a spec'd layer is
+  // given a circle halo underneath: the halo is visible immediately and the
+  // glyph appears as soon as `addImage` lands (which triggers a repaint).
+  var _iconPending = {};
+
+  function _iconId(shape, color) {
+    return 'ftth-ic-' + shape + '-' + String(color).replace('#', '').toLowerCase();
+  }
+
+  function _iconSvg(shape, color) {
+    var body = SHAPE_PATHS[shape] || SHAPE_PATHS.circle;
+    var ring = shape === 'ringSquare';
+    var bare = shape === 'cross';
+    var geom = ring ? SHAPE_PATHS.square : body;
+    if (bare) {
+      // Two strokes so the cross keeps a white halo on any basemap.
+      return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
+        + '<path d="' + geom + '" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>'
+        + '<path d="' + geom + '" fill="none" stroke="' + color + '" stroke-width="3.2" stroke-linecap="round"/></svg>';
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
+      + '<path d="' + geom + '" fill="' + (ring ? '#FFFFFF' : color) + '" stroke="' + (ring ? color : '#FFFFFF') + '" stroke-width="' + (ring ? 3.6 : 2.2) + '" stroke-linejoin="round"/>'
+      + '</svg>';
+  }
+
+  function _installIcon(map, shape, color) {
+    var id = _iconId(shape, color);
+    if (!map || !map.addImage) return id;
+    if (map.hasImage && map.hasImage(id)) return id;
+    if (_iconPending[id]) return id;
+    _iconPending[id] = true;
+    try {
+      var img = new Image(44, 44);
+      img.onload = function () {
+        delete _iconPending[id];
+        try { if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 }); } catch (_e) {}
+      };
+      img.onerror = function () { delete _iconPending[id]; };
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_iconSvg(shape, color));
+    } catch (_e) { delete _iconPending[id]; }
+    return id;
+  }
+
+  // ------------------------------------------------------------------
   // Map instance registry
   // ------------------------------------------------------------------
   const _maps = {};
+
+  // Every map layer id created for one logical layer key (halo, buckets,
+  // symbol, outline...). Visibility toggling and identify both work off this,
+  // so adding a style never silently leaves a part of the layer switched on.
+  var _layerParts = {};
 
   // Identify/highlight mode. When active, layer clicks highlight the clicked
   // feature on a dedicated highlight layer and hand it to the page callback
@@ -424,7 +625,77 @@
       renderedLayers.push(fillLayerId, outlineLayerId);
     }
 
+    // Line style per component/tier: when a LINE_SPEC matches, the layer is
+    // drawn as one line layer PER bucket (construction class / tier) so the
+    // stroke pattern carries the meaning — a solid line, a long dash and a
+    // dotted line can be told apart at a glance where three solid colours
+    // cannot. `line-dasharray` is not data-driven in MapLibre, hence a layer
+    // per bucket with a filter instead of one layer with an expression.
+    var lineBuckets = null;
     if (hasLine) {
+      var lineKey = _layerKey(layerId);
+      var lineSpec = _specFor(LINE_SPEC, lineKey);
+      if (lineSpec && lineSpec.field) {
+        var found = {};
+        (geojson.features || []).forEach(function (feat) {
+          var v = feat.properties && feat.properties[lineSpec.field];
+          if (v === null || v === undefined || String(v).trim() === '') return;
+          found[String(v).trim()] = true;
+        });
+        // A tier that is already split into its own layer upstream (the LLD
+        // publishes `distribution_cable`, `drop_ducts`, ...) carries no tier
+        // field on the feature. Derive it from the layer name so the stroke
+        // pattern still says which tier the line is.
+        if (!Object.keys(found).length) {
+          var hint = null;
+          lineSpec.buckets.forEach(function (b) {
+            if (hint) return;
+            var aliases = b.aliases || [];
+            for (var ai = 0; ai < aliases.length; ai++) {
+              if (lineKey.indexOf(aliases[ai]) !== -1) { hint = b.value; return; }
+            }
+          });
+          if (hint) {
+            (geojson.features || []).forEach(function (feat) {
+              var p = feat.properties || (feat.properties = {});
+              if (!p[lineSpec.field]) p[lineSpec.field] = hint;
+            });
+            found[hint] = true;
+          }
+        }
+        var built = [];
+        lineSpec.buckets.forEach(function (b, bi) {
+          var match = null;
+          Object.keys(found).forEach(function (v) {
+            if (!match && v.toLowerCase() === String(b.value).toLowerCase()) match = v;
+          });
+          if (!match) return;
+          built.push({
+            id: fillLayerId + '__b' + bi,
+            filter: ['==', ['get', lineSpec.field], match],
+            color: b.color, width: b.width, dash: b.dash || null,
+          });
+        });
+        if (built.length) lineBuckets = built;
+      }
+    }
+
+    if (lineBuckets) {
+      lineBuckets.forEach(function (b) {
+        var bPaint = {
+          'line-color': permitMatch || b.color,
+          'line-width': b.width,
+          'line-opacity': clamp01(fillOpacity + 0.2),
+        };
+        if (b.dash && b.dash.length) bPaint['line-dasharray'] = b.dash;
+        map.addLayer({
+          id: b.id, type: 'line', source: sourceId, filter: b.filter, paint: bPaint,
+          layout: { visibility: visible ? 'visible' : 'none' },
+        });
+        renderedLayers.push(b.id);
+      });
+      fillLayerId = lineBuckets[0].id;   // the primary id for click handling
+    } else if (hasLine) {
       var linePaint = {
         'line-color': fillColor,
         'line-width': palette.lineWidth !== undefined ? palette.lineWidth : 3,
@@ -461,10 +732,63 @@
     }
 
     if (hasPoint) {
-      var pointRadius = palette.pointRadius !== undefined ? palette.pointRadius : 5;
-      var circlePaint = { 'circle-color': typeMatch || fillColor, 'circle-radius': pointRadius, 'circle-opacity': 0.85, 'circle-stroke-color': outlineColor, 'circle-stroke-width': 1 };
-      map.addLayer({ id: pointsLayerId, type: 'circle', source: sourceId, paint: circlePaint, layout: { visibility: visible ? 'visible' : 'none' } });
-      renderedLayers.push(pointsLayerId);
+      // Point symbol: a fixed glyph per component (hexagon = MFG, triangle =
+      // PDP, square = chamber...) so a dot is never ambiguous. A translucent
+      // circle halo is drawn underneath, because the icon images load
+      // asynchronously: the halo is on screen immediately and the glyph
+      // appears the moment MapLibre has the image.
+      var symSpec = _specFor(SYMBOL_SPEC, _layerKey(layerId));
+      if (symSpec) {
+        var defaultIcon = _installIcon(map, symSpec.shape, symSpec.color);
+        var iconImage = defaultIcon;
+        if (symSpec.field && symSpec.values) {
+          var perValue = {};
+          var valueKeys = Object.keys(symSpec.values);
+          (geojson.features || []).forEach(function (feat) {
+            var v = feat.properties && feat.properties[symSpec.field];
+            if (v === null || v === undefined || String(v).trim() === '') return;
+            var raw = String(v).trim();
+            if (perValue[raw]) return;
+            for (var vi = 0; vi < valueKeys.length; vi++) {
+              if (valueKeys[vi].toLowerCase() === raw.toLowerCase()) {
+                var vs = symSpec.values[valueKeys[vi]];
+                perValue[raw] = _installIcon(map, vs.shape, vs.color);
+                break;
+              }
+            }
+          });
+          var usedValues = Object.keys(perValue);
+          if (usedValues.length) {
+            iconImage = ['match', ['get', symSpec.field]];
+            usedValues.forEach(function (raw) { iconImage.push(raw, perValue[raw]); });
+            iconImage.push(defaultIcon);
+          }
+        }
+        var haloId = 'ftth-halo-' + layerId;
+        map.addLayer({
+          id: haloId, type: 'circle', source: sourceId,
+          paint: {
+            'circle-color': symSpec.color, 'circle-radius': 10,
+            'circle-opacity': 0.16, 'circle-stroke-color': symSpec.color,
+            'circle-stroke-width': 1.1, 'circle-stroke-opacity': 0.55,
+          },
+          layout: { visibility: visible ? 'visible' : 'none' },
+        });
+        map.addLayer({
+          id: pointsLayerId, type: 'symbol', source: sourceId,
+          layout: {
+            'icon-image': iconImage, 'icon-size': 1,
+            'icon-allow-overlap': true, 'icon-ignore-placement': true,
+            visibility: visible ? 'visible' : 'none',
+          },
+        });
+        renderedLayers.push(haloId, pointsLayerId);
+      } else {
+        var pointRadius = palette.pointRadius !== undefined ? palette.pointRadius : 5;
+        var circlePaint = { 'circle-color': typeMatch || fillColor, 'circle-radius': pointRadius, 'circle-opacity': 0.85, 'circle-stroke-color': outlineColor, 'circle-stroke-width': 1 };
+        map.addLayer({ id: pointsLayerId, type: 'circle', source: sourceId, paint: circlePaint, layout: { visibility: visible ? 'visible' : 'none' } });
+        renderedLayers.push(pointsLayerId);
+      }
     }
 
     renderedLayers.forEach(function (lid) {
@@ -494,12 +818,49 @@
       map.on('mouseleave', lid, function () { map.getCanvas().style.cursor = ''; });
     });
 
-    return { sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId, pointsLayerId: pointsLayerId };
+    _layerParts[layerId] = renderedLayers.slice();
+    return {
+      sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId,
+      pointsLayerId: pointsLayerId, parts: renderedLayers.slice(),
+    };
+  }
+
+  /**
+   * Push every design layer into the canonical draw order (map.paintOrder has
+   * no effect on data layers): areas at the bottom, then existing infra,
+   * trenches, ducts, cables and finally the point furniture on top. Without
+   * this the stack depends on which HTTP response arrived first, so a duct
+   * can end up hidden under its own trench.
+   */
+  function applyZOrder(map) {
+    if (!map || !map.getStyle) return;
+    var layers = ((map.getStyle() || {}).layers || []).map(function (l) { return l.id; })
+      .filter(function (id) {
+        return id.indexOf('ftth-') === 0 && id.indexOf('ftth-highlight-') !== 0;
+      });
+    function rank(id) {
+      var bottom = _zRank(_layerKey(id)) * 10;
+      var kind = 0;
+      if (id.indexOf('-outline-') !== -1) kind = 1;
+      else if (id.indexOf('-halo-') !== -1) kind = 3;
+      else if (id.indexOf('__b') !== -1) kind = 4;
+      else if (id.indexOf('-points-') !== -1) kind = 5;
+      return bottom + kind;
+    }
+    layers.sort(function (a, b) { return rank(a) - rank(b); });
+    layers.forEach(function (id) { try { map.moveLayer(id); } catch (_e) {} });
   }
 
   function setLayerVisible(map, layerId, visible) {
     if (!map) return;
     var visibility = visible ? 'visible' : 'none';
+    var parts = _layerParts[layerId];
+    if (parts && parts.length) {
+      parts.forEach(function (lid) {
+        if (map.getLayer(lid)) { map.setLayoutProperty(lid, 'visibility', visibility); }
+      });
+      return;
+    }
     var fillLayer = 'ftth-fill-' + layerId;
     var outlineLayer = 'ftth-outline-' + layerId;
     var pointsLayer = 'ftth-points-' + layerId;
@@ -659,6 +1020,68 @@
   }
 
   // ------------------------------------------------------------------
+  // Legend — generated from the same tables the renderer uses, so it can
+  // never drift from what is actually on the map.
+  // ------------------------------------------------------------------
+
+  function _legendGlyph(shape, color, size) {
+    var geom = shape === 'ringSquare' ? SHAPE_PATHS.square : (SHAPE_PATHS[shape] || SHAPE_PATHS.circle);
+    if (shape === 'cross') {
+      return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">'
+        + '<path d="' + geom + '" fill="none" stroke="' + color + '" stroke-width="4" stroke-linecap="round"/></svg>';
+    }
+    var ring = shape === 'ringSquare';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">'
+      + '<path d="' + geom + '" fill="' + (ring ? '#FFFFFF' : color) + '" stroke="' + (ring ? color : '#FFFFFF') + '" stroke-width="' + (ring ? 3.6 : 2.4) + '" stroke-linejoin="round"/></svg>';
+  }
+
+  var LEGEND_LABELS = {
+    mfg: 'MFG (exchange)', pdps: 'PDP (splitter)', chambers: 'Chamber',
+    coupleurs: 'Coupler', poles: 'Pole (aerial)', objects: 'Premise / object',
+    brownfield: 'Existing infra', trenches: 'Trench', ducts: 'Duct', cables: 'Cable',
+  };
+
+  function legendSpec() {
+    var icons = [], lines = [];
+    Object.keys(SYMBOL_SPEC).forEach(function (key) {
+      var s = SYMBOL_SPEC[key];
+      if (s.values) {
+        Object.keys(s.values).forEach(function (v) {
+          icons.push({ label: LEGEND_LABELS[key] + ' — ' + v, shape: s.values[v].shape, color: s.values[v].color });
+        });
+      }
+      icons.push({ label: LEGEND_LABELS[key] || key, shape: s.shape, color: s.color });
+    });
+    Object.keys(LINE_SPEC).forEach(function (key) {
+      LINE_SPEC[key].buckets.forEach(function (b) {
+        lines.push({ label: (LEGEND_LABELS[key] || key) + ' — ' + b.value, color: b.color, width: b.width, dash: b.dash });
+      });
+    });
+    return { icons: icons, lines: lines };
+  }
+
+  /** Legend markup for a side pane (styles come from the page's CSS). */
+  function legendHTML() {
+    var spec = legendSpec();
+    var html = '<div class="ftth-legend-group"><div class="ftth-legend-title">Components</div>';
+    spec.icons.forEach(function (it) {
+      html += '<div class="ftth-legend-row"><span class="ftth-legend-swatch">'
+        + _legendGlyph(it.shape, it.color, 18) + '</span><span class="ftth-legend-label">'
+        + escapeHtmlProp(it.label) + '</span></div>';
+    });
+    html += '</div><div class="ftth-legend-group"><div class="ftth-legend-title">Lines (stroke = construction class / tier)</div>';
+    spec.lines.forEach(function (it) {
+      var dash = (it.dash && it.dash.length) ? ' stroke-dasharray="' + it.dash.join(' ') + '"' : '';
+      var w = Math.max(3, Math.min(7, it.width));
+      html += '<div class="ftth-legend-row"><span class="ftth-legend-swatch">'
+        + '<svg width="26" height="10" viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="'
+        + it.color + '" stroke-width="' + w + '" stroke-linecap="round"' + dash + '/></svg>'
+        + '</span><span class="ftth-legend-label">' + escapeHtmlProp(it.label) + '</span></div>';
+    });
+    return html + '</div>';
+  }
+
+  // ------------------------------------------------------------------
   // Exports
   // ------------------------------------------------------------------
 
@@ -670,5 +1093,7 @@
     setIdentifyActive: setIdentifyActive, isIdentifyActive: isIdentifyActive,
     highlightFeature: highlightFeatureData, clearHighlight: clearHighlightLayer,
     resolveFullFeatures: resolveFullFeatures, identifyClick: handleIdentifyClick,
+    applyZOrder: applyZOrder, legendHTML: legendHTML, legendSpec: legendSpec,
+    SYMBOL_SPEC: SYMBOL_SPEC, LINE_SPEC: LINE_SPEC,
   };
 })();

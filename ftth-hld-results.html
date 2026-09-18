@@ -41,6 +41,12 @@
     .ftth-empty-state .icon { font-size:40px; margin-bottom:12px; }
     .ftth-empty-state p { font-size:14px; margin:0 0 16px; }
     .ftth-layer-color-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+    .ftth-legend-group { margin-bottom:10px; }
+    .ftth-legend-group:last-child { margin-bottom:0; }
+    .ftth-legend-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#9CA3AF; margin-bottom:6px; }
+    .ftth-legend-row { display:flex; align-items:center; gap:9px; padding:2px 0; font-size:12px; color:#374151; }
+    .ftth-legend-swatch { width:26px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .ftth-legend-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .ftth-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .ftth-summary-item { background:#F9FAFB; border-radius:6px; padding:10px; text-align:center; }
     .ftth-summary-item .value { font-size:20px; font-weight:700; color:#1F2937; }
@@ -194,8 +200,11 @@
           <div class="ftth-summary-item"><div class="value" id="layerCount">0</div><div class="label">Layers</div></div>
           <div class="ftth-summary-item"><div class="value" id="totalFeatures">0</div><div class="label">Total Features</div></div>
         </div>
-        <h3 style="margin-top:14px;">Components <span class="badge" id="compBadge">0</span></h3>
-        <div class="ftth-summary-grid" id="componentSummary" style="grid-template-columns:1fr 1fr;"></div>
+      </div>
+
+      <div class="ftth-side-pane-section collapsed">
+        <h3><span class="chev">&#x25BE;</span>Legend</h3>
+        <div class="ftth-legend" id="mapLegend"></div>
       </div>
 
       <div class="ftth-side-pane-section">
@@ -266,7 +275,6 @@
 <script src="js/ftth-api.js"></script>
 <script src="js/ftth-state.js"></script>
 <script src="js/ftth-map.js"></script>
-<script src="js/ftth-component-summary.js"></script>
 <script src="js/ftth-components.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -333,11 +341,20 @@
         if (!isNaN(zv) && zv >= 1 && zv <= 20) { initZoom = zv; }
       }
       map = window.FtthMap.initMap('map', { id:'results', center:initCenter, zoom:initZoom, basemap:'streets', onLoad:function(){ loadPipelineData(); } });
+      renderMapLegend();
       if (map.loaded()) { loadPipelineData(); }
     } catch(err) {
       console.error('Map init failed:', err);
       mapLoadingEl.innerHTML = '<p style="color:#DC2626;">Failed to initialize map: ' + err.message + '</p>';
     }
+  }
+
+  // The legend is generated from the map module's own symbol/line tables, so
+  // what the reader sees here is exactly what the renderer draws.
+  function renderMapLegend() {
+    var el = document.getElementById('mapLegend');
+    if (!el || !window.FtthMap || !window.FtthMap.legendHTML) return;
+    try { el.innerHTML = window.FtthMap.legendHTML(); } catch (_e) {}
   }
 
   async function loadPipelineData() {
@@ -356,7 +373,6 @@
       var totalFeat = 0;
       allLayers.forEach(function(l){ totalFeat += (l.count || 0); });
       totalFeaturesEl.textContent = totalFeat;
-      if (window.FtthComponentSummary) window.FtthComponentSummary.reset();
       renderLayerControls(allLayers);
       renderPackages(statusData.downloads || []);
 
@@ -397,14 +413,8 @@
         mapLoadingEl.querySelector('.spinner').style.display = 'block';
         mapLoadingEl.querySelector('div > div').textContent = 'Loading GIS layers\u2026';
         await Promise.all(allLayers.map(function(layer, index){ return loadLayerGeoJSON(layer, index); }));
-        if (window.FtthComponentSummary) {
-          try {
-            window.FtthComponentSummary.render(document.getElementById('componentSummary'));
-            var compCards = document.querySelectorAll('#componentSummary .ftth-summary-item').length;
-            var compBadge = document.getElementById('compBadge');
-            if (compBadge) compBadge.textContent = compCards;
-          } catch (_e) {}
-        }
+        // Draw order must not depend on which HTTP response landed first.
+        try { window.FtthMap.applyZOrder(map); } catch (_e) {}
         setTimeout(function(){ try{ if (!params.get('center') && !params.get('zoom')) { window.FtthMap.fitToLayers(map, 50); } }catch(_){} }, 500);
       } else {
         showEmpty('No layers generated.');
@@ -421,10 +431,6 @@
     try {
       var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
       if (!geojson || !geojson.features || !geojson.features.length) { console.warn('Empty GeoJSON:', layerName); return; }
-      // Component KPI cards accumulate from the same payloads the map loads.
-      if (window.FtthComponentSummary) {
-        try { window.FtthComponentSummary.accumulate(layerName, geojson); } catch (_e) {}
-      }
       var isPolygon = geojson.features[0] && geojson.features[0].geometry && geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
       // Inject the worst permit status per feature so trench segments are
       // coloured by their permit state (permits key off the feature fid).
@@ -449,7 +455,9 @@
       // collapsing every cable into one toggle. Ducts carry no tier marker of
       // their own — those rely on the tag written at ingest.
       if (layerName === 'cables') {
-        var CABLE_SUB = { 'Feeder': 'Feeder_Cable', 'Distribution': 'Distribution_Cable' };
+        // Drop cables are the distribution layer's one-per-premise garden legs
+        // (CABLE_TYPE = "Drop"), so they share the Distribution_Cable toggle.
+        var CABLE_SUB = { 'Feeder': 'Feeder_Cable', 'Distribution': 'Distribution_Cable', 'Drop': 'Distribution_Cable' };
         (geojson.features || []).forEach(function (f) {
           var p = f.properties || (f.properties = {});
           if (p.sublayer) return;
