@@ -194,6 +194,8 @@
           <div class="ftth-summary-item"><div class="value" id="layerCount">0</div><div class="label">Layers</div></div>
           <div class="ftth-summary-item"><div class="value" id="totalFeatures">0</div><div class="label">Total Features</div></div>
         </div>
+        <h3 style="margin-top:14px;">Components <span class="badge" id="compBadge">0</span></h3>
+        <div class="ftth-summary-grid" id="componentSummary" style="grid-template-columns:1fr 1fr;"></div>
       </div>
 
       <div class="ftth-side-pane-section">
@@ -264,6 +266,7 @@
 <script src="js/ftth-api.js"></script>
 <script src="js/ftth-state.js"></script>
 <script src="js/ftth-map.js"></script>
+<script src="js/ftth-component-summary.js"></script>
 <script src="js/ftth-components.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -353,6 +356,7 @@
       var totalFeat = 0;
       allLayers.forEach(function(l){ totalFeat += (l.count || 0); });
       totalFeaturesEl.textContent = totalFeat;
+      if (window.FtthComponentSummary) window.FtthComponentSummary.reset();
       renderLayerControls(allLayers);
       renderPackages(statusData.downloads || []);
 
@@ -393,6 +397,14 @@
         mapLoadingEl.querySelector('.spinner').style.display = 'block';
         mapLoadingEl.querySelector('div > div').textContent = 'Loading GIS layers\u2026';
         await Promise.all(allLayers.map(function(layer, index){ return loadLayerGeoJSON(layer, index); }));
+        if (window.FtthComponentSummary) {
+          try {
+            window.FtthComponentSummary.render(document.getElementById('componentSummary'));
+            var compCards = document.querySelectorAll('#componentSummary .ftth-summary-item').length;
+            var compBadge = document.getElementById('compBadge');
+            if (compBadge) compBadge.textContent = compCards;
+          } catch (_e) {}
+        }
         setTimeout(function(){ try{ if (!params.get('center') && !params.get('zoom')) { window.FtthMap.fitToLayers(map, 50); } }catch(_){} }, 500);
       } else {
         showEmpty('No layers generated.');
@@ -409,6 +421,10 @@
     try {
       var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
       if (!geojson || !geojson.features || !geojson.features.length) { console.warn('Empty GeoJSON:', layerName); return; }
+      // Component KPI cards accumulate from the same payloads the map loads.
+      if (window.FtthComponentSummary) {
+        try { window.FtthComponentSummary.accumulate(layerName, geojson); } catch (_e) {}
+      }
       var isPolygon = geojson.features[0] && geojson.features[0].geometry && geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
       // Inject the worst permit status per feature so trench segments are
       // coloured by their permit state (permits key off the feature fid).

@@ -170,6 +170,8 @@
           <div class="ftth-summary-item"><div class="value" id="layerCount">0</div><div class="label">Layers</div></div>
           <div class="ftth-summary-item"><div class="value" id="totalFeatures">0</div><div class="label">Features</div></div>
         </div>
+        <h3 style="margin-top:14px;">Components <span class="badge" id="compBadge">0</span></h3>
+        <div class="ftth-summary-grid" id="componentSummary" style="grid-template-columns:1fr 1fr;"></div>
       </div>
 
       <div class="ftth-side-pane-section">
@@ -219,6 +221,7 @@
 <script src="fiber-api.js"></script>
 <script src="js/ftth-lld-api.js"></script>
 <script src="js/ftth-map.js"></script>
+<script src="js/ftth-component-summary.js"></script>
 <script>
   window.FiberAuth.requireLogin();
 
@@ -369,6 +372,14 @@
       renderLayerControls(layers);
       mapLoadingEl.style.display = 'flex';
       await Promise.all(layers.map(function (layer, index) { return loadLayer(layer.name || layer, index); }));
+      if (window.FtthComponentSummary) {
+        try {
+          window.FtthComponentSummary.render(document.getElementById('componentSummary'));
+          var compCards = document.querySelectorAll('#componentSummary .ftth-summary-item').length;
+          var compBadge = document.getElementById('compBadge');
+          if (compBadge) compBadge.textContent = compCards;
+        } catch (_e) {}
+      }
       setTimeout(function () { try { window.FtthMap.fitToLayers(map, 50); } catch (_) {} }, 500);
       mapLoadingEl.style.display = 'none';
     } catch (err) {
@@ -402,6 +413,10 @@
       if (!geojson || !geojson.features || !geojson.features.length) {
         console.warn('Empty LLD layer:', name);
         return;
+      }
+      // Component KPI cards accumulate from the same payloads the map loads.
+      if (window.FtthComponentSummary) {
+        try { window.FtthComponentSummary.accumulate(name, geojson); } catch (_e) {}
       }
       var c = colorFor(name);
 
