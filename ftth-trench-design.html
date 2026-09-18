@@ -175,8 +175,9 @@
           <div style="margin-bottom:6px;"><strong>Spans</strong> — the network is cut at every real
           structure (HDD pit, PDP, bend, branch, pull chamber), so each feature is one
           <em>chamber-to-chamber sequence</em> you can select and edit on its own.</div>
-          <div style="margin-bottom:6px;"><strong>Types</strong> — exactly three: Open Cut, HDD
-          (road crossings) and Garden (drop legs).</div>
+          <div style="margin-bottom:6px;"><strong>Types</strong> — four construction classes,
+          each with its own colour and stroke: Open Cut (excavated), HDD (drilled road
+          crossings), Garden (hand-dug drop legs) and Aerial (never dug).</div>
           <div><strong>Aerial</strong> — drop legs inside an aerial zone are built aerial
           (no excavation) and published on their own layer; trench spans that run through a
           restricted zone are flagged <code>AERIAL</code> for review.</div>
@@ -197,7 +198,7 @@
 <script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
 <script src="js/ftth-api.js?v=20260917b"></script>
 <script src="js/ftth-state.js"></script>
-<script src="js/ftth-map.js?v=20260917b"></script>
+<script src="js/ftth-map.js?v=20260918a"></script>
 <script src="js/ftth-components.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -205,8 +206,12 @@
   var params = new URLSearchParams(window.location.search);
   var projectId = params.get('project_id') || window.FtthState.getProjectId();
 
-  // ── Trench-type palette (the closed three-value set + aerial) ──────────
-  var TRENCH_COLORS = { 'Open Cut': '#3B82F6', 'HDD': '#EF4444', 'Garden': '#22C55E' };
+  // ── Trench-type palette ────────────────────────────────────────────────
+  // The same four colours the shared legend uses (js/ftth-map.js LINE_SPEC),
+  // so a span looks identical on this page and on the HLD/LLD results maps.
+  var TRENCH_COLORS = {
+    'Open Cut': '#2563EB', 'HDD': '#7C3AED', 'Garden': '#16A34A', 'Aerial': '#F59E0B',
+  };
   var AERIAL_COLOR = '#F59E0B';
   var NODE_COLORS = { HDD_PIT: '#B91C1C', PDP: '#06B6D4', BEND: '#6B7280', JUNCTION: '#7C3AED', PULL: '#F59E0B' };
 
@@ -277,7 +282,7 @@
 
   // ── layer controls ─────────────────────────────────────────────────────
   var LAYER_SPECS = [
-    { id: 'Trench spans (by type)', title: 'Trench spans', sub: 'Open Cut / HDD / Garden', colors: TRENCH_COLORS },
+    { id: 'Trench spans (by type)', title: 'Trench spans', sub: 'Open Cut / HDD / Garden / Aerial', colors: TRENCH_COLORS },
     { id: 'Aerial corridor flags', title: 'Aerial corridor flags', sub: 'spans inside a restricted zone', colors: { flag: AERIAL_COLOR } },
     { id: 'Structural nodes', title: 'Structural nodes', sub: 'pits, PDPs, bends, branches, pulls', colors: NODE_COLORS },
     { id: 'HDD crossings', title: 'HDD crossings', sub: 'road crossings drilled', colors: { drill: '#B91C1C' } },
