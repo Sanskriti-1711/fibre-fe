@@ -65,23 +65,33 @@
     polygons: {
       fill: '#00aa88', fillFlagged: '#ff4444', outline: '#006644', opacity: 0.3, label: 'Coverage Areas',
     },
+    // Weight ladder, so the three tiers read as a hierarchy at any zoom:
+    //   trench  (heaviest, what is dug)  >  duct (medium, laid in it)
+    //   >  cable (thin, pulled through the duct)
+    // and the colour says which part of the tree a line belongs to:
+    //   trunk / backbone      amber or red
+    //   branch / distribution violet or orange
+    //   drop / last leg       pink or green
     trenches: {
-      fill: '#3B82F6', outline: '#1D4ED8', opacity: 0.6, lineWidth: 3, lineDash: [], label: 'Trench Routes',
+      fill: '#3B82F6', outline: '#1D4ED8', opacity: 0.6, lineWidth: 6, lineDash: [], label: 'Trench Routes',
     },
     feeder_cable: {
-      fill: '#EF4444', outline: '#B91C1C', opacity: 0.7, lineWidth: 4.5, lineDash: [], label: 'Feeder Cable',
+      fill: '#DC2626', outline: '#7F1D1D', opacity: 0.85, lineWidth: 1.8, lineDash: [], label: 'Feeder Cable',
     },
     distribution_cable: {
-      fill: '#F97316', outline: '#C2410C', opacity: 0.7, lineWidth: 3, lineDash: [5, 3], label: 'Distribution Cable',
+      fill: '#F97316', outline: '#C2410C', opacity: 0.85, lineWidth: 1.3, lineDash: [], label: 'Distribution Cable',
+    },
+    drop_cable: {
+      fill: '#22C55E', outline: '#15803D', opacity: 0.85, lineWidth: 1, lineDash: [], label: 'Drop Cable',
     },
     feeder_ducts: {
-      fill: '#F59E0B', outline: '#B45309', opacity: 0.6, lineWidth: 4.5, lineDash: [], label: 'Feeder Ducts',
+      fill: '#F59E0B', outline: '#B45309', opacity: 0.75, lineWidth: 3.6, lineDash: [], label: 'Feeder Ducts (trunk)',
     },
     distribution_ducts: {
-      fill: '#EAB308', outline: '#A16207', opacity: 0.6, lineWidth: 3, lineDash: [7, 3], label: 'Distribution Ducts',
+      fill: '#8B5CF6', outline: '#6D28D9', opacity: 0.75, lineWidth: 3, lineDash: [], label: 'Distribution Ducts (branch)',
     },
     drop_ducts: {
-      fill: '#EC4899', outline: '#9D174D', opacity: 0.6, lineWidth: 2.5, lineDash: [2, 2], label: 'Drop Ducts',
+      fill: '#EC4899', outline: '#9D174D', opacity: 0.75, lineWidth: 2.2, lineDash: [], label: 'Drop Ducts',
     },
     coupleurs: {
       // Couplers at pseudo → object duct connections: distinct diamond-ish
@@ -110,9 +120,9 @@
     // a `sublayer` property (merged feeder/distribution/drop ducts, etc.)
     SUBLAYER_COLORS: {
       'Feeder_Ducts': '#F59E0B',
-      'Distribution_Ducts': '#EAB308',
+      'Distribution_Ducts': '#8B5CF6',
       'Drop_Ducts': '#EC4899',
-      'Feeder_Cable': '#EF4444',
+      'Feeder_Cable': '#DC2626',
       'Distribution_Cable': '#F97316',
     },
     // Shades of the same base colour: used to differentiate asset types
@@ -147,18 +157,19 @@
   // and a FIXED stroke pattern (lines), so the legend alone explains the
   // whole network:
   //
-  //   MFG        hexagon (green)          Trench Open Cut  solid
-  //   PDP        triangle (cyan)          Trench HDD       long dash
-  //   Chamber    square (by subtype)      Trench Garden    dotted
-  //   Coupler    diamond (teal)
-  //   Pole       cross (brown)
-  //   Premise    pin (violet)
+  //   MFG        hexagon (green)   @1.0    Trench Open Cut  solid, thick
+  //   PDP        triangle (cyan)   @0.9    Trench HDD       long dash
+  //   Chamber    Bore    diamond            Trench Garden    dotted, thin
+  //              Handhole circle    @0.7
+  //              Manhole  square
+  //   Coupler    diamond (teal)   @0.55
+  //   Pole       cross (brown)    @0.6
+  //   Premise    small dot        @0.45
   //   Existing   circle (grey shades)
   //
-  // ONLY the glyphs and the trench stroke pattern are opinionated: every other
-  // layer keeps the colour, width and dash it always had, so a map that was
-  // already legible stays legible and the change reads as "now I can tell the
-  // components apart" rather than "the map was redesigned".
+  // Furniture stays LIGHT: only the network landmarks (MFG, PDP, chamber
+  // subtype) carry a shaped glyph, everything else is a dot at reduced size —
+  // thousands of premises pins buried the trench network they sit on.
   // ------------------------------------------------------------------
   const SHAPE_PATHS = {
     hexagon: 'M12 2.6 L20.1 7.3 V16.7 L12 21.4 L3.9 16.7 V7.3 Z',
@@ -166,38 +177,57 @@
     square: 'M4.4 4.4 H19.6 V19.6 H4.4 Z',
     diamond: 'M12 2.4 L21.6 12 L12 21.6 L2.4 12 Z',
     circle: '<circle cx="12" cy="12" r="8.2"/>',
+    dot: '<circle cx="12" cy="12" r="5.4"/>',
     pin: 'M12 2.4 C17.2 2.4 21.2 6.5 21.2 11.7 C21.2 17.1 12 21.8 12 21.8 C12 21.8 2.8 17.1 2.8 11.7 C2.8 6.5 6.8 2.4 12 2.4 Z',
     cross: 'M12 2.8 V21.2 M2.8 12 H21.2',
   };
 
   // Point symbol per component. ``field`` + ``values`` picks the shape from a
   // feature property (chambers by SUBTYPE, existing infra by ASSET_TYPE).
+  // ``size`` scales the 22 px glyph (default 1). Only the network landmarks
+  // keep a full-size glyph; furniture is shrunk so it never buries the lines.
   const SYMBOL_SPEC = {
     // Colours are the ones the palette already used for these layers.
-    mfg: { shape: 'hexagon', color: '#10B981' },
-    pdps: { shape: 'triangle', color: '#06B6D4' },
+    mfg: { shape: 'hexagon', color: '#10B981', size: 1 },
+    pdps: { shape: 'triangle', color: '#06B6D4', size: 0.9 },
+    // One symbol per chamber SUBTYPE: a Bore is the HDD entry/exit opening,
+    // a Handhole is a small lid, a Manhole is a walk-in shaft. Same size, so
+    // the silhouette — not the scale — says which structure it is.
     chambers: {
-      shape: 'square', color: '#475569', field: 'SUBTYPE',
+      shape: 'circle', color: '#64748B', size: 0.7, field: 'SUBTYPE',
       values: {
-        Bore: { shape: 'ringSquare', color: '#B91C1C' },
+        Bore: { shape: 'diamond', color: '#B91C1C' },
         Manhole: { shape: 'square', color: '#1E293B' },
-        Handhole: { shape: 'square', color: '#64748B' },
+        Handhole: { shape: 'circle', color: '#64748B' },
       },
     },
-    coupleurs: { shape: 'diamond', color: '#14B8A6' },
-    poles: { shape: 'cross', color: '#A16207' },
-    objects: { shape: 'pin', color: '#8B5CF6' },
+    coupleurs: { shape: 'diamond', color: '#14B8A6', size: 0.55 },
+    poles: { shape: 'cross', color: '#A16207', size: 0.6 },
+    // Premises are back to plain dots: they are the most numerous point layer
+    // by far, and 296 pins at 22 px each turned the map into a picket fence.
+    objects: { shape: 'dot', color: '#8B5CF6', size: 0.45 },
+    premises: { shape: 'dot', color: '#8B5CF6', size: 0.45 },
     brownfield: {
-      shape: 'circle', color: '#64748B', field: 'ASSET_TYPE',
+      shape: 'dot', color: '#64748B', size: 0.6, field: 'ASSET_TYPE',
       values: {
         pdp: { shape: 'triangle', color: '#0E7490' },
         mfg: { shape: 'hexagon', color: '#047857' },
         chamber: { shape: 'square', color: '#334155' },
-        pole: { shape: 'cross', color: '#92400E' },
         cabinet: { shape: 'square', color: '#475569' },
-        duct: { shape: 'circle', color: '#64748B' },
-        trench: { shape: 'circle', color: '#94A3B8' },
-        fibre: { shape: 'circle', color: '#7D8BA6' },
+        pole: { shape: 'cross', color: '#92400E' },
+        duct: { shape: 'dot', color: '#64748B' },
+        trench: { shape: 'dot', color: '#94A3B8' },
+        fibre: { shape: 'dot', color: '#7D8BA6' },
+      },
+    },
+    // Trench-designer structural nodes (Trench_Nodes.gpkg): the same shapes as
+    // the chamber subtypes, keyed off NODE_TYPE.
+    trench_nodes: {
+      shape: 'dot', color: '#475569', size: 0.55, field: 'NODE_TYPE',
+      values: {
+        HDD: { shape: 'diamond', color: '#B91C1C' },
+        PULL: { shape: 'square', color: '#F59E0B' },
+        BEND: { shape: 'dot', color: '#6B7280' },
       },
     },
   };
@@ -208,12 +238,44 @@
   // PATTERN, not by a new colour. Every other layer (ducts, cables, existing
   // infra) keeps its own palette colour, width and dash untouched.
   const LINE_SPEC = {
+    // One colour AND one stroke per CONSTRUCTION TYPE — a trench is not one
+    // thing: Open Cut is excavated, HDD is drilled under a carriageway, a
+    // Garden leg is hand-dug to one house, and an Aerial leg is never dug at
+    // all (it is a span on a pole). The designer classifies every span into
+    // exactly these four, so the map can too.
     trenches: {
       field: 'trench_type',
       buckets: [
-        { value: 'Open Cut', color: '#3B82F6', width: 3.5, dash: null, aliases: ['opencut'] },
-        { value: 'HDD', color: '#3B82F6', width: 3.5, dash: [10, 4], aliases: ['hdd', 'drill', 'bore'] },
-        { value: 'Garden', color: '#3B82F6', width: 2, dash: [1.5, 3], aliases: ['garden', 'drop'] },
+        { value: 'Open Cut', color: '#2563EB', width: 6, dash: null, aliases: ['opencut'] },
+        { value: 'HDD', color: '#7C3AED', width: 5.5, dash: [10, 4], aliases: ['hdd', 'drill', 'bore'] },
+        { value: 'Garden', color: '#16A34A', width: 4, dash: [1.5, 3], aliases: ['garden'] },
+        { value: 'Aerial', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+      ],
+      useBucketColor: true,
+    },
+    // Ducts sit BETWEEN the trench and the cable in weight and are coloured by
+    // the part of the tree they belong to: the feeder trunk, the distribution
+    // branch, or the one-premise drop. The bucket colour WINS over the palette
+    // here (``useBucketColor``) — that is the point of the spec — so a merged
+    // ducts layer is colourful on its own instead of one flat yellow.
+    ducts: {
+      field: 'DUCT_TYPE',
+      useBucketColor: true,
+      buckets: [
+        { value: '4-Way HDPE', color: '#F59E0B', width: 3.6, dash: null, aliases: ['feeder'] },
+        { value: '2-Way HDPE', color: '#8B5CF6', width: 3, dash: null, aliases: ['distribution'] },
+        { value: '1-Way HDPE', color: '#EC4899', width: 2.2, dash: null, aliases: ['drop'] },
+      ],
+    },
+    // Cables are the thinnest thing on the map: they are pulled through a duct
+    // that is already drawn on the same alignment. Coloured by tier.
+    cables: {
+      field: 'CABLE_TYPE',
+      useBucketColor: true,
+      buckets: [
+        { value: 'Feeder', color: '#DC2626', width: 1.8, dash: null, aliases: ['feeder'] },
+        { value: 'Distribution', color: '#F97316', width: 1.3, dash: null, aliases: ['distribution'] },
+        { value: 'Drop', color: '#22C55E', width: 1, dash: null, aliases: ['drop'] },
       ],
     },
   };
@@ -692,7 +754,8 @@
         // its own trench palette); the bucket only contributes the pattern, so
         // adding a class distinction never recolours an existing map.
         var bPaint = {
-          'line-color': permitMatch || opts.fillColor || b.color,
+          'line-color': permitMatch
+            || (lineSpec.useBucketColor ? b.color : (opts.fillColor || b.color)),
           'line-width': b.width,
           'line-opacity': clamp01(fillOpacity + 0.2),
         };
@@ -775,7 +838,8 @@
         map.addLayer({
           id: pointsLayerId, type: 'symbol', source: sourceId,
           layout: {
-            'icon-image': iconImage, 'icon-size': 1,
+            'icon-image': iconImage,
+            'icon-size': symSpec.size !== undefined ? symSpec.size : 1,
             'icon-allow-overlap': true, 'icon-ignore-placement': true,
             visibility: visible ? 'visible' : 'none',
           },
@@ -1036,22 +1100,34 @@
   var LEGEND_LABELS = {
     mfg: 'MFG (exchange)', pdps: 'PDP (splitter)', chambers: 'Chamber',
     coupleurs: 'Coupler', poles: 'Pole (aerial)', objects: 'Premise / object',
+    premises: 'Premise / object',    trench_nodes: 'Trench node',
+    'aerial_drops': 'Aerial drop', aerial_drop_trenches: 'Aerial drop',
     brownfield: 'Existing infra', trenches: 'Trench', ducts: 'Duct', cables: 'Cable',
+    // Only meaningful for a layer that is SPLIT per tier upstream; the legend
+    // lists one row per bucket so the tier colours are explained.
+    feeder_ducts: 'Duct', distribution_ducts: 'Duct', drop_ducts: 'Duct',
+    feeder_cable: 'Cable', distribution_cable: 'Cable', drop_cable: 'Cable',
   };
   // Only the trench line rows are worth legend space: ducts and cables keep the
   // colours their layer toggles already show a dot for.
-  var LEGEND_LINE_KEYS = ['trenches'];
+  var LEGEND_LINE_KEYS = ['trenches', 'ducts', 'cables'];
 
   function legendSpec() {
     var icons = [], lines = [];
+    var seenLabel = {};
     Object.keys(SYMBOL_SPEC).forEach(function (key) {
       var s = SYMBOL_SPEC[key];
       if (s.values) {
         Object.keys(s.values).forEach(function (v) {
-          icons.push({ label: LEGEND_LABELS[key] + ' — ' + v, shape: s.values[v].shape, color: s.values[v].color });
+          icons.push({ label: (LEGEND_LABELS[key] || key) + ' — ' + v, shape: s.values[v].shape, color: s.values[v].color });
         });
       }
-      icons.push({ label: LEGEND_LABELS[key] || key, shape: s.shape, color: s.color });
+      // One row per component, not per spec alias: `objects` and `premises`
+      // are the same dot under two names upstream.
+      var label = LEGEND_LABELS[key] || key;
+      if (seenLabel[label]) return;
+      seenLabel[label] = true;
+      icons.push({ label: label, shape: s.shape, color: s.color });
     });
     LEGEND_LINE_KEYS.forEach(function (key) {
       if (!LINE_SPEC[key]) return;
