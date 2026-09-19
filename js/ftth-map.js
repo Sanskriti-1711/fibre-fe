@@ -169,7 +169,7 @@
   //              Manhole  square
   //   Coupler    diamond (teal)   @0.55
   //   Pole       cross (brown)    @0.6
-  //   Premise    small dot        @0.45
+  //   Premise    dot              @1.35
   //   Existing   circle (grey shades)
   //
   // Furniture stays LIGHT: only the network landmarks (MFG, PDP, chamber
@@ -182,7 +182,13 @@
     square: 'M4.4 4.4 H19.6 V19.6 H4.4 Z',
     diamond: 'M12 2.4 L21.6 12 L12 21.6 L2.4 12 Z',
     circle: '<circle cx="12" cy="12" r="8.2"/>',
-    dot: '<circle cx="12" cy="12" r="5.4"/>',
+    // The plain-dot body: premises/objects are the most numerous layer by far,
+    // so their size is the whole visibility decision. At r=6.4 with icon-size
+    // 1.15 the dot rendered ~13 CSS px and read as noise until you zoomed in.
+    // The body is now 15.2 units of the 24-unit box (1 unit ≈ 0.92 CSS px at
+    // pixelRatio 2) and the layer size is 1.35 → ~19 CSS px, legible at project
+    // zoom without burying the trench/duct strokes underneath.
+    dot: '<circle cx="12" cy="12" r="7.6"/>',
     pin: 'M12 2.4 C17.2 2.4 21.2 6.5 21.2 11.7 C21.2 17.1 12 21.8 12 21.8 C12 21.8 2.8 17.1 2.8 11.7 C2.8 6.5 6.8 2.4 12 2.4 Z',
     cross: 'M12 2.8 V21.2 M2.8 12 H21.2',
   };
@@ -208,12 +214,16 @@
     },
     coupleurs: { shape: 'diamond', color: '#14B8A6', size: 0.55 },
     poles: { shape: 'cross', color: '#A16207', size: 0.6 },
-    // Premises are back to plain dots: they are the most numerous point layer
-    // by far, and 296 pins at 22 px each turned the map into a picket fence.
-    objects: { shape: 'dot', color: '#8B5CF6', size: 0.45 },
-    premises: { shape: 'dot', color: '#8B5CF6', size: 0.45 },
+    // Premises stay plain dots — they are the most numerous point layer by far,
+    // so shaped pins at full size turned the map into a picket fence. Size is
+    // the compromise: 0.45 and 0.8 were both invisible next to the trench/duct
+    // strokes until you zoomed right in, 1.15 with a fatter dot body reads at
+    // project zoom without burying the network. Chosen over a shaped glyph on
+    // purpose (shaped pins turned the map into a picket fence).
+    objects: { shape: 'dot', color: '#8B5CF6', size: 1.35 },
+    premises: { shape: 'dot', color: '#8B5CF6', size: 1.35 },
     brownfield: {
-      shape: 'dot', color: '#64748B', size: 0.6, field: 'ASSET_TYPE',
+      shape: 'dot', color: '#64748B', size: 0.85, field: 'ASSET_TYPE',
       values: {
         pdp: { shape: 'triangle', color: '#0E7490' },
         mfg: { shape: 'hexagon', color: '#047857' },
@@ -227,12 +237,18 @@
     },
     // Trench-designer structural nodes (Trench_Nodes.gpkg): the same shapes as
     // the chamber subtypes, keyed off NODE_TYPE.
+    // Keys are the designer's own NODE_TYPE values (Trench_Nodes.gpkg), so the
+    // symbol says what the structure IS: a drill opening, the point where the
+    // network changes tier, a splitter location, a direction change or a pull
+    // point on a long run.
     trench_nodes: {
-      shape: 'dot', color: '#475569', size: 0.55, field: 'NODE_TYPE',
+      shape: 'dot', color: '#475569', size: 0.6, field: 'NODE_TYPE',
       values: {
-        HDD: { shape: 'diamond', color: '#B91C1C' },
-        PULL: { shape: 'square', color: '#F59E0B' },
+        HDD_PIT: { shape: 'diamond', color: '#B91C1C' },
+        JUNCTION: { shape: 'square', color: '#334155' },
+        PDP: { shape: 'triangle', color: '#0E7490' },
         BEND: { shape: 'dot', color: '#6B7280' },
+        PULL: { shape: 'cross', color: '#F59E0B' },
       },
     },
   };
