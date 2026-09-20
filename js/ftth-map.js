@@ -272,7 +272,15 @@
       field: 'TRENCH_TYPE',
       useBucketColor: true,
       buckets: [
+        // The classified leg (`Aerial_Drops`) and the span the pole stage
+        // BUILDS for it (`Aerial_Drop_Trenches`, TRENCH_TYPE `Aerial_Drop`)
+        // carry different values for the same construction class, and the
+        // bucket matcher is an exact compare — with only `Aerial` listed the
+        // drop trenches matched no bucket at all and fell through to a plain
+        // undashed line, which is why the aerial routes read as ordinary
+        // trench on the map.
         { value: 'Aerial', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+        { value: 'Aerial_Drop', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
       ],
     },
     trenches: {
@@ -308,6 +316,10 @@
         { value: 'Feeder', color: '#DC2626', width: 1.8, dash: null, aliases: ['feeder'] },
         { value: 'Distribution', color: '#F97316', width: 1.3, dash: null, aliases: ['distribution'] },
         { value: 'Drop', color: '#22C55E', width: 1, dash: null, aliases: ['drop'] },
+        // `Aerial_Cable` is the span the drop hangs from, not a duct-pulled
+        // cable: same amber as the aerial trench, dashed, so it reads as the
+        // overhead route instead of falling back to a flat default stroke.
+        { value: 'Aerial', color: '#F59E0B', width: 1.6, dash: [6, 3], aliases: ['aerial'] },
       ],
     },
   };
