@@ -213,7 +213,12 @@
       },
     },
     coupleurs: { shape: 'diamond', color: '#14B8A6', size: 0.55 },
-    poles: { shape: 'cross', color: '#A16207', size: 0.6 },
+    // Poles carry the aerial spans, so they take the SAME amber as the aerial
+    // trench and cable (`LINE_SPEC`) — the overhead route reads as one thing.
+    // A pole is a POINT, so it cannot be dashed the way a span is; the cross
+    // glyph is what marks it, and 0.6 was too small to see at project zoom
+    // (Berlin has only a handful of poles, so they were easy to miss).
+    poles: { shape: 'cross', color: '#F59E0B', size: 1.1 },
     // Premises stay plain dots — they are the most numerous point layer by far,
     // so shaped pins at full size turned the map into a picket fence. Size is
     // the compromise: 0.45 and 0.8 were both invisible next to the trench/duct

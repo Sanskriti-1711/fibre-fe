@@ -178,9 +178,11 @@
           <div style="margin-bottom:6px;"><strong>Types</strong> — four construction classes,
           each with its own colour and stroke: Open Cut (excavated), HDD (drilled road
           crossings), Garden (hand-dug drop legs) and Aerial (never dug).</div>
-          <div><strong>Aerial</strong> — drop legs inside an aerial zone are built aerial
-          (no excavation) and published on their own layer; trench spans that run through a
-          restricted zone are flagged <code>AERIAL</code> for review.</div>
+          <div><strong>Aerial</strong> — the fibre runs on poles and nothing is excavated
+          (<code>CONSTRUCTION_METHOD = Overhead</code>, <code>EXCAVATION = 0</code>). It is a
+          <em>drop-stage</em> method only: feeder and distribution are always underground, so
+          a mains span that crosses restricted land stays Open Cut / HDD and is flagged
+          <code>AERIAL_ZONE</code> as permit evidence instead.</div>
         </div>
       </div>
     </div>
@@ -198,7 +200,7 @@
 <script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
 <script src="js/ftth-api.js?v=20260917b"></script>
 <script src="js/ftth-state.js"></script>
-<script src="js/ftth-map.js?v=20260918a"></script>
+<script src="js/ftth-map.js?v=20260920b"></script>
 <script src="js/ftth-components.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -347,9 +349,11 @@
         permitField: 'TRENCH_TYPE', permitColors: TRENCH_COLORS,
       })) { present.push('Trench spans (by type)'); }
 
-      // Spans flagged AERIAL are drawn again as a dashed warning overlay.
+      // Spans crossing restricted land (AERIAL_ZONE) are drawn again as a
+      // warning overlay. They are corridor RESTRICTIONS, not an aerial
+      // construction class — the span underneath is still Open Cut / HDD.
       var flagged = (layers.trenches.geojson.features || []).filter(function (f) {
-        return Number((f.properties || {}).AERIAL || 0) === 1;
+        return Number((f.properties || {}).AERIAL_ZONE || 0) === 1;
       });
       if (flagged.length) {
         if (addDesignLayer('Aerial corridor flags',
