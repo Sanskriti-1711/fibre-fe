@@ -45,7 +45,52 @@
    * Internal helper: perform a fetch with JWT auth headers and return
    * the raw Response object (for blob downloads) or parsed body.
    */
-  function authFetch(url, options) {
+  /**
+   * Renew the access token through whichever auth module is loaded.
+   * Resolves to the new token, or null when renewal is not possible.
+   *
+   * `refreshAccessToken` lives on `FiberApi` (fiber-api.js), not on
+   * `FiberAuth` — the latter only exposes `getAccess`/`getRefresh`/`clear`.
+   * Both are checked so the page's script order does not matter.
+   */
+  async function refreshAccessToken() {
+    var modules = [window.FiberApi, window.FiberAuth];
+    for (var i = 0; i < modules.length; i++) {
+      var mod = modules[i];
+      if (mod && typeof mod.refreshAccessToken === 'function') {
+        try {
+          return await mod.refreshAccessToken();
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * `fetch` with JWT auth, renewing the access token once on 401.
+   *
+   * The access token lives 12 hours; the refresh token 30 days. Without the
+   * renewal below an expired access token made every FTTH call fail with a bare
+   * 401 until the user logged out and back in — which is what made the pipeline
+   * look like it would not start: the multipart upload was rejected before it
+   * ever reached the engine, so no run appeared anywhere. The legacy
+   * `fiber-api.js` client has always renewed on 401; these FTTH clients did not.
+   */
+  /**
+   * Drop a session whose access token can no longer be renewed, so the app does
+   * not keep sending a dead token and prompting nothing but a 401.
+   */
+  function expireSession() {
+    try {
+      if (window.FiberAuth && typeof window.FiberAuth.clear === 'function') {
+        window.FiberAuth.clear();
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  async function authFetch(url, options, _retried) {
     options = options || {};
     var headers = new Headers(options.headers || {});
     var token = getAuthToken();
@@ -57,7 +102,18 @@
         headers.set('Content-Type', 'application/json');
       }
     }
-    return fetch(url, { ...options, headers: headers });
+    var response = await fetch(url, { ...options, headers: headers });
+    if (response.status === 401 && !_retried) {
+      var renewed = await refreshAccessToken();
+      if (renewed) return authFetch(url, options, true);
+      // Renewal is impossible: localStorage holds a token whose refresh
+      // credential is missing or has itself expired, so no amount of retrying
+      // will help. Drop it and say so, rather than surfacing the raw
+      // "Given token not valid for any token type" the backend returns.
+      expireSession();
+      throw new Error('Session expired. Please login again.');
+    }
+    return response;
   }
 
   /**
@@ -121,12 +177,10 @@
     }
 
     var url = buildUrl(API_PREFIX + '/run/');
-    var headers = new Headers();
-    var token = getAuthToken();
-    if (token) headers.set('Authorization', 'Bearer ' + token);
-    // Don't set Content-Type for FormData
-
-    var response = await fetch(url, { method: 'POST', body: fd, headers: headers });
+    // Through `authFetch` (which leaves Content-Type unset for FormData) so an
+    // expired access token is renewed and the upload retried, instead of the
+    // run dying on a bare 401 that never reaches the engine.
+    var response = await authFetch(url, { method: 'POST', body: fd });
     var body = await parseBody(response);
 
     if (!response.ok) {
@@ -353,6 +407,167 @@
   }
 
   // ------------------------------------------------------------------
+  // Area-driven runs
+  // ------------------------------------------------------------------
+
+  /**
+   * Attach the HTTP status to an Error so callers can tell the honest
+   * failure modes apart. "Area not found" (404), "OSM services
+   * unreachable" (502), "too many premises" (422) and "PostGIS down"
+   * (503) need four different messages — collapsing them into one string
+   * tells the user the wrong thing.
+   */
+  function areaError(body, response) {
+    var msg = body && typeof body === 'object' && body.detail
+      ? body.detail
+      : response.status + ' ' + response.statusText;
+    var err = new Error(msg);
+    err.status = response.status;
+    err.body = body;
+    return err;
+  }
+
+  /**
+   * Normalize an area request to the structured field set the API expects.
+   *
+   * Accepts either a plain string (an area name or postcode, the older form) or
+   * an object of {country, city, postcode, area_name}. The country is sent as
+   * chosen and is never inferred — the server used to assume Germany for any
+   * five-digit code, which read a US ZIP as a German one.
+   */
+  function areaFields(request) {
+    if (request && typeof request === 'object') {
+      var out = {};
+      ['country', 'city', 'postcode', 'area_name', 'area'].forEach(function (key) {
+        var value = request[key];
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+          out[key] = String(value).trim();
+        }
+      });
+      return out;
+    }
+    var text = String(request === undefined || request === null ? '' : request).trim();
+    return text ? { area: text } : {};
+  }
+
+  /**
+   * Resolve an area to its boundary, premises and households.
+   *
+   * ``boundaryOnly`` returns as soon as Nominatim resolves the area, so the
+   * map can draw the boundary right away. The full call additionally needs
+   * the area's OpenStreetMap data, which is fetched and cached on first use
+   * (minutes on a cold area, instant afterwards).
+   */
+  async function resolveArea(request, boundaryOnly) {
+    var url = buildUrl(API_PREFIX + '/resolve-area/');
+    var payload = areaFields(request);
+    payload.boundary_only = !!boundaryOnly;
+    var response = await authFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var body = await parseBody(response);
+    if (!response.ok) throw areaError(body, response);
+    return body;
+  }
+
+  /**
+   * Progress of the engine's OSM download for an area.
+   *
+   * A cold area takes 10-16 minutes to download; the page polls this while it
+   * waits so the wait says what it is doing instead of looking like a hang.
+   * Best-effort: an unreachable engine reports ``unavailable`` rather than
+   * throwing, because a failed progress poll must not fail the preview.
+   */
+  async function getAreaFetch(area, bbox) {
+    var params = [];
+    if (area) params.push('area=' + encodeURIComponent(area));
+    if (bbox && bbox.length === 4) {
+      params.push('bbox=' + encodeURIComponent(bbox.join(',')));
+    }
+    if (!params.length) return { state: 'unknown', fetching: false, label: '' };
+    var url = buildUrl(API_PREFIX + '/area-fetch/?' + params.join('&'));
+    try {
+      var response = await authFetch(url);
+      var body = await parseBody(response);
+      if (!response.ok) return { state: 'unavailable', fetching: false, label: '' };
+      return body;
+    } catch (_) {
+      return { state: 'unavailable', fetching: false, label: '' };
+    }
+  }
+
+  /** Return one complete OSM/HLD input layer for the pre-run review. */
+  async function getInputLayer(request, layer) {
+    var url = buildUrl(API_PREFIX + '/input-layers/');
+    var payload = areaFields(request);
+    payload.layer = layer;
+    var response = await authFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var body = await parseBody(response);
+    if (!response.ok) throw areaError(body, response);
+    return body;
+  }
+
+  /**
+   * Start a full HLD run from an area. The engine fetches the area's OSM data,
+   * writes the same two input files a manual upload would, and runs the
+   * unchanged pipeline on them. Returns the new project id.
+   */
+  async function runFromArea(request, name, polyMethod) {
+    var url = buildUrl(API_PREFIX + '/run-from-area/');
+    var payload = areaFields(request);
+    if (name) payload.name = name;
+    if (polyMethod !== undefined) payload.poly_method = polyMethod;
+    var response = await authFetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var body = await parseBody(response);
+    if (!response.ok) throw areaError(body, response);
+    return body;
+  }
+
+  /** Country options for the area input's country dropdown. */
+  async function getCountries() {
+    var url = buildUrl(API_PREFIX + '/countries/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) throw areaError(body, response);
+    return body.countries || [];
+  }
+
+  /**
+   * City/town suggestions for the city combobox, filtered by country.
+   *
+   * Best-effort: an empty list is a normal answer while someone is typing.
+   */
+  async function suggestPlaces(query, countryCode, limit) {
+    var params = ['q=' + encodeURIComponent(query)];
+    if (countryCode) params.push('country=' + encodeURIComponent(countryCode));
+    params.push('limit=' + encodeURIComponent(limit || 8));
+    var url = buildUrl(API_PREFIX + '/places/?' + params.join('&'));
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) return { places: [], reason: 'unavailable' };
+    return body;
+  }
+
+  /** What the engine's local OSM store holds (empty is normal). */
+  async function getOsmStatus() {
+    var url = buildUrl(API_PREFIX + '/osm-status/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) throw areaError(body, response);
+    return body;
+  }
+
+  // ------------------------------------------------------------------
   // Internal helpers
   // ------------------------------------------------------------------
 
@@ -387,5 +602,12 @@
     downloadBoq: downloadBoq,
     getTrenchDesign: getTrenchDesign,
     runTrenchDesign: runTrenchDesign,
+    resolveArea: resolveArea,
+    getAreaFetch: getAreaFetch,
+    getInputLayer: getInputLayer,
+    runFromArea: runFromArea,
+    getCountries: getCountries,
+    suggestPlaces: suggestPlaces,
+    getOsmStatus: getOsmStatus,
   };
 })();

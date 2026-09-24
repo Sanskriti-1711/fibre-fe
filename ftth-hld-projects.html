@@ -422,7 +422,11 @@
               <tr>
                 <th>Project</th>
                 <th>Status</th>
-                <th>Created</th>
+                <!-- Ordered by last activity server-side (updated_at), so show
+                     that here: a run re-run in place keeps its name and
+                     creation date, and reading created_at made a fresh run
+                     look like the same old one. Created stays in the tooltip. -->
+                <th>Last Run</th>
                 <th>Progress</th>
                 <th>Layers</th>
                 <th style="text-align:right;">Actions</th>
@@ -578,7 +582,7 @@
           +     '<span>' + statusInfo.label + '</span>'
           +   '</span>'
           + '</td>'
-          + '<td class="project-date">' + formatDate(p.created_at) + '</td>'
+          + '<td class="project-date" title="Created ' + escHtml(p.created_at || '') + '">' + formatDate(p.updated_at || p.created_at) + '</td>'
           + '<td>'
           +   '<div class="project-progress">'
           +     '<div class="mini-bar"><div class="mini-fill" style="width:' + pct + '%;background:' + getProgressColor(pct) + ';"></div></div>'

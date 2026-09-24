@@ -164,7 +164,7 @@
   //
   //   MFG        hexagon (green)   @1.0    Trench Open Cut  solid, thick
   //   PDP        triangle (cyan)   @0.9    Trench HDD       long dash
-  //   Chamber    Bore    diamond            Trench Garden    dotted, thin
+  //   Chamber    Bore    diamond            Trench Garden    solid, thin
   //              Handhole circle    @0.7
   //              Manhole  square
   //   Coupler    diamond (teal)   @0.55
@@ -199,8 +199,10 @@
   // keep a full-size glyph; furniture is shrunk so it never buries the lines.
   const SYMBOL_SPEC = {
     // Colours are the ones the palette already used for these layers.
-    mfg: { shape: 'hexagon', color: '#10B981', size: 1 },
-    pdps: { shape: 'triangle', color: '#06B6D4', size: 0.9 },
+    // Keep the dense premise/object layer visually subordinate to the network
+    // landmarks, while making the two primary source markers easy to find.
+    mfg: { shape: 'hexagon', color: '#10B981', size: 1.15 },
+    pdps: { shape: 'triangle', color: '#06B6D4', size: 1.1 },
     // One symbol per chamber SUBTYPE: a Bore is the HDD entry/exit opening,
     // a Handhole is a small lid, a Manhole is a walk-in shaft. Same size, so
     // the silhouette — not the scale — says which structure it is.
@@ -219,14 +221,10 @@
     // glyph is what marks it, and 0.6 was too small to see at project zoom
     // (Berlin has only a handful of poles, so they were easy to miss).
     poles: { shape: 'cross', color: '#F59E0B', size: 1.1 },
-    // Premises stay plain dots — they are the most numerous point layer by far,
-    // so shaped pins at full size turned the map into a picket fence. Size is
-    // the compromise: 0.45 and 0.8 were both invisible next to the trench/duct
-    // strokes until you zoomed right in, 1.15 with a fatter dot body reads at
-    // project zoom without burying the network. Chosen over a shaped glyph on
-    // purpose (shaped pins turned the map into a picket fence).
-    objects: { shape: 'dot', color: '#8B5CF6', size: 1.35 },
-    premises: { shape: 'dot', color: '#8B5CF6', size: 1.35 },
+    // Object/premise points are the densest layer. Keep them deliberately small
+    // so they do not visually outrank the PDP and MFG landmarks.
+    objects: { shape: 'dot', color: '#8B5CF6', size: 0.72 },
+    premises: { shape: 'dot', color: '#8B5CF6', size: 0.72 },
     brownfield: {
       shape: 'dot', color: '#64748B', size: 0.85, field: 'ASSET_TYPE',
       values: {
@@ -293,7 +291,11 @@
       buckets: [
         { value: 'Open Cut', color: '#2563EB', width: 6, dash: null, aliases: ['opencut'] },
         { value: 'HDD', color: '#7C3AED', width: 5.5, dash: [10, 4], aliases: ['hdd', 'drill', 'bore'] },
-        { value: 'Garden', color: '#16A34A', width: 4, dash: [1.5, 3], aliases: ['garden'] },
+        // Garden legs are REAL dug trench (hand-dug from the open cut to one
+        // house), so they are drawn solid like the open cut. They were dotted,
+        // which read as "not a trench" — only HDD keeps a stroke pattern, and
+        // that is because it is drilled rather than dug.
+        { value: 'Garden', color: '#16A34A', width: 4, dash: null, aliases: ['garden'] },
         { value: 'Aerial', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
       ],
       useBucketColor: true,
@@ -673,6 +675,10 @@
     var visible = opts.visible !== false;
     var flagField = opts.flagField;
     var flagValue = opts.flagValue;
+    // How many properties a click popup lists.  Kept configurable because the
+    // objects layer exists to show ALL of an OSM building's attributes, while
+    // the design layers only want their top handful.
+    var popupMaxFields = Number(opts.popupMaxFields) > 0 ? Number(opts.popupMaxFields) : 12;
 
     var sourceId = 'ftth-source-' + layerId;
     var fillLayerId = 'ftth-fill-' + layerId;
@@ -683,7 +689,20 @@
     // expanded from a tile-clipped fragment back to the whole feature.
     _registerSourceFeatures(sourceId, geojson);
 
-    if (map.getSource(sourceId)) return { sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId, pointsLayerId: pointsLayerId };
+    // A source that already exists must be REPLACED, not skipped. The same page
+    // resolves several areas in a row, and returning early here left the
+    // PREVIOUS area's features on the map while the boundary moved to the new
+    // one — so after trying one area and then another, the premises points were
+    // simply not in view and the layer looked empty. The old layers are removed
+    // and re-added (rather than setData'd) because a re-resolve can change the
+    // geometry mix, which would leave the old layer types behind.
+    if (map.getSource(sourceId)) {
+      (_layerParts[layerId] || []).forEach(function (lid) {
+        if (map.getLayer(lid)) { try { map.removeLayer(lid); } catch (_) {} }
+      });
+      try { map.removeSource(sourceId); } catch (_) {}
+      delete _layerParts[layerId];
+    }
 
     // Scan ALL features: a merged group (e.g. brownfield lines + points) can
     // mix geometry types — MapLibre only renders features matching the layer
@@ -753,10 +772,11 @@
 
     // Line style per component/tier: when a LINE_SPEC matches, the layer is
     // drawn as one line layer PER bucket (construction class / tier) so the
-    // stroke pattern carries the meaning — a solid line, a long dash and a
-    // dotted line can be told apart at a glance where three solid colours
-    // cannot. `line-dasharray` is not data-driven in MapLibre, hence a layer
-    // per bucket with a filter instead of one layer with an expression.
+    // stroke pattern carries the meaning — a solid line and a long dash can be
+    // told apart at a glance where two solid colours cannot: Open Cut and
+    // Garden are both dug (solid), HDD is drilled (long dash). `line-dasharray`
+    // is not data-driven in MapLibre, hence a layer per bucket with a filter
+    // instead of one layer with an expression.
     var lineBuckets = null;
     if (hasLine) {
       var lineKey = _layerKey(layerId);
@@ -925,12 +945,19 @@
         // carries a duct inside it could select the duct instead.
         if (_identifyActive) { return; }
 
-        var html = '<div style="font-size:13px;line-height:1.5;max-width:280px;">';
-        var keys = Object.keys(props).slice(0, 12);
+        var allKeys = Object.keys(props).filter(function (k) {
+          return props[k] !== null && props[k] !== undefined;
+        });
+        var keys = allKeys.slice(0, popupMaxFields);
+        var html = '<div style="font-size:13px;line-height:1.5;max-width:300px;' +
+          'max-height:320px;overflow-y:auto;">';
         keys.forEach(function (k) {
-          if (props[k] === null || props[k] === undefined) return;
           html += '<div><strong>' + escapeHtmlProp(k) + ':</strong> ' + escapeHtmlProp(String(props[k])) + '</div>';
         });
+        if (allKeys.length > keys.length) {
+          html += '<div style="margin-top:6px;color:#6B7280;">… and ' +
+            (allKeys.length - keys.length) + ' more attribute(s)</div>';
+        }
         html += '</div>';
         new maplibregl.Popup({ closeButton: true, maxWidth: '320px' }).setLngLat(coords).setHTML(html).addTo(map);
       });

@@ -111,6 +111,23 @@
     }
     .ftth-inspector-footer button:hover { background:#F3F4F6; }
 
+    .ftth-attr-modal { position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; background:rgba(17,24,39,.55); padding:24px; }
+    .ftth-attr-dialog { width:min(1200px,96vw); height:min(760px,90vh); background:#FFFFFF; border-radius:12px; box-shadow:0 12px 48px rgba(0,0,0,.3); display:flex; flex-direction:column; overflow:hidden; }
+    .ftth-attr-header { display:flex; align-items:center; gap:12px; padding:14px 18px; background:#1F2937; color:#FFFFFF; flex-shrink:0; }
+    .ftth-attr-header strong { font-size:15px; }
+    .ftth-attr-count { color:#D1D5DB; font-size:11px; margin-right:auto; }
+    .ftth-attr-search { width:220px; padding:7px 10px; border:1px solid #6B7280; border-radius:6px; background:#374151; color:#FFFFFF; font-size:12px; }
+    .ftth-attr-search::placeholder { color:#D1D5DB; }
+    .ftth-attr-close { border:0; background:transparent; color:#D1D5DB; font-size:22px; cursor:pointer; }
+    .ftth-attr-body { overflow:auto; flex:1; }
+    .ftth-attr-table { border-collapse:collapse; min-width:100%; font-size:11px; white-space:nowrap; }
+    .ftth-attr-table th { position:sticky; top:0; z-index:1; background:#F3F4F6; color:#374151; text-align:left; padding:8px 10px; border-bottom:2px solid #D1D5DB; cursor:pointer; }
+    .ftth-attr-table td { padding:7px 10px; border-bottom:1px solid #E5E7EB; color:#1F2937; max-width:320px; overflow:hidden; text-overflow:ellipsis; }
+    .ftth-attr-table tr:nth-child(even) { background:#F9FAFB; }
+    .ftth-attr-table tr:hover { background:#FEF3C7; }
+    .ftth-table-btn { margin-left:auto; border:1px solid #D1D5DB; background:#FFFFFF; color:#374151; border-radius:6px; padding:4px 7px; font-size:11px; cursor:pointer; }
+    .ftth-table-btn:hover { background:#F3F4F6; border-color:#9CA3AF; }
+
     .ftth-survey-btn {
       display:flex; align-items:center; gap:10px; width:100%;
       padding:12px 14px; margin-top:12px;
@@ -180,6 +197,18 @@
         <div class="ftth-inspector-body" id="inspectorBody"></div>
         <div class="ftth-inspector-footer">
           <button id="inspectorClear" type="button">Clear selection</button>
+        </div>
+      </div>
+
+      <div class="ftth-attr-modal" id="attributeModal" role="dialog" aria-modal="true" aria-label="Layer attribute table">
+        <div class="ftth-attr-dialog">
+          <div class="ftth-attr-header">
+            <strong id="attributeTitle">Layer attributes</strong>
+            <span class="ftth-attr-count" id="attributeCount"></span>
+            <input class="ftth-attr-search" id="attributeSearch" type="search" placeholder="Filter rows…" aria-label="Filter attribute rows">
+            <button class="ftth-attr-close" id="attributeClose" type="button" title="Close">&times;</button>
+          </div>
+          <div class="ftth-attr-body" id="attributeBody"></div>
         </div>
       </div>
 
@@ -294,6 +323,8 @@
   }
 
   var map = null, allLayers = [];
+  // Complete GeoJSON responses kept for the in-page attribute-table viewer.
+  var layerGeoJSON = {};
   // For grouped layers (cables/ducts), sublayerRegistry maps group name ->
   // sublayer names (e.g. cables -> [Feeder_Cable, Distribution_Cable]) and
   // sublayerCounts maps group -> sublayer -> feature count. The layers pane
@@ -431,6 +462,7 @@
     try {
       var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
       if (!geojson || !geojson.features || !geojson.features.length) { console.warn('Empty GeoJSON:', layerName); return; }
+      layerGeoJSON[layerName] = geojson;
       var isPolygon = geojson.features[0] && geojson.features[0].geometry && geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
       // Inject the worst permit status per feature so trench segments are
       // coloured by their permit state (permits key off the feature fid).
@@ -542,7 +574,11 @@
       cs.className = 'layer-count';
       cs.id = 'layer-count-' + name.replace(/\s+/g,'-');
       cs.textContent = count + ' features';
-      label.appendChild(cb); label.appendChild(dot); label.appendChild(ns); label.appendChild(cs);
+      var tableBtn = document.createElement('button');
+      tableBtn.type = 'button'; tableBtn.className = 'ftth-table-btn'; tableBtn.textContent = 'Table';
+      tableBtn.title = 'View attributes for this layer';
+      tableBtn.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); openAttributeTable(name); });
+      label.appendChild(cb); label.appendChild(dot); label.appendChild(ns); label.appendChild(cs); label.appendChild(tableBtn);
       layerControlsEl.appendChild(label);
       // Grouped layers (cables/ducts) get their group row replaced by one
       // toggle per sublayer once the GeoJSON has loaded and the sublayer
@@ -566,6 +602,7 @@
     subs.forEach(function(s){ total += (counts[s] || 0); });
     var html = '';
     // Group header row (keeps the group name visible, shows the total count)
+    html += '<button type="button" class="ftth-table-btn" data-table-group="' + escapeHtml(groupName) + '" style="margin:6px 0;">View attribute table</button>';
     html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 2px;font-size:13px;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB;">';
     html += '<span>' + escapeHtml(groupName) + '</span>';
     html += '<span class="layer-count" style="font-weight:500;color:#6B7280;font-size:12px;">' + total + ' features</span>';
@@ -582,6 +619,8 @@
     });
     anchor.innerHTML = html;
     anchor.style.display = 'block';
+    var groupTableBtn = anchor.querySelector('[data-table-group]');
+    if (groupTableBtn) groupTableBtn.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); openAttributeTable(groupName); });
     // Hide the original single group row (it sits right before the anchor).
     var prev = anchor.previousElementSibling;
     if (prev && prev.tagName === 'LABEL') prev.style.display = 'none';
@@ -737,6 +776,95 @@
       });
     });
   }
+
+  var attributeModal = document.getElementById('attributeModal');
+  var attributeTitle = document.getElementById('attributeTitle');
+  var attributeCount = document.getElementById('attributeCount');
+  var attributeSearch = document.getElementById('attributeSearch');
+  var attributeBody = document.getElementById('attributeBody');
+  var attributeRows = [];
+  var attributeColumns = [];
+  var attributeSort = { key: null, direction: 1 };
+
+  function openAttributeTable(layerName) {
+    var data = layerGeoJSON[layerName];
+    if (!data || !data.features || !data.features.length) {
+      alert('This layer has no loaded features yet.');
+      return;
+    }
+    attributeRows = data.features.map(function(f){ return f.properties || {}; });
+    var seen = {};
+    attributeColumns = [];
+    attributeRows.forEach(function(row){ Object.keys(row).forEach(function(k){ if (!seen[k]) { seen[k] = true; attributeColumns.push(k); } }); });
+    attributeColumns = orderAttributeColumns(layerName, attributeColumns);
+    attributeSort = { key: null, direction: 1 };
+    attributeTitle.textContent = layerName + ' attributes';
+    attributeSearch.value = '';
+    renderAttributeTable();
+    attributeModal.style.display = 'flex';
+    attributeSearch.focus();
+  }
+
+  var ATTRIBUTE_PRIORITY = {
+    trenches: ['feature_id','TRENCH_ID','RUN_ID','trench_type','TRENCH_TIER','START_CHAMBER','END_CHAMBER','length_m','SURFACE','PDP_ID','POLYGON_ID','MFG_ID'],
+    cables: ['feature_id','CABLE_TYPE','cable_id','FIBER_COUNT','SPLIT_MODULES','UTIL_PCT','SPARE_PCT','length_m','PDP_IDS','PDP_ID','POLYGON_ID','MFG_ID'],
+    ducts: ['feature_id','DUCT_ID','DUCT_TYPE','capacity_total','capacity_used','capacity_spare','OCCUPANCY_PCT','length_m','PDP_ID','POLYGON_ID','START_CHAMBER','END_CHAMBER','PARENT_TRENCH'],
+    chambers: ['feature_id','CHAMBER_ID','CHAMBER_TYPE','SUBTYPE','REASON','PDP_ID','HDD','START_CHAMBER','END_CHAMBER'],
+    pdps: ['feature_id','PDP_ID','POLYGON_ID','HH','SPLIT_CNT','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
+    objects: ['feature_id','addr_id','PDP_ID','POLYGON_ID','HH','address','SURFACE'],
+    polygons: ['feature_id','POLYGON_ID','PDP_ID','HH','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
+    mfg: ['feature_id','MFG_ID','PDP_COUNT','PDP_IDS'],
+  };
+  function orderAttributeColumns(layerName, columns) {
+    var key = String(layerName || '').toLowerCase().split('::')[0];
+    var priority = ATTRIBUTE_PRIORITY[key] || [];
+    var rank = {}; priority.forEach(function(k, i){ rank[k.toLowerCase()] = i; });
+    return columns.slice().sort(function(a,b){
+      var ra = rank[a.toLowerCase()]; var rb = rank[b.toLowerCase()];
+      if (ra === undefined && rb === undefined) return a.localeCompare(b);
+      if (ra === undefined) return 1; if (rb === undefined) return -1;
+      return ra - rb;
+    });
+  }
+
+  function formatAttributeValue(key, value) {
+    if (value === null || value === undefined || value === '') return '—';
+    var n = Number(value); var upper = String(key).toUpperCase();
+    if (Number.isFinite(n) && (upper.indexOf('PCT') >= 0 || upper.indexOf('UTIL') >= 0 || upper.indexOf('SPARE') >= 0 || upper.indexOf('OCCUPANCY') >= 0)) return n.toFixed(1) + '%';
+    if (Number.isFinite(n) && (upper.indexOf('LENGTH') >= 0 || upper.endsWith('_M') || upper === 'LENGTH')) return n.toLocaleString(undefined, {maximumFractionDigits:1}) + ' m';
+    if (Number.isFinite(n) && (upper.indexOf('COUNT') >= 0 || upper.indexOf('FIBER') >= 0 || upper.indexOf('CAPACITY') >= 0 || upper.indexOf('WAYS') >= 0 || upper.indexOf('SPLIT') >= 0)) return n.toLocaleString();
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  }
+
+  function renderAttributeTable() {
+    var query = String(attributeSearch.value || '').toLowerCase();
+    var rows = attributeRows.filter(function(row){
+      if (!query) return true;
+      return attributeColumns.some(function(k){ return String(row[k] == null ? '' : row[k]).toLowerCase().indexOf(query) !== -1; });
+    });
+    if (attributeSort.key) {
+      var key = attributeSort.key, dir = attributeSort.direction;
+      rows.sort(function(a,b){ var av = a[key] == null ? '' : a[key], bv = b[key] == null ? '' : b[key]; return String(av).localeCompare(String(bv), undefined, {numeric:true, sensitivity:'base'}) * dir; });
+    }
+    attributeCount.textContent = rows.length + ' of ' + attributeRows.length + ' features';
+    if (!attributeColumns.length) { attributeBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this layer.</div>'; return; }
+    var html = '<table class="ftth-attr-table"><thead><tr>';
+    attributeColumns.forEach(function(k){ html += '<th data-attr-key="' + escapeHtml(k) + '">' + escapeHtml(k) + (attributeSort.key === k ? (attributeSort.direction > 0 ? ' ▲' : ' ▼') : '') + '</th>'; });
+    html += '</tr></thead><tbody>';    rows.forEach(function(row){
+      html += '<tr>'; attributeColumns.forEach(function(k){ var value = row[k]; var raw = value === null || value === undefined ? '' : (typeof value === 'object' ? JSON.stringify(value) : String(value)); var text = formatAttributeValue(k, value); html += '<td title="' + escapeHtml(raw) + '">' + escapeHtml(text) + '</td>'; }); html += '</tr>';
+    });
+    html += '</tbody></table>';
+    attributeBody.innerHTML = html;
+    attributeBody.querySelectorAll('th[data-attr-key]').forEach(function(th){ th.addEventListener('click', function(){ var key = th.getAttribute('data-attr-key'); if (attributeSort.key === key) attributeSort.direction *= -1; else { attributeSort.key = key; attributeSort.direction = 1; } renderAttributeTable(); }); });
+  }
+
+  function closeAttributeTable() { if (attributeModal) attributeModal.style.display = 'none'; }
+  if (attributeSearch) attributeSearch.addEventListener('input', renderAttributeTable);
+  var attributeClose = document.getElementById('attributeClose');
+  if (attributeClose) attributeClose.addEventListener('click', closeAttributeTable);
+  if (attributeModal) attributeModal.addEventListener('click', function(e){ if (e.target === attributeModal) closeAttributeTable(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeAttributeTable(); });
 
   function showEmpty(msg) { mapLoadingEl.style.display = 'flex'; mapLoadingEl.innerHTML = '<p style="color:#6B7280;font-size:16px;">' + escapeHtml(msg) + '</p>'; }
 

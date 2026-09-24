@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/ftth.css" />
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
   <style>
     .ftth-upload-content {
       max-width: 680px;
@@ -98,6 +99,223 @@
       color: #9CA3AF;
     }
 
+    /* --- area mode --- */
+    .ftth-mode-switch {
+      display: flex;
+      gap: 8px;
+      background: #F3F4F6;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+
+    .ftth-mode-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #4B5563;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .ftth-mode-btn.active {
+      background: #FFFFFF;
+      color: #E31837;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .ftth-area-row {
+      display: flex;
+      gap: 10px;
+      padding-left: 36px;
+    }
+
+    .ftth-area-row input { flex: 1; }
+
+    .ftth-find-btn {
+      padding: 12px 18px;
+      background: #1F2937;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .ftth-find-btn:disabled { background: #9CA3AF; cursor: not-allowed; }
+
+    /* Structured area input: country is chosen, never guessed. */
+    .ftth-area-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding-left: 36px;
+      margin-bottom: 12px;
+    }
+
+    .ftth-field { display: block; position: relative; }
+
+    .ftth-field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .ftth-field-label em { font-style: normal; font-weight: 400; color: #9CA3AF; }
+
+    .ftth-field-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+      background: #FFFFFF;
+    }
+
+    .ftth-field-input:focus { outline: none; border-color: #2563EB; }
+
+    .ftth-suggest {
+      position: absolute;
+      z-index: 30;
+      left: 0;
+      right: 0;
+      top: 100%;
+      margin-top: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #FFFFFF;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .ftth-suggest button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 8px 12px;
+      border: none;
+      background: none;
+      font-size: 13px;
+      color: #111827;
+      cursor: pointer;
+    }
+
+    .ftth-suggest button:hover { background: #F3F4F6; }
+
+    .ftth-suggest .ftth-suggest-note {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #6B7280;
+    }
+
+    @media (max-width: 720px) {
+      .ftth-area-form { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    #areaMap {
+      height: 360px;
+      margin: 0 0 12px 36px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #E5E7EB;
+      background: #F9FAFB;
+    }
+
+    .ftth-boundary-meta {
+      padding-left: 36px;
+      font-size: 13px;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .ftth-preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      padding-left: 36px;
+      margin-bottom: 12px;
+    }
+
+    .ftth-preview-stat {
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .ftth-preview-stat .v { font-size: 18px; font-weight: 700; color: #111827; }
+    .ftth-preview-stat .l {
+      font-size: 11px;
+      color: #6B7280;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+
+    .ftth-chips {
+      padding-left: 36px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .ftth-chip {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #D1D5DB;
+      background: #FFFFFF;
+      color: #374151;
+      cursor: pointer;
+    }
+
+    .ftth-chip:hover { border-color: #E31837; color: #E31837; }
+
+    .ftth-warn {
+      margin: 0 36px 8px 36px;
+      padding: 10px 12px;
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      color: #92400E;
+      border-radius: 8px;
+      font-size: 12.5px;
+    }
+
+    .ftth-progress-note {
+      padding-left: 36px;
+      font-size: 12.5px;
+      color: #6B7280;
+      margin-top: 10px;
+    }
+
+    .ftth-input-review { padding-left: 36px; margin-top: 14px; }
+    .ftth-layer-controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+    .ftth-layer-controls label { font-size:12px; color:#374151; display:flex; gap:4px; align-items:center; }
+    .ftth-premise-table-wrap { max-height:360px; overflow:auto; border:1px solid #E5E7EB; border-radius:8px; }
+    .ftth-premise-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .ftth-premise-table th { position:sticky; top:0; background:#F3F4F6; text-align:left; padding:8px; color:#374151; }
+    .ftth-premise-table td { padding:7px 8px; border-top:1px solid #F3F4F6; white-space:nowrap; }
+    .ftth-premise-search { width:100%; box-sizing:border-box; margin-bottom:8px; padding:9px 10px; border:1px solid #D1D5DB; border-radius:7px; }
+    .ftth-review-status { font-size:12px; color:#6B7280; margin:7px 0; }
+
+    /* The objects table is deliberately wide: it shows every attribute. */
+    .ftth-object-search { width:100%; box-sizing:border-box; margin-bottom:8px; padding:9px 10px; border:1px solid #D1D5DB; border-radius:7px; }
+    .ftth-object-status { font-size:12px; color:#6B7280; margin:7px 0; }
+    .ftth-object-table { border-collapse:collapse; font-size:12px; }
+    .ftth-object-table th { position:sticky; top:0; background:#F3F4F6; text-align:left; padding:8px; color:#374151; white-space:nowrap; }
+    .ftth-object-table td { padding:7px 8px; border-top:1px solid #F3F4F6; white-space:nowrap; }
+    .ftth-layer-state { color:#6B7280; font-weight:400; }
+
   </style>
 </head>
 <body>
@@ -114,14 +332,128 @@
           <h1>FTTH High-Level Design</h1>
           <p>Upload project data to run the automated fiber network design pipeline</p>
         </div>
-      </div>
-
-      <!-- Error banner -->
+      </div>      <!-- Error banner -->
       <div id="ftthError" class="ftth-error-banner"></div>
 
+      <!-- How to define the design area: an area name, or files you prepared -->
+      <div class="ftth-mode-switch" role="tablist">
+        <button type="button" id="modeAreaBtn" class="ftth-mode-btn active" role="tab">
+          Enter an area
+        </button>
+        <button type="button" id="modeUploadBtn" class="ftth-mode-btn" role="tab">
+          Upload files
+        </button>
+      </div>
 
-      <!-- Upload form -->
-      <div class="ftth-upload-content">
+      <!-- ============ Area mode ============ -->
+      <div class="ftth-upload-content" id="areaMode">
+
+        <!-- Step 1: where the area is. Works anywhere in the world: the        -->
+        <!-- country is chosen explicitly, so a postcode is never read as      -->
+        <!-- belonging to some assumed country.                              -->
+        <div class="ftth-step">
+          <div class="ftth-step-title">
+            <span class="ftth-step-number">1</span>
+            Choose the area
+          </div>
+          <p style="margin: -4px 0 12px; font-size: 13px; color: #6B7280; padding-left: 36px;">
+            Pick a country, then a city and/or postcode and/or area name. The boundary,
+            buildings, addresses and roads come from OpenStreetMap for exactly what you
+            give — the country is never guessed.
+          </p>
+          <div class="ftth-area-form">
+            <label class="ftth-field">
+              <span class="ftth-field-label">Country <em>required</em></span>
+              <select id="areaCountry" class="ftth-field-input">
+                <option value="">Select a country…</option>
+              </select>
+            </label>
+            <label class="ftth-field">
+              <span class="ftth-field-label">City <em>optional</em></span>
+              <input
+                id="areaCity"
+                class="ftth-field-input"
+                type="text"
+                autocomplete="off"
+                placeholder="e.g. Berlin — type two letters to search"
+                maxlength="120"
+              />
+              <div class="ftth-suggest" id="areaCitySuggest" style="display:none;"></div>
+            </label>
+            <label class="ftth-field">
+              <span class="ftth-field-label">Postcode <em>optional</em></span>
+              <input
+                id="areaPostcode"
+                class="ftth-field-input"
+                type="text"
+                placeholder="e.g. 12105"
+                maxlength="16"
+              />
+            </label>
+            <label class="ftth-field">
+              <span class="ftth-field-label">Area / street <em>optional</em></span>
+              <input
+                id="areaName"
+                class="ftth-field-input"
+                type="text"
+                placeholder="e.g. Mariendorf"
+                maxlength="120"
+              />
+            </label>
+          </div>
+          <div class="ftth-area-row">
+            <button id="findAreaBtn" class="ftth-find-btn" type="button">Find area</button>
+          </div>
+          <div class="ftth-progress-note" id="areaProgress"></div>
+        </div>
+
+        <!-- Step 2: boundary on the map -->
+        <div class="ftth-step" id="boundaryStep" style="display: none;">
+          <div class="ftth-step-title">
+            <span class="ftth-step-number">2</span>
+            Boundary
+          </div>
+          <div id="areaMap"></div>
+          <div class="ftth-boundary-meta" id="areaBoundaryMeta"></div>
+        </div>
+
+        <!-- Step 3: what the design will be built from -->
+        <div class="ftth-step" id="previewStep" style="display: none;">
+          <div class="ftth-step-title">
+            <span class="ftth-step-number">3</span>
+            What the design is built from
+          </div>
+          <div id="areaPreview"></div>
+          <div id="areaInputReview" class="ftth-input-review" style="display:none;"></div>
+        </div>
+
+        <!-- Step 4: project name -->
+        <div class="ftth-step">
+          <div class="ftth-step-title">
+            <span class="ftth-step-number" style="background: #6B7280;">4</span>
+            Project Name <span style="font-weight:400;color:#6B7280;font-size:13px;">(optional)</span>
+          </div>
+          <div style="padding-left: 36px;">
+            <input
+              id="areaProjectName"
+              class="ftth-project-name-input"
+              type="text"
+              placeholder="e.g. Mariendorf FTTH Design"
+              maxlength="100"
+            />
+          </div>
+        </div>
+
+        <!-- Run button -->
+        <button id="areaRunBtn" class="ftth-run-btn" type="button" disabled>
+          <span class="spinner"></span>
+          <span id="areaRunBtnText">Find an area first</span>
+        </button>
+
+      </div>
+
+      <!-- ============ Upload mode (unchanged) ============ -->
+      <div class="ftth-upload-content" id="uploadContent" style="display: none;">
 
         <!-- Step 1: Excel file -->
         <div class="ftth-step">
@@ -235,6 +567,8 @@
 </script>
 <script src="js/ftth-api.js"></script>
 <script src="js/ftth-components.js"></script>
+<script src="vendor/maplibre/maplibre-gl.js"></script>
+<script src="js/ftth-map.js"></script>
 <script>
   window.FiberAuth.requireLogin();
 
@@ -375,6 +709,766 @@
       showError('Failed to start pipeline: ' + (err && err.message ? err.message : err));
     }
   });
+
+  // ----------------------------------------------------------------
+  // Area mode: an area name -> boundary -> inputs -> the same pipeline
+  // ----------------------------------------------------------------
+  // The structured area request last used, so the run and the input-layer
+  // review ask for exactly the same area the preview was built from.
+  let areaRequestState = null;
+  let areaLabel = '';
+  let areaPreviewData = null;
+  let areaMap = null;
+  let areaBusy = false;
+
+  const areaModeEl = document.getElementById('areaMode');
+  const uploadContentEl = document.getElementById('uploadContent');
+  const modeAreaBtn = document.getElementById('modeAreaBtn');
+  const modeUploadBtn = document.getElementById('modeUploadBtn');
+  const areaCountrySelect = document.getElementById('areaCountry');
+  const areaCityInput = document.getElementById('areaCity');
+  const areaCitySuggest = document.getElementById('areaCitySuggest');
+  const areaPostcodeInput = document.getElementById('areaPostcode');
+  const areaNameInput = document.getElementById('areaName');
+  const findAreaBtn = document.getElementById('findAreaBtn');
+  const areaRunBtn = document.getElementById('areaRunBtn');
+  const areaRunBtnText = document.getElementById('areaRunBtnText');
+  const areaProgress = document.getElementById('areaProgress');
+
+  function setMode(mode) {
+    const isArea = mode === 'area';
+    areaModeEl.style.display = isArea ? 'block' : 'none';
+    uploadContentEl.style.display = isArea ? 'none' : 'block';
+    modeAreaBtn.classList.toggle('active', isArea);
+    modeUploadBtn.classList.toggle('active', !isArea);
+    // A map created inside a hidden container has zero size, so re-measure
+    // whenever area mode becomes visible again.
+    if (isArea && areaMap) {
+      setTimeout(function () { try { areaMap.resize(); } catch (_) {} }, 50);
+    }
+  }
+  modeAreaBtn.addEventListener('click', function () { setMode('area'); });
+  modeUploadBtn.addEventListener('click', function () { setMode('upload'); });
+
+  /**
+   * Map the engine's failure modes onto four different messages. "No such
+   * area" (404), "OSM services unreachable" (502) and "too many premises"
+   * (422) must never read the same — one is a different area name, one is a
+   * retry, one is a smaller area.
+   */
+  function areaErrorMessage(err) {
+    const msg = (err && err.message) ? err.message : String(err);
+    switch (err && err.status) {
+      case 404:
+        return 'Nothing matched in the country you chose. Check the country, then ' +
+               'try a postcode on its own, or add a city and an area/street name.';
+      case 422:
+        return msg;   // the engine's message already says what to do
+      case 502:
+        return 'The OpenStreetMap services could not be reached. That is a network ' +
+               'problem, not an unknown area — try again in a moment.';
+      case 503:
+        return 'The store the OSM data is kept in is unavailable right now, so an ' +
+               'area cannot be loaded.';
+      default:
+        return msg;
+    }
+  }
+
+  const BOUNDARY_LAYER = 'area-boundary';
+  let pendingBoundary = null;
+
+  /**
+   * Drop the boundary layer before drawing a new one.
+   *
+   * `FtthMap.addGeoJSONLayer` returns early when its source already exists, so
+   * without this a second search — or clicking a narrower-area chip — would
+   * leave the PREVIOUS area's outline on the map while the panel described the
+   * new one.
+   */
+  function removeBoundaryLayer() {
+    if (!areaMap) return;
+    ['ftth-fill-', 'ftth-outline-', 'ftth-points-'].forEach(function (prefix) {
+      const id = prefix + BOUNDARY_LAYER;
+      try { if (areaMap.getLayer(id)) areaMap.removeLayer(id); } catch (_) {}
+    });
+    const src = 'ftth-source-' + BOUNDARY_LAYER;
+    try { if (areaMap.getSource(src)) areaMap.removeSource(src); } catch (_) {}
+  }
+
+  function drawBoundary() {
+    if (!areaMap || !pendingBoundary) return;
+    const data = pendingBoundary;
+    removeBoundaryLayer();
+    window.FtthMap.addGeoJSONLayer(areaMap, BOUNDARY_LAYER, {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        geometry: data.polygon,
+        properties: { kind: 'boundary' }
+      }]
+    }, { visible: true });
+    try { window.FtthMap.fitToLayers(areaMap, 40); } catch (_) {}
+
+    document.getElementById('areaBoundaryMeta').innerHTML =
+      '<strong>' + (data.matched || '') + '</strong>' +
+      ' — ' + data.area_km2 + ' km²' +
+      (data.osm_type ? ' (OSM ' + data.osm_type + ' ' + data.osm_id + ')' : '') +
+      (data.polygon_source === 'nominatim' ? '' :
+        ' — <span style="color:#92400E">bounding box, not a polygon</span>');
+  }
+
+  /**
+   * Which rung of the boundary ladder produced this area, in plain words.
+   * A rectangle silently standing in for a borough is the same class of error
+   * as a guessed country, so it is stated rather than implied.
+   */
+  function boundarySourceNote(data) {
+    const source = data.polygon_source;
+    if (source === 'nominatim') return 'Boundary: the area\u2019s own OpenStreetMap polygon.';
+    if (source === 'dataset') {
+      return 'Boundary: loaded dataset ' + (data.boundary_source || '') +
+        (data.boundary_kind ? ' (' + data.boundary_kind + ')' : '') + '.';
+    }
+    if (source === 'administrative') {
+      return 'Boundary: no postcode boundary exists for this area in OpenStreetMap, ' +
+        'so the enclosing administrative boundary was used instead — ' +
+        (data.boundary_name || 'unnamed') +
+        (data.boundary_admin_level ? ' (' + data.boundary_admin_level + ')' : '') +
+        '. The design area is that administrative area, not the postcode.';
+    }
+    if (source === 'bbox') {
+      return 'Boundary: no polygon could be found, so the bounding box was used — ' +
+        'a rectangle that may include neighbouring areas.';
+    }
+    return '';
+  }
+
+  function renderBoundary(data) {
+    document.getElementById('boundaryStep').style.display = 'block';
+    pendingBoundary = data;
+    const note = boundarySourceNote(data);
+    const meta = document.getElementById('areaBoundaryMeta');
+    if (meta && note) {
+      meta.innerHTML = '<div style="font-size:12px;color:#374151;">' + note + '</div>';
+    }
+    if (!areaMap) {
+      // Bring the map up and draw once its style has loaded — adding a source
+      // before then is what the MapLibre `load` event exists to prevent.
+      areaMap = window.FtthMap.initMap('areaMap', {
+        id: 'area-boundary',
+        basemap: 'streets',
+        onLoad: function () { drawBoundary(); }
+      });
+    } else {
+      drawBoundary();
+    }
+  }
+
+  function previewStat(value, label) {
+    return '<div class="ftth-preview-stat"><div class="v">' + value +
+           '</div><div class="l">' + label + '</div></div>';
+  }
+
+  function renderPreview(data) {
+    areaPreviewData = data;
+    document.getElementById('previewStep').style.display = 'block';
+
+    const p = data.premises || {};
+    const hh = data.households || {};
+    const roads = data.roads || {};
+    // The boundary area, not its envelope: reporting only the bbox overstated
+    // postcode 12105 by 26 %. The envelope is shown too, so the gap is visible.
+    const areaFigure = (data.area_km2 != null)
+      ? (data.area_km2 + ' km²') : '—';
+    let html = '<div class="ftth-preview-grid">' +
+      previewStat(p.count, 'premises') +
+      previewStat(hh.total, 'households') +
+      previewStat(Math.round((hh.estimated_share || 0) * 100) + '%', 'estimated') +
+      previewStat((roads.total_km || 0) + ' km', 'roads') +
+      previewStat(areaFigure, 'boundary area') +
+      previewStat((data.extract && data.extract.source) || '—', 'OSM source') +
+      '</div>';
+    // Where the OSM data came from and when it was downloaded: a design built
+    // on a snapshot needs to say which one, and a first-use download that took
+    // ten minutes is worth stating rather than leaving the planner wondering.
+    if (data.extract && data.extract.detail) {
+      html += '<div style="padding-left:36px;font-size:12px;color:#6B7280;' +
+        'margin-bottom:6px;">OSM data: ' + escapeHtml(data.extract.detail) +
+        ((data.extract.fetched_at)
+          ? ' — downloaded ' + escapeHtml(data.extract.fetched_at) : '') + '</div>';
+    }
+
+    // Narrower areas come from the data itself (postcode / district), so this
+    // is a fact about the area rather than a guess about where to draw a line.
+    //
+    // Which of those buckets is worth OFFERING is a separate question, and the
+    // engine answers it: when the area came from a loaded dataset boundary (a UK
+    // ward), resolving a postcode inside it returns that same ward — so the chip
+    // was a round trip back to where it was clicked. `sub_areas_resolvable` names
+    // the kinds that can reach something smaller; the buckets themselves are still
+    // shown as context. Absent the field, behave as before.
+    const sub = data.sub_areas || {};
+    const resolvable = Array.isArray(data.sub_areas_resolvable)
+      ? data.sub_areas_resolvable : ['postcode', 'district'];
+    const chips = [];
+    resolvable.forEach(function (kind) {
+      (sub[kind] || []).slice(0, 6).forEach(function (entry) {
+        chips.push('<button type="button" class="ftth-chip" data-narrow="' +
+          escapeHtml(entry.value) + '" data-narrow-kind="' + kind + '">' +
+          escapeHtml(entry.value) + ' (' + entry.premises + ')</button>');
+      });
+    });
+    if (chips.length) {
+      html += '<div style="padding-left:36px;font-size:12px;color:#6B7280;' +
+              'margin-bottom:6px;">Narrow to a smaller area:</div>' +
+              '<div class="ftth-chips">' + chips.join('') + '</div>';
+    } else if (!resolvable.length && ((sub.postcode || []).length || (sub.district || []).length)) {
+      html += '<div style="padding-left:36px;font-size:12px;color:#6B7280;' +
+              'margin-bottom:6px;">No smaller boundary is loaded for this ' +
+              'country, so a postcode or district here resolves back to this ' +
+              'same area. Design a share of it instead.</div>';
+    }
+
+    (data.warnings || []).forEach(function (w) {
+      html += '<div class="ftth-warn">' + escapeHtml(w) + '</div>';
+    });
+    // A boundary call that declined to auto-download (too large) says so here
+    // too, next to the size that caused it.
+    if (data.osm_fetch && data.osm_fetch.state === 'not_started' && data.osm_fetch.reason) {
+      html += '<div class="ftth-warn">' + escapeHtml(data.osm_fetch.reason) + '</div>';
+    }
+
+    const host = document.getElementById('areaPreview');
+    host.innerHTML = html;
+    Array.prototype.forEach.call(host.querySelectorAll('[data-narrow]'), function (btn) {
+      btn.addEventListener('click', function () {
+        // The country and city stay as chosen; only the field the chip names is
+        // replaced, so narrowing keeps the search inside the same country.
+        const kind = btn.getAttribute('data-narrow-kind');
+        const value = btn.getAttribute('data-narrow');
+        if (kind === 'postcode') {
+          areaPostcodeInput.value = value;
+          areaNameInput.value = '';
+        } else {
+          areaNameInput.value = value;
+          areaPostcodeInput.value = '';
+        }
+        findArea();
+      });
+    });
+
+    // The preview reports any size; whether a RUN may start is a separate
+    // question. A 257,127-premise area is reviewable (and now shows its
+    // narrowing chips) but cannot be run, so the button says so instead of
+    // starting a run the engine will refuse halfway.
+    const canRun = data.can_run !== false && !!p.count;
+    areaRunBtn.disabled = !canRun;
+    if (!p.count) {
+      areaRunBtnText.textContent = 'Nothing found in this area';
+    } else if (!canRun) {
+      areaRunBtnText.textContent = 'Too large to run (' + p.count +
+        ' premises, cap ' + (data.run_cap || 20000) + ')';
+    } else {
+      areaRunBtnText.textContent = 'Run Design Pipeline (' + p.count + ' premises)';
+    }
+    // Load every generated input layer after the summary is visible. The map
+    // always shows the boundary first; this review data comes only from the
+    // same OSM snapshot used to produce the HLD files.
+    loadInputReview();
+  }
+
+  let reviewLayers = {};
+  let reviewPremises = [];
+  let reviewObjects = [];
+
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function renderPremiseTable() {
+    const host = document.getElementById('areaInputReview');
+    const input = host.querySelector('.ftth-premise-search');
+    const q = (input && input.value || '').toLowerCase().trim();
+    const filtered = reviewPremises.filter(function (f) {
+      const p = f.properties || {};
+      if (!q) return true;
+      return ['ADDR_ID','Address','Housenumber','Postcode','District','HH','HH_METHOD']
+        .some(function (key) { return String(p[key] || '').toLowerCase().indexOf(q) !== -1; });
+    });
+    const shown = filtered.slice(0, 2000);
+    const table = host.querySelector('.ftth-premise-table tbody');
+    if (table) table.innerHTML = shown.map(function (f) {
+      const p = f.properties || {};
+      return '<tr><td>' + escapeHtml(p.ADDR_ID) + '</td><td>' + escapeHtml(p.Address) +
+        '</td><td>' + escapeHtml(p.Housenumber) + '</td><td>' + escapeHtml(p.Postcode) +
+        '</td><td>' + escapeHtml(p.District) + '</td><td>' + escapeHtml(p.HH) +
+        '</td><td>' + escapeHtml(p.HH_METHOD) + '</td><td>' + escapeHtml(p.latitude) +
+        ', ' + escapeHtml(p.longitude) + '</td></tr>';
+    }).join('');
+    const status = host.querySelector('.ftth-review-status');
+    if (status) status.textContent = 'Showing ' + shown.length + ' of ' + filtered.length +
+      ' matching premises' + (filtered.length > shown.length ? ' (first 2,000 shown)' : '');
+  }
+
+  // ------------------------------------------------------------------
+  // Objects: one point per OSM building, carrying ALL of its attributes.
+  // These are the objects the HLD object layer is built from, so what is
+  // reviewed here is what the design will actually see.
+  // ------------------------------------------------------------------
+  const OBJECT_COLUMNS_FIRST = [
+    'osm_object_id', 'building', 'name', 'addr:housenumber', 'addr:street',
+    'addr:postcode', 'addr:city', 'addr:suburb', 'building:levels',
+    'building:flats', 'footprint_m2', 'tag_count'
+  ];
+
+  /** Every attribute actually present, important ones first, then all the rest. */
+  function objectColumns(features) {
+    const seen = {};
+    features.forEach(function (f) {
+      Object.keys(f.properties || {}).forEach(function (k) { seen[k] = true; });
+    });
+    const first = OBJECT_COLUMNS_FIRST.filter(function (k) { return seen[k]; });
+    const rest = Object.keys(seen).filter(function (k) {
+      return first.indexOf(k) === -1 && k !== 'latitude' && k !== 'longitude';
+    }).sort();
+    return first.concat(rest);
+  }
+
+  function renderObjectTable() {
+    const host = document.getElementById('areaInputReview');
+    if (!host) return;
+    const input = host.querySelector('.ftth-object-search');
+    const q = (input && input.value || '').toLowerCase().trim();
+    const cols = objectColumns(reviewObjects);
+    const filtered = reviewObjects.filter(function (f) {
+      if (!q) return true;
+      const p = f.properties || {};
+      return cols.some(function (k) {
+        return String(p[k] == null ? '' : p[k]).toLowerCase().indexOf(q) !== -1;
+      });
+    });
+    const shown = filtered.slice(0, 1000);
+    const head = host.querySelector('.ftth-object-table thead tr');
+    if (head) head.innerHTML = cols.map(function (k) {
+      return '<th>' + escapeHtml(k) + '</th>';
+    }).join('');
+    const body = host.querySelector('.ftth-object-table tbody');
+    if (body) body.innerHTML = shown.map(function (f) {
+      const p = f.properties || {};
+      return '<tr>' + cols.map(function (k) {
+        return '<td>' + escapeHtml(p[k]) + '</td>';
+      }).join('') + '</tr>';
+    }).join('');
+    const status = host.querySelector('.ftth-object-status');
+    if (status) status.textContent = 'Showing ' + shown.length + ' of ' + filtered.length +
+      ' building objects, ' + cols.length + ' attributes each' +
+      (filtered.length > shown.length ? ' (first 1,000 shown)' : '') + '.';
+  }
+
+  // Which layers are fetched up front and which wait for their toggle.
+  // Premises first: they are what has to be on the map. The two bulk layers are
+  // an order of magnitude larger (buildings measured at 10.3 MB for a 16,516-
+  // building area), and holding the premise points behind 15 MB of polygons is
+  // what makes a review look like it never loaded.
+  const CORE_LAYERS = ['premises','roads','railways','waterways','landuse','natural','boundaries'];
+  const LAZY_LAYERS = ['objects','buildings'];
+  const loadedLayers = {};
+  const loadingLayers = {};
+
+  function renderInputReview() {
+    const host = document.getElementById('areaInputReview');
+    host.style.display = 'block';
+    // [layer, label, checked, lazy]
+    const names = [
+      ['premises','Premises / households', true, false],
+      ['objects','Objects (building points, all attributes)', true, true],
+      ['buildings','Building footprints (heavy)', false, true],
+      ['roads','Roads', true, false],
+      ['railways','Railways', true, false],
+      ['waterways','Waterways', true, false],
+      ['landuse','Landuse', true, false],
+      ['natural','Natural', true, false],
+      ['boundaries','Administrative boundaries', true, false]
+    ];
+    host.innerHTML = '<strong>Generated HLD input data</strong>' +
+      '<div class="ftth-review-status">Loading layers…</div>' +
+      '<div class="ftth-layer-controls">' + names.map(function (x) {
+        return '<label><input type="checkbox"' + (x[2] ? ' checked' : '') +
+          ' data-input-layer="' + x[0] + '"> ' + escapeHtml(x[1]) +
+          ' <span class="ftth-layer-state" data-layer-state="' + x[0] + '"></span></label>';
+      }).join('') + '</div>' +
+      '<input class="ftth-premise-search" placeholder="Search address, postcode, district, HH or HH_METHOD…">' +
+      '<div class="ftth-premise-table-wrap"><table class="ftth-premise-table"><thead><tr>' +
+      '<th>ADDR_ID</th><th>Address</th><th>No.</th><th>Postcode</th><th>District</th>' +
+      '<th>HH</th><th>HH_METHOD</th><th>Coordinates</th></tr></thead><tbody></tbody></table></div>' +
+      '<div style="margin-top:16px;"><strong>Objects (building points, all OSM attributes)</strong></div>' +
+      '<div class="ftth-object-status">Loading objects…</div>' +
+      '<input class="ftth-object-search" placeholder="Search any attribute — building type, levels, amenity, roof shape…">' +
+      '<div class="ftth-premise-table-wrap"><table class="ftth-object-table">' +
+      '<thead><tr></tr></thead><tbody></tbody></table></div>';
+    host.querySelector('.ftth-premise-search').addEventListener('input', renderPremiseTable);
+    host.querySelector('.ftth-object-search').addEventListener('input', renderObjectTable);
+    host.querySelectorAll('[data-input-layer]').forEach(function (box) {
+      box.addEventListener('change', function () {
+        // Turning a layer on loads it if it has not been fetched yet.
+        ensureLayer(box.dataset.inputLayer, box.checked);
+      });
+    });
+    renderPremiseTable();
+    renderObjectTable();
+  }
+
+  function setLayerState(layer, text, tone) {
+    const el = document.querySelector('[data-layer-state="' + layer + '"]');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = tone || '#6B7280';
+  }
+
+  function updateLayerStatuses() {
+    const status = document.querySelector('#areaInputReview .ftth-review-status');
+    if (!status) return;
+    const parts = Object.keys(reviewLayers).map(function (layer) {
+      const count = (reviewLayers[layer] && reviewLayers[layer].feature_count);
+      return layer + ': ' + (count == null ? 0 : count);
+    });
+    status.textContent = parts.length
+      ? parts.join(' · ')
+      : 'No layers loaded.';
+  }
+
+  /**
+   * Fetch a layer onto the map once, then show or hide it.
+   *
+   * Each layer is independent: one that fails marks itself and leaves the rest
+   * of the review intact. A single rejected promise used to blank the entire
+   * map and both tables, so "I cannot see the premises" could mean "the
+   * boundaries layer timed out".
+   */
+  async function ensureLayer(layer, show) {
+    if (!loadedLayers[layer] && !loadingLayers[layer]) {
+      loadingLayers[layer] = true;
+      setLayerState(layer, 'loading…');
+      try {
+        const geojson = await FtthApi.getInputLayer(areaRequestState, layer);
+        reviewLayers[layer] = geojson;
+        window.FtthMap.addGeoJSONLayer(areaMap, 'input-' + layer, geojson, {
+          // Objects are points and are the layer that was asked to be visible;
+          // building FOOTPRINTS start off because thousands of filled polygons
+          // hide the very points they belong to.
+          visible: layer !== 'buildings',
+          fillOpacity: layer === 'buildings' ? 0.18 : 0.3,
+          outlineColor: layer === 'buildings' ? '#2563EB' : undefined,
+          // The whole point of the objects layer is the attribute list.
+          popupMaxFields: layer === 'objects' ? 80 : undefined
+        });
+        loadedLayers[layer] = true;
+        const count = geojson.feature_count || (geojson.features || []).length;
+        setLayerState(layer, '(' + count + ')');
+        if (layer === 'premises') {
+          reviewPremises = geojson.features || [];
+          renderPremiseTable();
+        }
+        if (layer === 'objects') {
+          reviewObjects = geojson.features || [];
+          renderObjectTable();
+        }
+        updateLayerStatuses();
+      } catch (err) {
+        setLayerState(layer, 'failed', '#B91C1C');
+        const status = document.querySelector('#areaInputReview .ftth-review-status');
+        if (status) {
+          status.textContent = 'Layer "' + layer + '" could not be loaded: ' +
+            areaErrorMessage(err);
+        }
+      } finally {
+        loadingLayers[layer] = false;
+      }
+    }
+    if (show !== undefined && loadedLayers[layer]) {
+      try { window.FtthMap.setLayerVisible(areaMap, 'input-' + layer, show); } catch (_) {}
+    }
+  }
+
+  async function loadInputReview() {
+    // A NEW area must not inherit the previous one's loaded flags: the layers
+    // would never be re-fetched and the map would keep the old area's features.
+    Object.keys(loadedLayers).forEach(function (k) { delete loadedLayers[k]; });
+    Object.keys(loadingLayers).forEach(function (k) { delete loadingLayers[k]; });
+    reviewLayers = {};
+    reviewPremises = [];
+    reviewObjects = [];
+    renderInputReview();
+    // Phase 1: what has to be on the map. Fetched independently so one slow or
+    // failing layer cannot hold back the premise points.
+    await Promise.all(CORE_LAYERS.map(function (layer) {
+      return ensureLayer(layer).catch(function () { return null; });
+    }));
+    updateLayerStatuses();
+    // Phase 2: the two bulk layers, after the map already has something on it.
+    LAZY_LAYERS.forEach(function (layer) {
+      const box = document.querySelector('[data-input-layer="' + layer + '"]');
+      const wanted = box ? box.checked : (layer === 'objects');
+      ensureLayer(layer, wanted).catch(function () { return null; });
+    });
+  }
+
+  // ----------------------------------------------------------------
+  // Country dropdown
+  // ----------------------------------------------------------------
+  async function loadCountries() {
+    try {
+      const list = await FtthApi.getCountries();
+      list.forEach(function (entry) {
+        const opt = document.createElement('option');
+        opt.value = entry.code;
+        opt.textContent = entry.name;
+        areaCountrySelect.appendChild(opt);
+      });
+    } catch (err) {
+      // The form still works with the fields that are left, but a postcode on
+      // its own is exactly the ambiguous case this dropdown exists to remove,
+      // so say so rather than letting the user guess why nothing happened.
+      showError('Could not load the country list. Reload the page, or pick the ' +
+        'city and area name instead of a bare postcode.');
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // City combobox: live suggestions, filtered by the chosen country
+  // ----------------------------------------------------------------
+  let citySuggestTimer = null;
+  let citySuggestItems = [];
+
+  function hideCitySuggest() {
+    areaCitySuggest.style.display = 'none';
+    areaCitySuggest.innerHTML = '';
+    citySuggestItems = [];
+  }
+
+  function renderCitySuggest(items, reason) {
+    citySuggestItems = items || [];
+    if (!citySuggestItems.length) {
+      areaCitySuggest.innerHTML = '<div class="ftth-suggest-note">' +
+        (reason === 'unavailable'
+          ? 'Could not reach OpenStreetMap — type the city and press Find area.'
+          : 'No match — type the city and press Find area.') + '</div>';
+      areaCitySuggest.style.display = 'block';
+      return;
+    }
+    areaCitySuggest.innerHTML = citySuggestItems.map(function (item, i) {
+      // Non-settlement hits are shown as such, never passed off as cities.
+      const note = item.kind === 'city' ? '' :
+        ' <span style="color:#9CA3AF">(' + escapeHtml(item.addresstype || 'place') + ')</span>';
+      return '<button type="button" data-suggest-index="' + i + '">' +
+        escapeHtml(item.display_name || item.name || '') + note + '</button>';
+    }).join('');
+    areaCitySuggest.style.display = 'block';
+  }
+
+  async function loadCitySuggestions() {
+    const query = areaCityInput.value.trim();
+    if (query.length < 2) { hideCitySuggest(); return; }
+    try {
+      const result = await FtthApi.suggestPlaces(query, areaCountrySelect.value, 8);
+      renderCitySuggest(result.places, result.reason);
+    } catch (err) {
+      renderCitySuggest([], 'unavailable');
+    }
+  }
+
+  areaCityInput.addEventListener('input', function () {
+    if (citySuggestTimer) clearTimeout(citySuggestTimer);
+    // Debounced: Nominatim's usage policy allows about one request a second,
+    // and this fires on every keystroke.
+    citySuggestTimer = setTimeout(loadCitySuggestions, 400);
+  });
+  areaCityInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { hideCitySuggest(); findArea(); }
+  });
+  areaCityInput.addEventListener('click', function () {
+    if (citySuggestItems.length) areaCitySuggest.style.display = 'block';
+  });
+  areaCitySuggest.addEventListener('click', function (e) {
+    const btn = e.target.closest ? e.target.closest('[data-suggest-index]') : null;
+    if (!btn) return;
+    const item = citySuggestItems[Number(btn.getAttribute('data-suggest-index'))];
+    if (item) areaCityInput.value = item.name || item.display_name || '';
+    hideCitySuggest();
+  });
+  document.addEventListener('click', function (e) {
+    if (e.target !== areaCityInput && !areaCitySuggest.contains(e.target)) hideCitySuggest();
+  });
+  areaCountrySelect.addEventListener('change', function () {
+    hideCitySuggest();
+  });
+  [areaPostcodeInput, areaNameInput].forEach(function (el) {
+    el.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') findArea();
+    });
+  });
+
+  /** The structured fields, exactly as the API expects them. */
+  function areaRequest() {
+    return {
+      country: areaCountrySelect.value,
+      city: areaCityInput.value.trim(),
+      postcode: areaPostcodeInput.value.trim(),
+      area_name: areaNameInput.value.trim()
+    };
+  }
+
+  function areaLocator(request) {
+    return request.postcode || request.area_name || request.city;
+  }
+
+  function areaLabelFor(request, boundary) {
+    if (boundary && boundary.area) return boundary.area;
+    return [request.area_name, request.postcode, request.city]
+      .filter(Boolean).join(', ');
+  }
+
+  /**
+   * Poll the OSM download while the preview waits for it.
+   *
+   * The engine starts the download when the boundary resolves, so by the time
+   * the counts are asked for it is usually already running — and a cold city
+   * takes 10-16 minutes. A wait with no output is indistinguishable from a
+   * failure, so the page says what is happening and for how long.
+   */
+  let areaFetchPoll = null;
+
+  function stopAreaFetchPoll() {
+    if (areaFetchPoll) { clearInterval(areaFetchPoll); areaFetchPoll = null; }
+  }
+
+  function describeAreaFetch(state) {
+    if (!state) return 'Fetching OpenStreetMap data for this area…';
+    if (state.state === 'ready' || state.source === 'cache') return '';
+    const label = state.label || 'Downloading OpenStreetMap data for this area';
+    const groups = (state.groups_total ? ' (' + state.groups_done + ' of ' +
+      state.groups_total + ' groups)' : '');
+    const elapsed = (state.elapsed_s != null && state.elapsed_s >= 60)
+      ? ' — ' + Math.floor(state.elapsed_s / 60) + ' min in' : '';
+    const note = ' A large area can take 10-16 minutes the first time.';
+    return label + groups + elapsed + '.' + note;
+  }
+
+  function startAreaFetchPoll(bbox) {
+    stopAreaFetchPoll();
+    areaFetchPoll = setInterval(async function () {
+      if (areaBusy === false || !areaRequestState) { stopAreaFetchPoll(); return; }
+      const state = await FtthApi.getAreaFetch(areaLabel, bbox);
+      const text = describeAreaFetch(state);
+      if (text) areaProgress.textContent = text;
+      if (state && (state.state === 'failed' || state.state === 'ready')) {
+        stopAreaFetchPoll();
+      }
+    }, 4000);
+  }
+
+  async function findArea() {
+    const request = areaRequest();
+    if (!request.country) {
+      showError('Choose a country first — that is what keeps a postcode from ' +
+        'being read in the wrong country.');
+      return;
+    }
+    if (!areaLocator(request)) {
+      showError('Give a postcode, a city, or an area/street name.');
+      return;
+    }
+    if (areaBusy) return;
+
+    areaBusy = true;
+    hideError();
+    hideCitySuggest();
+    areaRequestState = request;
+    findAreaBtn.disabled = true;
+    areaRunBtn.disabled = true;
+    areaRunBtnText.textContent = 'Find an area first';
+
+    try {
+      // 1. Boundary first — a single Nominatim call, so the map draws now. This
+      //    call also STARTS the area's OSM download, so step 2 does not start
+      //    from zero.
+      areaProgress.textContent = 'Looking up the boundary…';
+      const boundary = await FtthApi.resolveArea(request, true);
+      areaLabel = areaLabelFor(request, boundary);
+      renderBoundary(boundary);
+
+      // 2. Then the counts, which need the area's OSM data. Fetched and cached
+      //    on first use: minutes cold, instant from then on. A progress poll
+      //    runs alongside so a long wait is visible, and the premise points
+      //    are requested as soon as the data is there.
+      const fetch0 = boundary.osm_fetch || {};
+      if (fetch0.source === 'cache') {
+        areaProgress.textContent = 'Reading the area data already downloaded…';
+      } else if (fetch0.state === 'not_started' && fetch0.reason) {
+        // Too large to download on the spot -- say so now, and let the counts
+        // request below report the real size rather than hanging.
+        areaProgress.textContent = fetch0.reason;
+      } else {
+        areaProgress.textContent = describeAreaFetch(fetch0) ||
+          'Fetching OpenStreetMap data for this area…';
+        startAreaFetchPoll(boundary.bbox);
+      }
+      const preview = await FtthApi.resolveArea(request, false);
+      stopAreaFetchPoll();
+      renderPreview(preview);
+      areaProgress.textContent = '';
+    } catch (err) {
+      stopAreaFetchPoll();
+      areaProgress.textContent = '';
+      areaPreviewData = null;
+      areaRequestState = null;
+      areaRunBtn.disabled = true;
+      areaRunBtnText.textContent = 'Find an area first';
+      showError(areaErrorMessage(err));
+    } finally {
+      areaBusy = false;
+      findAreaBtn.disabled = false;
+    }
+  }
+
+  findAreaBtn.addEventListener('click', findArea);
+  loadCountries();
+
+  areaRunBtn.addEventListener('click', async function () {
+    if (!areaPreviewData || areaBusy) return;
+    hideError();
+    areaBusy = true;
+    areaRunBtn.classList.add('loading');
+    areaRunBtn.disabled = true;
+    areaRunBtnText.textContent = 'Starting pipeline…';
+
+    const projectName =
+      (document.getElementById('areaProjectName').value || '').trim() || null;
+
+    try {
+      const result = await FtthApi.runFromArea(areaRequestState, projectName);
+      const projectId = result && (result.project_id || result.id);
+      if (!projectId) throw new Error('Backend did not return a project ID.');
+      try {
+        localStorage.setItem('ftth_project_name_' + projectId,
+          projectName || areaLabel || 'Area design');
+      } catch (_) { /* ignore */ }
+      window.location.href = 'ftth-hld-status.html?project_id=' +
+        encodeURIComponent(projectId);
+    } catch (err) {
+      areaBusy = false;
+      areaRunBtn.classList.remove('loading');
+      areaRunBtnText.textContent = 'Run Design Pipeline';
+      areaRunBtn.disabled = false;
+      showError('Failed to start pipeline: ' + areaErrorMessage(err));
+    }
+  });
+
+  // Area mode is the default path; the file upload is the advanced fallback.
+  setMode('area');
 
   // Initial state
   updateRunButton();

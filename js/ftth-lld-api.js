@@ -38,7 +38,49 @@
     return BASE_URL + prefix + path;
   }
 
-  function authFetch(url, options) {
+  /**
+   * Renew the access token through whichever auth module is loaded.
+   * Resolves to the new token, or null when renewal is not possible.
+   *
+   * `refreshAccessToken` lives on `FiberApi` (fiber-api.js), not on
+   * `FiberAuth` — the latter only exposes `getAccess`/`getRefresh`/`clear`.
+   * Both are checked so the page's script order does not matter.
+   */
+  async function refreshAccessToken() {
+    var modules = [window.FiberApi, window.FiberAuth];
+    for (var i = 0; i < modules.length; i++) {
+      var mod = modules[i];
+      if (mod && typeof mod.refreshAccessToken === 'function') {
+        try {
+          return await mod.refreshAccessToken();
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * `fetch` with JWT auth, renewing the access token once on 401.
+   *
+   * Same 12-hour access token as the HLD client: without this, reviewing a
+   * change or starting an LLD run failed with a bare 401 until the user logged
+   * out and back in. The legacy `fiber-api.js` client has always renewed on
+   * 401; this one did not.
+   */
+  /**
+   * Drop a session whose access token can no longer be renewed.
+   */
+  function expireSession() {
+    try {
+      if (window.FiberAuth && typeof window.FiberAuth.clear === 'function') {
+        window.FiberAuth.clear();
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  async function authFetch(url, options, _retried) {
     options = options || {};
     var headers = new Headers(options.headers || {});
     var token = getAuthToken();
@@ -48,7 +90,15 @@
         headers.set('Content-Type', 'application/json');
       }
     }
-    return fetch(url, Object.assign({}, options, { headers: headers }));
+    var response = await fetch(url, Object.assign({}, options, { headers: headers }));
+    if (response.status === 401 && !_retried) {
+      var renewed = await refreshAccessToken();
+      if (renewed) return authFetch(url, options, true);
+      // Unrenewable session — drop it and say so (see ftth-api.js).
+      expireSession();
+      throw new Error('Session expired. Please login again.');
+    }
+    return response;
   }
 
   function parseBody(response) {
@@ -429,6 +479,52 @@
     return body;
   }
 
+  // Permit AI copilot (advisory-only; deterministic completeness/risk/timeline never overwritten)
+  async function apiDraftPermit(projectId, payload) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/draft/');
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload || {}) });
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiPermitRequirements(projectId, permitType, permitId) {
+    var qs = permitType ? '?permit_type=' + encodeURIComponent(permitType) + (permitId ? '&permit_id=' + encodeURIComponent(permitId) : '')
+      : permitId ? '?permit_id=' + encodeURIComponent(permitId) : '';
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/requirements/' + qs);
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiExtractRequirements(projectId, rawText) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/requirements/');
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify({ raw_text: rawText }) });
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiPermitCompleteness(permitId) {
+    var url = buildUrl('/api/ftth/permits/permits/' + encodeURIComponent(permitId) + '/ai/completeness/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiPermitRisk(projectId, permitId) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/risk/' + (permitId ? '?permit_id=' + encodeURIComponent(permitId) : ''));
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiPermitTimeline(projectId) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/timeline/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+
   // ==================================================================
   // Public API
   // ==================================================================
@@ -480,6 +576,12 @@
     listSubmissions: apiListSubmissions,
     createSubmission: apiCreateSubmission,
     transitionSubmission: apiTransitionSubmission,
+    draftPermit: apiDraftPermit,
+    permitRequirements: apiPermitRequirements,
+    extractRequirements: apiExtractRequirements,
+    permitCompleteness: apiPermitCompleteness,
+    permitRisk: apiPermitRisk,
+    permitTimeline: apiPermitTimeline,
     listUsers: listUsers,
     listMembers: listMembers,
     addMember: addMember,

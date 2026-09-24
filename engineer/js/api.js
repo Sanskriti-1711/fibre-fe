@@ -76,7 +76,37 @@
     return `${response.status} ${response.statusText}`;
   }
 
-  async function apiFetch(path, options = {}) {
+  /**
+   * Renew the access token through whichever auth module is loaded.
+   * Resolves to the new token, or null when renewal is not possible.
+   *
+   * `refreshAccessToken` lives on `FiberApi` (fiber-api.js), not on
+   * `FiberAuth` — the latter only exposes `getAccess`/`getRefresh`/`clear`.
+   * Both are checked so the page's script order does not matter.
+   */
+  async function refreshAccessToken() {
+    const modules = [window.FiberApi, window.FiberAuth];
+    for (const mod of modules) {
+      if (mod && typeof mod.refreshAccessToken === "function") {
+        try {
+          return await mod.refreshAccessToken();
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * `fetch` with JWT auth, renewing the access token once on 401.
+   *
+   * The access token lives 12 hours. Without the renewal below an expired token
+   * failed every engineer-page request with a bare 401 until the user logged
+   * out and back in. The legacy `fiber-api.js` client has always renewed on 401;
+   * this one did not.
+   */
+  async function apiFetch(path, options = {}, _retried) {
     const headers = new Headers(options.headers || {});
     const access = FiberAuth.getAccess();
 
@@ -92,6 +122,18 @@
 
     const url = path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? path : "/" + path}`;
     const response = await fetch(url, { ...options, headers });
+
+    if (response.status === 401 && !_retried) {
+      const renewed = await refreshAccessToken();
+      if (renewed) return apiFetch(path, options, true);
+      // Unrenewable session — drop it and say so (see fiber-api.js apiFetch).
+      try {
+        if (window.FiberAuth && typeof window.FiberAuth.clear === "function") {
+          window.FiberAuth.clear();
+        }
+      } catch (_) { /* ignore */ }
+      throw new Error("Session expired. Please login again.");
+    }
 
     if (response.status === 204) return null;
 
