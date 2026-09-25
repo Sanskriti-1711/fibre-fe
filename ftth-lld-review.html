@@ -114,6 +114,16 @@
           <div class="track"><div class="fill" id="resolveFill" style="width:0%"></div></div>
         </div>
 
+        <!-- Tier-1 A5: what the changes still blocking LLD are worth -->
+        <div class="lld-queue-risk" id="queueRisk" style="display:none;">
+          <div class="lld-queue-risk-head">
+            <span>Unresolved queue risk</span>
+            <span class="lld-queue-risk-total"><b id="queueRiskScore">0</b> pts</span>
+          </div>
+          <div class="lld-queue-risk-bands" id="queueRiskBands"></div>
+          <div class="lld-queue-risk-hint" id="queueRiskHint"></div>
+        </div>
+
         <div class="lld-as-chip" id="asChip">
           <span class="lock">&#x1F512;</span>
           <span><strong id="asChipId">Approved Survey Version</strong><br style="line-height:2px;" /><span style="font-weight:400;font-size:11px;color:#047857;">Immutable &mdash; authoritative LLD input</span></span>

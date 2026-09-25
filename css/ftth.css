@@ -659,6 +659,49 @@
   transition: width 0.45s ease;
 }
 
+/* Unresolved-queue risk summary (Tier-1 A5) */
+.lld-queue-risk {
+  margin: -2px 0 14px;
+  padding: 11px 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  background: #F9FAFB;
+}
+
+.lld-queue-risk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #374151;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.lld-queue-risk-total {
+  color: #111827;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.lld-queue-risk-total b {
+  font-size: 18px;
+}
+
+.lld-queue-risk-bands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.lld-queue-risk-hint {
+  margin-top: 7px;
+  color: #6B7280;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .lld-btn {
   display: flex;
   align-items: center;

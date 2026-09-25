@@ -463,7 +463,71 @@
       else if (ch.status === 'needs_correction') c.correction++;
       else c.pending++;
     });
+    // A change sent back for correction is NOT resolved — the engineer still
+    // owes a fix. The backend has always refused to run LLD while one is
+    // outstanding (`ready = pending == 0 and correction == 0`), so the panel
+    // must not report LLD READY in a state the API will reject.
+    c.unresolved = c.pending + c.correction;
     return c;
+  }
+
+  // Tier-1 A5: what the changes still blocking LLD are worth. The scores are
+  // deterministic (severity x capture-likelihood x LLD impact); the panel
+  // exists so a planner sees the queue's weight before opening the list.
+  function computeQueueRisk() {
+    const out = {
+      score: 0,
+      bands: { critical: 0, high: 0, medium: 0, low: 0 },
+      unresolved: 0,
+      top: null,
+    };
+    changes.forEach((ch) => {
+      if (ch.status === 'approved' || ch.status === 'rejected') return;
+      out.unresolved++;
+      const risk = ch.risk || {};
+      const band = risk.band || 'low';
+      out.score += Number(risk.score || 0);
+      if (out.bands[band] === undefined) out.bands[band] = 0;
+      out.bands[band]++;
+      if (!out.top || Number(risk.score || 0) > Number((out.top.risk || {}).score || 0)) {
+        out.top = ch;
+      }
+    });
+    return out;
+  }
+
+  function renderQueueRisk(risk) {
+    const box = $('queueRisk');
+    if (!box) return;
+    if (!risk.unresolved) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    $('queueRiskScore').textContent = risk.score;
+
+    const order = ['critical', 'high', 'medium', 'low'];
+    const labels = { critical: 'Critical', high: 'High', medium: 'Medium', low: 'Low' };
+    $('queueRiskBands').innerHTML = order
+      .filter((b) => risk.bands[b])
+      .map((b) => '<span class="lld-risk-badge lld-risk-' + b + '">'
+                  + risk.bands[b] + ' ' + labels[b] + '</span>')
+      .join('');
+
+    const lead = order.find((b) => risk.bands[b]);
+    const hint = $('queueRiskHint');
+    if (!lead) {
+      hint.textContent = '';
+    } else {
+      const n = risk.bands[lead];
+      let text = n + ' ' + labels[lead].toLowerCase() + ' change' + (n === 1 ? '' : 's')
+        + ' — work ' + labels[lead].toLowerCase() + ' first.';
+      if (risk.top && risk.top.feature_id) {
+        text += ' Worst: ' + risk.top.feature_id + ' ('
+          + ((risk.top.risk || {}).score || 0) + '/25).';
+      }
+      hint.textContent = text;
+    }
   }
 
   function renderReadiness() {
@@ -474,7 +538,7 @@
     countCorrection.textContent = c.correction;
     countPending.textContent = c.pending;
 
-    const resolved = c.total - c.pending;
+    const resolved = c.total - c.unresolved;
     const pct = c.total ? Math.round((resolved / c.total) * 100) : 0;
     resolveLabel.textContent = resolved + ' of ' + c.total + ' changes resolved';
     resolveFill.style.width = pct + '%';
@@ -483,9 +547,13 @@
     const qb = $('queueBadge');
     if (qb) qb.textContent = c.total;
 
-    const ready = c.pending === 0;
+    const ready = c.unresolved === 0;
     readinessStatusEl.className = 'lld-readiness-status ' + (ready ? 'ready' : 'not-ready');
     readinessStatusEl.innerHTML = '<span class="dot"></span>' + (ready ? 'LLD READY' : 'NOT READY');
+
+    // Tier-1 A5: the weight of what is still blocking the run.
+    const queueRisk = computeQueueRisk();
+    renderQueueRisk(queueRisk);
 
     // Approved Survey Version button
     const canCreateAs = ready && !approvedVersion;
@@ -512,8 +580,23 @@
 
     // Note text
     if (!ready) {
-      const remaining = c.pending;
-      readinessNote.innerHTML = '<strong>LLD cannot run</strong> while <strong>' + remaining + '</strong> change' + (remaining === 1 ? ' is' : 's are') + ' pending review. Review the queue below — every change must be <strong>Approved</strong>, <strong>Rejected</strong>, or sent back for <strong>Correction</strong>.';
+      const remaining = c.unresolved;
+      const parts = [];
+      if (c.pending) {
+        parts.push(c.pending + ' pending review');
+      }
+      if (c.correction) {
+        parts.push(c.correction + ' sent back for correction');
+      }
+      const lead = ['critical', 'high'].find((b) => queueRisk.bands[b]);
+      const riskLine = lead
+        ? ' Start with the <strong>' + queueRisk.bands[lead] + ' ' + lead + '</strong> change'
+          + (queueRisk.bands[lead] === 1 ? '' : 's') + ' — the rest can wait.'
+        : '';
+      readinessNote.innerHTML = '<strong>LLD cannot run</strong> while <strong>' + remaining + '</strong> change'
+        + (remaining === 1 ? ' is' : 's are') + ' unresolved (' + parts.join(', ') + ').'
+        + ' Review the queue below — every change must be <strong>Approved</strong> or <strong>Rejected</strong>.'
+        + riskLine;
     } else if (!approvedVersion) {
       readinessNote.innerHTML = 'All changes resolved. Create the immutable <strong>Approved Survey Version</strong> (HLD + approved changes) before running LLD.';
     } else {
