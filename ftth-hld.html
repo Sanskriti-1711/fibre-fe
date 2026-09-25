@@ -899,6 +899,27 @@
           ? ' — downloaded ' + escapeHtml(data.extract.fetched_at) : '') + '</div>';
     }
 
+    // WHICH boundary this is, and on whose authority.  `polygon_source: dataset`
+    // on its own says nothing a reader can act on: a design on a ZCTA or a ward
+    // is a design on a loaded dataset, and the licence and vintage are the part
+    // of that the planner has to answer for.  The caveat about what the polygon
+    // ARE is carried in the warnings above; the source, vintage and licence are
+    // named here so they are on the page rather than only in the payload.
+    const bprov = [];
+    const bname = data.boundary_name || data.matched;
+    if (bname) bprov.push(escapeHtml(bname));
+    if (data.boundary_kind) bprov.push(escapeHtml(String(data.boundary_kind)));
+    if (data.boundary_source) bprov.push('from ' + escapeHtml(String(data.boundary_source)));
+    if (data.boundary_vintage) bprov.push(escapeHtml(String(data.boundary_vintage)));
+    if (bprov.length) {
+      html += '<div style="padding-left:36px;font-size:12px;color:#6B7280;' +
+        'margin-bottom:6px;">Boundary: ' + bprov.join(' \u00b7 ') + '</div>';
+    }
+    if (data.boundary_licence) {
+      html += '<div style="padding-left:36px;font-size:12px;color:#6B7280;' +
+        'margin-bottom:6px;">Licence: ' + escapeHtml(String(data.boundary_licence)) + '</div>';
+    }
+
     // Narrower areas come from the data itself (postcode / district), so this
     // is a fact about the area rather than a guess about where to draw a line.
     //
