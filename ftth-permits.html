@@ -2,36 +2,73 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Permit Tracker | Tech Mahindra</title>
+  <title>Permits | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/ftth.css" />
   <style>
     .pm-content { max-width: 1200px; margin: 0 auto; }
 
-    .pm-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:18px; }
+    .pm-header { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:10px; }
     .pm-header h1 { margin:0 0 4px; font-size:22px; }
-    .pm-header p { margin:0; font-size:13px; color:#6B7280; }
+    .pm-header p { margin:0; font-size:13px; color:#6B7280; max-width:640px; line-height:1.45; }
+    .pm-header-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .pm-header-actions select {
+      padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px;
+      font-size:13px; color:#1F2937; background:#fff; min-width:180px;
+    }
 
-    .pm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:14px; margin:16px 0 20px; }
-    .pm-stat { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    /* Tabs */
+    .pm-tabs { display:flex; gap:4px; border-bottom:1px solid #E5E7EB; margin:14px 0 18px; overflow-x:auto; }
+    .pm-tab {
+      appearance:none; background:none; border:none; border-bottom:2px solid transparent;
+      padding:11px 16px; font-size:13px; font-weight:600; color:#6B7280; cursor:pointer; white-space:nowrap;
+      margin-bottom:-1px; transition:color 0.15s, border-color 0.15s, background 0.15s; border-radius:8px 8px 0 0;
+    }
+    .pm-tab:hover { color:#111827; background:#F9FAFB; }
+    .pm-tab.active { color:#111827; border-bottom-color:#111827; background:#fff; }
+    .pm-tab .tab-count { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 6px; border-radius:999px; font-size:11px; font-weight:700; background:#F3F4F6; color:#374151; margin-left:6px; }
+    .pm-tab.active .tab-count { background:#111827; color:#fff; }
+    .pm-panel { display:none; }
+    .pm-panel.active { display:block; animation:pmFade 0.18s ease; }
+    @keyframes pmFade { from { opacity:0; transform:translateY(4px);} to { opacity:1; transform:translateY(0);} }
+
+    /* Cards / stats */
+    .pm-section-title { display:flex; align-items:baseline; gap:10px; margin:0 0 10px; flex-wrap:wrap; }
+    .pm-section-title h2 { margin:0; font-size:14px; color:#111827; }
+    .pm-section-title p { margin:0; font-size:12px; color:#6B7280; }
+    .pm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:12px; margin:12px 0 16px; }
+    .pm-stat { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
     .pm-stat .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; }
-    .pm-stat .value { font-size:24px; font-weight:800; color:#1F2937; margin-top:6px; }
+    .pm-stat .value { font-size:22px; font-weight:800; color:#1F2937; margin-top:6px; line-height:1; }
+    .pm-stat .hint { font-size:11px; color:#9CA3AF; margin-top:6px; line-height:1.3; }
+    .pm-stat.primary { border-color:#111827; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+    .pm-callout { display:flex; gap:12px; align-items:flex-start; padding:12px 14px; border-radius:10px; border:1px solid #E5E7EB; background:#F9FAFB; font-size:13px; line-height:1.45; margin:10px 0 16px; }
+    .pm-callout.ready { background:#ECFDF5; border-color:#A7F3D0; color:#065F46; }
+    .pm-callout.warn { background:#FFFBEB; border-color:#FDE68A; color:#92400E; }
+    .pm-callout.info { background:#EFF6FF; border-color:#BFDBFE; color:#1E40AF; }
+    .pm-callout strong { color:inherit; }
 
-    .pm-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:16px; }
+    .pm-filters { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:12px; }
     .pm-filters input, .pm-filters select {
       padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px;
       font-size:13px; color:#1F2937; background:#fff;
     }
     .pm-filters .pm-search { flex:1; min-width:220px; }
-    .pm-refresh { margin-left:auto; }
+    .pm-bulkbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; padding:10px 12px; border-radius:10px; background:#ECFDF5; border:1px solid #A7F3D0; margin-bottom:12px; font-size:13px; color:#065F46; }
+    .pm-bulkbar:empty { display:none; }
 
-    .pm-table-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    .pm-table-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.04); margin-bottom:16px; }
+    .pm-table-card-head { padding:14px 16px 12px; border-bottom:1px solid #F3F4F6; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .pm-table-card-head h3 { margin:0; font-size:14px; color:#111827; }
+    .pm-table-card-head p { margin:4px 0 0; font-size:12px; color:#6B7280; line-height:1.4; max-width:640px; }
     table { width:100%; border-collapse:collapse; font-size:13px; }
-    th, td { padding:11px 14px; border-bottom:1px solid #F3F4F6; text-align:left; }
-    th { font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; }
-    tbody tr { cursor:pointer; transition:background 0.12s ease; }
-    tbody tr:hover { background:#F8FAFC; }
+    th, td { padding:11px 14px; border-bottom:1px solid #F3F4F6; text-align:left; vertical-align:top; }
+    th { font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; white-space:nowrap; }
+    tbody tr { transition:background 0.12s ease; }
+    tbody tr.clickable { cursor:pointer; }
+    tbody tr.clickable:hover { background:#F8FAFC; }
+    tbody tr.selected-row { background:#EFF6FF; }
     tbody tr:last-child td { border-bottom:none; }
 
     .pm-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; white-space:nowrap; }
@@ -41,11 +78,38 @@
     .b-red   { background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
     .b-gray  { background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB; }
     .b-amber { background:#FFFBEB; color:#B45309; border:1px solid #FDE68A; }
+    .b-ai { background:#FEF3C7; color:#92400E; border:1px solid #FDE68A; }
+    .b-det { background:#ECFDF5; color:#065F46; border:1px solid #A7F3D0; }
 
-    .pm-empty { padding:28px; text-align:center; color:#9CA3AF; font-size:13px; }
+    .pm-empty { padding:28px; text-align:center; color:#9CA3AF; font-size:13px; line-height:1.5; }
     .pm-fid { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; }
-    .sub-act { padding:4px 10px; border:1px solid #D1D5DB; border-radius:6px; background:#fff; font-size:11px; font-weight:600; color:#374151; cursor:pointer; margin:2px; white-space:nowrap; }
+    .sub-act { padding:5px 10px; border:1px solid #D1D5DB; border-radius:7px; background:#fff; font-size:11px; font-weight:600; color:#374151; cursor:pointer; margin:2px; white-space:nowrap; }
     .sub-act:hover { background:#F3F4F6; }
+    .sub-act:disabled { opacity:0.5; cursor:not-allowed; }
+
+    /* Copilot inside permits */
+    .boundary { display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:10px 12px; border-radius:10px; background:#F9FAFB; border:1px solid #E5E7EB; font-size:12px; color:#374151; line-height:1.5; }
+    .boundary strong { color:#111827; }
+    .copilot-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+    @media (max-width:900px){ .copilot-grid{grid-template-columns:1fr;} }
+    .cp-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    .cp-card h3 { margin:0 0 6px; font-size:13px; color:#111827; }
+    .cp-card p.muted { margin:0 0 10px; font-size:12px; color:#6B7280; line-height:1.45; }
+    .cp-controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+    .cp-controls select, .cp-controls textarea, .cp-controls input { padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; }
+    .cp-controls textarea { width:100%; min-height:86px; }
+    .btn { padding:8px 14px; border:1px solid #D1D5DB; border-radius:8px; background:#fff; font-size:13px; font-weight:600; cursor:pointer; }
+    .btn-primary { background:#111827; color:#fff; border-color:#111827; }
+    .btn:disabled{opacity:0.5; cursor:not-allowed;}
+    pre { white-space:pre-wrap; word-break:break-word; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:10px; font-size:12px; line-height:1.5; }
+    .kvs { display:grid; grid-template-columns:140px 1fr; gap:6px 12px; font-size:13px; }
+    .kvs .k{ color:#6B7280; font-weight:600; }
+    .list { margin:6px 0; padding-left:18px; font-size:13px; line-height:1.5; }
+    .mono { font-family:'SF Mono',monospace; font-size:11px; color:#6B7280; }
+    .status { padding:10px; border-radius:8px; font-size:13px; display:none; margin:10px 0; }
+    .status.ok{ display:block; background:#ECFDF5; border:1px solid #A7F3D0; color:#065F46; }
+    .status.err{ display:block; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; }
+    .pkg-card { border:1px dashed #D1D5DB; border-radius:10px; padding:12px; background:#F9FAFB; }
   </style>
 </head>
 <body>
@@ -57,83 +121,351 @@
 
       <div class="pm-header">
         <div>
-          <h1>&#x1F6E2;&#xFE0F; Permit Tracker</h1>
-          <p>Every identified permit across all projects — HLD identifies, Survey evidences, LLD packages.</p>
+          <h1>&#x1F6E2;&#xFE0F; Permits</h1>
+          <p>One workspace. <strong>Tracker</strong> shows what the deterministic rules found on the route. <strong>Submissions</strong> shows what you sent to authorities. <strong>Copilot</strong> helps draft and explain — it never decides for you.</p>
         </div>
-        <span id="pmUpdated" style="font-size:12px;color:#9CA3AF;">—</span>
-      </div>
-
-      <div class="pm-grid" id="pmStats"></div>
-
-      <div class="pm-filters">
-        <input class="pm-search" id="pmSearch" type="text" placeholder="Search permit type or route section…" />
-        <select id="pmStatus">
-          <option value="">All statuses</option>
-          <option value="not_required">Not Required</option>
-          <option value="identified">Identified</option>
-          <option value="evidence_required">Evidence Required</option>
-          <option value="ready">Ready</option>
-          <option value="submitted">Submitted</option>
-          <option value="under_review">Under Review</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-          <option value="closed">Closed</option>
-        </select>
-        <select id="pmProject">
-          <option value="">All projects</option>
-        </select>
-        <button id="pmRefresh" class="create-btn pm-refresh" type="button" style="background:#374151;">&#x21BB; Refresh</button>
-        <button id="pmSubmit" class="create-btn" type="button" style="display:none;background:#047857;">&#x1F4E8; Submit Selected (0)</button>
-        <button id="pmGenHldPackage" class="create-btn" type="button" style="background:#B45309;">&#x1F4C4; Generate HLD Rough Package</button>
-        <button id="pmDownloadHldPkg" class="create-btn" type="button" style="background:#D97706;display:none;">&#x1F4E5; Download HLD Package</button>
-        <button id="pmGenPackage" class="create-btn" type="button" style="background:#7C3AED;">&#x1F4C4; Generate Final LLD Package</button>
-        <button id="pmDownloadPkg" class="create-btn" type="button" style="background:#2563EB;display:none;">&#x1F4E5; Download LLD Package ZIP</button>
-      </div>
-
-      <div class="pm-table-card">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:36px;" title="Select READY permits to submit"><input type="checkbox" id="pmSelectAll" /></th>
-              <th>Project</th>
-              <th>Permit Type</th>
-              <th>Route Section</th>
-              <th>Authority</th>
-              <th>Status</th>
-              <th>Readiness</th>
-              <th>Rev.</th>
-              <th>Req.</th>
-            </tr>
-          </thead>
-          <tbody id="pmBody">
-            <tr><td colspan="9"><div class="pm-empty">Loading permits…</div></td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="pm-table-card" style="margin-top:22px;">
-        <div style="padding:14px 18px 0;">
-          <h2 style="margin:0;font-size:16px;">&#x1F4E8; Authority Submissions</h2>
-          <p style="margin:4px 0 10px;font-size:12px;color:#6B7280;">Applications sent to authorities — review progress and decisions. Status sync (portal/email/API) writes through the same transitions.</p>
+        <div class="pm-header-actions">
+          <label for="pmProject" class="mono" style="color:#6B7280;">Project</label>
+          <select id="pmProject"><option value="">All projects</option></select>
+          <span id="pmUpdated" class="mono" style="color:#9CA3AF;">—</span>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Project</th>
-              <th>Permit</th>
-              <th>Authority</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Ref.</th>
-              <th>Rev.</th>
-              <th>Sections</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="pmSubBody">
-            <tr><td colspan="9"><div class="pm-empty">Loading submissions…</div></td></tr>
-          </tbody>
-        </table>
+      </div>
+
+      <div class="boundary" style="margin-bottom:2px;">
+        <span class="pm-badge b-det">Deterministic decides</span>
+        <span>permit identification, geometry, authority, required evidence, blocking, readiness</span>
+        <span class="pm-badge b-ai">AI assists</span>
+        <span>drafting, checklist notes, completeness, risk, timeline — always needs human review</span>
+      </div>
+
+      <div class="pm-tabs" role="tablist" aria-label="Permit workspace tabs">
+        <button class="pm-tab active" type="button" data-tab="overview" role="tab" aria-selected="true">Overview</button>
+        <button class="pm-tab" type="button" data-tab="permits" role="tab">Permits <span class="tab-count" id="tabCountPermits">—</span></button>
+        <button class="pm-tab" type="button" data-tab="submissions" role="tab">Submissions <span class="tab-count" id="tabCountSub">—</span></button>
+        <button class="pm-tab" type="button" data-tab="copilot" role="tab">Copilot <span class="pm-badge b-ai" style="margin-left:6px; padding:2px 8px;">AI assist</span></button>
+      </div>
+
+      <!-- Overview -->
+      <div id="panel-overview" class="pm-panel active" role="tabpanel">
+        <div class="pm-section-title">
+          <h2>Where things stand</h2>
+          <p>Counts are grouped — one permit per street per type. Sections stay for map colouring.</p>
+        </div>
+        <div class="pm-grid" id="pmStats"></div>
+        <div id="pmCallout"></div>
+
+        <div class="pm-table-card">
+          <div class="pm-table-card-head">
+            <div>
+              <h3>Per project</h3>
+              <p>How the permits distribute — helps you pick which project to work on next.</p>
+            </div>
+            <button id="pmRefreshOverview" class="btn" type="button">&#x21BB; Refresh</button>
+          </div>
+          <table>
+            <thead><tr><th>Project</th><th>Permits</th><th>Groups</th><th>Ready</th></tr></thead>
+            <tbody id="pmOverviewBody"><tr><td colspan="4"><div class="pm-empty">Load permits to see breakdown…</div></td></tr></tbody>
+          </table>
+        </div>
+
+        <!-- Renewal reminders (P21b) -->
+        <div id="pmExpiryCard" class="pm-table-card" style="display:none;">
+          <div class="pm-table-card-head">
+            <div>
+              <h3>&#x23F0; Renewal reminders — expiring permits & submissions</h3>
+              <p>Deterministic buckets: expired / 1d / 7d / 14d / 30d. Set <code>expiry_date</code> on APPROVED rows (submission approve dialog). Nothing here flips status.</p>
+            </div>
+            <button id="pmRefreshExpiry" class="btn" type="button">&#x21BB; Refresh</button>
+          </div>
+          <div id="pmExpiryBody" style="padding:14px 16px; font-size:13px;"><div class="pm-empty">Loading expiries…</div></div>
+        </div>
+
+        <!-- Package QA (P19b) — cross-project + filter like expiry -->
+        <div id="pmQaCard" class="pm-table-card" style="display:none;">
+          <div class="pm-table-card-head">
+            <div>
+              <h3>&#x1F50D; Package QA — full-package audit</h3>
+              <p>Deterministic: expected vs actual counts by kind (drawings/cross-sections/TMPs/forms/HDD), naming, readiness, grouping guard. Optional AI paragraph when an LLM is configured. Cross-project by default — filter with the Project picker above.</p>
+            </div>
+            <button id="pmRefreshQa" class="btn" type="button">&#x21BB; Refresh</button>
+          </div>
+          <div id="pmQaBody" style="padding:14px 16px; font-size:13px;"><div class="pm-empty">Loading QA…</div></div>
+        </div>
+      </div>
+
+      <!-- Permits -->
+      <div id="panel-permits" class="pm-panel" role="tabpanel">
+        <div class="pm-section-title">
+          <h2>Permits</h2>
+          <p>One row = one permit on one street. Tick <strong>READY</strong> rows to submit. Click a row to open its project.</p>
+        </div>
+
+        <div class="pm-filters">
+          <input class="pm-search" id="pmSearch" type="text" placeholder="Search permit type, street, or section…" />
+          <select id="pmStatus">
+            <option value="">All statuses</option>
+            <option value="not_required">Not Required</option>
+            <option value="identified">Identified</option>
+            <option value="evidence_required">Evidence Required</option>
+            <option value="ready">Ready</option>
+            <option value="submitted">Submitted</option>
+            <option value="under_review">Under Review</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="closed">Closed</option>
+          </select>
+          <button id="pmRefresh" class="btn" type="button">&#x21BB; Refresh</button>
+        </div>
+
+        <div id="pmBulkBar" class="pm-bulkbar" style="display:none;"></div>
+
+        <div class="pm-table-card">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px;" title="Select READY permits to submit"><input type="checkbox" id="pmSelectAll" /></th>
+                <th>Project</th>
+                <th>Permit Type</th>
+                <th>Street / Sections</th>
+                <th>Authority</th>
+                <th>Status</th>
+                <th>Readiness</th>
+                <th>Rev.</th>
+                <th>Req.</th>
+              </tr>
+            </thead>
+            <tbody id="pmBody">
+              <tr><td colspan="9"><div class="pm-empty">Loading permits…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Submissions + Packages -->
+      <div id="panel-submissions" class="pm-panel" role="tabpanel">
+        <div class="pm-section-title">
+          <h2>Submissions</h2>
+          <p>Applications you sent to an authority — one per project × authority × type × street.</p>
+        </div>
+
+        <div class="pm-table-card">
+          <div class="pm-table-card-head">
+            <div>
+              <h3>Authority submissions</h3>
+              <p>Review progress and decisions. Status sync (portal/email/API) writes through the same transitions.</p>
+            </div>
+            <button id="pmRefreshSubs" class="btn" type="button">&#x21BB; Refresh</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Project</th>
+                <th>Permit</th>
+                <th>Authority</th>
+                <th>Status</th>
+                <th>Submitted</th>
+                <th>Ref.</th>
+                <th>Expiry</th>
+                <th>Rev.</th>
+                <th>Sections</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pmSubBody">
+              <tr><td colspan="10"><div class="pm-empty">Loading submissions…</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Status-sync poller (P20b) — cross-project + filter like expiry; mock_bezirk always, http_portal when env set -->
+        <div id="pmSyncCard" class="pm-table-card">
+          <div class="pm-table-card-head">
+            <div>
+              <h3>&#x1F504; Status sync — portal / email / API poller</h3>
+              <p>Framework with pluggable adapters: <code>mock_bezirk</code> (time-based demo: 1d → under_review, 3d → approved) always; <code>http_portal</code> when <code>PERMITS_PORTAL_URL</code> is set; <code>csv_inbox</code> for email/portal exports. Cross-project by default — filter with the Project picker. Writes through the same transitions (audit honest, no PermitMatrix mutation outside that).</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <button id="pmSyncDryRun" class="btn" type="button" title="Preview without mutating">Preview (dry-run)</button>
+              <button id="pmPollSync" class="btn btn-primary" type="button">Poll now</button>
+              <button id="pmRefreshSync" class="btn" type="button">&#x21BB; Refresh</button>
+            </div>
+          </div>
+          <div id="pmSyncBody" style="padding:14px 16px; font-size:13px;"><div class="pm-empty">Loading sync status…</div></div>
+          <div style="padding:0 16px 14px; border-top:1px solid #F3F4F6; margin-top:0;">
+            <details style="margin-top:12px;">
+              <summary style="cursor:pointer; font-size:12px; font-weight:700; color:#374151;">CSV / webhook inbox — paste a CSV (submission_id,status,reference,notes,conditions,expiry_date)</summary>
+              <div style="margin-top:10px; display:grid; gap:8px;">
+                <textarea id="pmCsvInput" placeholder="submission_id,status,reference,notes,conditions,expiry_date&#10;00000000-0000-0000-0000-000000000001,approved,MOCK-REF,via portal,work 22:00,2027-09-25" style="width:100%; min-height:86px; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:12px; font-family:monospace;"></textarea>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button id="pmCsvDryBtn" class="btn" type="button">Preview CSV</button>
+                  <button id="pmCsvApplyBtn" class="btn btn-primary" type="button">Apply CSV</button>
+                  <span id="pmCsvHint" class="mono" style="color:#6B7280; font-size:11px;">Tip: from the management command: <code>python manage.py sync_permit_status --csv file.csv --dry-run --json</code></span>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <div class="pm-table-card">
+          <div class="pm-table-card-head">
+            <div>
+              <h3>Packages</h3>
+              <p>Generate the documents that make a submission ready — then submit from the Permits tab.</p>
+            </div>
+          </div>
+          <div style="padding:14px 16px; display:grid; gap:14px;">
+            <div class="pkg-card">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div>
+                  <strong style="font-size:13px;">HLD Preliminary package</strong>
+                  <div class="mono">Rough planning set — before survey is complete.</div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button id="pmGenHldPackage" class="btn" type="button" style="background:#B45309;color:#fff;border-color:#B45309;">&#x1F4C4; Generate HLD Package</button>
+                  <button id="pmDownloadHldPkg" class="btn" type="button" style="display:none;background:#D97706;color:#fff;border-color:#D97706;">&#x1F4E5; Download HLD ZIP</button>
+                </div>
+              </div>
+            </div>
+            <div class="pkg-card">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div>
+                  <strong style="font-size:13px;">Final LLD package</strong>
+                  <div class="mono">Construction-ready set — drawings, cross-sections, forms, TMPs.</div>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                  <button id="pmGenPackage" class="btn" type="button" style="background:#7C3AED;color:#fff;border-color:#7C3AED;">&#x1F4C4; Generate LLD Package</button>
+                  <button id="pmDownloadPkg" class="btn" type="button" style="display:none;background:#2563EB;color:#fff;border-color:#2563EB;">&#x1F4E5; Download LLD ZIP</button>
+                </div>
+              </div>
+              <div id="pmPackageMeta" class="mono" style="margin-top:8px;">Select a project to check existing packages.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copilot -->
+      <div id="panel-copilot" class="pm-panel" role="tabpanel">
+        <div class="pm-section-title">
+          <h2>Permit Copilot</h2>
+          <p>Uses the permit you selected in the Permits tab — or pick one here. AI text is always marked and saved as a draft.</p>
+        </div>
+        <div id="copilotStatus" class="status"></div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:10px 12px; border:1px solid #E5E7EB; border-radius:10px; background:#fff; margin-bottom:14px;">
+          <span class="mono">Working on</span>
+          <select id="copilotPermitSelect" style="flex:1; min-width:240px; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px;"><option value="">Pick a permit row…</option></select>
+          <span id="copilotContext" class="mono">—</span>
+        </div>
+
+        <div class="copilot-grid">
+          <div class="cp-card">
+            <h3>Authority requirements</h3>
+            <p class="muted">Deterministic checklist for the permit type; optional AI paragraph when an LLM is configured. Paste guidance to extract items.</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 10px;">
+              <button id="reqBtn" class="btn btn-primary" type="button">Check requirements</button>
+            </div>
+            <textarea id="extractInput" placeholder="Paste authority guidance text (German or English) — e.g. Aufbruchgenehmigung checklist…"></textarea>
+            <div style="margin-top:8px;"><button id="extractBtn" class="btn" type="button">Extract from pasted text</button></div>
+            <div id="reqOut" class="muted" style="margin-top:10px;">—</div>
+          </div>
+
+          <div class="cp-card">
+            <h3>Completeness — why not Ready?</h3>
+            <p class="muted">Deterministic: which <code>evidence_required</code> keys are still missing. AI adds a short explanation.</p>
+            <button id="completeBtn" class="btn btn-primary" type="button">Explain selected row</button>
+            <div id="completeOut" class="muted" style="margin-top:10px;">Select a permit row.</div>
+          </div>
+
+          <div class="cp-card">
+            <h3>Risk</h3>
+            <p class="muted">Rule-based level (high/medium/low) + project rollup. AI paragraph is additive.</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button id="riskBtn" class="btn btn-primary" type="button">Risk for selected</button>
+              <button id="riskProjectBtn" class="btn" type="button">Project overview</button>
+            </div>
+            <div id="riskOut" class="muted" style="margin-top:10px;">—</div>
+          </div>
+
+          <div class="cp-card">
+            <h3>Timeline estimate</h3>
+            <p class="muted">Deterministic working‑day window (max of per‑type windows + buffer). Not an authority SLA.</p>
+            <button id="timelineBtn" class="btn btn-primary" type="button">Estimate for project</button>
+            <div id="timelineOut" class="muted" style="margin-top:10px;">—</div>
+          </div>
+
+          <div class="cp-card" id="draftCard">
+            <h3>Drafting — cover & narrative</h3>
+            <p class="muted">Always generates — offline you get a submission-ready template, online you get polished text. The permit decision stays deterministic.</p>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 10px; align-items:center;">
+              <button id="draftCoverBtn" class="btn btn-primary" type="button">Draft cover text</button>
+              <button id="draftNarrBtn" class="btn" type="button">Draft narrative</button>
+              <button id="copyBtn" class="btn" type="button">Copy last draft</button>
+              <span id="draftSpinner" class="mono" style="display:none;">⏳ Drafting…</span>
+            </div>
+            <div id="draftError" class="status err" style="display:none; margin:8px 0;"></div>
+            <div id="draftOut" class="muted">Select a permit row, then draft. Works even without a street — any permit row will do.</div>
+            <div id="draftMeta" class="mono" style="margin-top:8px;"></div>
+            <div id="draftHistoryWrap" style="margin-top:12px; border-top:1px solid #F3F4F6; padding-top:10px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <strong style="font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280;">Draft history — this project</strong>
+                <button id="draftHistoryRefresh" class="btn" type="button" style="padding:4px 8px; font-size:11px;">Refresh</button>
+              </div>
+              <div id="draftHistory" class="mono" style="margin-top:8px; max-height:220px; overflow:auto; font-size:11px; line-height:1.5;">—</div>
+            </div>
+          </div>
+
+          <div class="cp-card" id="classifyCard">
+            <h3>Auto-classify — permit type from trench attributes (heuristic + labels)</h3>
+            <p class="muted">Deterministic heuristic (fclass / SURFACE / trench_type / env flags → permit type + confidence + runner-up). No LLM. Correct it and the feedback is stored to <code>permits/classify_labels.jsonl</code> — when 500+ labels accumulate the ML pipeline can train without changing this API.</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0;">
+              <label style="font-size:11px; color:#6B7280;">fclass / highway <input id="clsFclass" placeholder="e.g. residential, footway, primary" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+              <label style="font-size:11px; color:#6B7280;">SURFACE <input id="clsSurface" placeholder="Asphalt / Footpath / Concrete" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+              <label style="font-size:11px; color:#6B7280;">trench_type <input id="clsTrenchType" placeholder="feeder / distribution" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+              <label style="font-size:11px; color:#6B7280;">REUSE_SOURCE / INFRA_STATUS <input id="clsReuse" placeholder="REUSE_SOURCE value" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0;">
+              <label style="font-size:12px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="clsEnvRail" /> railway</label>
+              <label style="font-size:12px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="clsEnvWater" /> waterway</label>
+              <label style="font-size:12px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="clsEnvProtected" /> protected_area</label>
+              <label style="font-size:12px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="clsEnvTree" /> tree</label>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0;">
+              <button id="clsClassifyBtn" class="btn btn-primary" type="button">Classify</button>
+              <button id="clsCopyBtn" class="btn" type="button">Copy result</button>
+              <span id="clsSpinner" class="mono" style="display:none;">…</span>
+            </div>
+            <div id="clsOut" class="muted" style="margin-top:8px;">Enter trench attributes and classify — uses the same heuristic the API does, works offline.</div>
+            <div id="clsFeedbackWrap" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #F3F4F6;">
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; margin-bottom:6px;">Correct it — this trains the future ML model</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                <select id="clsTrueType" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px;">
+                  <option value="">True permit type…</option>
+                  <option value="Road Opening">Road Opening</option>
+                  <option value="Railway Crossing">Railway Crossing</option>
+                  <option value="Waterway Crossing">Waterway Crossing</option>
+                  <option value="Environmental Review">Environmental Review</option>
+                  <option value="Tree Protection">Tree Protection</option>
+                  <option value="Traffic Management">Traffic Management</option>
+                  <option value="Utility Coexistence">Utility Coexistence</option>
+                </select>
+                <button id="clsFeedbackBtn" class="btn" type="button">Send correction</button>
+                <span id="clsStats" class="mono" style="color:#6B7280; font-size:11px;"></span>
+              </div>
+              <div id="clsFeedbackMsg" class="muted" style="margin-top:6px;"></div>
+            </div>
+          </div>
+
+          <div class="cp-card">
+            <h3>How this page is safe</h3>
+            <ul class="list">
+              <li><strong>AI never flips</strong> <code>status</code> / <code>readiness</code> / <code>required</code> / <code>blocks_construction</code>.</li>
+              <li>Every AI response carries <span class="pm-badge b-ai">AI draft</span> + disclaimer and is saved as <code>PermitAiDraft</code> for review.</li>
+              <li>When no LLM is configured the same actions return deterministic templates — the page stays useful offline.</li>
+              <li>Before you submit, verify the authority's current guidance in <code>permits/ai/advisory.py</code> checklists.</li>
+            </ul>
+            <p class="muted">Env: <code>PERMITS_LLM_URL</code> + <code>PERMITS_LLM_API_KEY</code> + <code>PERMITS_LLM_MODEL</code> (OpenAI-compatible). No env → deterministic mode.</p>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -155,8 +487,15 @@
   function esc(s) {
     return String(s === undefined || s === null ? '' : s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+      .replace(/\"/g,'&quot;').replace(/'/g,'&#039;');
   }
+  function showStatus(msg, ok){
+    var el=document.getElementById('copilotStatus');
+    if(!el) return;
+    el.textContent=msg; el.className='status '+(ok?'ok':'err');
+    if(ok) setTimeout(function(){ el.className='status'; }, 2600);
+  }
+  function badgeAi(isAi){ return isAi ? '<span class="pm-badge b-ai">AI draft</span>' : '<span class="pm-badge b-det">Deterministic</span>'; }
 
   var STATUS_META = {
     approved:           { text:'Approved',           cls:'b-green' },
@@ -175,16 +514,57 @@
   }
 
   var allPermits = [];
+  var allSubmissions = [];
   var loading = false;
+  var selected = {};
+  var permitsById = {};
+  var lastDraftText = '';
+  var expiryData = null;
+  var expiryBySubmissionId = {};
+  var expiryByPermitId = {};
+  var qaData = null;
+  var syncStatus = null;
+  var lastClassify = null;
 
-  // Worst-first status rank: a group's status is its least-favourable member.
   var STATUS_RANK = {
     rejected: 9, under_review: 8, submitted: 7, evidence_required: 6,
     identified: 5, ready: 4, approved: 3, closed: 2, not_required: 1
   };
 
-  // Club per-segment rows into one permit per (project, type, street). Rows
-  // without a street (e.g. UTILITY_REUSE, unnamed sections) stay individual.
+  var EXPIRY_META = {
+    expired: { label: 'Expired', cls: 'b-red', severity: 'critical' },
+    due_1d: { label: '≤1 day', cls: 'b-red', severity: 'critical' },
+    due_7d: { label: '≤7 days', cls: 'b-amber', severity: 'warning' },
+    due_14d: { label: '≤14 days', cls: 'b-amber', severity: 'warning' },
+    due_30d: { label: '≤30 days', cls: 'b-blue', severity: 'info' },
+    ok: { label: 'OK (>30d)', cls: 'b-gray', severity: 'ok' }
+  };
+  function expiryBadge(bucket, days){
+    var m = EXPIRY_META[bucket] || EXPIRY_META.ok;
+    var txt = m.label;
+    if (days !== undefined && days !== null) {
+      if (days < 0) txt += ' · ' + Math.abs(days) + 'd ago';
+      else if (days === 0) txt += ' · today';
+      else txt += ' · ' + days + 'd';
+    }
+    return '<span class="pm-badge ' + m.cls + '"><span class="dot"></span>' + esc(txt) + '</span>';
+  }
+  function fmtExpiry(iso){
+    if (!iso) return '—';
+    try { var d = new Date(iso); if (isNaN(d.getTime())) return '—'; return d.toLocaleDateString(); } catch(_){ return '—'; }
+  }
+  function bucketForDays(days){
+    if (days === null || days === undefined) return 'ok';
+    if (days < 0) return 'expired';
+    if (days <= 1) return 'due_1d';
+    if (days <= 7) return 'due_7d';
+    if (days <= 14) return 'due_14d';
+    if (days <= 30) return 'due_30d';
+    return 'ok';
+  }
+
+  function groupKey(g) { return g.project_id + '|' + g.permit_type + '|' + (g.permit_group || ''); }
+
   function groupPermits() {
     var groups = {};
     allPermits.forEach(function (p) {
@@ -207,44 +587,17 @@
     return Object.keys(groups).map(function (k) { return groups[k]; });
   }
 
-  function renderStats() {
-    var el = document.getElementById('pmStats');
-    var groups = groupPermits();
-    var counts = { ready:0, approved:0, under_review:0, submitted:0, identified:0, rejected:0 };
-    groups.forEach(function (g) { if (counts[g.status] !== undefined) counts[g.status]++; });
-    var stats = [
-      { label:'Total Permits', value: groups.length, title:'One permit per (type × street) — sections on the same street are clubbed together' },
-      { label:'Route Sections', value: allPermits.length, title:'Raw count of individual route segments needing the permit — several sections belong to one permit' },
-      { label:'Ready', value: counts.ready, color:'#047857' },
-      { label:'Approved', value: counts.approved, color:'#047857' },
-      { label:'Under Review', value: counts.under_review + counts.submitted, color:'#1D4ED8' },
-      { label:'Identified', value: counts.identified, color:'#B45309' },
-      { label:'Rejected', value: counts.rejected, color:'#B91C1C' },
-      { label:'Submissions', value: allSubmissions.length, color:'#1D4ED8', title:'Applications sent to authorities (Phase 3)' }
-    ];
-    el.innerHTML = stats.map(function (s) {
-      return '<div class="pm-stat"' + (s.title ? ' title="' + esc(s.title) + '"' : '') + '><div class="label">' + esc(s.label) + '</div>'
-        + '<div class="value"' + (s.color ? ' style="color:' + s.color + '"' : '') + '>' + s.value + '</div></div>';
-    }).join('');
-  }
-
-  function populateProjectFilter() {
+  function currentProjectId() {
     var sel = document.getElementById('pmProject');
-    var projects = {};
-    allPermits.forEach(function (p) { projects[p.project_id] = p.project_name || p.project_id; });
-    var current = sel.value;
-    sel.innerHTML = '<option value="">All projects</option>'
-      + Object.keys(projects).sort().map(function (pid) {
-          return '<option value="' + esc(pid) + '">' + esc(projects[pid]) + '</option>';
-        }).join('');
-    sel.value = current;
+    return (sel && sel.value) || new URLSearchParams(window.location.search).get('project_id') || '';
   }
+  function currentCopilotPermitId(){ return (document.getElementById('copilotPermitSelect')||{}).value || ''; }
 
-  function renderTable() {
+  function filteredGroups(){
     var q = (document.getElementById('pmSearch').value || '').trim().toLowerCase();
     var status = document.getElementById('pmStatus').value;
-    var project = document.getElementById('pmProject').value;
-    var rows = groupPermits().filter(function (g) {
+    var project = currentProjectId();
+    return groupPermits().filter(function (g) {
       if (status && g.status !== status) return false;
       if (project && g.project_id !== project) return false;
       if (q) {
@@ -256,13 +609,156 @@
       }
       return true;
     });
+  }
+
+  function renderStats() {
+    var el = document.getElementById('pmStats');
+    if(!el) return;
+    var groups = groupPermits();
+    var project = currentProjectId();
+    var viewGroups = project ? groups.filter(function(g){ return g.project_id===project; }) : groups;
+    var viewPermits = project ? allPermits.filter(function(p){ return p.project_id===project; }) : allPermits;
+    var viewSubs = project ? allSubmissions.filter(function(s){ return s.project_id===project; }) : allSubmissions;
+    var counts = { ready:0, approved:0, under_review:0, submitted:0, identified:0, evidence_required:0, rejected:0, closed:0, not_required:0 };
+    viewGroups.forEach(function (g) { if (counts[g.status] !== undefined) counts[g.status]++; });
+    var needsEvidence = (counts.identified||0)+(counts.evidence_required||0);
+    var inReview = (counts.submitted||0)+(counts.under_review||0);
+    var ready = (counts.ready||0)+(counts.approved||0);
+    var stats = [
+      { label:'Total permits', value: viewGroups.length, hint:'One per street × type', primary:true },
+      { label:'Ready to submit', value: ready, color: ready?'#047857':undefined, hint:'Ready + Approved' },
+      { label:'Needs evidence', value: needsEvidence, color: needsEvidence?'#B45309':undefined, hint:'Identified + Evidence required' },
+      { label:'In review', value: inReview, color: inReview?'#1D4ED8':undefined, hint:'Submitted + Under review' },
+      { label:'Route sections', value: viewPermits.length, hint:'Segments on the map' },
+      { label:'Submissions', value: viewSubs.length, color:'#1D4ED8', hint:'Sent to authorities' },
+      { label:'Rejected', value: counts.rejected||0, color:(counts.rejected?'#B91C1C':undefined), hint:'Needs rework' }
+    ];
+    // Expiry tile — when expiry data is loaded, surface worst counts
+    if (expiryData) {
+      var expCount = expiryData.total_expiring || 0;
+      var hasExpired = ((expiryData.expiring_submission_counts && expiryData.expiring_submission_counts.expired) || (expiryData.expiring_permit_counts && expiryData.expiring_permit_counts.expired));
+      if (expCount || expiryData.total_with_expiry) {
+        stats.push({ label:'Expiring \u226430d', value: expCount, color: hasExpired ? '#B91C1C' : (expCount ? '#B45309' : undefined), hint: hasExpired ? 'includes expired' : (expiryData.total_with_expiry ? (expiryData.total_with_expiry + ' with dates') : 'no dates set') });
+      }
+    }
+    el.innerHTML = stats.map(function (s) {
+      return '<div class="pm-stat' + (s.primary?' primary':'') + '"><div class="label">' + esc(s.label) + '</div>'
+        + '<div class="value"' + (s.color ? ' style="color:' + s.color + '"' : '') + '>' + s.value + '</div>'
+        + (s.hint?'<div class="hint">'+esc(s.hint)+'</div>':'') + '</div>';
+    }).join('');
+
+    var callout = document.getElementById('pmCallout');
+    if(callout){
+      if(!viewGroups.length){
+        callout.innerHTML = '<div class="pm-callout info"><span>&#x1F4A1;</span><span><strong>No permits yet for this project.</strong> Run permit analysis from the project overview — the rules will identify what applies to the route and where evidence is still missing.</span></div>';
+      } else if(ready){
+        callout.innerHTML = '<div class="pm-callout ready"><span>&#x2705;</span><span><strong>' + ready + ' permit' + (ready>1?'s':'') + ' ready to submit.</strong> Open the Permits tab, tick the READY rows, and submit. The Copilot tab can draft the cover text for you.</span></div>';
+      } else if(needsEvidence){
+        callout.innerHTML = '<div class="pm-callout warn"><span>&#x1F4CB;</span><span><strong>' + needsEvidence + ' permit' + (needsEvidence>1?'s':'') + ' need evidence.</strong> The Completeness check in Copilot tells you which evidence keys are still open, and the Packages card builds the drawings/forms you need.</span></div>';
+      } else if(inReview){
+        callout.innerHTML = '<div class="pm-callout info"><span>&#x1F4E8;</span><span><strong>' + inReview + ' submission' + (inReview>1?'s':'') + ' in review.</strong> Track authority feedback in the Submissions tab.</span></div>';
+      } else {
+        callout.innerHTML = '';
+      }
+    }
+
+    // Tabs counts
+    var tcP = document.getElementById('tabCountPermits');
+    var tcS = document.getElementById('tabCountSub');
+    if(tcP) tcP.textContent = viewGroups.length;
+    if(tcS) tcS.textContent = viewSubs.length;
+
+    // Overview per-project table
+    var tbody = document.getElementById('pmOverviewBody');
+    if(tbody){
+      if(!allPermits.length){
+        tbody.innerHTML = '<tr><td colspan="4"><div class="pm-empty">No permits yet — run analysis to populate.</div></td></tr>';
+      } else {
+        var byProject = {};
+        allPermits.forEach(function(p){
+          var pid=p.project_id;
+          if(!byProject[pid]) byProject[pid]={ name:p.project_name||pid, permits:0, groups:{}, ready:0 };
+          byProject[pid].permits++;
+          var gk = p.project_id + '|' + p.permit_type + '|' + (p.permit_group||p.route_section);
+          byProject[pid].groups[gk]=true;
+        });
+        groupPermits().forEach(function(g){
+          if(g.status==='ready'||g.status==='approved'){
+            var pid=g.project_id;
+            if(byProject[pid]) byProject[pid].ready++;
+          }
+        });
+        var rows = Object.keys(byProject).map(function(pid){ return { pid:pid, name:byProject[pid].name, permits:byProject[pid].permits, groups:Object.keys(byProject[pid].groups).length, ready:byProject[pid].ready }; });
+        rows.sort(function(a,b){ return b.permits - a.permits; });
+        tbody.innerHTML = rows.slice(0,20).map(function(r){
+          var active = currentProjectId()===r.pid ? ' style="background:#EFF6FF;"' : '';
+          return '<tr class="clickable"' + active + ' onclick="document.getElementById(\'pmProject\').value=\'' + esc(r.pid) + '\';onProjectChanged();document.querySelector(\'[data-tab=permits]\').click();"><td><strong>' + esc(r.name) + '</strong><div class="mono">' + esc(r.pid.slice(0,12)) + '</div></td><td>' + r.permits + '</td><td>' + r.groups + '</td><td>' + r.ready + '</td></tr>';
+        }).join('');
+      }
+    }
+  }
+
+  function populateProjectFilter() {
+    var sel = document.getElementById('pmProject');
+    if(!sel) return;
+    var projects = {};
+    allPermits.forEach(function (p) { projects[p.project_id] = p.project_name || p.project_id; });
+    allSubmissions.forEach(function (s){ if(s.project_id) projects[s.project_id]= s.project_name || s.project_id; });
+    var current = sel.value || new URLSearchParams(window.location.search).get('project_id') || '';
+    // keep All projects option even when filtering
+    sel.innerHTML = '<option value="">All projects</option>'
+      + Object.keys(projects).sort().map(function (pid) {
+          return '<option value="' + esc(pid) + '">' + esc(projects[pid]) + '</option>';
+        }).join('');
+    if(current && projects[current]) sel.value = current;
+    else if(current) {
+      // project from URL not yet in permits list (e.g. new project) — keep it
+      var opt=document.createElement('option'); opt.value=current; opt.textContent=current; sel.appendChild(opt); sel.value=current;
+    }
+  }
+
+  function populateCopilotSelect(){
+    var sel=document.getElementById('copilotPermitSelect');
+    if(!sel) return;
+    var pid=currentProjectId();
+    var groups = groupPermits();
+    if(pid) groups = groups.filter(function(g){ return g.project_id===pid; });
+    // also allow filtered view? keep all for discoverability
+    var cur=sel.value;
+    sel.innerHTML='<option value="">Pick a permit row… ('+groups.length+')</option>' + groups.slice(0,300).map(function(g){
+      var label=(g.permit_type||'?')+' — '+(g.permit_group|| (g.sections[0]&&g.sections[0].route_section)||'').slice(0,28)+' ['+(g.status||'')+' '+(g.readiness_pct||0)+'%'+']';
+      var gid = (g.sections[0]||{}).permit_id || '';
+      return '<option value="'+esc(gid)+'">'+esc(label)+'</option>';
+    }).join('');
+    if(cur) sel.value=cur;
+    updateCopilotContext();
+  }
+  function updateCopilotContext(){
+    var el=document.getElementById('copilotContext');
+    if(!el) return;
+    var pid=currentCopilotPermitId();
+    var pm = permitsById[pid];
+    if(!pm){ el.textContent='—'; return; }
+    el.textContent = (pm.permit_type||'') + ' · ' + (pm.permit_group||pm.route_section||'').slice(0,24) + ' ['+ (pm.status||'')+']';
+  }
+
+  function renderTable() {
+    var rows = filteredGroups();
     var tbody = document.getElementById('pmBody');
+    if (!tbody) return;
     if (!rows.length) {
       tbody.innerHTML = '<tr><td colspan="9"><div class="pm-empty">'
         + (allPermits.length ? 'No permits match your filters.' : 'No permits identified yet — run permit analysis from a project overview page.')
         + '</div></td></tr>';
       return;
     }
+    // Stable sort: worst status first, then permit type, then street
+    rows.sort(function(a,b){
+      var ra=STATUS_RANK[a.status]||0, rb=STATUS_RANK[b.status]||0;
+      if(rb!==ra) return rb-ra;
+      if(a.permit_type!==b.permit_type) return a.permit_type.localeCompare(b.permit_type);
+      return (a.permit_group||'').localeCompare(b.permit_group||'');
+    });
     tbody.innerHTML = rows.map(function (g) {
       var street = g.permit_group
         ? '<strong>' + esc(g.permit_group) + '</strong> <span class="pm-fid">· ' + g.sections.length + ' sections</span>'
@@ -270,9 +766,10 @@
       var gkey = groupKey(g);
       var checked = selected[gkey] ? ' checked' : '';
       var selectable = g.status === 'ready';
-      return '<tr onclick="window.location.href=\'ftth-project-overview.html?project_id=' + encodeURIComponent(g.project_id) + '\'">'
+      var selClass = selected[gkey] ? ' class="selected-row clickable"' : ' class="clickable"';
+      return '<tr' + selClass + ' data-gkey="' + esc(gkey) + '" onclick="window.location.href=\'ftth-project-overview.html?project_id=' + encodeURIComponent(g.project_id) + '\'">'
         + '<td onclick="event.stopPropagation()"><input type="checkbox" data-group="' + esc(gkey) + '" title="' + (selectable ? 'Submit this permit' : 'Only READY permits can be submitted') + '"' + (selectable ? '' : ' disabled') + checked + ' /></td>'
-        + '<td><strong>' + esc(g.project_name || g.project_id) + '</strong></td>'
+        + '<td><strong>' + esc(g.project_name || g.project_id) + '</strong><div class="mono">' + esc(String(g.project_id).slice(0,8)) + '</div></td>'
         + '<td>' + esc(g.permit_type) + '</td>'
         + '<td>' + street + '</td>'
         + '<td>' + esc((g.authority && g.authority.name) || '—') + '</td>'
@@ -284,76 +781,57 @@
         + '<td>' + (g.required ? '<span class="pm-badge b-red"><span class="dot"></span>Required</span>' : '<span class="pm-badge b-gray"><span class="dot"></span>Potential</span>') + '</td>'
         + '</tr>';
     }).join('');
+    renderBulkBar();
+  }
+  function renderBulkBar(){
+    var bar=document.getElementById('pmBulkBar');
+    if(!bar) return;
+    var n=Object.keys(selected).length;
+    if(!n){ bar.style.display='none'; bar.innerHTML=''; return; }
+    bar.style.display='flex';
+    var ids=selectedPermitIds();
+    bar.innerHTML='<span><strong>' + n + ' permit' + (n>1?'s':'') + ' selected</strong> · ' + ids.length + ' sections — will be submitted as ' + n + ' application(s).</span>'
+      + '<span style="margin-left:auto; display:flex; gap:8px;"><button id="pmBulkSubmit" class="btn btn-primary" type="button">&#x1F4E8; Submit selected</button><button id="pmBulkClear" class="btn" type="button">Clear</button></span>';
+    var b1=document.getElementById('pmBulkSubmit'); if(b1) b1.onclick=submitSelected;
+    var b2=document.getElementById('pmBulkClear'); if(b2) b2.onclick=function(){ selected={}; updateSubmitButton(); renderTable(); populateCopilotSelect(); };
+  }
+
+  function updateSubmitButton(){
+    // legacy button no longer shown — bulk bar is the affordance
+    renderBulkBar();
   }
 
   async function load() {
     if (loading) return;
     loading = true;
     var btn = document.getElementById('pmRefresh');
+    var btn2 = document.getElementById('pmRefreshOverview');
     if (btn) btn.disabled = true;
+    if (btn2) btn2.disabled = true;
     try {
       var d = await window.FtthLldApi.listAllPermits();
       allPermits = d.permits || [];
+      permitsById={};
+      allPermits.forEach(function(p){ permitsById[p.permit_id]=p; });
       renderStats();
       populateProjectFilter();
       renderTable();
+      populateCopilotSelect();
+      checkPackage(currentProjectId());
+      checkHldPackage(currentProjectId());
+      loadExpiries(); loadQa(); loadSyncStatus();
       document.getElementById('pmUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
     } catch (err) {
+      var msg = esc(err.message || err);
+      var is500 = String(err.status||'')==='500' || /500|Internal Server Error/i.test(msg);
       document.getElementById('pmBody').innerHTML =
-        '<tr><td colspan="9"><div class="pm-empty" style="color:#B91C1C;">Failed to load permits: ' + esc(err.message || err) + '</div></td></tr>';
+        '<tr><td colspan="9"><div class="pm-empty" style="color:#B91C1C;">Failed to load permits: ' + msg
+        + (is500 ? '<br/><span class=\"mono\">This was the /permits/summary raw-SQL 500 (Model.objects.raw missing PK). Fixed in permits/views.py — refresh after the backend redeploys.</span>' : '')
+        + '</div></td></tr>';
     } finally {
       loading = false;
       if (btn) btn.disabled = false;
-    }
-  }
-
-  // ------------------------------------------------------------------
-  // Phase 3 — submission workflow (select READY groups, submit, review)
-  // ------------------------------------------------------------------
-
-  var selected = {};  // group key -> true (only READY groups are selectable)
-  var allSubmissions = [];
-
-  function groupKey(g) {
-    return g.project_id + '|' + g.permit_type + '|' + (g.permit_group || '');
-  }
-
-  function selectedPermitIds() {
-    var ids = [];
-    groupPermits().forEach(function (g) {
-      if (selected[groupKey(g)]) {
-        g.sections.forEach(function (p) { ids.push(p.permit_id); });
-      }
-    });
-    return ids;
-  }
-
-  function updateSubmitButton() {
-    var n = Object.keys(selected).length;
-    var btn = document.getElementById('pmSubmit');
-    btn.style.display = n ? '' : 'none';
-    btn.textContent = '\u{1F4E8} Submit Selected (' + n + ')';
-  }
-
-  async function submitSelected() {
-    var ids = selectedPermitIds();
-    if (!ids.length) return;
-    var nApps = Object.keys(selected).length;
-    if (!confirm('Submit ' + ids.length + ' section(s) as ' + nApps + ' application(s)?\n\nOnly READY permits are submitted — the rest stay behind.')) return;
-    var btn = document.getElementById('pmSubmit');
-    btn.disabled = true;
-    try {
-      var res = await window.FtthLldApi.createSubmission({ permit_ids: ids });
-      alert('Created ' + res.created + ' submission(s) — tracker refreshed.');
-      selected = {};
-      updateSubmitButton();
-      renderTable();
-      load();
-      loadSubmissions();
-    } catch (err) {
-      alert('Submit failed: ' + (err.message || err));
-    } finally {
-      btn.disabled = false;
+      if (btn2) btn2.disabled = false;
     }
   }
 
@@ -378,11 +856,14 @@
 
   function renderSubmissions() {
     var tbody = document.getElementById('pmSubBody');
-    if (!allSubmissions.length) {
-      tbody.innerHTML = '<tr><td colspan="9"><div class="pm-empty">No submissions yet — select READY permits above and click Submit Selected.</div></td></tr>';
+    if(!tbody) return;
+    var pid=currentProjectId();
+    var rows = pid ? allSubmissions.filter(function(s){ return s.project_id===pid; }) : allSubmissions;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="10"><div class="pm-empty">No submissions yet — tick READY permits in the Permits tab and submit. Filter by project to see just this project.</div></td></tr>';
       return;
     }
-    tbody.innerHTML = allSubmissions.map(function (s) {
+    tbody.innerHTML = rows.map(function (s) {
       var m = SUB_STATUS_META[s.status] || SUB_STATUS_META.submitted;
       var badge = '<span class="pm-badge ' + m.cls + '"><span class="dot"></span>' + esc(m.text) + '</span>';
       var street = s.permit_group
@@ -391,6 +872,22 @@
       var rev = s.revision > 0
         ? '<span class="pm-badge b-amber"><span class="dot"></span>r' + s.revision + '</span>'
         : '<span class="pm-fid">r0</span>';
+      var expInfo = expiryBySubmissionId[s.submission_id] || null;
+      var expIso = s.expiry_date;
+      var days = expInfo ? expInfo.days_until : null;
+      var bucket = expInfo ? expInfo.bucket : null;
+      if (!expInfo && expIso) {
+        try {
+          var now = new Date();
+          var ed = new Date(expIso);
+          days = Math.floor((ed - now) / 86400000);
+          bucket = bucketForDays(days);
+        } catch(_) { days = null; bucket = null; }
+      }
+      var expiryCell;
+      if (!expIso) expiryCell = '<span class="pm-fid">—</span>';
+      else if (bucket) expiryCell = fmtExpiry(expIso) + '<br/>' + expiryBadge(bucket, days);
+      else expiryCell = fmtExpiry(expIso);
       return '<tr>'
         + '<td><strong>' + esc(s.project_name || s.project_id) + '</strong></td>'
         + '<td>' + esc(s.permit_type) + '<br/>' + street + '</td>'
@@ -398,11 +895,310 @@
         + '<td>' + badge + '</td>'
         + '<td>' + (s.submission_date ? new Date(s.submission_date).toLocaleDateString() : '—') + '</td>'
         + '<td class="pm-fid">' + esc(s.reference || '—') + '</td>'
+        + '<td>' + expiryCell + '</td>'
         + '<td>' + rev + '</td>'
         + '<td>' + s.section_count + '</td>'
         + '<td>' + submissionActions(s) + '</td>'
         + '</tr>';
     }).join('');
+  }
+
+  async function loadExpiries(){
+    var pid = currentProjectId();
+    var body = document.getElementById('pmExpiryBody');
+    var card = document.getElementById('pmExpiryCard');
+    if (!body || !card) return;
+    try {
+      var data = await window.FtthLldApi.getExpiries(pid || null, {threshold_days: 30});
+      expiryData = data;
+      expiryBySubmissionId = {};
+      expiryByPermitId = {};
+      (data.expiring_submissions || []).forEach(function(r){ expiryBySubmissionId[r.submission_id] = r; });
+      (data.expiring_permits || []).forEach(function(r){ expiryByPermitId[r.permit_id] = r; });
+      renderExpiry(data);
+      renderSubmissions();
+      renderStats();
+    } catch (err) {
+      card.style.display = 'block';
+      body.innerHTML = '<div class="pm-empty" style="color:#B91C1C;">Could not load expiries: ' + esc(err.message || String(err)) + '</div>';
+    }
+  }
+  function renderExpiry(data){
+    var body = document.getElementById('pmExpiryBody');
+    var card = document.getElementById('pmExpiryCard');
+    if (!body || !card) return;
+    card.style.display = 'block';
+    if (!data) { body.innerHTML = '<div class="pm-empty">No expiry data.</div>'; return; }
+    var totalWith = data.total_with_expiry || 0;
+    var totalExpiring = data.total_expiring || 0;
+    var threshold = data.threshold_days || 30;
+    if (totalWith === 0) {
+      body.innerHTML = '<div class="pm-empty">No expiry dates set yet — set an <code>expiry_date</code> when you Approve a submission (the Approve prompt asks for it). Nothing here flips status; it’s a calendar reminder.</div>';
+      return;
+    }
+    if (totalExpiring === 0) {
+      var okPermits = (data.permit_counts && data.permit_counts.ok) || 0;
+      var okSubs = (data.submission_counts && data.submission_counts.ok) || 0;
+      body.innerHTML = '<div style="display:flex; align-items:center; gap:10px; padding:10px 12px; background:#ECFDF5; border:1px solid #A7F3D0; border-radius:10px; color:#065F46;"><span style="font-size:18px;">✅</span><span><strong>All clear — no permits expiring within ' + threshold + ' days.</strong> ' + totalWith + ' row(s) have expiry dates (' + okPermits + ' permits, ' + okSubs + ' submissions) — all are >30 days out.</span></div>';
+      return;
+    }
+    var order = ['expired','due_1d','due_7d','due_14d','due_30d'];
+    var pills = order.map(function(b){
+      var n = ((data.expiring_permit_counts||{})[b]||0) + ((data.expiring_submission_counts||{})[b]||0);
+      if (!n) return '';
+      var m = EXPIRY_META[b];
+      return '<span class="pm-badge ' + m.cls + '"><span class="dot"></span>' + esc(m.label) + ': ' + n + '</span>';
+    }).filter(Boolean).join(' ');
+    var html = '<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px;"><strong style="font-size:12px; color:#374151;">Within ' + threshold + 'd:</strong> ' + (pills || '<span class="mono">—</span>') + ' <span class="mono" style="margin-left:auto;">' + totalExpiring + ' expiring of ' + totalWith + ' with dates</span></div>';
+    if ((data.expiring_permits||[]).length) {
+      html += '<div style="margin-bottom:12px;"><div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; margin-bottom:6px;">Permits expiring (' + data.expiring_permits.length + ')</div>';
+      html += '<div style="display:grid; gap:6px;">' + data.expiring_permits.slice(0,8).map(function(r){
+        var meta = EXPIRY_META[r.bucket] || EXPIRY_META.ok;
+        return '<div style="display:flex; gap:10px; align-items:center; padding:8px 10px; background:#fff; border:1px solid #E5E7EB; border-radius:8px; font-size:12px;">'
+          + '<span class="pm-badge ' + meta.cls + '"><span class="dot"></span>' + esc(meta.label) + '</span>'
+          + '<span class="mono">' + (r.days_until < 0 ? '-' + Math.abs(r.days_until) + 'd' : r.days_until + 'd') + '</span>'
+          + '<span><strong>' + esc(r.permit_type||'') + '</strong> · ' + esc(r.permit_group || r.route_section || '') + '</span>'
+          + '<span class="mono" style="margin-left:auto;">' + esc(r.project_id.slice(0,8)) + ' · ' + fmtExpiry(r.expiry_date) + '</span>'
+          + '</div>';
+      }).join('') + '</div>';
+      if (data.expiring_permits.length > 8) html += '<div class="mono" style="margin-top:6px;">… and ' + (data.expiring_permits.length - 8) + ' more permits</div>';
+      html += '</div>';
+    }
+    if ((data.expiring_submissions||[]).length) {
+      html += '<div><div style="font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; margin-bottom:6px;">Submissions expiring (' + data.expiring_submissions.length + ')</div>';
+      html += '<div style="display:grid; gap:6px;">' + data.expiring_submissions.slice(0,8).map(function(r){
+        var meta = EXPIRY_META[r.bucket] || EXPIRY_META.ok;
+        return '<div style="display:flex; gap:10px; align-items:center; padding:8px 10px; background:#fff; border:1px solid #E5E7EB; border-radius:8px; font-size:12px;">'
+          + '<span class="pm-badge ' + meta.cls + '"><span class="dot"></span>' + esc(meta.label) + '</span>'
+          + '<span class="mono">' + (r.days_until < 0 ? '-' + Math.abs(r.days_until) + 'd' : r.days_until + 'd') + '</span>'
+          + '<span><strong>' + esc(r.permit_type||'') + '</strong> · ' + esc(r.permit_group || r.label || '') + '</span>'
+          + '<span class="mono">' + esc(r.reference || '—') + '</span>'
+          + '<span class="mono" style="margin-left:auto;">' + esc(r.project_id.slice(0,8)) + ' · ' + fmtExpiry(r.expiry_date) + '</span>'
+          + '</div>';
+      }).join('') + '</div>';
+      if (data.expiring_submissions.length > 8) html += '<div class="mono" style="margin-top:6px;">… and ' + (data.expiring_submissions.length - 8) + ' more submissions</div>';
+      html += '</div>';
+    }
+    body.innerHTML = html;
+  }
+
+  // ---------- Package QA (P19b) — cross-project + filter like expiry ----------
+  var QA_LEVEL_META = { pass:{label:'Pass',cls:'b-green'}, warn:{label:'Warn',cls:'b-amber'}, fail:{label:'Fail',cls:'b-red'} };
+  async function loadQa(){
+    var pid = currentProjectId();
+    var body = document.getElementById('pmQaBody');
+    var card = document.getElementById('pmQaCard');
+    if (!body || !card) return;
+    card.style.display = 'block';
+    body.innerHTML = '<div class=\"pm-empty\">Loading QA…</div>';
+    try{
+      var data;
+      if(pid) data = await window.FtthLldApi.getQaForProject(pid);
+      else data = await window.FtthLldApi.getQa(null);
+      qaData = data;
+      renderQa(data);
+    }catch(err){
+      body.innerHTML = '<div class=\"pm-empty\" style=\"color:#B91C1C;\">Could not load QA: ' + esc(err.message||String(err)) + '</div>';
+    }
+  }
+  function renderQa(data){
+    var body=document.getElementById('pmQaBody');
+    var card=document.getElementById('pmQaCard');
+    if(!body||!card) return;
+    card.style.display='block';
+    if(!data){ body.innerHTML='<div class=\"pm-empty\">No QA data.</div>'; return; }
+    // Two shapes: single-project (level/summary/issues) vs cross-project summary (total_projects/by_level/projects)
+    if(data.total_projects !== undefined){
+      var by=data.by_level||{};
+      var pills = Object.keys(by).map(function(lv){
+        var m=QA_LEVEL_META[lv]||QA_LEVEL_META.warn;
+        return '<span class=\"pm-badge '+m.cls+'\"><span class=\"dot\"></span>'+esc(m.label)+': '+by[lv]+'</span>';
+      }).join(' ');
+      var html='<div style=\"display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;\"><strong style=\"font-size:12px; color:#374151;\">QA across '+data.total_projects+' project(s):</strong> '+(pills||'<span class=\"mono\">—</span>')+' <span class=\"mono\" style=\"margin-left:auto;\">'+data.total_issues+' issue(s) · '+data.total_errors+' error(s) · '+data.total_warns+' warn(s)</span></div>';
+      if((data.projects||[]).length){
+        html+='<div style=\"display:grid; gap:6px;\">'+data.projects.slice(0,12).map(function(p){
+          var m=QA_LEVEL_META[p.level]||QA_LEVEL_META.warn;
+          var errs=p.error_count||0, warns=p.warn_count||0;
+          var pkg=p.lld_package_version!=null? 'v'+p.lld_package_version : 'no package';
+          return '<div style=\"display:flex; gap:10px; align-items:center; padding:8px 10px; background:#fff; border:1px solid #E5E7EB; border-radius:8px; font-size:12px;\">'
+            +'<span class=\"pm-badge '+m.cls+'\"><span class=\"dot\"></span>'+esc(m.label)+'</span>'
+            +'<span><strong>'+esc(p.project_name||p.project_id)+'</strong> <span class=\"mono\">'+esc(String(p.project_id).slice(0,8))+' · '+pkg+'</span></span>'
+            +'<span class=\"mono\" style=\"margin-left:auto;\">'+errs+' err · '+warns+' warn · '+(p.total_docs||0)+' docs</span></div>';
+        }).join('')+'</div>';
+        if(data.projects.length>12) html+='<div class=\"mono\" style=\"margin-top:6px;\">… and '+(data.projects.length-12)+' more project(s)</div>';
+      }
+      html+='<div class=\"mono\" style=\"margin-top:8px; color:#6B7280;\">Filter with the Project picker above to see one project’s full audit (counts by kind, HDD guard, naming, readiness).</div>';
+      body.innerHTML=html;
+      return;
+    }
+    // Single-project
+    var m=QA_LEVEL_META[data.level]||QA_LEVEL_META.warn;
+    var hdr='<div style=\"display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;\"><span class=\"pm-badge '+m.cls+'\"><span class=\"dot\"></span>'+esc(m.label.toUpperCase())+' — '+(data.issue_count||0)+' issue(s)</span> <span class=\"mono\">'+esc(data.project_name||data.project_id)+' · '+(data.lld_package_version!=null? 'LLD package v'+data.lld_package_version : 'no LLD package')+' · HLD v'+(data.hld_package_version!=null? data.hld_package_version : '—')+'</span><span class=\"mono\" style=\"margin-left:auto;\">'+esc(data.summary||'')+'</span></div>';
+    if(data.is_ai_generated && data.ai_paragraph){
+      hdr+='<div style=\"padding:10px 12px; background:#FFFBEB; border:1px solid #FDE68A; border-radius:10px; font-size:13px; color:#92400E; margin-bottom:10px;\"><strong>AI summary</strong> <span class=\"pm-badge b-ai\" style=\"padding:2px 8px;\">AI draft</span><div style=\"margin-top:6px;\">'+esc(data.ai_paragraph)+'</div><div class=\"mono\" style=\"margin-top:6px; color:#B45309;\">'+esc(data.disclaimer||'')+'</div></div>';
+    } else if(data.disclaimer){
+      hdr+='<div class=\"mono\" style=\"margin-bottom:10px; color:#6B7280;\">'+esc(data.disclaimer)+'</div>';
+    }
+    var exp=data.expected||{};
+    var actual=data.actual_by_kind||{};
+    var kinds=['DRAWING','CROSS_SECTION','TMP','FORM','REPORT','SCHEDULE'];
+    var kindRow='<div style=\"display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;\">'+kinds.map(function(k){
+      var n=actual[k]||0;
+      return '<span class=\"pm-badge b-gray\">'+esc(k)+': '+n+'</span>';
+    }).join(' ')+ ' <span class=\"pm-badge b-blue\">HDD: '+(data.actual_hdd||0)+'</span> <span class=\"mono\">expected hdd '+(exp.hdd!=null? exp.hdd : '—')+'</span></div>';
+    var issues=(data.issues||[]);
+    var issuesHtml;
+    if(!issues.length){
+      issuesHtml='<div style=\"display:flex; align-items:center; gap:10px; padding:10px 12px; background:#ECFDF5; border:1px solid #A7F3D0; border-radius:10px; color:#065F46;\"><span style=\"font-size:18px;\">✅</span><span><strong>All clear — package looks complete.</strong> '+ (exp.permit_rows||0)+' permit rows · '+ (exp.drawings||0)+' drawings · '+ (exp.forms||0)+' forms · HLD '+(data.hld_package_version!=null? 'v'+data.hld_package_version : 'none')+'.</span></div>';
+    } else {
+      issuesHtml='<div style=\"display:grid; gap:6px;\">'+issues.slice(0,20).map(function(it){
+        var lvlCls = it.level==='error' ? 'b-red' : it.level==='warn' ? 'b-amber' : 'b-green';
+        return '<div style=\"padding:8px 10px; background:#fff; border:1px solid #E5E7EB; border-radius:8px; font-size:12px;\">'
+          +'<div style=\"display:flex; gap:8px; align-items:center;\"><span class=\"pm-badge '+lvlCls+'\"><span class=\"dot\"></span>'+esc(it.level)+'</span><span class=\"mono\">'+esc(it.code||'')+'</span><span style=\"margin-left:auto; color:#6B7280;\">'+esc(it.hint||'')+'</span></div>'
+          +'<div style=\"margin-top:4px;\">'+esc(it.message||'')+'</div></div>';
+      }).join('')+'</div>';
+      if(issues.length>20) issuesHtml+='<div class=\"mono\" style=\"margin-top:6px;\">… and '+(issues.length-20)+' more issue(s)</div>';
+    }
+    body.innerHTML=hdr+kindRow+issuesHtml;
+  }
+
+  // ---------- Status-sync poller (P20b) ----------
+  async function loadSyncStatus(){
+    var body=document.getElementById('pmSyncBody');
+    var card=document.getElementById('pmSyncCard');
+    if(!body||!card) return;
+    try{
+      var data=await window.FtthLldApi.getSyncStatus();
+      syncStatus=data;
+      renderSyncStatus(data);
+    }catch(err){
+      body.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Could not load sync status: '+esc(err.message||String(err))+'</div>';
+    }
+  }
+  function renderSyncStatus(data){
+    var body=document.getElementById('pmSyncBody');
+    if(!body||!data) return;
+    var adapters=data.adapters||[];
+    var enabled=data.enabled||[];
+    var pills=adapters.map(function(a){
+      var on=enabled.indexOf(a.name)!==-1;
+      return '<span class=\"pm-badge '+(on?'b-green':'b-gray')+'\"><span class=\"dot\"></span>'+esc(a.name)+(on?' · enabled':' · disabled')+'</span>';
+    }).join(' ');
+    var html='<div style=\"display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;\">'+pills+' <span class=\"mono\" style=\"margin-left:auto;\">'+(data.non_terminal_submissions||0)+' non-terminal submissions</span></div>';
+    html+='<div class=\"mono\" style=\"color:#6B7280; margin-bottom:8px;\">Enabled adapters: '+(enabled.join(', ')||'none (mock_bezirk is always available)')+' · '+esc(data.hint||'')+'</div>';
+    if((data.adapters||[]).some(function(a){return a.name==='http_portal';})){
+      var httpA=(data.adapters||[]).find(function(a){return a.name==='http_portal';});
+      if(httpA && !httpA.enabled) html+='<div class=\"pm-callout info\" style=\"margin:0 0 8px;\"><span>ℹ</span><span><strong>http_portal disabled</strong> — set <code>PERMITS_PORTAL_URL</code> (+ token) on the backend to enable.</span></div>';
+    }
+    html+='<div class=\"mono\" style=\"color:#9CA3AF;\">Cross-project by default — the Project picker filters polling to one project (like expiry).</div>';
+    body.innerHTML=html;
+  }
+  async function doPollSync(dryRun){
+    var pid=currentProjectId();
+    var params={ dry_run: dryRun? true : false, project_id: pid||undefined };
+    var btn=document.getElementById('pmPollSync');
+    var dryBtn=document.getElementById('pmSyncDryRun');
+    var body=document.getElementById('pmSyncBody');
+    if(btn) btn.disabled=true;
+    if(dryBtn) dryBtn.disabled=true;
+    if(body) body.innerHTML='<div class=\"pm-empty\">Polling…</div>';
+    try{
+      var res=await window.FtthLldApi.pollSync(params);
+      var html='<div style=\"padding:10px 12px; background:#EFF6FF; border:1px solid #BFDBFE; border-radius:10px; font-size:13px; color:#1E40AF; margin-bottom:10px;\">'
+        +'<strong>Polled '+(res.adapters||[]).join(', ')+' — scanned '+res.scanned+' of '+res.total_non_terminal+' · attempted '+res.attempted+' · applied '+(res.applied||[]).length+' · errors '+(res.errors||[]).length+(res.dry_run?' · DRY RUN':'')+'</strong>'
+        +'<span class=\"mono\" style=\"margin-left:8px;\">'+esc(res.now||'')+(res.project_id? ' · project '+esc(res.project_id.slice(0,8)):' · all projects')+'</span></div>';
+      if((res.applied||[]).length){
+        html+='<div style=\"margin-bottom:10px;\"><div style=\"font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; margin-bottom:6px;\">Applied ('+res.applied.length+')</div>'
+          +'<div style=\"display:grid; gap:6px;\">'+res.applied.slice(0,12).map(function(r){
+            return '<div style=\"display:flex; gap:8px; align-items:center; padding:6px 10px; background:#fff; border:1px solid #E5E7EB; border-radius:8px; font-size:12px;\"><span class=\"pm-badge b-green\"><span class=\"dot\"></span>'+esc(r.from||'?')+' → '+esc(r.to||'?')+'</span><span class=\"mono\">'+esc(String(r.submission_id).slice(0,8))+' · '+esc(r.adapter||'?')+'</span><span class=\"mono\" style=\"margin-left:auto;\">'+esc(r.reference||'—')+'</span></div>';
+          }).join('')+'</div></div>';
+        if(res.applied.length>12) html+='<div class=\"mono\" style=\"margin-top:6px;\">… and '+(res.applied.length-12)+' more</div>';
+      }
+      if((res.errors||[]).length){
+        html+='<div style=\"margin-bottom:10px;\"><div style=\"font-weight:700; font-size:12px; color:#B91C1C; margin-bottom:6px;\">Errors ('+res.errors.length+')</div>'
+          +'<div style=\"display:grid; gap:6px;\">'+res.errors.slice(0,10).map(function(e){
+            return '<div style=\"padding:6px 10px; background:#FEF2F2; border:1px solid #FECACA; border-radius:8px; font-size:12px; color:#B91C1C;\"><span class=\"mono\">'+esc(String(e.submission_id||e.line||'?').slice(0,12))+'</span> '+esc(e.adapter||'')+' — '+esc(e.error||'')+'</div>';
+          }).join('')+'</div></div>';
+      }
+      if(!(res.applied||[]).length && !(res.errors||[]).length){
+        html+='<div class=\"pm-empty\">Nothing to sync — all submissions are terminal or adapters had no opinion. Try <strong>mock_bezirk</strong> on a submission that is 1+ day old (it auto-acknowledges), or ensure <code>reference</code> is set for http_portal.</div>';
+      }
+      body.innerHTML=html;
+      if(!dryRun) { loadSubmissions(); loadExpiries(); }
+    }catch(err){
+      if(body) body.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Poll failed: '+esc(err.message||String(err))+'</div>';
+    }finally{
+      if(btn) btn.disabled=false;
+      if(dryBtn) dryBtn.disabled=false;
+    }
+  }
+
+  // ---------- Classifier (P22b) ----------
+  function collectClassifyFeatures(){
+    var fclass=(document.getElementById('clsFclass')||{}).value||'';
+    var surface=(document.getElementById('clsSurface')||{}).value||'';
+    var trenchType=(document.getElementById('clsTrenchType')||{}).value||'';
+    var reuse=(document.getElementById('clsReuse')||{}).value||'';
+    var rail=(document.getElementById('clsEnvRail')||{}).checked||false;
+    var water=(document.getElementById('clsEnvWater')||{}).checked||false;
+    var prot=(document.getElementById('clsEnvProtected')||{}).checked||false;
+    var tree=(document.getElementById('clsEnvTree')||{}).checked||false;
+    var feats={};
+    if(fclass.trim()) feats.fclass=fclass.trim();
+    if(surface.trim()) feats.SURFACE=surface.trim();
+    if(trenchType.trim()) feats.trench_type=trenchType.trim();
+    if(reuse.trim()) feats.REUSE_SOURCE=reuse.trim();
+    var env={};
+    if(rail) env.railway=true;
+    if(water) env.waterway=true;
+    if(prot) env.protected_area=true;
+    if(tree) env.tree=true;
+    if(Object.keys(env).length) feats.env_flags=env;
+    if(currentProjectId()) feats.project_id=currentProjectId();
+    if(currentCopilotPermitId()) feats.permit_id=currentCopilotPermitId();
+    return feats;
+  }
+  function renderClassify(res){
+    var out=document.getElementById('clsOut');
+    var wrap=document.getElementById('clsFeedbackWrap');
+    if(!out) return;
+    lastClassify=res;
+    var conf=res.confidence!=null? (res.confidence*100).toFixed(0)+'%' : '—';
+    var cls = res.confidence>=0.75? 'b-green' : res.confidence>=0.5? 'b-amber' : 'b-gray';
+    var html='<div style=\"display:flex; gap:8px; align-items:center; flex-wrap:wrap;\"><span class=\"pm-badge '+cls+'\"><span class=\"dot\"></span>'+esc(res.permit_type||'?')+' · '+conf+'</span> <span class=\"mono\">'+esc(res.rule_id||'no rule')+'</span> <span class=\"pm-badge b-det\">Heuristic</span></div>';
+    if((res.reasons||[]).length) html+='<ul class=\"list\">'+res.reasons.map(function(r){return '<li>'+esc(r)+'</li>';}).join('')+'</ul>';
+    if((res.candidates||[]).length>1){
+      html+='<div style=\"margin-top:8px;\"><div style=\"font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280;\">Runner-up</div><div style=\"display:grid; gap:4px; margin-top:6px;\">'+res.candidates.slice(1,3).map(function(c){
+        return '<div style=\"display:flex; gap:8px; align-items:center; padding:6px 8px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; font-size:12px;\"><span class=\"mono\">'+esc(c.rule_id||'')+'</span><span>'+esc(c.permit_type||'')+'</span><span class=\"mono\" style=\"margin-left:auto;\">'+(c.score!=null? (c.score*100).toFixed(0)+'%':'')+'</span></div>';
+      }).join('')+'</div></div>';
+    }
+    out.innerHTML=html;
+    if(wrap) wrap.style.display='block';
+    // Refresh stats hint
+    var statsEl=document.getElementById('clsStats');
+    if(statsEl){
+      window.FtthLldApi.classifyStats().then(function(s){
+        statsEl.textContent=s.total+' label(s) · '+(s.milestone_500? '500 milestone reached' : (500-s.total)+' to 500');
+      }).catch(function(){});
+    }
+  }
+  async function doClassify(){
+    var feats=collectClassifyFeatures();
+    var out=document.getElementById('clsOut');
+    var spin=document.getElementById('clsSpinner');
+    var btn=document.getElementById('clsClassifyBtn');
+    if(spin) spin.style.display='inline';
+    if(btn) btn.disabled=true;
+    if(out) out.innerHTML='<div class=\"pm-empty\">Classifying…</div>';
+    try{
+      var res=await window.FtthLldApi.classify(feats);
+      renderClassify(res);
+    }catch(err){
+      if(out) out.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Classify failed: '+esc(err.message||String(err))+'</div>';
+    }finally{
+      if(spin) spin.style.display='none';
+      if(btn) btn.disabled=false;
+    }
   }
 
   async function runTransition(sid, to) {
@@ -429,8 +1225,7 @@
     }
     try {
       await window.FtthLldApi.transitionSubmission(sid, payload);
-      load();
-      loadSubmissions();
+      load(); loadSubmissions(); loadExpiries();
     } catch (err) {
       alert('Transition failed: ' + (err.message || err));
     }
@@ -438,28 +1233,137 @@
 
   async function loadSubmissions() {
     try {
-      var d = await window.FtthLldApi.listSubmissions();
+      var d = await window.FtthLldApi.listSubmissions(currentProjectId() ? { project_id: currentProjectId() } : {});
+      // server may ignore project filter? filter client-side anyway in render
       allSubmissions = d.submissions || [];
+      // if server filtered, keep as is; otherwise render filters
       renderSubmissions();
-      renderStats();  // Submissions stat card
+      renderStats();
+      populateProjectFilter();
     } catch (err) {
-      document.getElementById('pmSubBody').innerHTML =
-        '<tr><td colspan="9"><div class="pm-empty" style="color:#B91C1C;">Failed to load submissions: ' + esc(err.message || err) + '</div></td></tr>';
+      var tbody=document.getElementById('pmSubBody');
+      if(tbody) tbody.innerHTML =
+        '<tr><td colspan="10"><div class="pm-empty" style="color:#B91C1C;">Failed to load submissions: ' + esc(err.message || err) + '</div></td></tr>';
     }
   }
 
+  function selectedPermitIds() {
+    var ids = [];
+    groupPermits().forEach(function (g) {
+      if (selected[groupKey(g)]) {
+        g.sections.forEach(function (p) { ids.push(p.permit_id); });
+      }
+    });
+    return ids;
+  }
+
+  async function submitSelected() {
+    var ids = selectedPermitIds();
+    if (!ids.length) return;
+    var nApps = Object.keys(selected).length;
+    if (!confirm('Submit ' + ids.length + ' section(s) as ' + nApps + ' application(s)?\n\nOnly READY permits are submitted — the rest stay behind.')) return;
+    var btn = document.getElementById('pmBulkSubmit');
+    if(btn) btn.disabled = true;
+    try {
+      var res = await window.FtthLldApi.createSubmission({ permit_ids: ids });
+      alert('Created ' + res.created + ' submission(s) — tracker refreshed.');
+      selected = {};
+      updateSubmitButton();
+      renderTable();
+      populateCopilotSelect();
+      load(); loadSubmissions();
+      document.querySelector('[data-tab="submissions"]').click();
+    } catch (err) {
+      alert('Submit failed: ' + (err.message || err));
+    } finally {
+      if(btn) btn.disabled = false;
+    }
+  }
+
+  // Packages
+  function checkPackage(pid) {
+    var btn=document.getElementById('pmDownloadPkg');
+    var meta=document.getElementById('pmPackageMeta');
+    if (!btn) return;
+    if(!pid){ btn.style.display='none'; if(meta) meta.textContent='Select a project to check existing packages.'; return; }
+    window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/', { method: 'GET' })
+      .then(function(d) {
+        var files = d && d.files || [];
+        btn.style.display = files.length ? 'inline-flex' : 'none';
+        if(meta) meta.textContent = files.length ? files.length + ' file(s) in latest package · v' + (d.versions||[]).slice(-1)[0] : 'No package yet — generate one.';
+      }).catch(function() { btn.style.display = 'none'; if(meta) meta.textContent='Could not check package.'; });
+  }
+  function checkHldPackage(pid) {
+    var btn=document.getElementById('pmDownloadHldPkg');
+    if (!btn) return;
+    if(!pid){ btn.style.display='none'; return; }
+    window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/', { method: 'GET' })
+      .then(function(d) { btn.style.display = (d && d.files && d.files.length) ? 'inline-flex' : 'none'; })
+      .catch(function() { btn.style.display = 'none'; });
+  }
+  function onProjectChanged(){
+    renderStats(); renderTable(); renderSubmissions(); populateCopilotSelect(); checkPackage(currentProjectId()); checkHldPackage(currentProjectId()); refreshDraftHistory(true); loadExpiries(); loadQa(); loadSyncStatus();
+    // keep URL in sync without reload
+    var pid=currentProjectId();
+    var url=new URL(window.location.href);
+    if(pid) url.searchParams.set('project_id', pid); else url.searchParams.delete('project_id');
+    history.replaceState(null,'',url.toString());
+  }
+
+  // Tabs
+  function activateTab(name){
+    document.querySelectorAll('.pm-tab').forEach(function(b){
+      var on=b.dataset.tab===name;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', on?'true':'false');
+    });
+    document.querySelectorAll('.pm-panel').forEach(function(p){
+      p.classList.toggle('active', p.id==='panel-'+name);
+    });
+    var url=new URL(window.location.href);
+    if(name==='overview') url.searchParams.delete('tab'); else url.searchParams.set('tab', name);
+    history.replaceState(null,'',url.toString());
+  }
+
+  // Copilot handlers (share state)
+  function renderRequirements(body){
+    var items = body.items || [];
+    var html = '<h3 style="margin:8px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#6B7280;">Checklist — '+esc(body.permit_type||'')+(body.authority?' · '+esc(body.authority):'')+'</h3>';
+    html += '<ul class="list">'+ items.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('') +'</ul>';
+    if(body.ai_notes) html += '<h3 style="margin:8px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#6B7280;">AI notes</h3><pre>'+esc(body.ai_notes)+'</pre>';
+    html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span></p>';
+    if(body.heuristic_items) html += '<p class="mono">Heuristic scan: '+esc((body.heuristic_items||[]).join(' · '))+'</p>';
+    document.getElementById('reqOut').innerHTML = html;
+  }
+
+  // Wire up
   document.getElementById('pmBody').addEventListener('change', function (e) {
     var cb = e.target;
     if (!cb || cb.dataset.group === undefined) return;
     if (cb.checked) selected[cb.dataset.group] = true;
     else delete selected[cb.dataset.group];
+    // keep row highlight in sync
+    var tr=cb.closest('tr'); if(tr) tr.classList.toggle('selected-row', !!cb.checked);
     updateSubmitButton();
+    // if single selection, mirror into copilot picker
+    var keys=Object.keys(selected);
+    if(keys.length===1){
+      var gkey=keys[0];
+      var g=groupPermits().find(function(x){ return groupKey(x)===gkey; });
+      if(g && g.sections[0]){
+        var sel=document.getElementById('copilotPermitSelect');
+        if(sel) { sel.value=g.sections[0].permit_id; updateCopilotContext(); }
+      }
+    }
   });
 
   document.getElementById('pmSelectAll').addEventListener('change', function () {
     var on = this.checked;
     groupPermits().forEach(function (g) {
       var key = groupKey(g);
+      // respect current filters: only toggle visible groups
+      var visible = filteredGroups().some(function(v){ return groupKey(v)===key; });
+      if(!visible) return;
       if (g.status === 'ready') {
         if (on) selected[key] = true;
         else delete selected[key];
@@ -469,62 +1373,211 @@
     renderTable();
   });
 
-  document.getElementById('pmSubmit').addEventListener('click', submitSelected);
-
   document.getElementById('pmSubBody').addEventListener('click', function (e) {
     var btn = e.target.closest ? e.target.closest('.sub-act') : null;
     if (!btn) return;
     runTransition(btn.dataset.sid, btn.dataset.to);
   });
 
-  document.getElementById('pmSearch').addEventListener('input', renderTable);
-  document.getElementById('pmStatus').addEventListener('change', renderTable);
-  document.getElementById('pmProject').addEventListener('change', renderTable);
+  document.getElementById('pmSearch').addEventListener('input', function(){ renderTable(); populateCopilotSelect(); });
+  document.getElementById('pmStatus').addEventListener('change', function(){ renderTable(); });
+  document.getElementById('pmProject').addEventListener('change', onProjectChanged);
   document.getElementById('pmRefresh').addEventListener('click', function () { load(); loadSubmissions(); });
+  document.getElementById('pmRefreshOverview').addEventListener('click', function(){ load(); loadSubmissions(); });
+  document.getElementById('pmRefreshSubs').addEventListener('click', function(){ loadSubmissions(); });
+  var _pmRefreshExpiry=document.getElementById('pmRefreshExpiry'); if(_pmRefreshExpiry) _pmRefreshExpiry.addEventListener('click', function(){ loadExpiries(); });
+  var _pmRefreshQa=document.getElementById('pmRefreshQa'); if(_pmRefreshQa) _pmRefreshQa.addEventListener('click', function(){ loadQa(); });
+  var _pmPollSync=document.getElementById('pmPollSync'); if(_pmPollSync) _pmPollSync.addEventListener('click', function(){ doPollSync(false); });
+  var _pmSyncDry=document.getElementById('pmSyncDryRun'); if(_pmSyncDry) _pmSyncDry.addEventListener('click', function(){ doPollSync(true); });
+  var _pmRefreshSync=document.getElementById('pmRefreshSync'); if(_pmRefreshSync) _pmRefreshSync.addEventListener('click', function(){ loadSyncStatus(); });
+  var _pmCsvApply=document.getElementById('pmCsvApplyBtn'); if(_pmCsvApply) _pmCsvApply.addEventListener('click', async function(){
+    var csv=(document.getElementById('pmCsvInput')||{}).value||'';
+    if(!csv.trim()) return alert('Paste a CSV first.');
+    try{ var r=await window.FtthLldApi.syncSubmissionsCsv(csv); alert('CSV applied: '+(r.applied||[]).length+' ok, '+(r.errors||[]).length+' errors. See console.'); console.log('CSV result', r); loadSubmissions(); loadExpiries(); }catch(e){ alert('CSV apply failed: '+(e.message||e)); }
+  });
+  var _pmCsvDry=document.getElementById('pmCsvDryBtn'); if(_pmCsvDry) _pmCsvDry.addEventListener('click', async function(){
+    var csv=(document.getElementById('pmCsvInput')||{}).value||'';
+    if(!csv.trim()) return alert('Paste a CSV first.');
+    // Dry: just parse locally and show preview — no API call
+    var lines=csv.split('\\n').slice(0,8).join('\\n');
+    alert('CSV preview (first 8 lines):\\n'+lines+'\\n\\nUse Apply to run through the API.');
+  });
+  var _clsBtn=document.getElementById('clsClassifyBtn'); if(_clsBtn) _clsBtn.addEventListener('click', doClassify);
+  var _clsCopy=document.getElementById('clsCopyBtn'); if(_clsCopy) _clsCopy.addEventListener('click', function(){
+    if(!lastClassify) return alert('Classify first.');
+    var txt=JSON.stringify(lastClassify,null,2);
+    navigator.clipboard.writeText(txt).then(function(){ alert('Copied result.'); }, function(){ alert(txt); });
+  });
+  var _clsFb=document.getElementById('clsFeedbackBtn'); if(_clsFb) _clsFb.addEventListener('click', async function(){
+    if(!lastClassify) return alert('Classify first.');
+    var trueType=(document.getElementById('clsTrueType')||{}).value||'';
+    if(!trueType) return alert('Pick the true permit type.');
+    var feats=collectClassifyFeatures();
+    try{
+      var fb=await window.FtthLldApi.classifyFeedback({features: feats, predicted: lastClassify, true_permit_type: trueType, project_id: currentProjectId(), permit_id: currentCopilotPermitId()});
+      document.getElementById('clsFeedbackMsg').textContent='Saved — total '+(fb.stats?.total||'?')+' label(s). Thank you.';
+      var sEl=document.getElementById('clsStats'); if(sEl) sEl.textContent=(fb.stats?.total||0)+' label(s) · '+(fb.stats?.milestone_500? '500 reached' : (500-(fb.stats?.total||0))+' to 500');
+    }catch(e){ document.getElementById('clsFeedbackMsg').textContent='Feedback failed: '+(e.message||e); }
+  });
+  document.querySelectorAll('.pm-tab').forEach(function(b){ b.addEventListener('click', function(){ activateTab(b.dataset.tab); }); });
 
-  // ── Permit Package: generate + download ──────────────────────────
+  // Copilot bindings
+  document.getElementById('copilotPermitSelect').addEventListener('change', function(){ updateCopilotContext(); showDraftError(''); });
+  document.getElementById('reqBtn').addEventListener('click', async function(){
+    var pid=currentProjectId(); if(!pid) return showStatus('Pick a project first.', false);
+    var permitId=currentCopilotPermitId();
+    var row = permitsById[permitId];
+    var permitType = row ? row.permit_type : '';
+    if(!permitType && !permitId) return showStatus('Pick a permit row (or it will need a permit_type).', false);
+    try{
+      var body = await window.FtthLldApi.permitRequirements(pid, permitType, permitId||undefined);
+      renderRequirements(body);
+      showStatus('Requirements checked.', true);
+    }catch(e){ showStatus(e.message||String(e), false); }
+  });
+  document.getElementById('extractBtn').addEventListener('click', async function(){
+    var pid=currentProjectId(); if(!pid) return showStatus('Pick a project first.', false);
+    var raw=document.getElementById('extractInput').value || ''; if(!raw.trim()) return showStatus('Paste some guidance text first.', false);
+    try{
+      var body = await window.FtthLldApi.extractRequirements(pid, raw);
+      renderRequirements(body);
+      showStatus('Extracted '+(body.items||[]).length+' item(s).', true);
+    }catch(e){ showStatus(e.message||String(e), false); }
+  });
+  document.getElementById('completeBtn').addEventListener('click', async function(){
+    var permitId=currentCopilotPermitId(); if(!permitId) return showStatus('Pick a permit row.', false);
+    try{
+      var body = await window.FtthLldApi.permitCompleteness(permitId);
+      var html = '<p><strong>'+esc(body.summary||'')+'</strong></p>';
+      html += '<p class="muted">Required: '+(body.required_keys||[]).map(esc).join(', ')+' · Present: '+(body.present||[]).map(esc).join(', ')+' · Missing: '+(body.missing||[]).map(esc).join(', ')+'</p>';
+      if(body.next_steps && body.next_steps.length) html += '<h3 style="margin:8px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#6B7280;">Next steps</h3><ul class="list">'+body.next_steps.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+      if(body.ai_explanation) html += '<h3 style="margin:8px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#6B7280;">AI explanation</h3><pre>'+esc(body.ai_explanation)+'</pre>';
+      html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span> · '+esc(body.level||'')+' · '+esc(String(body.readiness_pct))+'%</p>';
+      document.getElementById('completeOut').innerHTML = html;
+      showStatus('Completeness explained.', true);
+    }catch(e){ showStatus(e.message||String(e), false); }
+  });
+  document.getElementById('riskBtn').addEventListener('click', async function(){
+    var pid=currentProjectId(), permitId=currentCopilotPermitId();
+    if(!pid) return showStatus('Pick a project.', false);
+    if(!permitId) return showStatus('Pick a permit row.', false);
+    try{
+      var body = await window.FtthLldApi.permitRisk(pid, permitId);
+      var html = '<p><strong>'+esc(body.summary||'')+'</strong> <span class="pm-badge '+(body.level==='high'?'b-red':body.level==='medium'?'b-amber':'b-det')+'">'+esc((body.level||'').toUpperCase())+'</span></p>';
+      html += '<p class="muted">Reasons: '+(body.reasons||[]).map(esc).join(' · ')+'</p>';
+      if(body.ai_paragraph) html += '<pre>'+esc(body.ai_paragraph)+'</pre>';
+      html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span></p>';
+      document.getElementById('riskOut').innerHTML = html;
+      showStatus('Risk explained.', true);
+    }catch(e){ showStatus(e.message||String(e), false); }
+  });
+  document.getElementById('riskProjectBtn').addEventListener('click', async function(){
+    var pid=currentProjectId(); if(!pid) return showStatus('Pick a project.', false);
+    try{
+      var body = await window.FtthLldApi.permitRisk(pid, null);
+      var html = '<p><strong>'+esc(body.summary||'')+'</strong> <span class="pm-badge '+(body.level==='high'?'b-red':body.level==='medium'?'b-amber':'b-det')+'">'+esc((body.level||'').toUpperCase())+'</span></p>';
+      html += '<p class="muted">Counts: high '+esc(String((body.counts||{}).high||0))+' · medium '+esc(String((body.counts||{}).medium||0))+' · low '+esc(String((body.counts||{}).low||0))+'</p>';
+      document.getElementById('riskOut').innerHTML = html;
+      showStatus('Project risk overview ready.', true);
+    }catch(e){ showStatus(e.message||String(e), false); }
+  });
+  document.getElementById('timelineBtn').addEventListener('click', async function(){
+    var pid=currentProjectId(); if(!pid) return showStatus('Pick a project.', false);
+    try{
+      var body = await window.FtthLldApi.permitTimeline(pid);
+      var html = '<p><strong>'+esc(String(body.min_days))+'–'+esc(String(body.max_days))+' working days</strong> · critical: '+esc((body.critical_types||[]).join(', '))+'</p>';
+      html += '<p class="muted">Assumptions: '+(body.assumptions||[]).map(esc).join(' · ')+'</p>';
+      if(body.per_type){
+        var rows = Object.keys(body.per_type).map(function(k){ var v=body.per_type[k]; return '<tr><td>'+esc(k)+'</td><td>'+esc(String(v.min))+'–'+esc(String(v.max))+'</td></tr>'; }).join('');
+        html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><tr><th style="text-align:left;border-bottom:1px solid #E5E7EB;padding:4px;">Permit type</th><th style="text-align:left;border-bottom:1px solid #E5E7EB;padding:4px;">Window (days)</th></tr>'+rows+'</table>';
+      }
+      if(body.ai_note) html += '<h3 style="margin:8px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:0.04em;color:#6B7280;">AI note</h3><pre>'+esc(body.ai_note)+'</pre>';
+      html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span></p>';
+      document.getElementById('timelineOut').innerHTML = html;
+      showStatus('Timeline estimated.', true);
+    }catch(e){ showStatus(e.message||String(e), false); }
+  });
+  function setDraftLoading(on){
+    var s=document.getElementById('draftSpinner'); if(s) s.style.display=on?'inline':'none';
+    var a=document.getElementById('draftCoverBtn'), b=document.getElementById('draftNarrBtn');
+    if(a) a.disabled=on; if(b) b.disabled=on;
+  }
+  function showDraftError(msg){
+    var el=document.getElementById('draftError'); if(!el) return;
+    if(!msg){ el.style.display='none'; el.textContent=''; return; }
+    el.textContent=msg; el.style.display='block';
+  }
+  async function doDraft(kind){
+    var pid=currentProjectId(), permitId=currentCopilotPermitId();
+    if(!pid){ showStatus('Pick a project first — use the Project picker at the top.', false); showDraftError('Pick a project first — use the Project picker at the top.'); return; }
+    if(!permitId){ showStatus('Pick a permit row — choose one in the Permits tab or the Working on picker.', false); showDraftError('Pick a permit row — choose one in the Permits tab or the Working on picker above.'); return; }
+    showDraftError('');
+    setDraftLoading(true);
+    try{
+      var body = await window.FtthLldApi.draftPermit(pid, {kind: kind, permit_id: permitId});
+      lastDraftText = body.text || '';
+      var html = '<pre>'+esc(lastDraftText)+'</pre>';
+      html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span></p>';
+      // Fallback is now always present — show what the AI polished, and what the template was.
+      if(body.deterministic_fallback){
+        var same = (body.text||'')=== (body.deterministic_fallback||'');
+        if(body.is_ai_generated) html += '<details open><summary class="muted">Deterministic template (what the AI polished)</summary><pre>'+esc(body.deterministic_fallback)+'</pre></details>';
+        else if(!same) html += '<details><summary class="muted">Deterministic template</summary><pre>'+esc(body.deterministic_fallback)+'</pre></details>';
+      }
+      document.getElementById('draftOut').innerHTML = html;
+      document.getElementById('draftMeta').textContent = 'Draft '+esc(body.draft_id||'')+' · kind '+esc(kind)+' · permit '+esc(permitId.slice(0,8)) + (body.is_ai_generated?' · AI':' · Template');
+      showStatus(body.is_ai_generated?'AI draft created — verify before submitting.':'Draft created (deterministic template — no LLM configured).', true);
+      refreshDraftHistory(true);
+    }catch(e){
+      var hint = (e && e.hint) ? ' — ' + e.hint : '';
+      var detail = (e && e.message) ? e.message : String(e);
+      // Surface the server hint inline — toast alone was why it looked like "nothing happened".
+      showDraftError(detail + hint);
+      showStatus(detail + hint, false);
+      document.getElementById('draftOut').innerHTML = '<div class="status err" style="display:block;">Draft failed: '+esc(detail)+ (hint?'<br/><span class="mono">'+esc(hint)+'</span>':'') +'</div>';
+    } finally { setDraftLoading(false); }
+  }
+  function renderDraftHistory(items){
+    var el=document.getElementById('draftHistory'); if(!el) return;
+    if(!items||!items.length){ el.textContent='No drafts yet for this project — draft a cover or narrative to see history.'; el.style.color='#9CA3AF'; return; }
+    el.style.color='#374151';
+    el.innerHTML = items.slice(0,12).map(function(d){
+      var when=d.created_at? new Date(d.created_at).toLocaleString():'';
+      var badge = d.is_ai_generated ? '<span class="pm-badge b-ai" style="padding:1px 6px; font-size:10px;">AI</span>' : '<span class="pm-badge b-det" style="padding:1px 6px; font-size:10px;">Template</span>';
+      var rev = d.reviewed ? ' · ✓ reviewed' : '';
+      var preview = esc((d.content||'').slice(0,110).replace(/\s+/g,' ')) + ((d.content||'').length>110?'…':'');
+      var meta = esc(d.draft_type||'') + ' · ' + esc((d.permit_type||'')) + (d.permit_group? ' — '+esc(d.permit_group.slice(0,18)):'');
+      return '<div style="padding:6px 0; border-bottom:1px solid #F3F4F6;">'+
+        '<div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;"><strong>'+meta+'</strong>'+badge+'<span style="color:#9CA3AF;">'+esc(when)+rev+'</span></div>'+
+        '<div style="color:#6B7280; margin-top:2px;">'+preview+'</div></div>';
+    }).join('');
+  }
+  async function refreshDraftHistory(silent){
+    var pid=currentProjectId();
+    var el=document.getElementById('draftHistory'); if(!el) return;
+    if(!pid){ el.textContent='Pick a project to see draft history.'; el.style.color='#9CA3AF'; return; }
+    if(!silent) el.textContent='Loading…';
+    try{
+      var body = await window.FtthLldApi.listDrafts({ project_id: pid });
+      // Show cover/narrative first
+      var items = (body.drafts||[]).filter(function(d){ return d.draft_type==='cover'||d.draft_type==='narrative'; });
+      if(!items.length) items = body.drafts||[];
+      renderDraftHistory(items);
+    }catch(e){ if(!silent) el.textContent='Could not load history: ' + esc(e.message||String(e)); }
+  }
+  document.getElementById('draftCoverBtn').addEventListener('click', function(){ doDraft('cover'); });
+  document.getElementById('draftNarrBtn').addEventListener('click', function(){ doDraft('narrative'); });
+  document.getElementById('draftHistoryRefresh').addEventListener('click', function(){ refreshDraftHistory(false); });
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    if(!lastDraftText) return showStatus('No draft to copy yet.', false);
+    navigator.clipboard.writeText(lastDraftText).then(function(){ showStatus('Copied to clipboard.', true); }, function(){ showStatus('Copy failed — select the text manually.', false); });
+  });
+
+  // Package buttons
   var pmGenHldBtn = document.getElementById('pmGenHldPackage');
   var pmDlHldBtn = document.getElementById('pmDownloadHldPkg');
   var pmGenBtn = document.getElementById('pmGenPackage');
   var pmDlBtn = document.getElementById('pmDownloadPkg');
-
-  // Resolve current project from URL or dropdown
-  function currentProjectId() {
-    var sel = document.getElementById('pmProject');
-    return (sel && sel.value) || new URLSearchParams(window.location.search).get('project_id') || '';
-  }
-
-  function getToken() {
-    try {
-      if (window.FiberAuth && typeof window.FiberAuth.getAccess === 'function') {
-        return window.FiberAuth.getAccess() || '';
-      }
-    } catch (_) { /* ignore */ }
-    try {
-      var raw = localStorage.getItem('fiber_auth');
-      if (!raw) return '';
-      var parsed = JSON.parse(raw);
-      return parsed.token || parsed.access || parsed.refresh || '';
-    } catch (_) { return ''; }
-  }
-
-  // Check if a final LLD package exists and show/hide its download button.
-  function checkPackage(pid) {
-    if (!pid || !pmDlBtn) return;
-    window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/', { method: 'GET' })
-      .then(function(d) {
-        var files = d && d.files || [];
-        pmDlBtn.style.display = files.length ? 'inline-flex' : 'none';
-      }).catch(function() { if (pmDlBtn) pmDlBtn.style.display = 'none'; });
-  }
-
-  function checkHldPackage(pid) {
-    if (!pid || !pmDlHldBtn) return;
-    window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/', { method: 'GET' })
-      .then(function(d) { pmDlHldBtn.style.display = (d && d.files && d.files.length) ? 'inline-flex' : 'none'; })
-      .catch(function() { pmDlHldBtn.style.display = 'none'; });
-  }
-
   if (pmGenHldBtn) {
     pmGenHldBtn.addEventListener('click', function() {
       var pid = currentProjectId();
@@ -534,10 +1587,9 @@
       window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/', { method: 'POST', body: JSON.stringify({}) })
         .then(function(body) { alert('HLD preliminary package generated! (' + ((body && body.files) || []).length + ' files)'); checkHldPackage(pid); })
         .catch(function(err) { alert('HLD package error: ' + err.message); })
-        .finally(function() { pmGenHldBtn.disabled = false; pmGenHldBtn.textContent = '📄 Generate HLD Rough Package'; });
+        .finally(function() { pmGenHldBtn.disabled = false; pmGenHldBtn.textContent = '📄 Generate HLD Package'; });
     });
   }
-
   if (pmDlHldBtn) {
     pmDlHldBtn.addEventListener('click', function() {
       var pid = currentProjectId();
@@ -549,13 +1601,12 @@
         .catch(function(err) { alert('HLD download failed: ' + err.message); });
     });
   }
-
   if (pmGenBtn) {
     pmGenBtn.addEventListener('click', function() {
       var pid = currentProjectId();
       if (!pid) { alert('Select a project first.'); return; }
       pmGenBtn.disabled = true;
-      pmGenBtn.textContent = '\u23F3 Generating\u2026';
+      pmGenBtn.textContent = '⏳ Generating…';
       window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/', {
         method: 'POST',
         body: JSON.stringify({})
@@ -564,10 +1615,9 @@
         alert('Permit package generated! (' + ((body && body.files) || []).length + ' files)');
         checkPackage(pid);
       }).catch(function(err) { alert('Error: ' + err.message); })
-      .finally(function() { pmGenBtn.disabled = false; pmGenBtn.textContent = '\uD83D\uDCC4 Generate Permit Package'; });
+      .finally(function() { pmGenBtn.disabled = false; pmGenBtn.textContent = '📄 Generate LLD Package'; });
     });
   }
-
   if (pmDlBtn) {
     pmDlBtn.addEventListener('click', function() {
       var pid = currentProjectId();
@@ -578,7 +1628,7 @@
         .then(function(r) {
           if (!r.ok) throw new Error('Download failed (status ' + r.status + ')');
           var disp = r.headers.get('Content-Disposition') || '';
-          var match = disp.match(/filename="?([^"]+)"?/);
+          var match = disp.match(/filename=\"?([^\"]+)\"?/);
           var fname = match ? match[1] : 'permit_package.zip';
           return r.blob().then(function(blob) {
             var a = document.createElement('a');
@@ -593,11 +1643,16 @@
     });
   }
 
+  // Init tab from URL + project
+  (function initFromUrl(){
+    var tab=new URLSearchParams(window.location.search).get('tab');
+    if(tab && document.getElementById('panel-'+tab)) activateTab(tab);
+  })();
+
   load();
   loadSubmissions();
-  checkPackage(currentProjectId());
-  checkHldPackage(currentProjectId());
-  setInterval(function () { load(); loadSubmissions(); }, 60000);
+  loadExpiries(); loadQa(); loadSyncStatus();
+  setInterval(function () { load(); loadSubmissions(); loadExpiries(); loadQa(); loadSyncStatus(); }, 60000);
 </script>
 </body>
 </html>

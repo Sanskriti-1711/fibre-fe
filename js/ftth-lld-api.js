@@ -500,7 +500,15 @@
     var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/draft/');
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload || {}) });
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var msg = (body && (body.detail || body.hint)) ? ((body.detail||'') + (body.hint ? ' — ' + body.hint : '')) : (response.statusText || 'Draft failed');
+      var err = new Error(msg.trim());
+      err.status = response.status;
+      err.detail = body && body.detail;
+      err.hint = body && body.hint;
+      err.body = body;
+      throw err;
+    }
     return body;
   }
   async function apiPermitRequirements(projectId, permitType, permitId) {
@@ -535,6 +543,108 @@
   }
   async function apiPermitTimeline(projectId) {
     var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/timeline/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiListDrafts(params) {
+    params = params || {};
+    var qs = Object.keys(params).filter(function(k){ return params[k]; }).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+    var url = buildUrl('/api/ftth/permits/ai/drafts/' + (qs ? '?' + qs : ''));
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiReviewDraft(draftId) {
+    var url = buildUrl('/api/ftth/permits/ai/drafts/' + encodeURIComponent(draftId) + '/review/');
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiGetExpiries(projectId, params) {
+    params = params || {};
+    var qs = Object.keys(params).filter(function(k){ return params[k] != null && String(params[k]) !== ''; }).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+    var base = projectId ? '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/expiries/' : '/api/ftth/permits/expiries/';
+    var url = buildUrl(base + (qs ? '?' + qs : ''));
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  // Package QA (P19b) — cross-project with ?project_id= filter, like expiries
+  async function apiGetQa(projectId) {
+    var base = projectId ? '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/qa/' : '/api/ftth/permits/qa/';
+    var url = buildUrl(base + (projectId ? '' : ('')));
+    // Also support ?project_id= on the collection route for parity with expiries
+    if (!projectId) {
+      var pid = '';
+      try { pid = new URLSearchParams(window.location.search).get('project_id') || ''; } catch(_) {}
+      if (pid) url = buildUrl('/api/ftth/permits/qa/?project_id=' + encodeURIComponent(pid));
+    }
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiGetQaForProject(projectId) {
+    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/qa/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  // Status-sync poller (P20b) — cross-project with ?project_id= filter
+  async function apiGetSyncStatus() {
+    var url = buildUrl('/api/ftth/permits/sync/status/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiPollSync(params) {
+    params = params || {};
+    var url = buildUrl('/api/ftth/permits/sync/poll/');
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify(params) });
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiSyncSubmission(submissionId, payload) {
+    var url = buildUrl('/api/ftth/permits/submissions/sync/' + (submissionId ? encodeURIComponent(submissionId) + '/' : ''));
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload || {}) });
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiSyncSubmissionsCsv(csvText, syncSource) {
+    var url = buildUrl('/api/ftth/permits/submissions/sync/csv/' + (syncSource ? '?sync_source=' + encodeURIComponent(syncSource) : ''));
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify({ csv: csvText }) });
+    var body = await parseBody(response);
+    // 207 Multi-Status when some rows errored — still useful
+    if (!response.ok && response.status !== 207) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  // Auto-classify (P22b) — heuristic permit-type classifier + label feedback
+  async function apiClassify(features) {
+    var url = buildUrl('/api/ftth/permits/classify/');
+    var payload = features && features.features ? features : { features: features };
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload) });
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiClassifyFeedback(payload) {
+    var url = buildUrl('/api/ftth/permits/classify/feedback/');
+    var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload || {}) });
+    var body = await parseBody(response);
+    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    return body;
+  }
+  async function apiClassifyStats() {
+    var url = buildUrl('/api/ftth/permits/classify/stats/');
     var response = await authFetch(url);
     var body = await parseBody(response);
     if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
@@ -600,6 +710,18 @@
     permitCompleteness: apiPermitCompleteness,
     permitRisk: apiPermitRisk,
     permitTimeline: apiPermitTimeline,
+    listDrafts: apiListDrafts,
+    reviewDraft: apiReviewDraft,
+    getExpiries: apiGetExpiries,
+    getQa: apiGetQa,
+    getQaForProject: apiGetQaForProject,
+    getSyncStatus: apiGetSyncStatus,
+    pollSync: apiPollSync,
+    syncSubmission: apiSyncSubmission,
+    syncSubmissionsCsv: apiSyncSubmissionsCsv,
+    classify: apiClassify,
+    classifyFeedback: apiClassifyFeedback,
+    classifyStats: apiClassifyStats,
     listUsers: listUsers,
     listMembers: listMembers,
     addMember: addMember,
