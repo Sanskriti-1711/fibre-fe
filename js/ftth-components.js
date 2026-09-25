@@ -386,12 +386,14 @@
     { name: 'trench',  label: 'Trench Layer',    detail: 'Route the single trench network (Open Cut / HDD / Garden)',
       outputs: ['Final_Trenches.gpkg'],
       dependsOn: 'network' },
-    { name: 'cable',   label: 'Cable Layer',     detail: 'Route feeder and distribution cables',
-      outputs: ['Feeder_Cable.gpkg', 'Distribution_Cable.gpkg'],
-      dependsOn: 'trench' },
+    // Cascade order (TRENCH_DESIGN.md §6.1): trench → chambers → ducts →
+    // cables. A cable is only planned where a duct already exists.
     { name: 'duct',    label: 'Duct Layer',      detail: 'Route feeder and distribution ducts',
       outputs: ['Feeder_Ducts.gpkg', 'Distribution_Ducts.gpkg'],
       dependsOn: 'trench' },
+    { name: 'cable',   label: 'Cable Layer',     detail: 'Route feeder and distribution cables',
+      outputs: ['Feeder_Cable.gpkg', 'Distribution_Cable.gpkg'],
+      dependsOn: 'duct' },
   ];
 
   /**

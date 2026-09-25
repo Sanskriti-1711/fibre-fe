@@ -165,6 +165,22 @@
     return body;
   }
 
+  // Tier-1 A24 — cross-run diff ("what changed between LLD-V05 and V06").
+  async function apiDiffVersions(projectId, fromVersion, toVersion) {
+    var qs = '';
+    if (fromVersion) qs += '?from=' + encodeURIComponent(fromVersion);
+    if (toVersion) qs += (qs ? '&' : '?') + 'to=' + encodeURIComponent(toVersion);
+    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/versions/diff/' + qs);
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   async function apiGetRunStatus(projectId, lldVersion) {
     var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/' + encodeURIComponent(lldVersion) + '/');
     var response = await authFetch(url);
@@ -534,6 +550,7 @@
   function createApprovedVersion(projectId) { return apiCreateApprovedVersion(projectId); }
   function runLld(projectId, mode) { return apiRunLld(projectId, mode); }
   function listVersions(projectId) { return apiListVersions(projectId); }
+  function diffVersions(projectId, fromVersion, toVersion) { return apiDiffVersions(projectId, fromVersion, toVersion); }
   function getRunStatus(projectId, lldVersion) { return apiGetRunStatus(projectId, lldVersion); }
   function getRunLayer(projectId, lldVersion, layer) { return apiGetRunLayer(projectId, lldVersion, layer); }
   function downloadRunZip(projectId, lldVersion) { apiDownloadRunZip(projectId, lldVersion); }
@@ -557,6 +574,7 @@
     createApprovedVersion: createApprovedVersion,
     runLld: runLld,
     listVersions: listVersions,
+    diffVersions: diffVersions,
     getRunStatus: getRunStatus,
     getRunLayer: getRunLayer,
     downloadRunZip: downloadRunZip,

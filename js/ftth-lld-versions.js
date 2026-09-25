@@ -34,6 +34,17 @@
   const progressFill = $('progressFill');
   const progressStage = $('progressStage');
 
+  // Cross-run diff elements (Tier-1 A24)
+  const diffFromEl = $('diffFrom');
+  const diffToEl = $('diffTo');
+  const diffBtn = $('diffBtn');
+  const diffSummaryEl = $('diffSummary');
+  const diffAiEl = $('diffAi');
+  const diffTableWrap = $('diffTableWrap');
+  const diffBody = $('diffBody');
+  const diffEmpty = $('diffEmpty');
+  let diffLoaded = false;
+
   let data = null;
   let pollTimer = null;
 
@@ -127,6 +138,9 @@
     // ---- Progress card ----
     renderProgress(runs);
 
+    // ---- Cross-run diff card ----
+    renderDiffControls(runs);
+
     // If the latest run is still running, keep polling; otherwise we can idle.
     const anyRunning = runs.some((r) => r.status === 'running');
     if (!anyRunning && pollTimer) {
@@ -134,6 +148,117 @@
       pollTimer = null;
     }
   }
+
+  // ------------------------------------------------------------------
+  // Cross-run diff (Tier-1 A24)
+  // ------------------------------------------------------------------
+  function renderDiffControls(runs) {
+    const completed = runs.filter((r) => r.status === 'completed');
+    if (completed.length < 2) {
+      if (diffEmpty) diffEmpty.style.display = 'block';
+      if (diffBtn) diffBtn.disabled = true;
+      if (diffFromEl) diffFromEl.innerHTML = '';
+      if (diffToEl) diffToEl.innerHTML = '';
+      return;
+    }
+    if (diffEmpty) diffEmpty.style.display = 'none';
+    if (diffBtn) diffBtn.disabled = false;
+
+    const prevFrom = diffFromEl.value;
+    const prevTo = diffToEl.value;
+    const opts = completed
+      .map((r) => '<option value="' + esc(r.lld_version) + '">' + esc(r.lld_version) + '</option>')
+      .join('');
+    diffFromEl.innerHTML = opts;
+    diffToEl.innerHTML = opts;
+    // Defaults: second-newest → newest (the diff reviewers want on open).
+    diffFromEl.value = (completed.some((r) => r.lld_version === prevFrom))
+      ? prevFrom : (completed[1] ? completed[1].lld_version : completed[0].lld_version);
+    diffToEl.value = (completed.some((r) => r.lld_version === prevTo))
+      ? prevTo : completed[0].lld_version;
+
+    // Auto-compare the default pair the first time runs are available.
+    if (!diffLoaded) {
+      diffLoaded = true;
+      loadDiff();
+    }
+  }
+
+  async function loadDiff() {
+    if (!diffBtn || !diffFromEl.value || !diffToEl.value) return;
+    if (diffFromEl.value === diffToEl.value) {
+      diffSummaryEl.style.display = 'block';
+      diffSummaryEl.textContent = 'Pick two different runs to compare.';
+      diffTableWrap.style.display = 'none';
+      diffAiEl.style.display = 'none';
+      return;
+    }
+    diffBtn.disabled = true;
+    diffBtn.textContent = 'Comparing…';
+    try {
+      const d = await window.FtthLldApi.diffVersions(projectId, diffFromEl.value, diffToEl.value);
+      renderDiff(d);
+    } catch (err) {
+      diffSummaryEl.style.display = 'block';
+      diffSummaryEl.textContent = 'Diff failed: ' + (err.message || err);
+      diffTableWrap.style.display = 'none';
+      diffAiEl.style.display = 'none';
+    } finally {
+      diffBtn.disabled = false;
+      diffBtn.textContent = 'Compare';
+    }
+  }
+
+  function renderDiff(d) {
+    const totals = d.totals || {};
+    diffSummaryEl.style.display = 'block';
+    diffSummaryEl.innerHTML = '<strong>' + esc(d.summary || '') + '</strong>'
+      + '<div style="margin-top:6px;font-size:12px;color:#4338CA;">'
+      + esc(d.from.lld_version) + ' → ' + esc(d.to.lld_version)
+      + ': ' + Number(totals.from_features || 0).toLocaleString() + ' → '
+      + Number(totals.to_features || 0).toLocaleString() + ' features · '
+      + Number(totals.from_length_m || 0).toLocaleString() + ' m → '
+      + Number(totals.to_length_m || 0).toLocaleString() + ' m'
+      + '</div>';
+
+    if (d.ai_summary) {
+      diffAiEl.style.display = 'block';
+      diffAiEl.innerHTML = '🤖 ' + esc(d.ai_summary)
+        + '<div style="margin-top:4px;font-size:11px;color:#7C3AED;">'
+        + esc(d.ai_disclaimer || 'AI-generated description — verify against the table.') + '</div>';
+    } else {
+      diffAiEl.style.display = 'none';
+    }
+
+    const layers = d.layers || [];
+    const changed = layers.filter((l) => l.status !== 'unchanged');
+    const rows = (changed.length ? changed : layers);
+    const statusColors = {
+      added: { bg: '#ECFDF5', fg: '#047857', label: 'Added' },
+      removed: { bg: '#FEF2F2', fg: '#991B1B', label: 'Removed' },
+      changed: { bg: '#FFFBEB', fg: '#92400E', label: 'Changed' },
+      unchanged: { bg: '#F3F4F6', fg: '#6B7280', label: 'Unchanged' },
+    };
+    diffBody.innerHTML = '';
+    rows.forEach((l) => {
+      const c = statusColors[l.status] || statusColors.unchanged;
+      const tr = document.createElement('tr');
+      tr.innerHTML = ''
+        + '<td class="mono">' + esc(l.name) + '</td>'
+        + '<td>' + Number(l.from_count).toLocaleString() + ' → ' + Number(l.to_count).toLocaleString() + '</td>'
+        + '<td style="font-weight:700;color:' + (l.delta_count > 0 ? '#047857' : (l.delta_count < 0 ? '#991B1B' : '#6B7280')) + ';">'
+        + (l.delta_count > 0 ? '+' : '') + Number(l.delta_count).toLocaleString() + '</td>'
+        + '<td>' + Number(l.from_length_m).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' → '
+        + Number(l.to_length_m).toLocaleString(undefined, { maximumFractionDigits: 1 }) + '</td>'
+        + '<td style="font-weight:700;color:' + (l.delta_length_m > 0 ? '#047857' : (l.delta_length_m < 0 ? '#991B1B' : '#6B7280')) + ';">'
+        + (l.delta_length_m > 0 ? '+' : '') + Number(l.delta_length_m).toLocaleString(undefined, { maximumFractionDigits: 1 }) + '</td>'
+        + '<td><span class="lld-badge" style="background:' + c.bg + ';color:' + c.fg + ';border:1px solid ' + c.bg + ';">' + c.label + '</span></td>';
+      diffBody.appendChild(tr);
+    });
+    diffTableWrap.style.display = 'block';
+  }
+
+  if (diffBtn) diffBtn.addEventListener('click', loadDiff);
 
   function renderProgress(runs) {
     const running = runs.filter((r) => r.status === 'running').slice(-1)[0];

@@ -610,6 +610,26 @@
     });
     html += '</tbody></table>';
     html += '<div style="padding:8px 6px;font-weight:700;text-align:right;border-top:2px solid #E5E7EB;margin-top:4px;">Grand Total: \u20AC' + Number(grand).toLocaleString(undefined, {maximumFractionDigits:0}) + '</div>';
+    // Tier-1 A4 — BOQ anomaly screening (deterministic rules, AI note advisory only).
+    var anom = data && data.anomalies;
+    if (anom && (anom.anomalies || []).length) {
+      html += '<div style="margin-top:8px;font-size:11px;">';
+      anom.anomalies.forEach(function(a) {
+        var high = a.severity === 'high';
+        html += '<div style="padding:6px 8px;margin-bottom:4px;border-radius:6px;background:'
+          + (high ? '#FEF2F2' : '#FFFBEB') + ';border:1px solid '
+          + (high ? '#FECACA' : '#FDE68A') + ';color:' + (high ? '#991B1B' : '#92400E') + ';">'
+          + '<b>' + escapeHtml((a.severity || '').toUpperCase()) + '</b>'
+          + (a.item_name ? ' \u00B7 ' + escapeHtml(a.item_name) : '')
+          + '<div>' + escapeHtml(a.message || '') + '</div></div>';
+      });
+      if (anom.ai_summary) {
+        html += '<div style="padding:6px 8px;border-radius:6px;background:#F5F3FF;border:1px solid #DDD6FE;color:#5B21B6;">\uD83E\uDDE0 '
+          + escapeHtml(anom.ai_summary)
+          + '<div style="margin-top:3px;font-size:10px;color:#7C3AED;">' + escapeHtml(anom.ai_disclaimer || '') + '</div></div>';
+      }
+      html += '</div>';
+    }
     boqBody.innerHTML = html;
   }
 

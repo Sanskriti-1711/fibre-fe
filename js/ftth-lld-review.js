@@ -583,6 +583,7 @@
       row.className = 'lld-change-row' + (selectedChange && selectedChange.change_id === ch.change_id ? ' active' : '');
       row.appendChild(statusBadge(ch.status));
       row.appendChild(typeBadge(ch.change_type));
+      row.appendChild(riskBadge(ch));
 
       const main = document.createElement('div');
       main.className = 'lld-change-row-main';
@@ -650,9 +651,23 @@
       + meta('Layer', ch.layer || '—')
       + meta('Change ID', ch.change_id || '—')
       + meta('Change Type', typeLabel(ch.change_type))
+      + meta('Risk', ch.risk && ch.risk.band
+          ? ch.risk.band + ' · ' + Number(ch.risk.score || 0) + '/25'
+          : '—')
       + meta('Engineer', ch.engineer || '—')
       + meta('Timestamp', ch.timestamp || '—')
       + '</div>';
+
+    // Risk factors (Tier-1 A5 — deterministic rules, shown so the reviewer
+    // can see exactly why a change was ranked).
+    if (ch.risk && (ch.risk.factors || []).length) {
+      html += '<div class="lld-section-title">Risk Factors</div>'
+        + '<ul style="margin:0;padding-left:18px;font-size:12px;color:#6B7280;">';
+      ch.risk.factors.forEach(function(f) {
+        html += '<li>' + esc(f) + '</li>';
+      });
+      html += '</ul>';
+    }
 
     // Reason
     if (ch.reason) {
@@ -1047,6 +1062,25 @@
     const el = document.createElement('span');
     el.className = 'lld-type-badge ' + (map[t] || 'lld-type-geometry');
     el.textContent = typeLabel(t);
+    return el;
+  }
+
+  // Tier-1 A5 — change risk badge (deterministic severity × likelihood × LLD impact).
+  function riskBadge(ch) {
+    const r = ch && ch.risk;
+    const el = document.createElement('span');
+    if (!r || (!r.band && !r.score)) {
+      el.className = 'lld-risk-badge lld-risk-unknown';
+      el.textContent = 'RISK —';
+      return el;
+    }
+    const band = r.band || 'low';
+    el.className = 'lld-risk-badge lld-risk-' + band;
+    el.textContent = 'RISK ' + band + ' · ' + Number(r.score || 0);
+    const factors = (r.factors || []).join(' · ');
+    el.title = factors || ('severity=' + (r.severity || '?')
+      + ' × likelihood=' + (r.likelihood || 0)
+      + ' × lld_impact=' + (r.lld_impact || 0));
     return el;
   }
 

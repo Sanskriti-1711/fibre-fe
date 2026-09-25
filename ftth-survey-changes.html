@@ -144,6 +144,30 @@
     .status-rejected { background: #FEF2F2; color: #B91C1C; }
     .status-correction { background: #FFFBEB; color: #B45309; }
 
+    /* Tier-1 A5 — change risk (deterministic severity × likelihood × LLD impact) */
+    .risk-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      cursor: help;
+    }
+    .risk-critical { background: #FEE2E2; color: #991B1B; }
+    .risk-high { background: #FFEDD5; color: #9A3412; }
+    .risk-medium { background: #FEF3C7; color: #92400E; }
+    .risk-low { background: #ECFDF5; color: #047857; }
+    .risk-unknown { background: #F3F4F6; color: #6B7280; }
+    .risk-band-summary { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11.5px; font-weight: 700; }
+    .risk-band-summary .rb-critical { color: #991B1B; }
+    .risk-band-summary .rb-high { color: #9A3412; }
+    .risk-band-summary .rb-medium { color: #92400E; }
+    .risk-band-summary .rb-low { color: #047857; }
+
     .feature-id { font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace; font-size: 12px; color: #6B7280; }
     .layer-name { font-weight: 600; color: #1F2937; }
     .change-reason { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -307,6 +331,7 @@
         '<span class="count-correction"><b>' + (p.needs_correction || 0) + '</b>Correction</span>' +
         '<span class="count-pending"><b>' + (p.pending || 0) + '</b>Pending</span>' +
       '</div>' +
+      renderRiskBands(p.risk_bands) +
       '<div class="project-run-actions">' +
         '<button class="run-lld-btn" data-run="' + escHtml(p.project_id) + '" data-mode="verify" ' + (ready ? '' : 'disabled') + '>' +
           (ready ? '&#x25B6; Run LLD' : 'Run LLD (review pending)') +
@@ -321,13 +346,25 @@
     return block;
   }
 
+  function renderRiskBands(bands) {
+    if (!bands) return '';
+    var order = ['critical', 'high', 'medium', 'low'];
+    var parts = [];
+    order.forEach(function(b) {
+      if (bands[b]) parts.push('<span class="rb-' + b + '">' + bands[b] + ' ' + b + '</span>');
+    });
+    if (!parts.length) return '';
+    return '<div class="risk-band-summary" title="Change risk bands (severity × likelihood × LLD impact)">'
+      + 'Risk: ' + parts.join(' · ') + '</div>';
+  }
+
   function buildTable(changes, projectId) {
     const wrap = document.createElement('div');
     wrap.style.overflowX = 'auto';
 
     let html =
       '<table class="survey-table"><thead><tr>' +
-      '<th>Feature</th><th>Layer</th><th>Type</th><th>Reason</th>' +
+      '<th>Feature</th><th>Layer</th><th>Type</th><th>Risk</th><th>Reason</th>' +
       '<th>Engineer</th><th>Status</th><th>Created</th><th>Actions</th>' +
       '</tr></thead><tbody>';
 
@@ -339,11 +376,21 @@
       const initials = (change.engineer || '?').substring(0, 2).toUpperCase();
       const reviewUrl = 'ftth-lld-feature-review.html?project_id=' + encodeURIComponent(projectId) +
                         '&change_id=' + encodeURIComponent(change.change_id);
+      const risk = change.risk || {};
+      const riskBand = risk.band || 'unknown';
+      const riskTitle = (risk.factors && risk.factors.length)
+        ? risk.factors.join(' · ')
+        : 'severity=' + (risk.severity || '?') + ' × likelihood=' + (risk.likelihood || 0) + ' × lld_impact=' + (risk.lld_impact || 0);
+      const riskCell = riskBand === 'unknown' && !risk.score
+        ? '<span class="risk-badge risk-unknown">—</span>'
+        : '<span class="risk-badge risk-' + riskBand + '" title="' + escHtml(riskTitle) + '">' +
+            riskBand + ' · ' + Number(risk.score || 0) + '</span>';
 
       html += '<tr>' +
         '<td><span class="feature-id">' + escHtml(change.feature_id) + '</span></td>' +
         '<td><span class="layer-name">' + escHtml(change.layer) + '</span></td>' +
         '<td><span class="change-type-badge ' + typeClass + '">' + typeLabel + '</span></td>' +
+        '<td>' + riskCell + '</td>' +
         '<td><span class="change-reason" title="' + escHtml(change.reason) + '">' + escHtml(change.reason) + '</span></td>' +
         '<td><div class="engineer-info"><div class="engineer-avatar">' + escHtml(initials) + '</div><span>' + escHtml(change.engineer || 'Unknown') + '</span></div></td>' +
         '<td><span class="status-badge ' + statusClass + '"><span class="dot"></span>' + statusLabel + '</span></td>' +

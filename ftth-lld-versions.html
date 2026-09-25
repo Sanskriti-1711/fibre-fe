@@ -199,6 +199,38 @@
           </div>
         </div>
 
+        <!-- Cross-run diff (Tier-1 A24) -->
+        <div class="card" id="diffCard">
+          <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;color:#1F2937;">
+            &#x1F9F9; Version Diff <span style="font-size:11px;font-weight:600;color:#6B7280;background:#F3F4F6;padding:2px 10px;border-radius:999px;">what changed between runs</span>
+          </h3>
+          <div style="margin-bottom:10px;font-size:12.5px;color:#6B7280;">Compare two completed LLD runs — per-layer feature counts, network length and validation, straight from the persisted outputs.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+            <select id="diffFrom" style="padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:12.5px;background:#fff;"></select>
+            <span style="color:#6B7280;font-size:13px;">&#x2192;</span>
+            <select id="diffTo" style="padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:12.5px;background:#fff;"></select>
+            <button id="diffBtn" class="lld-action-btn view" type="button">Compare</button>
+          </div>
+          <div id="diffSummary" style="display:none;margin-bottom:10px;padding:10px 12px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;font-size:12.5px;color:#3730A3;"></div>
+          <div id="diffAi" style="display:none;margin-bottom:10px;padding:10px 12px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;font-size:12.5px;color:#5B21B6;"></div>
+          <div class="lld-run-table-wrap" id="diffTableWrap" style="display:none;">
+            <table class="lld-run-table">
+              <thead>
+                <tr>
+                  <th>Layer</th>
+                  <th>Features (from &#x2192; to)</th>
+                  <th>&#x394;</th>
+                  <th>Length m (from &#x2192; to)</th>
+                  <th>&#x394; m</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="diffBody"></tbody>
+            </table>
+          </div>
+          <div id="diffEmpty" style="font-size:12.5px;color:#6B7280;">At least two completed LLD runs are needed for a diff.</div>
+        </div>
+
       </div>
     </div>
   </main>

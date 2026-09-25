@@ -736,7 +736,41 @@
           + '</div>';
       }
     }
+    // Tier-1 A4 — anomaly screening (deterministic rules; AI note is advisory only).
+    html += renderAnomalies(data && data.anomalies);
     boqBody.innerHTML = html;
+  }
+
+  function renderAnomalies(anom) {
+    if (!anom) return '';
+    var list = anom.anomalies || [];
+    if (!list.length) {
+      return '<div style="margin-top:8px;padding:8px 10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;font-size:11.5px;color:#166534;">'
+        + '✅ No BOQ anomalies detected across ' + Number(anom.checked || 0) + ' line items.</div>';
+    }
+    var colors = {
+      high:   {bg: '#FEF2F2', bd: '#FECACA', fg: '#991B1B', icon: '🚨'},
+      medium: {bg: '#FFFBEB', bd: '#FDE68A', fg: '#92400E', icon: '⚠️'},
+      low:    {bg: '#EFF6FF', bd: '#BFDBFE', fg: '#1E40AF', icon: 'ℹ️'}
+    };
+    var html = '<div style="margin-top:8px;font-size:11.5px;">'
+      + '<div style="font-weight:600;color:#374151;margin-bottom:4px;">⚠️ '
+      + list.length + ' BOQ anomal' + (list.length === 1 ? 'y' : 'ies') + ' flagged</div>';
+    list.forEach(function(a) {
+      var c = colors[a.severity] || colors.low;
+      html += '<div style="padding:6px 10px;margin-bottom:4px;background:' + c.bg + ';border:1px solid ' + c.bd + ';border-radius:6px;color:' + c.fg + ';">'
+        + '<b>' + c.icon + ' ' + escapeHtml((a.severity || '').toUpperCase()) + '</b>'
+        + (a.item_name ? ' · ' + escapeHtml(a.item_name) : '')
+        + '<div style="margin-top:2px;">' + escapeHtml(a.message || '') + '</div>'
+        + '</div>';
+    });
+    if (anom.ai_summary) {
+      html += '<div style="margin-top:4px;padding:6px 10px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;color:#5B21B6;">'
+        + '🤖 ' + escapeHtml(anom.ai_summary)
+        + '<div style="margin-top:3px;font-size:10.5px;color:#7C3AED;">' + escapeHtml(anom.ai_disclaimer || 'AI-generated draft — verify before acting.') + '</div>'
+        + '</div>';
+    }
+    return html + '</div>';
   }
 
   function loadBoq() {
