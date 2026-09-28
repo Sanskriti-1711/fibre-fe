@@ -752,6 +752,29 @@
       html += '</ul>';
     }
 
+    // Attribute anomalies (Tier-1 A16 — deterministic contradictions, e.g.
+    // trench surface vs road class). An error blocks the ASV freeze; a warning
+    // is a check for the reviewer to confirm.
+    const anomalies = ch.anomalies || [];
+    if (anomalies.length) {
+      html += '<div class="lld-section-title">Attribute Checks (' + anomalies.length + ')</div>';
+      anomalies.forEach(function(a) {
+        const isError = a.severity === 'error';
+        const tone = isError
+          ? 'background:#FEF2F2;border:1px solid #FECACA;border-left:4px solid #DC2626;color:#991B1B;'
+          : 'background:#FFFBEB;border:1px solid #FDE68A;border-left:4px solid #F59E0B;color:#78350F;';
+        html += '<div style="' + tone + 'border-radius:8px;padding:9px 11px;font-size:12px;line-height:1.5;margin-bottom:8px;">'
+          + '<strong>' + esc(isError ? 'Contradiction' : 'Check') + '</strong>'
+          + ' · <span class="lld-risk-badge ' + (isError ? 'lld-risk-critical' : 'lld-risk-medium') + '">'
+          + esc(String(a.confidence != null ? Math.round(a.confidence * 100) + '%' : '')) + ' confident</span>'
+          + '<div style="margin-top:4px;">' + esc(a.message || '') + '</div>'
+          + (isError
+              ? '<div style="margin-top:4px;font-weight:600;">Blocks the Approved Survey Version until fixed.</div>'
+              : '')
+          + '</div>';
+      });
+    }
+
     // Reason
     if (ch.reason) {
       html += '<div class="lld-section-title">Survey Engineer Note</div>'
