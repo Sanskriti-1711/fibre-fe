@@ -110,6 +110,22 @@
     .status.ok{ display:block; background:#ECFDF5; border:1px solid #A7F3D0; color:#065F46; }
     .status.err{ display:block; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; }
     .pkg-card { border:1px dashed #D1D5DB; border-radius:10px; padding:12px; background:#F9FAFB; }
+
+    /* Planner guide — the permit journey, step by step */
+    .pm-guide { border:1px solid #E5E7EB; border-radius:12px; background:#fff; margin:12px 0 4px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    .pm-guide > summary { list-style:none; cursor:pointer; padding:14px 16px; display:flex; align-items:center; gap:10px; font-size:14px; font-weight:700; color:#111827; }
+    .pm-guide > summary::-webkit-details-marker { display:none; }
+    .pm-guide > summary .pm-guide-caret { margin-left:auto; color:#9CA3AF; font-size:12px; transition:transform 0.15s ease; }
+    .pm-guide[open] > summary .pm-guide-caret { transform:rotate(180deg); }
+    .pm-guide > summary .pm-guide-sub { font-weight:400; font-size:12px; color:#6B7280; }
+    .pm-guide-steps { margin:0; padding:2px 16px 8px; list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; }
+    @media (max-width:900px){ .pm-guide-steps{grid-template-columns:1fr;} }
+    .pm-guide-steps li { display:flex; gap:10px; padding:10px 12px; border:1px solid #F3F4F6; border-radius:10px; background:#F9FAFB; }
+    .pm-step-no { flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#111827; color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px; }
+    .pm-step-title { font-size:12.5px; font-weight:700; color:#111827; }
+    .pm-step-desc { margin:3px 0 6px; font-size:12px; color:#6B7280; line-height:1.5; }
+    .pm-step-desc code { font-size:11px; }
+    .pm-guide-foot { margin:2px 16px 14px; padding:10px 12px; border-radius:10px; background:#EFF6FF; border:1px solid #BFDBFE; color:#1E40AF; font-size:12px; line-height:1.5; }
   </style>
 </head>
 <body>
@@ -137,6 +153,73 @@
         <span class="pm-badge b-ai">AI assists</span>
         <span>drafting, checklist notes, completeness, risk, timeline — always needs human review</span>
       </div>
+
+      <!-- Planner guide — the permit journey from HLD to closed permit -->
+      <details class="pm-guide" open>
+        <summary>
+          &#x1F9ED; How to use this workspace &mdash; the permit journey, step by step
+          <span class="pm-guide-sub">click a step's button to jump to the right tab</span>
+          <span class="pm-guide-caret">&#x25BC;</span>
+        </summary>
+        <ol class="pm-guide-steps">
+          <li>
+            <span class="pm-step-no">1</span>
+            <div>
+              <div class="pm-step-title">Design the route first (HLD)</div>
+              <p class="pm-step-desc">Run an HLD design &mdash; nothing permit-related happens before this. When the route completes, the rules read it and create one permit per street per type.</p>
+              <a class="sub-act" href="ftth-hld.html">Open HLD design</a>
+            </div>
+          </li>
+          <li>
+            <span class="pm-step-no">2</span>
+            <div>
+              <div class="pm-step-title">Review what the rules found</div>
+              <p class="pm-step-desc">Every row reads &ldquo;potentially required by rule&nbsp;Y, authority&nbsp;Z&rdquo; &mdash; the rules never claim a permit is certain. <code>Identified</code> and <code>Evidence Required</code> rows need field work; <code>Ready</code> rows can be submitted.</p>
+              <button class="sub-act" type="button" data-goto="permits">Go to Permits</button>
+            </div>
+          </li>
+          <li>
+            <span class="pm-step-no">3</span>
+            <div>
+              <div class="pm-step-title">Collect the evidence in Survey</div>
+              <p class="pm-step-desc">The field engineer adds photos, road owner, crossings and utility hits. Approving a survey change satisfies the evidence checklist and promotes its rows to <code>Ready</code> &mdash; readiness is computed, never typed in.</p>
+            </div>
+          </li>
+          <li>
+            <span class="pm-step-no">4</span>
+            <div>
+              <div class="pm-step-title">Generate the package, then QA it</div>
+              <p class="pm-step-desc">Generate the permit package (drawings, cross-sections, HDD plans, traffic plans, one application form per street). Run <strong>Package QA</strong> in the Overview &mdash; it lists exactly which pieces are missing before you send anything.</p>
+              <button class="sub-act" type="button" data-goto="submissions">Go to Packages</button>
+            </div>
+          </li>
+          <li>
+            <span class="pm-step-no">5</span>
+            <div>
+              <div class="pm-step-title">Send it to the authority, then record it</div>
+              <p class="pm-step-desc">Download the ZIP and submit it through the authority&rsquo;s own channel (portal, email, post). Then tick its <code>READY</code> rows here and press <strong>Submit</strong> &mdash; one application per authority, type and street. Paste the authority&rsquo;s application number into <em>Ref.</em> when it arrives.</p>
+              <button class="sub-act" type="button" data-goto="permits">Go to Permits</button>
+            </div>
+          </li>
+          <li>
+            <span class="pm-step-no">6</span>
+            <div>
+              <div class="pm-step-title">Track the review to a decision</div>
+              <p class="pm-step-desc">Follow each application <code>Submitted &rarr; Under review &rarr; Approved / Rejected &rarr; Closed</code>. A rejection can be re-submitted as a new revision. Watch the <strong>Renewal reminders</strong> for expiring approvals.</p>
+              <button class="sub-act" type="button" data-goto="submissions">Go to Submissions</button>
+            </div>
+          </li>
+          <li>
+            <span class="pm-step-no">7</span>
+            <div>
+              <div class="pm-step-title">Ask the Copilot when you are stuck</div>
+              <p class="pm-step-desc">Drafts cover letters, explains what is missing, estimates timelines. It never changes a status &mdash; every AI output is labelled and waits for your review.</p>
+              <button class="sub-act" type="button" data-goto="copilot">Go to Copilot</button>
+            </div>
+          </li>
+        </ol>
+        <p class="pm-guide-foot"><strong>Rule of thumb:</strong> a row is submit-ready only when its status is <code>Ready</code> and it has a resolved authority. When in doubt, run Package QA &mdash; it is deterministic and tells you what is missing.</p>
+      </details>
 
       <div class="pm-tabs" role="tablist" aria-label="Permit workspace tabs">
         <button class="pm-tab active" type="button" data-tab="overview" role="tab" aria-selected="true">Overview</button>
@@ -1420,6 +1503,15 @@
     }catch(e){ document.getElementById('clsFeedbackMsg').textContent='Feedback failed: '+(e.message||e); }
   });
   document.querySelectorAll('.pm-tab').forEach(function(b){ b.addEventListener('click', function(){ activateTab(b.dataset.tab); }); });
+
+  // Guide steps jump to the tab where that step happens.
+  document.querySelectorAll('.pm-guide [data-goto]').forEach(function(b){
+    b.addEventListener('click', function(){
+      activateTab(b.dataset.goto);
+      var t = document.querySelector('.pm-tabs');
+      if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
 
   // Copilot bindings
   document.getElementById('copilotPermitSelect').addEventListener('change', function(){ updateCopilotContext(); showDraftError(''); });
