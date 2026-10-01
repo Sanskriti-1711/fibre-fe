@@ -6,12 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- MapLibre GL -->
+<script src="js/ftth-ui.js"></script>
   <script src="vendor/maplibre/maplibre-gl.js"></script>
-  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
-
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-
   <style>
     .ftth-results-layout { display:flex; width:100%; height:100vh; overflow:hidden; }
     .ftth-map-pane { flex:1; position:relative; min-width:0; }
@@ -51,7 +47,7 @@
     .ftth-summary-item { background:#F9FAFB; border-radius:6px; padding:10px; text-align:center; }
     .ftth-summary-item .value { font-size:20px; font-weight:700; color:#1F2937; }
     .ftth-summary-item .label { font-size:10px; color:#6B7280; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
-    .ftth-basemap-switcher { position:absolute; top:12px; right:12px; z-index:10; display:flex; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); padding:4px; gap:2px; }
+    .ftth-basemap-switcher { position:absolute; top:12px; right:12px; display:flex; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); padding:4px; gap:2px; }
     .ftth-basemap-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; padding:6px 0 4px; border:none; background:transparent; border-radius:8px; cursor:pointer; transition:all 0.2s ease; color:#6B7280; font-size:10px; font-weight:500; gap:2px; }
     .ftth-basemap-btn .icon { font-size:18px; line-height:1; transition:transform 0.2s ease; }
     .ftth-basemap-btn .label { font-size:9px; line-height:1; white-space:nowrap; }
@@ -128,6 +124,15 @@
     .ftth-table-btn { margin-left:auto; border:1px solid #D1D5DB; background:#FFFFFF; color:#374151; border-radius:6px; padding:4px 7px; font-size:11px; cursor:pointer; }
     .ftth-table-btn:hover { background:#F3F4F6; border-color:#9CA3AF; }
 
+    .ftth-surface-ai-list { display:flex; flex-direction:column; gap:10px; }
+    .ftth-surface-ai-card { padding:10px 12px; border:1px solid #E5E7EB; border-radius:8px; background:#F9FAFB; font-size:12px; color:#374151; }
+    .ftth-surface-ai-card strong { color:#1F2937; }
+    .ftth-surface-ai-meta { margin-top:4px; color:#6B7280; font-size:11px; }
+    .ftth-surface-ai-note { color:#6B7280; font-size:12px; line-height:1.5; }
+    .ftth-surface-ai-pick { margin-top:10px; width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; background:#FFFFFF; color:#1F2937; font-size:12px; font-weight:600; cursor:pointer; }
+    .ftth-surface-ai-pick.active { border-color:#2563EB; color:#1D4ED8; background:#EFF6FF; }
+    .ftth-surface-ai-pick[disabled] { opacity:.6; cursor:progress; }
+
     .ftth-survey-btn {
       display:flex; align-items:center; gap:10px; width:100%;
       padding:12px 14px; margin-top:12px;
@@ -164,6 +169,13 @@
       .ftth-map-pane #map { height:60vh; position:relative; }
     }
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
+
 </head>
 <body>
 
@@ -244,6 +256,13 @@
       <div class="ftth-side-pane-section">
         <h3>Permits <span class="badge" id="permitBadge">0</span></h3>
         <div class="ftth-permit-legend" id="permitLegend"></div>
+      </div>
+
+      <div class="ftth-side-pane-section" id="surfaceAIReviewSection">
+        <h3>Surface AI Review <span class="badge" id="surfaceAIReviewBadge">—</span></h3>
+        <div id="surfaceAIReviewBody" class="ftth-surface-ai-note">Checking for a separate AI review report…</div>
+        <button id="surfaceAIPickBtn" class="ftth-surface-ai-pick" type="button" style="display:none;">Classify a point on the map&#8230;</button>
+        <div id="surfaceAIPickResult" class="ftth-surface-ai-list" style="margin-top:10px;"></div>
       </div>
 
       <div class="ftth-side-pane-section">
@@ -376,7 +395,7 @@
       if (map.loaded()) { loadPipelineData(); }
     } catch(err) {
       console.error('Map init failed:', err);
-      mapLoadingEl.innerHTML = '<p style="color:#DC2626;">Failed to initialize map: ' + err.message + '</p>';
+      mapLoadingEl.innerHTML = '<p style="color:#DC2626;">Failed to initialize map: ' + FtthUI.humanize(err) + '</p>';
     }
   }
 
@@ -394,6 +413,8 @@
       if (!statusData) { showEmpty('Pipeline data not found'); return; }
       window.FtthState.setResults(statusData);
       renderSurveyAssignment(statusData.survey);
+      loadSurfaceAIReview();
+      initSurfaceAIPointPicker();
       if (boqContainer) {
         boqContainer.style.display =
           (statusData.status === 'completed' || statusData.status === 'Completed') ? 'block' : 'none';
@@ -453,7 +474,7 @@
       mapLoadingEl.style.display = 'none';
     } catch(err) {
       console.error('Failed to load pipeline data:', err);
-      mapLoadingEl.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;margin-bottom:12px;">Failed to load results: ' + escapeHtml(err.message) + '</p><a href="ftth-hld-status.html?project_id=' + encodeURIComponent(projectId) + '" style="color:#E31837;font-size:14px;">\u2190 Back</a></div>';
+      mapLoadingEl.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;margin-bottom:12px;">Failed to load results: ' + escapeHtml(FtthUI.humanize(err)) + '</p><a href="ftth-hld-status.html?project_id=' + encodeURIComponent(projectId) + '" style="color:#E31837;font-size:14px;">\u2190 Back</a></div>';
     }
   }
 
@@ -526,6 +547,141 @@
       window.FtthMap.addGeoJSONLayer(map, layerName, geojson, { flagField: isPolygon ? 'REVIEW' : undefined, flagValue: isPolygon ? 1 : undefined, visible: true, sublayerField: 'sublayer', assetTypeField: assetTypeField, permitField: 'permit_status', permitColors: PERMIT_STATUS_COLORS });
       updateToggleStatus(layerName, geojson.features.length);
     } catch(err) { console.warn('Failed to load layer ' + layerName + ':', err); }
+  }
+
+  // ---------------------------------------------------------------
+  // Click-to-classify: pick a point on the map and ask the engine what
+  // surface is there. Advisory only; it never edits the design.
+  // ---------------------------------------------------------------
+  var surfaceAIPickOn = false;
+  var surfaceAIPickWired = false;
+
+  function setSurfaceAIPickActive(active) {
+    surfaceAIPickOn = !!active;
+    var pickBtn = document.getElementById('surfaceAIPickBtn');
+    if (pickBtn) {
+      pickBtn.classList.toggle('active', surfaceAIPickOn);
+      pickBtn.textContent = surfaceAIPickOn
+        ? 'Click the map to classify that point...'
+        : 'Classify a point on the map...';
+    }
+    if (map) { map.getCanvas().style.cursor = surfaceAIPickOn ? 'crosshair' : ''; }
+  }
+
+  function renderSurfaceAIPoint(item) {
+    var box = document.getElementById('surfaceAIPickResult');
+    if (!box) return;
+    item = item || {};
+    var label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
+    var confidence = item.confidence == null || item.confidence === '' ? NaN : Number(item.confidence);
+    var point = Array.isArray(item.point) && item.point.length >= 2
+      ? Number(item.point[1]).toFixed(5) + ', ' + Number(item.point[0]).toFixed(5) : '';
+    var meta = [
+      point ? 'At ' + point : '',
+      Number.isFinite(confidence) ? Math.round(confidence * 100) + '% confidence' : 'Confidence unavailable',
+      String(item.review_status || 'pending').replace(/_/g, ' '),
+      item.imagery_source ? 'Source: ' + item.imagery_source : '',
+      item.imagery_date ? 'Date: ' + item.imagery_date : '',
+      item.imagery_route_overlaid === false ? 'No route marker' : '',
+    ].filter(Boolean).join(' \u00b7 ');
+    box.innerHTML = '<article class="ftth-surface-ai-card"><strong>' + escapeHtml(label) + '</strong>'
+      + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
+      + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
+      + '</article>';
+  }
+
+  async function classifySurfaceAtClick(lngLat) {
+    var pickBtn = document.getElementById('surfaceAIPickBtn');
+    var box = document.getElementById('surfaceAIPickResult');
+    setSurfaceAIPickActive(false);
+    if (!window.FtthApi || !window.FtthApi.classifySurfaceAt || !lngLat) return;
+    if (box) box.innerHTML = '<div class="ftth-surface-ai-note">Fetching imagery and asking the model...</div>';
+    if (pickBtn) pickBtn.disabled = true;
+    try {
+      var item = await window.FtthApi.classifySurfaceAt(projectId, { lng: lngLat.lng, lat: lngLat.lat });
+      renderSurfaceAIPoint(item);
+    } catch (err) {
+      if (box) {
+        box.innerHTML = '<div class="ftth-surface-ai-note">Could not classify that point: '
+          + escapeHtml(FtthUI.humanize(err)) + '</div>';
+      }
+    } finally {
+      if (pickBtn) pickBtn.disabled = false;
+    }
+  }
+
+  function initSurfaceAIPointPicker() {
+    var pickBtn = document.getElementById('surfaceAIPickBtn');
+    if (!pickBtn || !window.FtthApi || !window.FtthApi.classifySurfaceAt) return;
+    pickBtn.style.display = 'block';
+    if (surfaceAIPickWired) return;
+    surfaceAIPickWired = true;
+    pickBtn.addEventListener('click', function () {
+      var next = !surfaceAIPickOn;
+      // Only one click mode at a time, so a pick does not also select a feature.
+      if (next && identifyBtn && identifyBtn.classList.contains('active')) identifyBtn.click();
+      setSurfaceAIPickActive(next);
+    });
+    if (map) {
+      map.on('click', function (e) {
+        if (!surfaceAIPickOn) return;
+        classifySurfaceAtClick(e.lngLat);
+      });
+    }
+  }
+
+  async function loadSurfaceAIReview() {
+    var body = document.getElementById('surfaceAIReviewBody');
+    var badge = document.getElementById('surfaceAIReviewBadge');
+    if (!body || !badge || !window.FtthApi || !window.FtthApi.getSurfaceAIReview) return;
+    try {
+      var report = await window.FtthApi.getSurfaceAIReview(projectId);
+      if (!report) {
+        body.textContent = 'No AI review report for this run. Surface geometry results remain unchanged.';
+        badge.textContent = 'None';
+        return;
+      }
+      renderSurfaceAIReview(report, body, badge);
+    } catch (err) {
+      body.textContent = 'Could not load the review report: ' + FtthUI.humanize(err);
+      badge.textContent = 'Unavailable';
+    }
+  }
+
+  function renderSurfaceAIReview(report, body, badge) {
+    var suggestions = Array.isArray(report.suggestions) ? report.suggestions : [];
+    var aiCount = suggestions.filter(function (item) { return !!item.AI_SURFACE; }).length;
+    badge.textContent = aiCount ? aiCount + ' suggestions' : (report.status || 'No suggestions').replace(/_/g, ' ');
+    var note = report.reason || (report.status === 'ready'
+      ? 'AI suggestions are advisory only; review each before use.'
+      : 'No AI suggestion was generated. Existing geometry results are unchanged.');
+    var html = '<div class="ftth-surface-ai-note">' + escapeHtml(note) + '</div>';
+    if (suggestions.length) {
+      html += '<div class="ftth-surface-ai-list" style="margin-top:10px;">';
+      suggestions.forEach(function (item) {
+        var label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
+        var confidence = item.confidence == null || item.confidence === '' ? NaN : Number(item.confidence);
+        var confidenceText = Number.isFinite(confidence) ? Math.round(confidence * 100) + '% confidence' : 'Confidence unavailable';
+        var statusText = String(item.review_status || 'pending').replace(/_/g, ' ');
+        var meta = [
+          item.span_id ? 'Span ' + item.span_id : '',
+          confidenceText,
+          statusText,
+          item.imagery_source ? 'Source: ' + item.imagery_source : '',
+          item.imagery_date ? 'Date: ' + item.imagery_date : '',
+        ].filter(Boolean).join(' · ');
+        html += '<article class="ftth-surface-ai-card"><strong>' + escapeHtml(label) + '</strong>'
+          + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
+          + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
+          + '</article>';
+      });
+      html += '</div>';
+    }
+    if (Number(report.skipped_count) > 0) {
+      html += '<div class="ftth-surface-ai-meta" style="margin-top:8px;">'
+        + escapeHtml(String(report.skipped_count)) + ' candidate(s) not processed due to the review limit.</div>';
+    }
+    body.innerHTML = html;
   }
 
   function renderPermitLegend(counts) {
@@ -643,6 +799,7 @@
     var colors = {
       polygons: '#00aa88', trenches: '#3B82F6',
       objects: '#8B5CF6', pdps: '#06B6D4', mfg: '#10B981',
+      mfg_service_areas: '#65A30D',
       feeder_cable: '#EF4444', distribution_cable: '#F97316',
       feeder_ducts: '#F59E0B', distribution_ducts: '#EAB308', drop_ducts: '#EC4899',
       coupleurs: '#14B8A6',
@@ -781,7 +938,7 @@
       renderBoqBody(data);
       if (boqBody) boqBody.style.display = 'block';
     }).catch(function(err){
-      if (boqBody) boqBody.innerHTML = '<div style="padding:16px;color:#DC2626;font-size:13px;">Failed to load BOQ: ' + escapeHtml((err && err.message) || err) + '</div>';
+      if (boqBody) boqBody.innerHTML = '<div style="padding:16px;color:#DC2626;font-size:13px;">Failed to load BOQ: ' + escapeHtml(FtthUI.humanize(err)) + '</div>';
     });
   }
 
@@ -804,7 +961,7 @@
         renderBoqBody(data);
         if (boqBody) boqBody.style.display = 'block';
       }).catch(function(err){
-        alert('Failed to recompute BOQ: ' + ((err && err.message) || err));
+        alert('Failed to recompute BOQ: ' + (FtthUI.humanize(err)));
       }).finally(function(){
         if (boqRegenBtn) boqRegenBtn.disabled = false;
       });
@@ -820,10 +977,13 @@
   var attributeColumns = [];
   var attributeSort = { key: null, direction: 1 };
 
-  function openAttributeTable(layerName) {
+  async function openAttributeTable(layerName) {
     var data = layerGeoJSON[layerName];
     if (!data || !data.features || !data.features.length) {
-      alert('This layer has no loaded features yet.');
+      await FtthUI.alert({
+        title: 'Nothing to show',
+        message: 'This layer has no loaded features yet.'
+      });
       return;
     }
     attributeRows = data.features.map(function(f){ return f.properties || {}; });
@@ -848,6 +1008,7 @@
     objects: ['feature_id','addr_id','PDP_ID','POLYGON_ID','HH','address','SURFACE'],
     polygons: ['feature_id','POLYGON_ID','PDP_ID','HH','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
     mfg: ['feature_id','MFG_ID','PDP_COUNT','PDP_IDS'],
+    mfg_service_areas: ['feature_id','MFG_ID','HH_COUNT','MIN_HH','MAX_HH','RANGE_M','CAPACITY_STATUS','REVIEW'],
   };
   function orderAttributeColumns(layerName, columns) {
     var key = String(layerName || '').toLowerCase().split('::')[0];
@@ -1032,7 +1193,7 @@
         surveyAssignSelect.appendChild(o);
       });
     } catch (err) {
-      surveyAssignMsg.textContent = 'Could not load engineers: ' + (err.message || err);
+      surveyAssignMsg.textContent = 'Could not load engineers: ' + (FtthUI.humanize(err));
     }
   }
 
@@ -1052,7 +1213,7 @@
         if (data && data.survey) renderSurveyAssignment(data.survey);
       } catch (err) {
         surveyAssignMsg.style.color = '#B91C1C';
-        surveyAssignMsg.textContent = 'Assignment failed: ' + (err.message || err);
+        surveyAssignMsg.textContent = 'Assignment failed: ' + (FtthUI.humanize(err));
       } finally {
         surveyAssignBtn.disabled = false;
       }

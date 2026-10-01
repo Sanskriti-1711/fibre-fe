@@ -207,6 +207,47 @@
     return body;
   }
 
+  async function getSurfaceAIReview(projectId) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/surface-ai-review/');
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
+  /**
+   * Classify the surface at one clicked map coordinate (advisory only).
+   *
+   * `coordinates` is `{lng, lat}` in WGS84. Resolves to a single review item
+   * shaped like the batch report's suggestions. The engine fetches fresh
+   * imagery and runs the vision model, so a slow local model can make this
+   * request take a while.
+   */
+  async function classifySurfaceAt(projectId, coordinates, options) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/surface-ai-review/classify/');
+    var opts = options || {};
+    var payload = {
+      coordinates: [Number(coordinates.lng), Number(coordinates.lat)],
+      crs: opts.crs || 'EPSG:4326',
+    };
+    if (opts.length_m != null) payload.length_m = Number(opts.length_m);
+    if (opts.bearing != null) payload.bearing = Number(opts.bearing);
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
   async function getPipelineLayer(projectId, layerName) {
     var id = encodeURIComponent(projectId);
     var name = encodeURIComponent(layerName);
@@ -264,7 +305,7 @@
     var url = getSurveyPackageUrl(projectId);
     return downloadBlob(url, projectId + '_survey_package.zip').catch(function (err) {
       console.error('Download error:', err);
-      alert('Download failed: ' + err.message);
+      alert('Download failed: ' + FtthUI.humanize(err));
     });
   }
 
@@ -280,7 +321,7 @@
     var url = getDesignPackageUrl(projectId);
     return downloadBlob(url, projectId + '_design_package.zip').catch(function (err) {
       console.error('Download error:', err);
-      alert('Download failed: ' + err.message);
+      alert('Download failed: ' + FtthUI.humanize(err));
     });
   }
 
@@ -338,7 +379,7 @@
     var url = buildUrl(API_PREFIX + '/results/' + id + '/boq/download/');
     return downloadBlob(url, projectId + '_BOQ.xlsx').catch(function (err) {
       console.error('Download error:', err);
-      alert('Download failed: ' + err.message);
+      alert('Download failed: ' + FtthUI.humanize(err));
     });
   }
 
@@ -587,6 +628,8 @@
     BASE_URL: BASE_URL,
     runPipeline: runPipeline,
     getPipelineStatus: getPipelineStatus,
+    getSurfaceAIReview: getSurfaceAIReview,
+    classifySurfaceAt: classifySurfaceAt,
     getPipelineLayer: getPipelineLayer,
     getProjectPermits: getProjectPermits,
     getDownloadUrl: getDownloadUrl,
