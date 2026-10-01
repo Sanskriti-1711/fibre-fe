@@ -673,9 +673,26 @@
         html += '<article class="ftth-surface-ai-card"><strong>' + escapeHtml(label) + '</strong>'
           + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
           + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
+          + (item.error_detail ? '<div class="ftth-surface-ai-meta">Model reply: ' + escapeHtml(item.error_detail) + '</div>' : '')
           + '</article>';
       });
       html += '</div>';
+    }
+    // A resumed or rate-limited run only makes sense next to how much of the
+    // batch it actually touched, so report the counts together.
+    var progress = [];
+    if (Number(report.processed_count) > 0) {
+      progress.push(Number(report.processed_count) + ' processed this run');
+    }
+    if (Number(report.resumed_count) > 0) {
+      progress.push(Number(report.resumed_count) + ' resumed from a previous run');
+    }
+    if (Number(report.deferred_count) > 0) {
+      progress.push(Number(report.deferred_count) + ' deferred at the rate limit — rerun to continue');
+    }
+    if (progress.length) {
+      html += '<div class="ftth-surface-ai-meta" style="margin-top:8px;">'
+        + escapeHtml(progress.join(' · ')) + '</div>';
     }
     if (Number(report.skipped_count) > 0) {
       html += '<div class="ftth-surface-ai-meta" style="margin-top:8px;">'
