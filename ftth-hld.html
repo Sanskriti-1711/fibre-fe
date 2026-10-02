@@ -817,8 +817,12 @@
       '<strong>' + (data.matched || '') + '</strong>' +
       ' — ' + data.area_km2 + ' km²' +
       (data.osm_type ? ' (OSM ' + data.osm_type + ' ' + data.osm_id + ')' : '') +
-      (data.polygon_source === 'nominatim' ? '' :
-        ' — <span style="color:#92400E">bounding box, not a polygon</span>');
+      // ONLY the rectangle rung is a rectangle. This used to fire for every
+      // source that was not "nominatim", so a loaded ONS ward -- and now a
+      // postcode sector -- was labelled "bounding box, not a polygon" directly
+      // above the line naming the real polygon it came from.
+      (data.polygon_source === 'bbox' ?
+        ' — <span style="color:#92400E">bounding box, not a polygon</span>' : '');
   }
 
   /**
@@ -951,10 +955,20 @@
               'margin-bottom:6px;">Narrow to a smaller area:</div>' +
               '<div class="ftth-chips">' + chips.join('') + '</div>';
     } else if (!resolvable.length && ((sub.postcode || []).length || (sub.district || []).length)) {
+      // WHY no chip is offered has two different answers, and saying the wrong
+      // one sends the planner looking for data that is already there. An empty
+      // list on a sector boundary does not mean the country has nothing smaller;
+      // it means this area already IS the smallest unit, so the same postcode
+      // resolves back to these same 1.958 km².
+      const alreadySmallest = data.boundary_kind === 'postcode_sector';
       html += '<div style="padding-left:36px;font-size:12px;color:#6B7280;' +
-              'margin-bottom:6px;">No smaller boundary is loaded for this ' +
-              'country, so a postcode or district here resolves back to this ' +
-              'same area. Design a share of it instead.</div>';
+              'margin-bottom:6px;">' + (alreadySmallest
+        ? 'This area is already the postcode sector, and no finer boundary ' +
+          'than a sector is published, so a postcode inside it resolves back ' +
+          'to this same area. Design a share of it instead.'
+        : 'No smaller boundary is loaded for this country, so a postcode or ' +
+          'district here resolves back to this same area. Design a share of ' +
+          'it instead.') + '</div>';
     }
 
     (data.warnings || []).forEach(function (w) {
