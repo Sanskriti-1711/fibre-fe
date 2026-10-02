@@ -71,7 +71,7 @@
 .ftth-side-pane-header p {
   margin: 0;
   font-size: 12px;
-  color: #6B7280;
+  color: #616A75;
 }
 
 .ftth-side-pane-section {
@@ -89,7 +89,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #6B7280;
+  color: #616A75;
 }
 
 /* ------------------------------------------------------------------
@@ -121,7 +121,7 @@
 }
 
 .ftth-dropzone.has-file {
-  border-color: #10B981;
+  border-color: #047857;
   border-style: solid;
   background: #ECFDF5;
   padding: 18px 16px;
@@ -142,7 +142,7 @@
 
 .ftth-dropzone-hint {
   font-size: 12px;
-  color: #6B7280;
+  color: #616A75;
 }
 
 .ftth-dropzone-name {
@@ -156,7 +156,7 @@
 
 .ftth-dropzone-size {
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
   margin-bottom: 4px;
 }
 
@@ -208,7 +208,7 @@
 }
 
 .ftth-log-time {
-  color: #6B7280;
+  color: #616A75;
   flex-shrink: 0;
   font-size: 11px;
   user-select: none;
@@ -257,7 +257,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #6B7280;
+  color: #616A75;
   margin-bottom: 6px;
 }
 
@@ -329,7 +329,7 @@
 
 .ftth-layer-toggle .layer-count {
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
 }
 
 /* ------------------------------------------------------------------
@@ -373,11 +373,11 @@
 
 .ftth-download-btn-size {
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
 }
 
 .ftth-download-btn-arrow {
-  color: #6B7280;
+  color: #616A75;
   font-size: 14px;
 }
 
@@ -407,7 +407,7 @@
 
 .ftth-info-card-label {
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -418,7 +418,7 @@
 .ftth-empty-state {
   text-align: center;
   padding: 40px 20px;
-  color: #6B7280;
+  color: #616A75;
 }
 
 .ftth-empty-state-icon {
@@ -454,6 +454,34 @@
   border-radius: 50%;
   animation: ftth-spin 0.8s linear infinite;
 }
+
+/* ------------------------------------------------------------------
+   Live pointer position, mounted by FtthMap.mountCoordinateReadout.
+   Absolute inside the MapLibre container (which is position:relative),
+   so it needs no per-page layout; pointer-events:none keeps it from
+   swallowing map drags and clicks.
+   ------------------------------------------------------------------ */
+.ftth-coord-readout {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 5;
+  padding: 4px 10px;
+  background: rgba(31,41,55,0.82);
+  color: #F9FAFB;
+  border-radius: 6px;
+  font-family: 'SF Mono','Menlo','Monaco','Consolas',monospace;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  text-align: right;
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+/* Accent while a click mode is waiting for its click, so the reader can see
+   the exact coordinate that click will send. */
+.ftth-coord-readout-active { background: rgba(227,24,55,0.9); }
 
 /* ==================================================================
    FTTH LLD — Review & Versioning
@@ -513,7 +541,7 @@
 .lld-side-pane-header h2 .back-link {
   font-size: 12px;
   font-weight: 400;
-  color: #6B7280;
+  color: #616A75;
   text-decoration: none;
   margin-left: auto;
   white-space: nowrap;
@@ -530,7 +558,7 @@
 .lld-side-pane-header .project-id {
   font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
   margin-top: 2px;
 }
 
@@ -545,16 +573,16 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #6B7280;
+  color: #616A75;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .lld-side-pane-section h3 .badge {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  color: #6B7280;
+  color: #616A75;
   background: #F3F4F6;
   padding: 2px 8px;
   border-radius: 999px;
@@ -598,7 +626,7 @@
 
 .lld-count-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -620,16 +648,16 @@
 }
 
 .lld-count-item .label {
-  font-size: 9.5px;
-  color: #6B7280;
+  font-size: 11px;
+  color: #616A75;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-top: 2px;
 }
 
-.lld-count-item.approved .value { color: #059669; }
-.lld-count-item.rejected .value { color: #DC2626; }
-.lld-count-item.correction .value { color: #D97706; }
+.lld-count-item.approved .value { color: #047857; }
+.lld-count-item.rejected .value { color: #B91C1C; }
+.lld-count-item.correction .value { color: #92400E; }
 .lld-count-item.pending .value { color: #2563EB; }
 
 .lld-resolution {
@@ -640,7 +668,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
   margin-bottom: 5px;
 }
 
@@ -655,7 +683,7 @@
 .lld-resolution .fill {
   height: 100%;
   border-radius: 4px;
-  background: linear-gradient(90deg, #10B981, #059669);
+  background: linear-gradient(90deg, #047857, #047857);
   transition: width 0.45s ease;
 }
 
@@ -674,7 +702,7 @@
   justify-content: space-between;
   gap: 12px;
   color: #374151;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -697,7 +725,7 @@
 
 .lld-queue-risk-hint {
   margin-top: 7px;
-  color: #6B7280;
+  color: #616A75;
   font-size: 11px;
   line-height: 1.45;
 }
@@ -738,7 +766,7 @@
 }
 
 .lld-btn-run {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, #047857, #047857);
   color: #FFFFFF;
   box-shadow: 0 2px 10px rgba(5, 150, 105, 0.35);
   font-size: 15px;
@@ -772,7 +800,7 @@
 
 .lld-btn-as:hover:not(:disabled) {
   background: #F9FAFB;
-  border-color: #9CA3AF;
+  border-color: #6B7280;
 }
 
 .lld-as-chip {
@@ -795,7 +823,7 @@
   width: 26px;
   height: 26px;
   border-radius: 8px;
-  background: #10B981;
+  background: #047857;
   color: #FFF;
   display: inline-flex;
   align-items: center;
@@ -805,8 +833,8 @@
 }
 
 .lld-readiness-note {
-  font-size: 11.5px;
-  color: #6B7280;
+  font-size: 12px;
+  color: #616A75;
   margin-top: 10px;
   line-height: 1.5;
 }
@@ -826,9 +854,9 @@
   border-radius: 999px;
   border: 1px solid #E5E7EB;
   background: #FFFFFF;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  color: #6B7280;
+  color: #616A75;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -855,7 +883,7 @@
   font-size: 12.5px;
   color: #1F2937;
   outline: none;
-  background: #FFF url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 10px center;
+  background: #FFF url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M21 21l-4.3-4.3'/%3E%3C/svg%3E") no-repeat 10px center;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   margin-bottom: 10px;
 }
@@ -889,7 +917,7 @@
 }
 
 .lld-change-row .chevron {
-  color: #9CA3AF;
+  color: #6B7280;
   font-size: 12px;
   flex-shrink: 0;
   transition: transform 0.15s ease;
@@ -914,7 +942,7 @@
 .lld-change-row-title .chg-id {
   font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
 }
 
 .lld-change-row-sub {
@@ -923,7 +951,7 @@
   gap: 6px;
   margin-top: 3px;
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
 }
 
 /* ------------------------------------------------------------------
@@ -935,7 +963,7 @@
   gap: 5px;
   padding: 3px 9px;
   border-radius: 999px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -975,7 +1003,7 @@
 .lld-type-badge {
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -993,7 +1021,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -1003,7 +1031,7 @@
 .lld-risk-high { background: #FFEDD5; color: #9A3412; }
 .lld-risk-medium { background: #FEF3C7; color: #92400E; }
 .lld-risk-low { background: #ECFDF5; color: #047857; }
-.lld-risk-unknown { background: #F3F4F6; color: #6B7280; }
+.lld-risk-unknown { background: #F3F4F6; color: #616A75; }
 
 /* ------------------------------------------------------------------
    Detail drawer
@@ -1085,10 +1113,10 @@
 }
 
 .lld-meta-item .k {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #9CA3AF;
+  color: #6B7280;
   font-weight: 700;
   margin-bottom: 2px;
 }
@@ -1105,14 +1133,14 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #6B7280;
+  color: #616A75;
   margin: 0 0 8px;
 }
 
 .lld-reason {
   background: #FFFBEB;
   border: 1px solid #FDE68A;
-  border-left: 4px solid #F59E0B;
+  border-left: 4px solid #B45309;
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 12.5px;
@@ -1137,10 +1165,10 @@
   background: #F9FAFB;
   padding: 8px 12px;
   text-align: left;
-  font-size: 10.5px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6B7280;
+  color: #616A75;
   border-bottom: 1px solid #E5E7EB;
 }
 
@@ -1159,13 +1187,13 @@
 }
 
 .lld-diff-table .old-val {
-  color: #6B7280;
+  color: #616A75;
   text-decoration: line-through;
-  text-decoration-color: #DC2626;
+  text-decoration-color: #B91C1C;
 }
 
 .lld-diff-table .arrow {
-  color: #9CA3AF;
+  color: #6B7280;
   padding: 0 4px;
   font-size: 11px;
 }
@@ -1179,7 +1207,7 @@
   display: block;
   font-size: 11px;
   font-weight: 400;
-  color: #6B7280;
+  color: #616A75;
   margin-top: 2px;
 }
 
@@ -1229,9 +1257,9 @@
   border: none;
   background: transparent;
   border-radius: 7px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  color: #6B7280;
+  color: #616A75;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -1260,7 +1288,7 @@
   border-radius: 999px;
   background: #F9FAFB;
   border: 1px solid #E5E7EB;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #374151;
 }
@@ -1306,9 +1334,9 @@
 }
 
 .lld-comment .who .when {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 400;
-  color: #9CA3AF;
+  color: #6B7280;
 }
 
 .lld-comment .text {
@@ -1344,7 +1372,7 @@
   box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.1);
 }
 
-.lld-comment-input::placeholder { color: #9CA3AF; }
+.lld-comment-input::placeholder { color: #6B7280; }
 
 .lld-action-btns {
   display: grid;
@@ -1481,9 +1509,9 @@
   border: none;
   background: transparent;
   border-radius: 7px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  color: #6B7280;
+  color: #616A75;
   cursor: pointer;
   transition: all 0.15s ease;
 }
@@ -1554,13 +1582,13 @@
 
 .lld-chain-step .v-label {
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
   margin-top: 2px;
 }
 
 .lld-chain-step .v-meta {
-  font-size: 10.5px;
-  color: #9CA3AF;
+  font-size: 11px;
+  color: #6B7280;
   margin-top: 4px;
   line-height: 1.5;
 }
@@ -1592,10 +1620,10 @@
   text-align: left;
   padding: 10px 12px;
   border-bottom: 2px solid #E5E7EB;
-  font-size: 10.5px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6B7280;
+  color: #616A75;
   white-space: nowrap;
 }
 

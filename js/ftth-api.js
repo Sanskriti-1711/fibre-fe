@@ -237,6 +237,74 @@
     };
     if (opts.length_m != null) payload.length_m = Number(opts.length_m);
     if (opts.bearing != null) payload.bearing = Number(opts.bearing);
+    if (opts.include_imagery) payload.include_imagery = true;
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
+  /**
+   * Classify the surface along ONE uncertain span the reader opted into.
+   *
+   * Sends the span's own route geometry, so exactly one model call is spent per
+   * choice and no batch is ever started. The response also carries the imagery
+   * patch the model saw (base64) unless `include_imagery` is turned off, so the
+   * page can show it next to the answer.
+   */
+  async function classifySurfaceSpan(projectId, span, options) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/surface-ai-review/classify/');
+    var opts = options || {};
+    var payload = {
+      coordinates: span.coordinates,
+      coordinates_crs: span.coordinates_crs || 'EPSG:4326',
+      span_id: span.span_id,
+      include_imagery: opts.include_imagery !== false,
+    };
+    if (span.claimed_surface != null) payload.claimed_surface = span.claimed_surface;
+    if (span.geometry_reason != null) payload.geometry_reason = span.geometry_reason;
+    if (span.geometry_confidence != null) payload.geometry_confidence = span.geometry_confidence;
+    if (span.known_share != null) payload.known_share = span.known_share;
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
+  /**
+   * Fetch the imagery patch a detect would send, without calling the model.
+   *
+   * `request` carries either a clicked point ({lng, lat, crs}) or a span's route
+   * ({coordinates, coordinates_crs, span_id}). Imagery-only, so it spends no
+   * vision-model quota; this is how the page shows the patch before a detect.
+   */
+  async function previewSurfaceImagery(projectId, request) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/results/' + id + '/surface-ai-review/imagery/');
+    var payload;
+    if (request && request.coordinates) {
+      payload = {
+        coordinates: request.coordinates,
+        coordinates_crs: request.coordinates_crs || 'EPSG:4326',
+      };
+      if (request.span_id) payload.span_id = request.span_id;
+    } else {
+      payload = {
+        coordinates: [Number(request.lng), Number(request.lat)],
+        crs: request.crs || 'EPSG:4326',
+      };
+    }
     var response = await authFetch(url, {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -630,6 +698,8 @@
     getPipelineStatus: getPipelineStatus,
     getSurfaceAIReview: getSurfaceAIReview,
     classifySurfaceAt: classifySurfaceAt,
+    classifySurfaceSpan: classifySurfaceSpan,
+    previewSurfaceImagery: previewSurfaceImagery,
     getPipelineLayer: getPipelineLayer,
     getProjectPermits: getProjectPermits,
     getDownloadUrl: getDownloadUrl,

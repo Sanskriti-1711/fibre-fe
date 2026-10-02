@@ -107,7 +107,7 @@ async function loadEngineers() {
       engineerSelect.appendChild(option);
     });
   } catch (e) {
-    showError('Failed to load engineers: ' + (e.message || 'Unknown error'));
+    showError('Failed to load engineers: ' + (FtthUI.humanize(e)));
   }
 }
 
@@ -156,7 +156,7 @@ async function loadEngineerActivity(engineerId) {
     activityContent.style.display = 'block';
     noSelectionState.style.display = 'none';
   } catch (e) {
-    showError('Failed to load activity: ' + (e.message || 'Unknown error'));
+    showError('Failed to load activity: ' + (FtthUI.humanize(e)));
   }
 }
 
@@ -577,19 +577,28 @@ async function saveFieldWorkData() {
     closeFieldWorkModal();
     await loadEngineerActivity(currentEngineer?.uuid || currentEngineer?.id);
   } catch (e) {
-    showError('Failed to save field work: ' + (e.message || 'Unknown error'));
+    showError('Failed to save field work: ' + (FtthUI.humanize(e)));
   }
 }
 
 async function submitAssignmentForReview(id) {
-  if (!confirm('Submit this assignment for review?')) return;
+  const ok = await window.FtthUI.confirm({
+    title: 'Submit this assignment for review?',
+    message: 'A supervisor will review the field work you recorded.',
+    lines: [
+      'It leaves your list and appears in the review queue.',
+      'You can no longer edit it while it is under review.'
+    ],
+    confirmLabel: 'Submit for review'
+  });
+  if (!ok) return;
 
   try {
     await window.FiberApi.submitFeatureForReview(id);
     showError('Assignment submitted for review');
     await loadEngineerActivity(engineerSelect.value);
   } catch (e) {
-    showError('Failed to submit: ' + (e.message || 'Unknown error'));
+    showError('Failed to submit: ' + (FtthUI.humanize(e)));
   }
 }
 

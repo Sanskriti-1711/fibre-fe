@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>HLD Outputs | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
   <style>
     .ftth-projects-content {
       max-width: 900px;
@@ -110,7 +108,7 @@
     .ftth-table th {
       text-align: left;
       padding: 14px 16px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -375,6 +373,10 @@
       50% { opacity: 0.4; }
     }
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -456,6 +458,7 @@
 <!-- Toast notification -->
 <div id="toast" class="ftth-toast"></div>
 
+<script src="js/ftth-ui.js"></script>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -615,7 +618,7 @@
       tableContainer.style.display = 'none';
       emptyState.style.display = 'none';
       errorState.style.display = 'block';
-      errorMessage.textContent = 'Failed to load projects: ' + (err.message || 'Unknown error');
+      errorMessage.textContent = 'Failed to load projects: ' + (FtthUI.humanize(err));
       statusText.textContent = 'Error loading projects';
       refreshBtn.classList.remove('loading');
     }
@@ -681,7 +684,7 @@
     } catch (err) {
       deleteModalConfirm.disabled = false;
       deleteModalConfirm.textContent = 'Delete';
-      showToast('Failed to delete: ' + (err.message || 'Unknown error'));
+      showToast('Failed to delete: ' + (FtthUI.humanize(err)));
     }
   });
 

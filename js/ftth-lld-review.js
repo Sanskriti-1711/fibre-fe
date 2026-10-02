@@ -22,8 +22,8 @@
   const COLORS = {
     hld: { line: '#3B82F6', fill: '#2563EB', label: 'HLD' },
     survey: { line: '#F97316', fill: '#EA580C', label: 'Survey' },
-    approved: { line: '#10B981', fill: '#059669', label: 'Approved' },
-    diff: { line: '#EF4444', fill: '#DC2626', label: 'Difference' },
+    approved: { line: '#047857', fill: '#047857', label: 'Approved' },
+    diff: { line: '#EF4444', fill: '#B91C1C', label: 'Difference' },
   };
 
   // State
@@ -70,6 +70,67 @@
   const viewModeEl = $('viewMode');
 
   // ==================================================================
+  // Failure rendering
+  // ==================================================================
+  // The map scrim is the only loading affordance on this page, so any
+  // path that does not explicitly clear it leaves an opaque overlay
+  // sitting on a dead map. Every awaited step therefore has a deadline
+  // and every failure has a way back: a hung request must not be
+  // indistinguishable from a slow one.
+  const LOAD_TIMEOUT_MS = 20000;
+  const MAP_TIMEOUT_MS = 12000;
+
+  function withTimeout(promise, ms, what) {
+    if (window.FtthUI && typeof window.FtthUI.withTimeout === 'function') {
+      return window.FtthUI.withTimeout(promise, ms, what);
+    }
+    return promise;
+  }
+
+  function showFailure(title, detail) {
+    mapLoading.style.display = 'flex';
+    mapLoading.innerHTML = '';
+
+    const box = document.createElement('div');
+    box.className = 'ftth-panel ftth-panel--error';
+    box.style.cssText = 'max-width:340px;text-align:center;';
+
+    const heading = document.createElement('p');
+    heading.textContent = title;
+    heading.style.cssText = 'margin:0 0 6px;font-size:15px;font-weight:600;color:var(--danger,#B91C1C);';
+    box.appendChild(heading);
+
+    if (detail) {
+      const body = document.createElement('p');
+      body.textContent = detail;
+      body.style.cssText = 'margin:0 0 14px;font-size:13px;line-height:1.5;color:var(--text-muted,#616A75);';
+      box.appendChild(body);
+    }
+
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'ftth-btn ftth-btn--primary';
+    retry.textContent = 'Retry';
+    retry.addEventListener('click', () => location.reload());
+    box.appendChild(retry);
+
+    mapLoading.appendChild(box);
+  }
+
+  // Human copy comes from the shared vocabulary, never from the thrown
+  // error. A TypeError("Failed to fetch") is a statement about the
+  // browser's internals, not about what the engineer should do next.
+  function explain(err) {
+    if (window.FtthUI && typeof window.FtthUI.humanize === 'function') {
+      return window.FtthUI.humanize(err);
+    }
+    if (window.FtthUI && typeof window.FtthUI.errorMessage === 'function') {
+      return window.FtthUI.errorMessage(err);
+    }
+    return 'The request did not complete. Check your connection and try again.';
+  }
+
+  // ==================================================================
   // Boot
   // ==================================================================
   async function boot() {
@@ -88,7 +149,7 @@
     }
     if (!projectId) {
       projectIdEl.textContent = '—';
-      mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;">No project selected. Open this page from a project\'s LLD Review link.</p></div>';
+      mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#B91C1C;font-size:14px;">No project selected. Open this page from a project\'s LLD Review link.</p></div>';
       return;
     }
 
@@ -99,9 +160,15 @@
     bindSearch();
 
     try {
-      review = await window.FtthLldApi.loadReview(projectId);
+      review = await withTimeout(
+        window.FtthLldApi.loadReview(projectId), LOAD_TIMEOUT_MS, 'review data');
     } catch (err) {
-      mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;margin-bottom:12px;">Failed to load review: ' + esc(err.message || err) + '</p><button onclick="location.reload()" style="padding:8px 16px;border-radius:8px;border:1px solid #D1D5DB;background:#FFF;cursor:pointer;font-size:13px;">Retry</button></div>';
+      if (err && window.FtthUI && window.FtthUI.errorKind(err) === 'timeout') {
+        showFailure('This review is taking too long to load',
+          'The server did not respond within 20 seconds. It may be busy or unreachable.');
+      } else {
+        showFailure('Could not load this review', explain(err));
+      }
       return;
     }
 
@@ -115,7 +182,7 @@
       initMap();
     } catch (err) {
       console.error('Map init failed:', err);
-      mapLoading.innerHTML = '<p style="color:#DC2626;font-size:14px;">Failed to initialize map: ' + esc(err.message || err) + '</p>';
+      showFailure('Could not start the map', explain(err));
       return;
     }
 
@@ -140,6 +207,23 @@
     map.addControl(new maplibregl.NavigationControl(), 'top-left');
     map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
 
+    // The scrim was cleared in exactly one place — the `load` handler.
+    // If the style never resolves (offline, blocked tile CDN, a stalled
+    // glyph fetch) that event never fires and the page keeps showing
+    // "Loading LLD review data…" over an empty map with no way out.
+    // The watchdog converts that hang into a stated failure.
+    let mapSettled = false;
+    const settleMap = () => {
+      if (mapSettled) return;
+      mapSettled = true;
+      mapLoading.style.display = 'none';
+    };
+    setTimeout(() => {
+      if (mapSettled) return;
+      showFailure('The map did not finish loading',
+        'Basemap tiles are not reachable. Your review data is unaffected — retry to reconnect.');
+    }, MAP_TIMEOUT_MS);
+
     map.on('load', () => {
       addBaseLayers();
       addDatasetLayer('hld', review.layers.hld);
@@ -147,7 +231,13 @@
       renderApprovedLayer();
       wireLayerClicks();
       fitProject();
-      mapLoading.style.display = 'none';
+      settleMap();
+    });
+    map.on('error', (e) => {
+      // Tile-level errors are routine during panning; only a style that
+      // never becomes usable is worth telling the user about, and the
+      // watchdog already covers that case.
+      if (e && e.error) console.warn('Map error:', e.error.message || e.error);
     });
     if (map.loaded()) map.fire('load');
   }
@@ -745,7 +835,7 @@
     // can see exactly why a change was ranked).
     if (ch.risk && (ch.risk.factors || []).length) {
       html += '<div class="lld-section-title">Risk Factors</div>'
-        + '<ul style="margin:0;padding-left:18px;font-size:12px;color:#6B7280;">';
+        + '<ul style="margin:0;padding-left:18px;font-size:12px;color:#616A75;">';
       ch.risk.factors.forEach(function(f) {
         html += '<li>' + esc(f) + '</li>';
       });
@@ -761,8 +851,8 @@
       anomalies.forEach(function(a) {
         const isError = a.severity === 'error';
         const tone = isError
-          ? 'background:#FEF2F2;border:1px solid #FECACA;border-left:4px solid #DC2626;color:#991B1B;'
-          : 'background:#FFFBEB;border:1px solid #FDE68A;border-left:4px solid #F59E0B;color:#78350F;';
+          ? 'background:#FEF2F2;border:1px solid #FECACA;border-left:4px solid #B91C1C;color:#991B1B;'
+          : 'background:#FFFBEB;border:1px solid #FDE68A;border-left:4px solid #B45309;color:#78350F;';
         html += '<div style="' + tone + 'border-radius:8px;padding:9px 11px;font-size:12px;line-height:1.5;margin-bottom:8px;">'
           + '<strong>' + esc(isError ? 'Contradiction' : 'Check') + '</strong>'
           + ' · <span class="lld-risk-badge ' + (isError ? 'lld-risk-critical' : 'lld-risk-medium') + '">'
@@ -995,7 +1085,10 @@
     const comment = commentEl ? commentEl.value : '';
 
     if ((action === 'reject' || action === 'correction') && !comment.trim()) {
-      alert('Please add a review comment so the survey engineer understands why.');
+      await window.FtthUI.alert({
+        title: 'Add a comment first',
+        message: 'Please add a review comment so the survey engineer understands why.'
+      });
       return;
     }
 
@@ -1018,7 +1111,10 @@
       renderChangeList();
       renderDetail();
     } catch (err) {
-      alert('Action failed: ' + (err.message || err));
+      await window.FtthUI.alert({
+        title: 'Action failed',
+        message: explain(err)
+      });
       btns.forEach((b) => { b.disabled = false; });
     }
   }
@@ -1040,29 +1136,51 @@
       renderReadiness();
       renderDetail(); // shows the locked state in the drawer
       mapLoading.style.display = 'flex';
-      mapLoading.innerHTML = '<p style="color:#059669;font-size:15px;font-weight:600;">✅ Approved Survey ' + esc(approvedVersion) + ' created — ' + esc(review.approved ? review.approved.features.length : 0) + ' features. Run LLD when ready.</p>';
+      mapLoading.innerHTML = '<p style="color:#047857;font-size:15px;font-weight:600;">✅ Approved Survey ' + esc(approvedVersion) + ' created — ' + esc(review.approved ? review.approved.features.length : 0) + ' features. Run LLD when ready.</p>';
       setTimeout(() => { mapLoading.style.display = 'none'; }, 2600);
     } catch (err) {
-      alert('Could not create Approved Survey Version: ' + (err.message || err));
+      await window.FtthUI.alert({
+        title: 'Could not create the Approved Survey Version',
+        message: explain(err)
+      });
       createAsBtn.disabled = false;
     } finally {
       createAsBtn.classList.remove('loading');
     }
   });
 
-  function startLld(mode) {
+  async function startLld(mode) {
     if (!approvedVersion) return;
     const btn = mode === 'replan' ? replanLldBtn : runLldBtn;
     const other = mode === 'replan' ? runLldBtn : replanLldBtn;
     const verb = mode === 'replan' ? 'Full re-plan' : 'LLD';
-    const confirmMsg = mode === 'replan'
-      ? 'Run a FULL RE-PLAN? This re-runs the routing algorithm with the approved survey as brownfield and takes 10–40 minutes. Only needed for structural changes (moved PDP, re-zoning, aerial conversion).'
-      : 'Run LLD on ' + approvedVersion + '? (applies survey changes to the HLD design — fast)';
-    if (!confirm(confirmMsg)) return;
+    /* A full re-plan overwrites the existing LLD design; a normal run applies
+       survey changes on top of it. Split because the consequence is the whole
+       point — the old wording buried it in a paragraph. */
+    const isReplan = mode === 'replan';
+    const ok = await window.FtthUI.confirm({
+      title: isReplan ? 'Run a full re-plan?' : 'Run LLD on ' + approvedVersion + '?',
+      message: isReplan
+        ? 'This re-runs the routing algorithm with the approved survey treated as brownfield.'
+        : 'Applies the approved survey changes to the current HLD design.',
+      lines: isReplan
+        ? [
+            'The current LLD design is replaced. There is no undo.',
+            'Takes 10–40 minutes; the page can be closed while it runs.',
+            'Only needed for structural changes — moved PDP, re-zoning, aerial conversion.'
+          ]
+        : [
+            'The current LLD design is rewritten from the survey changes.',
+            'Affects geometry, not just attributes — check the result before approving.'
+          ],
+      danger: isReplan,
+      confirmLabel: isReplan ? 'Run full re-plan' : 'Run LLD'
+    });
+    if (!ok) return;
     btn.disabled = true;
     other.disabled = true;
     btn.classList.add('loading');
-    btn.querySelector('.btn-label').textContent = mode === 'replan' ? 'Re-planning…' : 'Starting LLD…';
+    btn.querySelector('.btn-label').textContent = isReplan ? 'Re-planning…' : 'Starting LLD…';
 
     (async () => {
       try {
@@ -1070,11 +1188,14 @@
         const ver = res.lld_version || 'LLD-V01';
         const label = mode === 'replan' ? 're-plan' : 'LLD';
         mapLoading.style.display = 'flex';
-        mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#059669;font-size:15px;font-weight:600;margin-bottom:8px;">🚀 ' + (mode === 'replan' ? 'Full re-plan' : 'LLD') + ' ' + esc(ver) + ' started on ' + esc(approvedVersion) + '</p>'
-          + '<a href="ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId) + '" style="display:inline-block;padding:9px 18px;background:#059669;color:#FFF;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View LLD Versions →</a></div>';
+        mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#047857;font-size:15px;font-weight:600;margin-bottom:8px;">🚀 ' + (mode === 'replan' ? 'Full re-plan' : 'LLD') + ' ' + esc(ver) + ' started on ' + esc(approvedVersion) + '</p>'
+          + '<a href="ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId) + '" style="display:inline-block;padding:9px 18px;background:#047857;color:#FFF;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View LLD Versions →</a></div>';
         btn.querySelector('.btn-label').textContent = label;
       } catch (err) {
-        alert('Run ' + verb + ' failed: ' + (err.message || err));
+        await window.FtthUI.alert({
+        title: 'Run ' + verb + ' failed',
+        message: explain(err)
+      });
         btn.querySelector('.btn-label').textContent = mode === 'replan' ? 'Full re-plan' : 'Run LLD on ' + approvedVersion;
       } finally {
         btn.classList.remove('loading');

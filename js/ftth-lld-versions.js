@@ -80,7 +80,7 @@
       data = await window.FtthLldApi.listVersions(projectId);
     } catch (err) {
       $('pageError').style.display = 'block';
-      $('pageError').textContent = 'Failed to load versions: ' + (err.message || err);
+      $('pageError').textContent = 'Failed to load versions: ' + (FtthUI.humanize(err));
       return;
     }
     render();
@@ -200,7 +200,7 @@
       renderDiff(d);
     } catch (err) {
       diffSummaryEl.style.display = 'block';
-      diffSummaryEl.textContent = 'Diff failed: ' + (err.message || err);
+      diffSummaryEl.textContent = 'Diff failed: ' + (FtthUI.humanize(err));
       diffTableWrap.style.display = 'none';
       diffAiEl.style.display = 'none';
     } finally {
@@ -237,7 +237,7 @@
       added: { bg: '#ECFDF5', fg: '#047857', label: 'Added' },
       removed: { bg: '#FEF2F2', fg: '#991B1B', label: 'Removed' },
       changed: { bg: '#FFFBEB', fg: '#92400E', label: 'Changed' },
-      unchanged: { bg: '#F3F4F6', fg: '#6B7280', label: 'Unchanged' },
+      unchanged: { bg: '#F3F4F6', fg: '#616A75', label: 'Unchanged' },
     };
     diffBody.innerHTML = '';
     rows.forEach((l) => {
@@ -246,11 +246,11 @@
       tr.innerHTML = ''
         + '<td class="mono">' + esc(l.name) + '</td>'
         + '<td>' + Number(l.from_count).toLocaleString() + ' → ' + Number(l.to_count).toLocaleString() + '</td>'
-        + '<td style="font-weight:700;color:' + (l.delta_count > 0 ? '#047857' : (l.delta_count < 0 ? '#991B1B' : '#6B7280')) + ';">'
+        + '<td style="font-weight:700;color:' + (l.delta_count > 0 ? '#047857' : (l.delta_count < 0 ? '#991B1B' : '#616A75')) + ';">'
         + (l.delta_count > 0 ? '+' : '') + Number(l.delta_count).toLocaleString() + '</td>'
         + '<td>' + Number(l.from_length_m).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' → '
         + Number(l.to_length_m).toLocaleString(undefined, { maximumFractionDigits: 1 }) + '</td>'
-        + '<td style="font-weight:700;color:' + (l.delta_length_m > 0 ? '#047857' : (l.delta_length_m < 0 ? '#991B1B' : '#6B7280')) + ';">'
+        + '<td style="font-weight:700;color:' + (l.delta_length_m > 0 ? '#047857' : (l.delta_length_m < 0 ? '#991B1B' : '#616A75')) + ';">'
         + (l.delta_length_m > 0 ? '+' : '') + Number(l.delta_length_m).toLocaleString(undefined, { maximumFractionDigits: 1 }) + '</td>'
         + '<td><span class="lld-badge" style="background:' + c.bg + ';color:' + c.fg + ';border:1px solid ' + c.bg + ';">' + c.label + '</span></td>';
       diffBody.appendChild(tr);

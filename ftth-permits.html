@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>Permits | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
   <style>
     .pm-content { max-width: 1200px; margin: 0 auto; }
 
@@ -64,7 +62,7 @@
     .pm-table-card-head p { margin:4px 0 0; font-size:12px; color:#6B7280; line-height:1.4; max-width:640px; }
     table { width:100%; border-collapse:collapse; font-size:13px; }
     th, td { padding:11px 14px; border-bottom:1px solid #F3F4F6; text-align:left; vertical-align:top; }
-    th { font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; white-space:nowrap; }
+    th { font-size: 12px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; white-space:nowrap; }
     tbody tr { transition:background 0.12s ease; }
     tbody tr.clickable { cursor:pointer; }
     tbody tr.clickable:hover { background:#F8FAFC; }
@@ -83,7 +81,7 @@
 
     .pm-empty { padding:28px; text-align:center; color:#9CA3AF; font-size:13px; line-height:1.5; }
     .pm-fid { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; }
-    .sub-act { padding:5px 10px; border:1px solid #D1D5DB; border-radius:7px; background:#fff; font-size:11px; font-weight:600; color:#374151; cursor:pointer; margin:2px; white-space:nowrap; }
+    .sub-act { padding:5px 10px; border:1px solid #D1D5DB; border-radius:7px; background:#fff; font-size: 12px; font-weight:600; color:#374151; cursor:pointer; margin:2px; white-space:nowrap; }
     .sub-act:hover { background:#F3F4F6; }
     .sub-act:disabled { opacity:0.5; cursor:not-allowed; }
 
@@ -105,7 +103,7 @@
     .kvs { display:grid; grid-template-columns:140px 1fr; gap:6px 12px; font-size:13px; }
     .kvs .k{ color:#6B7280; font-weight:600; }
     .list { margin:6px 0; padding-left:18px; font-size:13px; line-height:1.5; }
-    .mono { font-family:'SF Mono',monospace; font-size:11px; color:#6B7280; }
+      .mono { font-family:'SF Mono',monospace; font-size:12px; color:#6B7280; }
     .status { padding:10px; border-radius:8px; font-size:13px; display:none; margin:10px 0; }
     .status.ok{ display:block; background:#ECFDF5; border:1px solid #A7F3D0; color:#065F46; }
     .status.err{ display:block; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; }
@@ -124,9 +122,13 @@
     .pm-step-no { flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#111827; color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px; }
     .pm-step-title { font-size:12.5px; font-weight:700; color:#111827; }
     .pm-step-desc { margin:3px 0 6px; font-size:12px; color:#6B7280; line-height:1.5; }
-    .pm-step-desc code { font-size:11px; }
+    .pm-step-desc code { font-size:12px; }
     .pm-guide-foot { margin:2px 16px 14px; padding:10px 12px; border-radius:10px; background:#EFF6FF; border:1px solid #BFDBFE; color:#1E40AF; font-size:12px; line-height:1.5; }
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -382,7 +384,7 @@
                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
                   <button id="pmCsvDryBtn" class="btn" type="button">Preview CSV</button>
                   <button id="pmCsvApplyBtn" class="btn btn-primary" type="button">Apply CSV</button>
-                  <span id="pmCsvHint" class="mono" style="color:#6B7280; font-size:11px;">Tip: from the management command: <code>python manage.py sync_permit_status --csv file.csv --dry-run --json</code></span>
+                  <span id="pmCsvHint" class="mono" style="color:#6B7280; font-size:12px;">Tip: from the management command: <code>python manage.py sync_permit_status --csv file.csv --dry-run --json</code></span>
                 </div>
               </div>
             </details>
@@ -490,8 +492,8 @@
             <div id="draftMeta" class="mono" style="margin-top:8px;"></div>
             <div id="draftHistoryWrap" style="margin-top:12px; border-top:1px solid #F3F4F6; padding-top:10px;">
               <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-                <strong style="font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280;">Draft history — this project</strong>
-                <button id="draftHistoryRefresh" class="btn" type="button" style="padding:4px 8px; font-size:11px;">Refresh</button>
+                <strong style="font-size: 12px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280;">Draft history — this project</strong>
+                <button id="draftHistoryRefresh" class="btn" type="button" style="padding:4px 8px; font-size: 12px;">Refresh</button>
               </div>
               <div id="draftHistory" class="mono" style="margin-top:8px; max-height:220px; overflow:auto; font-size:11px; line-height:1.5;">—</div>
             </div>
@@ -501,10 +503,10 @@
             <h3>Auto-classify — permit type from trench attributes (heuristic + labels)</h3>
             <p class="muted">Deterministic heuristic (fclass / SURFACE / trench_type / env flags → permit type + confidence + runner-up). No LLM. Correct it and the feedback is stored to <code>permits/classify_labels.jsonl</code> — when 500+ labels accumulate the ML pipeline can train without changing this API.</p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0;">
-              <label style="font-size:11px; color:#6B7280;">fclass / highway <input id="clsFclass" placeholder="e.g. residential, footway, primary" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
-              <label style="font-size:11px; color:#6B7280;">SURFACE <input id="clsSurface" placeholder="Asphalt / Footpath / Concrete" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
-              <label style="font-size:11px; color:#6B7280;">trench_type <input id="clsTrenchType" placeholder="feeder / distribution" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
-              <label style="font-size:11px; color:#6B7280;">REUSE_SOURCE / INFRA_STATUS <input id="clsReuse" placeholder="REUSE_SOURCE value" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+              <label style="font-size: 12px; color:#6B7280;">fclass / highway <input id="clsFclass" placeholder="e.g. residential, footway, primary" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+              <label style="font-size: 12px; color:#6B7280;">SURFACE <input id="clsSurface" placeholder="Asphalt / Footpath / Concrete" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+              <label style="font-size: 12px; color:#6B7280;">trench_type <input id="clsTrenchType" placeholder="feeder / distribution" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
+              <label style="font-size: 12px; color:#6B7280;">REUSE_SOURCE / INFRA_STATUS <input id="clsReuse" placeholder="REUSE_SOURCE value" style="width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px; margin-top:4px;" /></label>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0;">
               <label style="font-size:12px; display:flex; gap:6px; align-items:center;"><input type="checkbox" id="clsEnvRail" /> railway</label>
@@ -519,7 +521,7 @@
             </div>
             <div id="clsOut" class="muted" style="margin-top:8px;">Enter trench attributes and classify — uses the same heuristic the API does, works offline.</div>
             <div id="clsFeedbackWrap" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #F3F4F6;">
-              <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; margin-bottom:6px;">Correct it — this trains the future ML model</div>
+                <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; margin-bottom:6px;">Correct it — this trains the future ML model</div>
               <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                 <select id="clsTrueType" style="flex:1; min-width:160px; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; font-size:13px;">
                   <option value="">True permit type…</option>
@@ -555,6 +557,7 @@
   </main>
 </div>
 
+<script src="js/ftth-ui.js"></script>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -905,8 +908,11 @@
       loadExpiries(); loadQa(); loadSyncStatus();
       document.getElementById('pmUpdated').textContent = 'Updated ' + new Date().toLocaleTimeString();
     } catch (err) {
-      var msg = esc(err.message || err);
-      var is500 = String(err.status||'')==='500' || /500|Internal Server Error/i.test(msg);
+      // The 500 test needs the server's own wording; the user needs a
+      // sentence they can act on. Humanising before testing would erase
+      // the very signal being looked for.
+      var is500 = String(err.status||'')==='500' || /500|Internal Server Error/i.test(String(err.message||err));
+      var msg = esc(FtthUI.humanize(err));
       document.getElementById('pmBody').innerHTML =
         '<tr><td colspan="9"><div class="pm-empty" style="color:#B91C1C;">Failed to load permits: ' + msg
         + (is500 ? '<br/><span class=\"mono\">This was the /permits/summary raw-SQL 500 (Model.objects.raw missing PK). Fixed in permits/views.py — refresh after the backend redeploys.</span>' : '')
@@ -1003,7 +1009,7 @@
       renderStats();
     } catch (err) {
       card.style.display = 'block';
-      body.innerHTML = '<div class="pm-empty" style="color:#B91C1C;">Could not load expiries: ' + esc(err.message || String(err)) + '</div>';
+      body.innerHTML = '<div class="pm-empty" style="color:#B91C1C;">Could not load expiries: ' + esc(FtthUI.humanize(err)) + '</div>';
     }
   }
   function renderExpiry(data){
@@ -1081,7 +1087,7 @@
       qaData = data;
       renderQa(data);
     }catch(err){
-      body.innerHTML = '<div class=\"pm-empty\" style=\"color:#B91C1C;\">Could not load QA: ' + esc(err.message||String(err)) + '</div>';
+      body.innerHTML = '<div class=\"pm-empty\" style=\"color:#B91C1C;\">Could not load QA: ' + esc(FtthUI.humanize(err)) + '</div>';
     }
   }
   function renderQa(data){
@@ -1155,7 +1161,7 @@
       syncStatus=data;
       renderSyncStatus(data);
     }catch(err){
-      body.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Could not load sync status: '+esc(err.message||String(err))+'</div>';
+      body.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Could not load sync status: '+esc(FtthUI.humanize(err))+'</div>';
     }
   }
   function renderSyncStatus(data){
@@ -1209,7 +1215,7 @@
       body.innerHTML=html;
       if(!dryRun) { loadSubmissions(); loadExpiries(); }
     }catch(err){
-      if(body) body.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Poll failed: '+esc(err.message||String(err))+'</div>';
+      if(body) body.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Poll failed: '+esc(FtthUI.humanize(err))+'</div>';
     }finally{
       if(btn) btn.disabled=false;
       if(dryBtn) dryBtn.disabled=false;
@@ -1277,40 +1283,118 @@
       var res=await window.FtthLldApi.classify(feats);
       renderClassify(res);
     }catch(err){
-      if(out) out.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Classify failed: '+esc(err.message||String(err))+'</div>';
+      if(out) out.innerHTML='<div class=\"pm-empty\" style=\"color:#B91C1C;\">Classify failed: '+esc(FtthUI.humanize(err))+'</div>';
     }finally{
       if(spin) spin.style.display='none';
       if(btn) btn.disabled=false;
     }
   }
 
+  // Three optional fields that belong to one decision, asked as one
+  // question. Three stacked native prompts let someone approve a permit
+  // with a half-filled second prompt and a date that was never typed —
+  // the form closed on Cancel and the approval was recorded anyway.
+  function askApprovalDetails() {
+    var wrap = document.createElement('div');
+
+    function field(id, label, placeholder, type) {
+      var f = document.createElement('div');
+      f.className = 'ftth-field';
+      var l = document.createElement('label');
+      l.className = 'ftth-label';
+      l.textContent = label;
+      l.setAttribute('for', id);
+      var i = document.createElement('input');
+      i.className = 'ftth-input';
+      i.id = id;
+      i.type = type || 'text';
+      if (placeholder) i.placeholder = placeholder;
+      f.appendChild(l);
+      f.appendChild(i);
+      wrap.appendChild(f);
+      return i;
+    }
+
+    var conds = field('pmApprCond', 'Approval conditions', 'e.g. work 22:00–06:00');
+    var expiry = field('pmApprExp', 'Expiry date', 'YYYY-MM-DD', 'date');
+
+    return window.FtthUI.dialog({
+      title: 'Approve this application',
+      message: 'Conditions and expiry are optional. Leave blank to record a permanent approval.',
+      input: wrap,
+      actions: [
+        { label: 'Cancel', value: null, variant: 'secondary' },
+        {
+          label: 'Approve',
+          variant: 'primary',
+          collect: function (dlg) {
+            var e = dlg.querySelector('#pmApprExp');
+            var v = e && e.value ? e.value.trim() : '';
+            /* A date input can be typed into directly; a partial or
+               out-of-range value would otherwise be sent and silently
+               rolled over by the server. */
+            if (v && !/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+              return { __error: true, field: e, error: 'Use the full date: YYYY-MM-DD.' };
+            }
+            return {
+              conditions: conds.value.trim(),
+              expiry_date: v
+            };
+          }
+        }
+      ]
+    });
+  }
+
   async function runTransition(sid, to) {
     var payload = { status: to };
     if (to === 'under_review') {
-      var ref = prompt('Authority application reference (optional):');
+      var ref = await window.FtthUI.prompt({
+        title: 'Authority application reference',
+        message: 'The number the authority gave you. Optional.',
+        label: 'Application reference',
+        confirmLabel: 'Save'
+      });
       if (ref === null) return;
       payload.reference = ref;
     } else if (to === 'approved') {
-      var cond = prompt('Approval conditions (optional, e.g. "work 22:00–06:00"):');
-      if (cond === null) return;
-      payload.conditions = cond;
-      var exp = prompt('Expiry date (optional, YYYY-MM-DD):');
-      if (exp === null) return;
-      if (exp.trim()) payload.expiry_date = exp.trim();
+      var details = await askApprovalDetails();
+      if (details === null) return;
+      if (details.conditions) payload.conditions = details.conditions;
+      if (details.expiry_date) payload.expiry_date = details.expiry_date;
     } else if (to === 'rejected') {
-      var reason = prompt('Rejection reason:');
+      var reason = await window.FtthUI.prompt({
+        title: 'Rejection reason',
+        message: 'The survey engineer sees this. Explain what needs to change.',
+        label: 'Reason',
+        required: true,
+        confirmLabel: 'Reject'
+      });
       if (reason === null) return;
       payload.notes = reason;
     } else if (to === 'submitted') {
-      if (!confirm('Re-submit this application as a new revision?')) return;
-    } else if (to === 'closed') {
-      if (!confirm('Close this approved permit after construction?')) return;
-    }
+      if (!await window.FtthUI.confirm({
+        title: 'Re-submit this application?',
+        message: 'Re-submit this application as a new revision? The previous decision is kept as history.',
+          confirmLabel: 'Re-submit'
+        })) return;
+      } else if (to === 'closed') {
+        if (!await window.FtthUI.confirm({
+          title: 'Close this permit?',
+          message: 'Close this approved permit after construction?',
+          confirmLabel: 'Close permit',
+          danger: true
+        })) return;
+      }
+
     try {
       await window.FtthLldApi.transitionSubmission(sid, payload);
       load(); loadSubmissions(); loadExpiries();
     } catch (err) {
-      alert('Transition failed: ' + (err.message || err));
+      await window.FtthUI.alert({
+        title: 'Transition failed',
+        message: FtthUI.humanize(err)
+      });
     }
   }
 
@@ -1326,7 +1410,7 @@
     } catch (err) {
       var tbody=document.getElementById('pmSubBody');
       if(tbody) tbody.innerHTML =
-        '<tr><td colspan="10"><div class="pm-empty" style="color:#B91C1C;">Failed to load submissions: ' + esc(err.message || err) + '</div></td></tr>';
+        '<tr><td colspan="10"><div class="pm-empty" style="color:#B91C1C;">Failed to load submissions: ' + esc(FtthUI.humanize(err)) + '</div></td></tr>';
     }
   }
 
@@ -1344,12 +1428,17 @@
     var ids = selectedPermitIds();
     if (!ids.length) return;
     var nApps = Object.keys(selected).length;
-    if (!confirm('Submit ' + ids.length + ' section(s) as ' + nApps + ' application(s)?\n\nOnly READY permits are submitted — the rest stay behind.')) return;
+      if (!await window.FtthUI.confirm({
+        title: 'Submit these permits?',
+        message: 'Submit ' + ids.length + ' section(s) as ' + nApps + ' application(s)?',
+        note: 'Only READY permits are submitted — the rest stay behind.',
+        confirmLabel: 'Submit'
+      })) return;
     var btn = document.getElementById('pmBulkSubmit');
     if(btn) btn.disabled = true;
     try {
       var res = await window.FtthLldApi.createSubmission({ permit_ids: ids });
-      alert('Created ' + res.created + ' submission(s) — tracker refreshed.');
+      FtthUI.toast('Created ' + res.created + ' submission(s) — tracker refreshed.', 'success');
       selected = {};
       updateSubmitButton();
       renderTable();
@@ -1357,7 +1446,7 @@
       load(); loadSubmissions();
       document.querySelector('[data-tab="submissions"]').click();
     } catch (err) {
-      alert('Submit failed: ' + (err.message || err));
+      alert('Submit failed: ' + (FtthUI.humanize(err)));
     } finally {
       if(btn) btn.disabled = false;
     }
@@ -1475,32 +1564,48 @@
   var _pmRefreshSync=document.getElementById('pmRefreshSync'); if(_pmRefreshSync) _pmRefreshSync.addEventListener('click', function(){ loadSyncStatus(); });
   var _pmCsvApply=document.getElementById('pmCsvApplyBtn'); if(_pmCsvApply) _pmCsvApply.addEventListener('click', async function(){
     var csv=(document.getElementById('pmCsvInput')||{}).value||'';
-    if(!csv.trim()) return alert('Paste a CSV first.');
-    try{ var r=await window.FtthLldApi.syncSubmissionsCsv(csv); alert('CSV applied: '+(r.applied||[]).length+' ok, '+(r.errors||[]).length+' errors. See console.'); console.log('CSV result', r); loadSubmissions(); loadExpiries(); }catch(e){ alert('CSV apply failed: '+(e.message||e)); }
+    if(!csv.trim()) return FtthUI.alert({ title: 'Nothing to apply', message: 'Paste a CSV first.' });
+    try{
+      var r=await window.FtthLldApi.syncSubmissionsCsv(csv);
+      FtthUI.toast('CSV applied: '+(r.applied||[]).length+' ok, '+(r.errors||[]).length+' errors. See console.', (r.errors||[]).length ? 'error' : 'success');
+      console.log('CSV result', r); loadSubmissions(); loadExpiries();
+    }catch(e){ FtthUI.toast('CSV apply failed: '+FtthUI.humanize(e), 'error'); }
   });
   var _pmCsvDry=document.getElementById('pmCsvDryBtn'); if(_pmCsvDry) _pmCsvDry.addEventListener('click', async function(){
     var csv=(document.getElementById('pmCsvInput')||{}).value||'';
-    if(!csv.trim()) return alert('Paste a CSV first.');
-    // Dry: just parse locally and show preview — no API call
-    var lines=csv.split('\\n').slice(0,8).join('\\n');
-    alert('CSV preview (first 8 lines):\\n'+lines+'\\n\\nUse Apply to run through the API.');
+    if(!csv.trim()) return FtthUI.alert({ title: 'Nothing to preview', message: 'Paste a CSV first.' });
+    // Dry: just parse locally and show preview — no API call.
+    // Sent as `lines` rather than one string: the dialog collapses \n in
+    // a message, which would silently flatten eight CSV rows into one.
+    await FtthUI.alert({
+      title: 'CSV preview',
+      note: 'First 8 lines. Use Apply to run through the API.',
+      lines: csv.split('\n').slice(0, 8)
+    });
   });
   var _clsBtn=document.getElementById('clsClassifyBtn'); if(_clsBtn) _clsBtn.addEventListener('click', doClassify);
-  var _clsCopy=document.getElementById('clsCopyBtn'); if(_clsCopy) _clsCopy.addEventListener('click', function(){
-    if(!lastClassify) return alert('Classify first.');
+  var _clsCopy=document.getElementById('clsCopyBtn'); if(_clsCopy) _clsCopy.addEventListener('click', async function(){
+    if(!lastClassify) return FtthUI.alert({ title: 'Nothing to copy', message: 'Classify first.' });
     var txt=JSON.stringify(lastClassify,null,2);
-    navigator.clipboard.writeText(txt).then(function(){ alert('Copied result.'); }, function(){ alert(txt); });
+    try {
+      await navigator.clipboard.writeText(txt);
+      FtthUI.toast('Copied result.', 'success');
+    } catch (err) {
+      // Clipboard blocked (insecure origin, denied permission). Showing the
+      // payload is the only way the user still gets it out.
+      await FtthUI.alert({ title: 'Could not copy', message: 'Clipboard unavailable. Copy this manually:', lines: txt.split('\n').slice(0, 20) });
+    }
   });
   var _clsFb=document.getElementById('clsFeedbackBtn'); if(_clsFb) _clsFb.addEventListener('click', async function(){
-    if(!lastClassify) return alert('Classify first.');
+    if(!lastClassify) return FtthUI.alert({ title: 'Nothing to correct', message: 'Classify first.' });
     var trueType=(document.getElementById('clsTrueType')||{}).value||'';
-    if(!trueType) return alert('Pick the true permit type.');
+    if(!trueType) return FtthUI.alert({ title: 'Pick a type', message: 'Pick the true permit type.' });
     var feats=collectClassifyFeatures();
     try{
       var fb=await window.FtthLldApi.classifyFeedback({features: feats, predicted: lastClassify, true_permit_type: trueType, project_id: currentProjectId(), permit_id: currentCopilotPermitId()});
       document.getElementById('clsFeedbackMsg').textContent='Saved — total '+(fb.stats?.total||'?')+' label(s). Thank you.';
       var sEl=document.getElementById('clsStats'); if(sEl) sEl.textContent=(fb.stats?.total||0)+' label(s) · '+(fb.stats?.milestone_500? '500 reached' : (500-(fb.stats?.total||0))+' to 500');
-    }catch(e){ document.getElementById('clsFeedbackMsg').textContent='Feedback failed: '+(e.message||e); }
+    }catch(e){ document.getElementById('clsFeedbackMsg').textContent='Feedback failed: '+(FtthUI.humanize(e)); }
   });
   document.querySelectorAll('.pm-tab').forEach(function(b){ b.addEventListener('click', function(){ activateTab(b.dataset.tab); }); });
 
@@ -1525,7 +1630,7 @@
       var body = await window.FtthLldApi.permitRequirements(pid, permitType, permitId||undefined);
       renderRequirements(body);
       showStatus('Requirements checked.', true);
-    }catch(e){ showStatus(e.message||String(e), false); }
+    }catch(e){ showStatus(FtthUI.humanize(e)||String(e), false); }
   });
   document.getElementById('extractBtn').addEventListener('click', async function(){
     var pid=currentProjectId(); if(!pid) return showStatus('Pick a project first.', false);
@@ -1534,7 +1639,7 @@
       var body = await window.FtthLldApi.extractRequirements(pid, raw);
       renderRequirements(body);
       showStatus('Extracted '+(body.items||[]).length+' item(s).', true);
-    }catch(e){ showStatus(e.message||String(e), false); }
+    }catch(e){ showStatus(FtthUI.humanize(e)||String(e), false); }
   });
   document.getElementById('completeBtn').addEventListener('click', async function(){
     var permitId=currentCopilotPermitId(); if(!permitId) return showStatus('Pick a permit row.', false);
@@ -1547,7 +1652,7 @@
       html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span> · '+esc(body.level||'')+' · '+esc(String(body.readiness_pct))+'%</p>';
       document.getElementById('completeOut').innerHTML = html;
       showStatus('Completeness explained.', true);
-    }catch(e){ showStatus(e.message||String(e), false); }
+    }catch(e){ showStatus(FtthUI.humanize(e)||String(e), false); }
   });
   document.getElementById('riskBtn').addEventListener('click', async function(){
     var pid=currentProjectId(), permitId=currentCopilotPermitId();
@@ -1561,7 +1666,7 @@
       html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span></p>';
       document.getElementById('riskOut').innerHTML = html;
       showStatus('Risk explained.', true);
-    }catch(e){ showStatus(e.message||String(e), false); }
+    }catch(e){ showStatus(FtthUI.humanize(e)||String(e), false); }
   });
   document.getElementById('riskProjectBtn').addEventListener('click', async function(){
     var pid=currentProjectId(); if(!pid) return showStatus('Pick a project.', false);
@@ -1571,7 +1676,7 @@
       html += '<p class="muted">Counts: high '+esc(String((body.counts||{}).high||0))+' · medium '+esc(String((body.counts||{}).medium||0))+' · low '+esc(String((body.counts||{}).low||0))+'</p>';
       document.getElementById('riskOut').innerHTML = html;
       showStatus('Project risk overview ready.', true);
-    }catch(e){ showStatus(e.message||String(e), false); }
+    }catch(e){ showStatus(FtthUI.humanize(e)||String(e), false); }
   });
   document.getElementById('timelineBtn').addEventListener('click', async function(){
     var pid=currentProjectId(); if(!pid) return showStatus('Pick a project.', false);
@@ -1587,7 +1692,7 @@
       html += '<p>'+badgeAi(!!body.is_ai_generated)+' <span class="muted">'+esc(body.disclaimer||'')+'</span></p>';
       document.getElementById('timelineOut').innerHTML = html;
       showStatus('Timeline estimated.', true);
-    }catch(e){ showStatus(e.message||String(e), false); }
+    }catch(e){ showStatus(FtthUI.humanize(e)||String(e), false); }
   });
   function setDraftLoading(on){
     var s=document.getElementById('draftSpinner'); if(s) s.style.display=on?'inline':'none';
@@ -1655,7 +1760,7 @@
       var items = (body.drafts||[]).filter(function(d){ return d.draft_type==='cover'||d.draft_type==='narrative'; });
       if(!items.length) items = body.drafts||[];
       renderDraftHistory(items);
-    }catch(e){ if(!silent) el.textContent='Could not load history: ' + esc(e.message||String(e)); }
+    }catch(e){ if(!silent) el.textContent='Could not load history: ' + esc(FtthUI.humanize(e)); }
   }
   document.getElementById('draftCoverBtn').addEventListener('click', function(){ doDraft('cover'); });
   document.getElementById('draftNarrBtn').addEventListener('click', function(){ doDraft('narrative'); });
@@ -1671,43 +1776,55 @@
   var pmGenBtn = document.getElementById('pmGenPackage');
   var pmDlBtn = document.getElementById('pmDownloadPkg');
   if (pmGenHldBtn) {
-    pmGenHldBtn.addEventListener('click', function() {
+    pmGenHldBtn.addEventListener('click', async function() {
       var pid = currentProjectId();
-      if (!pid) { alert('Select a project first.'); return; }
+      if (!pid) { await FtthUI.alert({ title: 'No project selected', message: 'Select a project first.' }); return; }
       pmGenHldBtn.disabled = true;
       pmGenHldBtn.textContent = '⏳ Generating…';
-      window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/', { method: 'POST', body: JSON.stringify({}) })
-        .then(function(body) { alert('HLD preliminary package generated! (' + ((body && body.files) || []).length + ' files)'); checkHldPackage(pid); })
-        .catch(function(err) { alert('HLD package error: ' + err.message); })
-        .finally(function() { pmGenHldBtn.disabled = false; pmGenHldBtn.textContent = '📄 Generate HLD Package'; });
+      try {
+        var body = await window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/', { method: 'POST', body: JSON.stringify({}) });
+        FtthUI.toast('HLD preliminary package generated (' + ((body && body.files) || []).length + ' files)', 'success');
+        checkHldPackage(pid);
+      } catch (err) {
+        await FtthUI.alert({ title: 'HLD package failed', message: FtthUI.humanize(err) });
+      } finally {
+        pmGenHldBtn.disabled = false; pmGenHldBtn.textContent = '📄 Generate HLD Package';
+      }
     });
   }
   if (pmDlHldBtn) {
-    pmDlHldBtn.addEventListener('click', function() {
+    pmDlHldBtn.addEventListener('click', async function() {
       var pid = currentProjectId();
       if (!pid) return;
       var token = (window.FiberAuth && window.FiberAuth.getAccess()) || '';
-      window.FiberApi.rawFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/download/', { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } })
-        .then(function(r) { if (!r.ok) throw new Error('Download failed (status ' + r.status + ')'); return r.blob(); })
-        .then(function(blob) { var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = pid + '_hld_preliminary_package.zip'; document.body.appendChild(a); a.click(); setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200); })
-        .catch(function(err) { alert('HLD download failed: ' + err.message); });
+      try {
+        var r = await window.FiberApi.rawFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/hld-package/download/', { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } });
+        if (!r.ok) throw new Error('Download failed (status ' + r.status + ')');
+        var blob = await r.blob();
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = pid + '_hld_preliminary_package.zip'; document.body.appendChild(a); a.click(); setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
+      } catch (err) {
+        await FtthUI.alert({ title: 'HLD download failed', message: FtthUI.humanize(err) });
+      }
     });
   }
   if (pmGenBtn) {
-    pmGenBtn.addEventListener('click', function() {
+    pmGenBtn.addEventListener('click', async function() {
       var pid = currentProjectId();
-      if (!pid) { alert('Select a project first.'); return; }
+      if (!pid) { await FtthUI.alert({ title: 'No project selected', message: 'Select a project first.' }); return; }
       pmGenBtn.disabled = true;
       pmGenBtn.textContent = '⏳ Generating…';
-      window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/', {
-        method: 'POST',
-        body: JSON.stringify({})
-      })
-      .then(function(body) {
-        alert('Permit package generated! (' + ((body && body.files) || []).length + ' files)');
+      try {
+        var body = await window.FiberApi.apiFetch('/api/ftth/permits/projects/' + encodeURIComponent(pid) + '/package/', {
+          method: 'POST',
+          body: JSON.stringify({})
+        });
+        FtthUI.toast('Permit package generated (' + ((body && body.files) || []).length + ' files)', 'success');
         checkPackage(pid);
-      }).catch(function(err) { alert('Error: ' + err.message); })
-      .finally(function() { pmGenBtn.disabled = false; pmGenBtn.textContent = '📄 Generate LLD Package'; });
+      } catch (err) {
+        await FtthUI.alert({ title: 'Package failed', message: FtthUI.humanize(err) });
+      } finally {
+        pmGenBtn.disabled = false; pmGenBtn.textContent = '📄 Generate LLD Package';
+      }
     });
   }
   if (pmDlBtn) {
@@ -1731,7 +1848,7 @@
             setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
           });
         })
-        .catch(function(err) { alert('Download failed: ' + err.message); });
+        .catch(function(err) { alert('Download failed: ' + FtthUI.humanize(err)); });
     });
   }
 

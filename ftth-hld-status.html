@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>Pipeline Status | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
   <style>
     .ftth-status-content {
       max-width: 800px;
@@ -187,6 +185,10 @@
     }
 
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -275,6 +277,7 @@
   </main>
 </div>
 
+<script src="js/ftth-ui.js"></script>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -495,7 +498,7 @@
         surveyAssignSelect.appendChild(o);
       });
     } catch (err) {
-      surveyAssignMsg.textContent = 'Could not load engineers: ' + (err.message || err);
+      surveyAssignMsg.textContent = 'Could not load engineers: ' + (FtthUI.humanize(err));
     }
   }
 
@@ -519,7 +522,7 @@
         });
       } catch (err) {
         surveyAssignMsg.style.color = '#B91C1C';
-        surveyAssignMsg.textContent = 'Assignment failed: ' + (err.message || err);
+        surveyAssignMsg.textContent = 'Assignment failed: ' + (FtthUI.humanize(err));
       } finally {
         surveyAssignBtn.disabled = false;
       }

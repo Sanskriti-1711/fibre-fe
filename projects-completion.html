@@ -5,7 +5,9 @@
   <title>Projects Completion | Operations | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -30,7 +32,7 @@
     <div class="table-card" style="margin-bottom: 16px;">
       <div style="display: flex; gap: 16px; align-items: flex-end;">
         <div style="flex: 1; max-width: 400px;">
-          <label style="font-size: 12px; font-weight: 600; color: #6B7280; display: block; margin-bottom: 6px;">Select Project</label>
+          <label style="font-size: 12px; font-weight: 600; color: #616A75; display: block; margin-bottom: 6px;">Select Project</label>
           <select id="projectSelect" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 14px;">
             <option value="">Choose a project...</option>
           </select>
@@ -41,13 +43,13 @@
 
     <!-- Loading State -->
     <div id="loadingState" style="display: none; text-align: center; padding: 40px;">
-      <div style="font-size: 16px; color: #6B7280;">Loading completion metrics...</div>
+      <div style="font-size: 16px; color: #616A75;">Loading completion metrics...</div>
     </div>
 
     <!-- Empty State -->
     <div id="emptyState" style="display: none; text-align: center; padding: 60px 40px; background: #F9FAFB; border-radius: 12px; border: 1px dashed #D1D5DB;">
       <div style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 8px;">Select a Project</div>
-      <div style="font-size: 14px; color: #6B7280;">Choose a project from the dropdown to view completion metrics</div>
+      <div style="font-size: 14px; color: #616A75;">Choose a project from the dropdown to view completion metrics</div>
     </div>
 
     <!-- Completion Dashboard -->
@@ -60,8 +62,8 @@
         <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #E5E7EB; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
             <div>
-              <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px;">Standard Completion</div>
-              <div style="font-size: 11px; color: #9CA3AF; margin-top: 2px;">Simple count-based progress</div>
+              <div style="font-size: 12px; font-weight: 600; color: #616A75; text-transform: uppercase; letter-spacing: 0.5px;">Standard Completion</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">Simple count-based progress</div>
             </div>
             <div style="width: 48px; height: 48px; background: #DBEAFE; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
               <span style="font-size: 20px;">📊</span>
@@ -79,19 +81,19 @@
         <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #E5E7EB; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
             <div>
-              <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px;">Dynamic Completion</div>
-              <div style="font-size: 11px; color: #9CA3AF; margin-top: 2px;">Weight-based calculation</div>
+              <div style="font-size: 12px; font-weight: 600; color: #616A75; text-transform: uppercase; letter-spacing: 0.5px;">Dynamic Completion</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">Weight-based calculation</div>
             </div>
             <div style="width: 48px; height: 48px; background: #D1FAE5; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
               <span style="font-size: 20px;">⚖️</span>
             </div>
           </div>
-          <div style="font-size: 42px; font-weight: 700; color: #10B981;" id="dynamicValue">0%</div>
+          <div style="font-size: 42px; font-weight: 700; color: #047857;" id="dynamicValue">0%</div>
           <div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
             <div style="flex: 1; height: 8px; background: #E5E7EB; border-radius: 4px; overflow: hidden;">
-              <div id="dynamicBar" style="height: 100%; width: 0%; background: #10B981; border-radius: 4px; transition: width 0.5s ease;"></div>
+              <div id="dynamicBar" style="height: 100%; width: 0%; background: #047857; border-radius: 4px; transition: width 0.5s ease;"></div>
             </div>
-            <span id="weightsBadge" style="display: none; font-size: 10px; font-weight: 700; color: #10B981; background: #D1FAE5; padding: 2px 6px; border-radius: 4px;">WEIGHTED</span>
+            <span id="weightsBadge" style="display: none; font-size: 11px; font-weight: 700; color: #047857; background: #D1FAE5; padding: 2px 6px; border-radius: 4px;">WEIGHTED</span>
           </div>
         </div>
 
@@ -99,8 +101,8 @@
         <div style="background: white; border-radius: 12px; padding: 24px; border: 1px solid #E5E7EB; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
             <div>
-              <div style="font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px;">Feature Statistics</div>
-              <div style="font-size: 11px; color: #9CA3AF; margin-top: 2px;">Approval status overview</div>
+              <div style="font-size: 12px; font-weight: 600; color: #616A75; text-transform: uppercase; letter-spacing: 0.5px;">Feature Statistics</div>
+              <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">Approval status overview</div>
             </div>
             <div style="width: 48px; height: 48px; background: #FEF3C7; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
               <span style="font-size: 20px;">📋</span>
@@ -108,15 +110,15 @@
           </div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div style="text-align: center;">
-              <div id="approvedCount" style="font-size: 28px; font-weight: 700; color: #10B981;">0</div>
-              <div style="font-size: 11px; color: #6B7280;">Approved</div>
+              <div id="approvedCount" style="font-size: 28px; font-weight: 700; color: #047857;">0</div>
+              <div style="font-size: 11px; color: #616A75;">Approved</div>
             </div>
             <div style="text-align: center;">
               <div id="totalCount" style="font-size: 28px; font-weight: 700; color: #374151;">0</div>
-              <div style="font-size: 11px; color: #6B7280;">Total</div>
+              <div style="font-size: 11px; color: #616A75;">Total</div>
             </div>
           </div>
-          <div id="remainingCount" style="margin-top: 12px; text-align: center; font-size: 12px; color: #9CA3AF;">
+          <div id="remainingCount" style="margin-top: 12px; text-align: center; font-size: 12px; color: #6B7280;">
             0 features remaining
           </div>
         </div>
@@ -128,7 +130,7 @@
           Project: <span id="currentProjectName" style="font-weight: 600;">-</span>
         </div>
         <div style="display: flex; gap: 12px;">
-          <button id="configWeightsBtn" class="create-btn" type="button" style="background: #F59E0B;">
+          <button id="configWeightsBtn" class="create-btn" type="button" style="background: #B45309;">
             Configure Weights
           </button>
           <a id="viewQueueBtn" class="create-btn" href="#" style="background: #374151; text-decoration: none;">
@@ -141,7 +143,7 @@
       <div class="table-card">
         <div style="padding: 16px 20px; border-bottom: 1px solid #E5E7EB;">
           <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #111827;">Layer Breakdown</h3>
-          <p style="margin: 4px 0 0 0; font-size: 13px; color: #6B7280;">Per-layer progress and weight contribution</p>
+          <p style="margin: 4px 0 0 0; font-size: 13px; color: #616A75;">Per-layer progress and weight contribution</p>
         </div>
         <table>
           <thead>
@@ -155,7 +157,7 @@
           </thead>
           <tbody id="layersTbody">
             <tr>
-              <td colspan="5" style="padding: 40px; text-align: center; color: #6B7280;">
+              <td colspan="5" style="padding: 40px; text-align: center; color: #616A75;">
                 No layers available
               </td>
             </tr>
@@ -176,7 +178,7 @@
           <button onclick="WeightManagerModal.open(currentProjectId, { onSave: () => location.reload() })" style="
             padding: 8px 16px;
             font-size: 12px;
-            background: #10B981;
+            background: #047857;
             color: white;
             border: none;
             border-radius: 6px;
@@ -191,7 +193,8 @@
 </div>
 
 </body>
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script src="fiber-api.js"></script>
 <script src="js/components/progress-bar.js"></script>
 <script src="js/components/completion-card.js"></script>
@@ -253,7 +256,7 @@
       renderDashboard(completion, weights, project);
     } catch (err) {
       console.error('Failed to load completion:', err);
-      alert('Failed to load completion data: ' + err.message);
+      alert('Failed to load completion data: ' + FtthUI.humanize(err));
       showEmptyState();
     }
   }
@@ -328,7 +331,7 @@
     if (!layers || layers.length === 0) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="5" style="padding: 40px; text-align: center; color: #6B7280;">
+          <td colspan="5" style="padding: 40px; text-align: center; color: #616A75;">
             No layers available. Import data first.
           </td>
         </tr>
@@ -347,13 +350,13 @@
       tr.innerHTML = `
         <td>
           <div style="font-weight: 500; color: #374151;">${escapeHtml(layer.layer_name)}</div>
-          <div style="font-size: 11px; color: #9CA3AF;">${escapeHtml(layer.layer_id)}</div>
+          <div style="font-size: 11px; color: #6B7280;">${escapeHtml(layer.layer_id)}</div>
         </td>
         <td>
           <span style="
             font-size: 12px;
             font-weight: 600;
-            color: ${weight > 0 ? '#10B981' : '#9CA3AF'};
+            color: ${weight > 0 ? '#047857' : '#6B7280'};
             background: ${weight > 0 ? '#D1FAE5' : '#F3F4F6'};
             padding: 4px 8px;
             border-radius: 4px;
@@ -367,7 +370,7 @@
             <span style="font-size: 11px; font-weight: 600; color: #374151; min-width: 35px;">${progress.toFixed(1)}%</span>
           </div>
         </td>
-        <td style="font-size: 13px; color: #6B7280;">
+        <td style="font-size: 13px; color: #616A75;">
           ${layer.approved_features || 0} / ${layer.total_features || 0}
         </td>
         <td>

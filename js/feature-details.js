@@ -62,7 +62,7 @@ function setStatusPill(status) {
   let bg = '#F9FAFB';
   let color = '#374151';
   let border = '1px solid rgba(55,65,81,0.18)';
-  let dotBg = '#6B7280';
+  let dotBg = '#616A75';
   let icon = '';
 
   if (s === 'approved') {
@@ -70,7 +70,7 @@ function setStatusPill(status) {
     bg = '#ECFDF5';
     color = '#065F46';
     border = '1px solid rgba(6,95,70,0.18)';
-    dotBg = '#10B981';
+    dotBg = '#047857';
     icon = '✓';
   } else if (s === 'rejected') {
     label = 'Rejected';
@@ -98,7 +98,7 @@ function setStatusPill(status) {
     bg = '#FFFBEB';
     color = '#92400E';
     border = '1px solid rgba(146,64,14,0.18)';
-    dotBg = '#F59E0B';
+    dotBg = '#B45309';
     icon = '…';
   }
 
@@ -151,9 +151,9 @@ function renderAssignmentCard(assignment) {
   card.innerHTML =
     '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">'
       + '<div style="min-width:0;">'
-        + '<div style="font-size:12px; color:#6B7280; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;">Job Assigned</div>'
+        + '<div style="font-size:12px; color:#616A75; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;">Job Assigned</div>'
         + '<div style="font-size:14px; font-weight:800; color:#111827; margin-top:2px;">' + escapeHtml(name) + '</div>'
-        + (email ? ('<div style="font-size:13px; color:#6B7280; margin-top:2px;">' + escapeHtml(email) + '</div>') : '')
+        + (email ? ('<div style="font-size:13px; color:#616A75; margin-top:2px;">' + escapeHtml(email) + '</div>') : '')
       + '</div>'
       + '<div style="flex-shrink:0; display:flex; align-items:center; gap:8px;">'
         + '<span style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:#F3F4F6; color:#374151; border:1px solid rgba(55,65,81,0.14); font-size:12px; font-weight:700;">' + escapeHtml(scope) + '</span>'
@@ -460,7 +460,7 @@ function renderSchemaMeasurements(editable, properties, fm) {
     const td = document.createElement('td');
     td.colSpan = 3;
     td.style.padding = '12px';
-    td.style.color = '#6B7280';
+    td.style.color = '#616A75';
     td.textContent = 'No engineer-entered fields configured for this layer.';
     tr.appendChild(td);
     tbody.appendChild(tr);

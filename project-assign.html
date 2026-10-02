@@ -9,13 +9,13 @@
     :root {
       --tm-red: #E31837;
       --tm-dark: #1F2937;
-      --tm-gray: #6B7280;
+      --tm-gray: #616A75;
       --tm-light: #F9FAFB;
       --tm-white: #FFFFFF;
       --border: #E5E7EB;
-      --green: #059669;
-      --amber: #D97706;
-      --blue: #0EA5E9;
+      --green: #047857;
+      --amber: #92400E;
+      --blue: #0369A1;
     }
 
     * {
@@ -60,7 +60,7 @@
     }
 
     .nav-label {
-      color: #9CA3AF;
+      color: #6B7280;
       font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.08em;
@@ -242,7 +242,9 @@
       background: #111827;
     }
   </style>
-</head>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  </head>
 <body>
 
 <div class="layout">
@@ -317,7 +319,8 @@
   </div>
 </div>
 
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script src="fiber-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -351,7 +354,7 @@
       return;
     }
     assignStatus.textContent = message;
-    assignStatus.style.color = isError ? '#B91C1C' : '#6B7280';
+    assignStatus.style.color = isError ? '#B91C1C' : '#616A75';
   }
 
   function pickId(u) {

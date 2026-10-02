@@ -19,7 +19,7 @@ async function handleLogin(event) {
     }
     window.location.href = "engineer-dashboard.html";
   } catch (e) {
-    errorEl.textContent = e && e.message ? e.message : "Login failed";
+    errorEl.textContent = e && FtthUI.humanize(e) ? FtthUI.humanize(e) : "Login failed";
     errorEl.style.display = "block";
   }
 }

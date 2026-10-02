@@ -5,9 +5,6 @@
   <title>LLD Approval Queue | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-
   <style>
     .survey-changes-content {
       max-width: 1200px;
@@ -98,7 +95,7 @@
     .survey-table th {
       text-align: left;
       padding: 12px 16px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -188,7 +185,7 @@
       display: inline-block;
       padding: 6px 12px;
       border-radius: 6px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       border: 1px solid transparent;
@@ -204,6 +201,11 @@
     .survey-empty-state .icon { font-size: 48px; margin-bottom: 12px; }
     .survey-empty-state h2 { font-size: 18px; color: #1F2937; margin: 0 0 8px; }
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
+
 </head>
 <body>
 
@@ -247,6 +249,7 @@
 <!-- Toast notification -->
 <div id="toast" class="ftth-toast"></div>
 
+<script src="js/ftth-ui.js"></script>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -302,7 +305,7 @@
       renderProjects(projects);
     } catch (err) {
       console.error('Failed to load survey changes:', err);
-      projectsContainer.innerHTML = '<div style="text-align:center;padding:60px;color:#DC2626;">Failed to load survey changes: ' + escHtml(err.message || err) + '</div>';
+      projectsContainer.innerHTML = '<div style="text-align:center;padding:60px;color:#DC2626;">Failed to load survey changes: ' + escHtml(FtthUI.humanize(err)) + '</div>';
     }
   }
 
@@ -436,7 +439,11 @@
     const confirmMsg = isReplan
       ? 'Run a FULL RE-PLAN? This re-runs the routing algorithm with the approved survey as brownfield and takes 10–40 minutes. Only needed for structural changes (moved PDP, re-zoning, aerial conversion).'
       : 'Run LLD for this project? (applies survey changes to the HLD design — fast)';
-    if (!confirm(confirmMsg)) return;
+      if (!await window.FtthUI.confirm({
+        title: isReplan ? 'Run a full re-plan?' : 'Run LLD for this project?',
+        message: confirmMsg,
+        confirmLabel: isReplan ? 'Re-plan' : 'Run LLD'
+      })) return;
     const btn = document.querySelector('[data-run="' + projectId + '"][data-mode="' + mode + '"]');
     const all = document.querySelectorAll('[data-run="' + projectId + '"]');
     all.forEach(function(b) { b.disabled = true; });
@@ -449,7 +456,7 @@
         window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId);
       }, 800);
     } catch (err) {
-      showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + (err.message || err));
+      showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + (FtthUI.humanize(err)));
       all.forEach(function(b) {
         b.disabled = false;
         if (b.dataset.mode === 'verify') b.textContent = '&#x25B6; Run LLD';

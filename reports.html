@@ -9,7 +9,7 @@
     :root {
       --tm-red:#E31837;
       --tm-dark:#1F2937;
-      --tm-gray:#6B7280;
+      --tm-gray:#616A75;
       --tm-light:#F9FAFB;
       --tm-white:#FFFFFF;
       --border:#E5E7EB;
@@ -54,7 +54,7 @@
     }
 
     .nav-label {
-      color:#9CA3AF;
+      color:#6B7280;
       font-size:12px;
       font-weight:600;
       letter-spacing:0.08em;
@@ -172,7 +172,9 @@
     .status.error { color:var(--tm-red); }
     .status.ok { color:#047857; }
   </style>
+  <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -504,6 +506,7 @@
   loadProjects();
 </script>
 
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 </body>
 </html>

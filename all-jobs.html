@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <title>All Jobs | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css">
   <script src="fiber-api.js"></script>
 </head>
 <body class="all-jobs">
@@ -197,7 +199,8 @@
   </div>
 </div>
 
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script>
   // State
   let currentJobId = null;
@@ -455,8 +458,13 @@
     window.location.href = 'project-assign.html';
   }
 
-  function exportData() {
-    alert('Export functionality would download CSV here');
+  async function exportData() {
+    // Unimplemented control, kept as-is. The wording stays blunt rather
+    // than being dressed up as a real export flow.
+    await FtthUI.alert({
+      title: 'Export',
+      message: 'Export functionality would download CSV here'
+    });
   }
 
   function refreshTable() {
@@ -489,7 +497,7 @@
       currentJobId = jobId;
       document.getElementById('viewModal').style.display = 'flex';
     } catch (err) {
-      alert('Failed to load job details: ' + err.message);
+      alert('Failed to load job details: ' + FtthUI.humanize(err));
     }
   }
 
@@ -520,7 +528,10 @@
   async function confirmReassign() {
     const newEngineerId = document.getElementById('reassignEngineerSelect').value;
     if (!newEngineerId) {
-      alert('Please select an engineer');
+      await FtthUI.alert({
+        title: 'Pick an engineer',
+        message: 'Please select an engineer.'
+      });
       return;
     }
 
@@ -528,10 +539,13 @@
       showLoading(true);
       await FiberApi.updateAssignment(currentJobId, { assignee: newEngineerId });
       closeReassignModal();
-      alert('Engineer reassigned successfully');
+      FtthUI.toast('Engineer reassigned', 'success');
       refreshTable();
     } catch (err) {
-      alert('Failed to reassign: ' + err.message);
+      await FtthUI.alert({
+        title: 'Could not reassign',
+        message: FtthUI.humanize(err)
+      });
     } finally {
       showLoading(false);
     }
@@ -553,10 +567,13 @@
       showLoading(true);
       await FiberApi.deleteAssignment(currentJobId);
       closeDeleteModal();
-      alert('Job deleted successfully');
+      FtthUI.toast('Job deleted', 'success');
       refreshTable();
     } catch (err) {
-      alert('Failed to delete: ' + err.message);
+      await FtthUI.alert({
+        title: 'Could not delete',
+        message: FtthUI.humanize(err)
+      });
     } finally {
       showLoading(false);
     }

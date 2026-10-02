@@ -1,13 +1,13 @@
 :root {
   --tm-red: #E31837;
   --tm-dark: #1F2937;
-  --tm-gray: #6B7280;
+  --tm-gray: #616A75;
   --tm-light: #F9FAFB;
   --tm-white: #FFFFFF;
   --border: #E5E7EB;
-  --green: #059669;
-  --amber: #D97706;
-  --blue: #0EA5E9;
+  --green: #047857;
+  --amber: #92400E;
+  --blue: #0369A1;
 }
 
 * {
@@ -42,7 +42,7 @@ body {
 }
 .sidebar h2 {
     margin: 0 0 32px;
-    color: var(--tm-red);
+    color: #FF6B81;
     font-size: 20px;
 }
 .sidebar::-webkit-scrollbar {
@@ -80,7 +80,7 @@ body {
 }
 
 .nav-label {
-  color: #9CA3AF;
+  color: #C3CAD6;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -149,9 +149,9 @@ body {
 
 .kpi-card {
   background: var(--tm-white);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 20px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
   border-left: 4px solid var(--tm-red);
 }
 
@@ -170,10 +170,10 @@ body {
 
 .section {
   background: var(--tm-white);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .section h3 {
@@ -183,9 +183,9 @@ body {
 
 .table-card {
   background: var(--tm-white);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 24px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 table {
@@ -390,8 +390,8 @@ tr:hover {
 .card {
   background: var(--tm-white);
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 
 .card h3 {
@@ -427,7 +427,11 @@ tr:hover {
 
 .kpi-grid.overview {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* minmax(0, 1fr), not 1fr. A bare 1fr is minmax(auto, 1fr), so a track
+     refuses to shrink below its content's min-content width; on a 390px
+     screen the last card is pushed past the viewport edge and half of it
+     is simply gone. Zero says "this track may shrink past its content". */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-top: 16px;
 }
@@ -435,8 +439,8 @@ tr:hover {
 .kpi-card.overview {
   background: var(--tm-white);
   padding: 20px 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   border-left: 4px solid var(--tm-red);
 }
 
@@ -707,8 +711,8 @@ tr:hover {
   margin: 0 auto;
   background: var(--tm-white);
   padding: 28px;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
 }
 
 .engineer-activity .content h1 {
@@ -746,10 +750,10 @@ tr:hover {
   --light: #F8FAFC;
   --white: #FFFFFF;
   --border: #E2E8F0;
-  --green: #059669;
-  --amber: #D97706;
+  --green: #047857;
+  --amber: #92400E;
   --ink: #0B1020;
-  --accent: #0EA5E9;
+  --accent: #0369A1;
   --font-head: "Trebuchet MS", "Lucida Sans Unicode", sans-serif;
   --font-body: "Verdana", "Geneva", sans-serif;
   background: radial-gradient(1200px 600px at 20% -10%, #E0F2FE 0%, #F8FAFC 45%, #F1F5F9 100%);
@@ -831,11 +835,10 @@ tr:hover {
 
 .engineer-feature-submit .card {
   background: var(--white);
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 14px;
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .engineer-feature-submit .section-title {
@@ -963,7 +966,7 @@ tr:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0EA5E9;
+  color: #0369A1;
   font-size: 12px;
   border: 1px dashed #7DD3FC;
   margin-bottom: 12px;
@@ -985,12 +988,16 @@ tr:hover {
   display: block;
 }
 
+/* This pill carries a sentence, not a status word, so it is a block that
+   wraps. As an inline-flex sized to max-content it was 403px wide on a
+   390px screen and hung 29px off the right edge. */
 .engineer-feature-submit .pill {
-  display: inline-flex;
+  display: block;
   align-items: center;
   gap: 6px;
+  max-width: 100%;
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
   background: #F1F5F9;
@@ -1059,7 +1066,7 @@ tr:hover {
 .engineer-notifications {
   --tm-red: #E31837;
   --dark: #1F2937;
-  --gray: #6B7280;
+  --gray: #616A75;
   --light: #F9FAFB;
   --white: #FFFFFF;
   background: var(--light);
@@ -1107,9 +1114,9 @@ tr:hover {
 .engineer-notifications .notification {
   background: var(--white);
   padding: 14px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   margin-bottom: 12px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
   font-size: 14px;
 }
 
@@ -1144,7 +1151,7 @@ tr:hover {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--gray);
   text-decoration: none;
@@ -1172,7 +1179,7 @@ tr:hover {
 .engineer-profile {
   --tm-red: #E31837;
   --dark: #1F2937;
-  --gray: #6B7280;
+  --gray: #616A75;
   --light: #F9FAFB;
   --white: #FFFFFF;
   --border: #E5E7EB;
@@ -1221,9 +1228,9 @@ tr:hover {
 .engineer-profile .card {
   background: var(--white);
   padding: 16px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   margin-bottom: 14px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .engineer-profile label {
@@ -1279,7 +1286,7 @@ tr:hover {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--gray);
   text-decoration: none;
@@ -1307,12 +1314,12 @@ tr:hover {
 .engineer-project-details {
   --tm-red: #E31837;
   --dark: #1F2937;
-  --gray: #6B7280;
+  --gray: #616A75;
   --light: #F9FAFB;
   --white: #FFFFFF;
   --border: #E5E7EB;
-  --green: #059669;
-  --amber: #D97706;
+  --green: #047857;
+  --amber: #92400E;
   background: var(--light);
   color: var(--dark);
 }
@@ -1340,10 +1347,10 @@ tr:hover {
 
 .engineer-project-details .card {
   background: var(--white);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 14px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .engineer-project-details .project-title {
@@ -1374,7 +1381,7 @@ tr:hover {
 
 .engineer-project-details .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: 10px;
 }
@@ -1464,8 +1471,8 @@ tr:hover {
 
 .engineer-project-map {
   --tm-red: #E31837;
-  --green: #059669;
-  --amber: #D97706;
+  --green: #047857;
+  --amber: #92400E;
   margin: 0;
   height: 100vh;
 }
@@ -1526,7 +1533,7 @@ tr:hover {
 .fe-accept-invite {
   --tm-red: #E31837;
   --tm-dark: #1F2937;
-  --tm-gray: #6B7280;
+  --tm-gray: #616A75;
   --tm-light: #F9FAFB;
   --tm-white: #FFFFFF;
   background: var(--tm-light);
@@ -1550,8 +1557,8 @@ tr:hover {
   max-width: 460px;
   background: var(--tm-white);
   padding: 32px;
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
 }
 
 .fe-accept-invite .header {
@@ -1631,7 +1638,7 @@ tr:hover {
 .engineer-login {
   --tm-red: #E31837;
   --tm-dark: #1F2937;
-  --tm-gray: #6B7280;
+  --tm-gray: #616A75;
   --tm-light: #F9FAFB;
   --tm-white: #FFFFFF;
   background: var(--tm-light);
@@ -1684,8 +1691,8 @@ tr:hover {
   max-width: 420px;
   background: var(--tm-white);
   padding: 32px;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
 }
 
 .engineer-login .logo {
@@ -1850,7 +1857,7 @@ tr:hover {
 
 .all-jobs .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -1858,8 +1865,8 @@ tr:hover {
 .all-jobs .stat-card {
   background: var(--tm-white);
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 
 .all-jobs .stat-value {
@@ -1880,8 +1887,8 @@ tr:hover {
 
 .all-jobs .table-container {
   background: var(--tm-white);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
@@ -2170,8 +2177,8 @@ tr:hover {
   margin: 0 auto;
   background: var(--tm-white);
   padding: 28px;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
 }
 
 .engineers-list h1 {
@@ -2268,8 +2275,8 @@ tr:hover {
   color: var(--tm-gray);
   font-size: 16px;
   background: var(--tm-white);
-  border-radius: 8px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Status Breakdown */
@@ -2699,7 +2706,7 @@ tr:hover {
 
 .engineer-activity-admin .timeline-time {
   font-size: 11px;
-  color: #9CA3AF;
+  color: #6B7280;
 }
 
 .engineer-activity-admin .empty-state {
@@ -2854,10 +2861,10 @@ tr:hover {
 
 .engineer-activity-admin .activity-overview-section {
   background: var(--tm-white);
-  border-radius: 8px;
+  border-radius: var(--radius);
   padding: 24px 28px;
   margin-bottom: 20px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .engineer-activity-admin .activity-overview-header {
@@ -2904,7 +2911,7 @@ tr:hover {
 }
 
 .engineer-activity-admin .overview-metric-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--tm-gray);
   letter-spacing: 0.08em;
@@ -2920,10 +2927,10 @@ tr:hover {
 /* Status Section */
 .engineer-activity-admin .status-section {
   background: var(--tm-white);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 20px 24px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-md);
   border: 1px solid var(--border);
 }
 
@@ -2984,11 +2991,11 @@ tr:hover {
 }
 
 .engineer-activity-admin .status-dot.pending {
-  background: #F59E0B;
+  background: #B45309;
 }
 
 .engineer-activity-admin .status-dot.assigned {
-  background: #0EA5E9;
+  background: #0369A1;
 }
 
 .engineer-activity-admin .status-dot.review {
@@ -2996,7 +3003,7 @@ tr:hover {
 }
 
 .engineer-activity-admin .status-dot.approved {
-  background: #10B981;
+  background: #047857;
 }
 
 .engineer-activity-admin .status-dot.redo {
@@ -3049,482 +3056,6 @@ tr:hover {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   DESIGN SYSTEM 2.0 — cohesive layer on top of the base styles
-   Keeps every page consistent: sidebar, buttons, badges, tables, cards,
-   forms, empty states, alerts. Loaded after all page-specific styles.
-   ═══════════════════════════════════════════════════════════════════════ */
-
-:root {
-  --brand: #E31837;
-  --brand-dark: #C41230;
-  --brand-soft: #FDF1F3;
-  --ink: #111827;
-  --ink-soft: #374151;
-  --muted: #6B7280;
-  --line: #E5E7EB;
-  --surface: #FFFFFF;
-  --bg: #F4F5F7;
-  --success: #059669;
-  --success-soft: #D1FAE5;
-  --warning: #D97706;
-  --warning-soft: #FEF3C7;
-  --danger: #DC2626;
-  --danger-soft: #FEE2E2;
-  --info: #2563EB;
-  --info-soft: #DBEAFE;
-  --radius-sm: 6px;
-  --radius: 10px;
-  --radius-lg: 14px;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
-  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.05);
-  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12), 0 4px 8px rgba(16, 24, 40, 0.06);
-  --transition: 160ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-body {
-  background: var(--bg);
-}
-
-/* ── Sidebar ─────────────────────────────────────────────────────────── */
-.sidebar {
-  width: 260px;
-  background: linear-gradient(180deg, #161B25 0%, #0F141D 100%);
-  padding: 20px 14px;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.sidebar h2 {
-  margin: 0 0 28px;
-  padding: 0 12px;
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  color: var(--brand);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sidebar h2::before {
-  content: "";
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: linear-gradient(135deg, var(--brand), #FF6B81);
-  box-shadow: 0 0 0 4px rgba(227, 24, 55, 0.18);
-}
-
-.nav {
-  gap: 20px;
-}
-
-.nav-section {
-  gap: 2px;
-}
-
-.nav-label {
-  padding: 0 12px;
-  margin-bottom: 6px;
-  color: #8A94A6;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-}
-
-.nav a {
-  position: relative;
-  padding: 9px 12px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  color: #B6BECB;
-  transition: background var(--transition), color var(--transition);
-}
-
-.nav a:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #FFFFFF;
-}
-
-.nav a.active {
-  background: rgba(227, 24, 55, 0.14);
-  color: #FFFFFF;
-  font-weight: 600;
-}
-
-.nav a.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 20%;
-  bottom: 20%;
-  width: 3px;
-  border-radius: 2px;
-  background: var(--brand);
-}
-
-/* ── Content + page header ───────────────────────────────────────────── */
-.content {
-  padding: 28px 32px;
-}
-
-.header {
-  margin-bottom: 24px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--line);
-}
-
-.header h1 {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-}
-
-.header p {
-  font-size: 13.5px;
-}
-
-/* ── Buttons ─────────────────────────────────────────────────────────── */
-.create-btn,
-.btn,
-button.btn-primary,
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  font-weight: 600;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all var(--transition);
-  text-decoration: none;
-}
-
-.create-btn,
-.btn-primary,
-.btn-primary:hover {
-  background: var(--brand);
-  color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(227, 24, 55, 0.28);
-}
-
-.create-btn:hover,
-.btn-primary:hover {
-  background: var(--brand-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(227, 24, 55, 0.32);
-}
-
-.btn-secondary {
-  background: #374151;
-  color: #FFFFFF;
-  border-color: #374151;
-}
-
-.btn-secondary:hover {
-  background: #4B5563;
-}
-
-.btn-outline,
-.btn-ghost {
-  background: var(--surface);
-  color: var(--ink-soft);
-  border-color: var(--line);
-}
-
-.btn-outline:hover,
-.btn-ghost:hover {
-  border-color: #CBD5E1;
-  background: #F9FAFB;
-}
-
-.btn-danger {
-  background: var(--danger);
-  color: #FFFFFF;
-}
-
-.btn-danger:hover {
-  background: #B91C1C;
-}
-
-.btn:disabled,
-.create-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 6px;
-}
-
-.btn-lg {
-  padding: 12px 24px;
-  font-size: 15px;
-}
-
-/* ── Cards, sections, tables ─────────────────────────────────────────── */
-.section,
-.table-card,
-.card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-}
-
-.table-card {
-  overflow: hidden;
-}
-
-/* Only pull a DIRECT child table to the card edges when it fills the
-   default 24px padding — scoped so wrapped/nested tables never shift. */
-.table-card > table:first-child:last-child {
-  margin: -24px;
-  width: calc(100% + 48px);
-}
-
-thead th {
-  background: #F9FAFB;
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-tbody tr {
-  transition: background var(--transition);
-}
-
-tbody tr:hover {
-  background: #F8FAFC;
-}
-
-/* ── KPI cards ───────────────────────────────────────────────────────── */
-.kpi-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition), box-shadow var(--transition);
-}
-
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.kpi-value {
-  font-size: 28px;
-  letter-spacing: -0.5px;
-}
-
-/* ── Badges ──────────────────────────────────────────────────────────── */
-.badge,
-.status-badge,
-.pill,
-.layer-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11.5px;
-  font-weight: 600;
-  line-height: 1.4;
-  white-space: nowrap;
-}
-
-.status-badge.completed,
-.badge-green {
-  background: var(--success-soft);
-  color: #065F46;
-}
-
-.status-badge.pending,
-.badge-amber {
-  background: var(--warning-soft);
-  color: #92400E;
-}
-
-.status-badge.failed,
-.badge-red {
-  background: var(--danger-soft);
-  color: #991B1B;
-}
-
-.badge-blue {
-  background: var(--info-soft);
-  color: #1E40AF;
-}
-
-.badge-gray {
-  background: #F3F4F6;
-  color: #4B5563;
-}
-
-/* ── Forms ───────────────────────────────────────────────────────────── */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="date"],
-input[type="search"],
-select,
-textarea {
-  padding: 10px 12px;
-  border: 1px solid #D1D5DB;
-  border-radius: 8px;
-  font-size: 13.5px;
-  background: var(--surface);
-  color: var(--ink);
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(227, 24, 55, 0.12);
-}
-
-label {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--ink-soft);
-}
-
-/* ── Empty states ────────────────────────────────────────────────────── */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 56px 24px;
-  text-align: center;
-  color: var(--muted);
-}
-
-.empty-state .empty-icon {
-  font-size: 42px;
-  opacity: 0.85;
-}
-
-.empty-state h3 {
-  margin: 0;
-  font-size: 16px;
-  color: var(--ink-soft);
-}
-
-.empty-state p {
-  margin: 0;
-  font-size: 13.5px;
-  max-width: 420px;
-}
-
-/* ── Alerts ──────────────────────────────────────────────────────────── */
-.alert {
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-size: 13.5px;
-  border: 1px solid transparent;
-  margin-bottom: 16px;
-}
-
-.alert-success {
-  background: var(--success-soft);
-  border-color: #A7F3D0;
-  color: #065F46;
-}
-
-.alert-warning {
-  background: var(--warning-soft);
-  border-color: #FDE68A;
-  color: #92400E;
-}
-
-.alert-error,
-.alert-danger {
-  background: var(--danger-soft);
-  border-color: #FECACA;
-  color: #991B1B;
-}
-
-.alert-info {
-  background: var(--info-soft);
-  border-color: #BFDBFE;
-  color: #1E40AF;
-}
-
-/* ── Modals ──────────────────────────────────────────────────────────── */
-.modal {
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--line);
-}
-
-/* ── Scrollbars (subtle) ─────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 5px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* ── Responsive sidebar ──────────────────────────────────────────────── */
-@media (max-width: 860px) {
-  .layout {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: static;
-    padding: 14px;
-  }
-
-  .sidebar h2 {
-    margin-bottom: 14px;
-  }
-
-  .nav {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 8px;
-  }
-
-  .nav-section {
-    display: contents;
-  }
-
-  .nav-label {
-    grid-column: 1 / -1;
-    margin-bottom: 2px;
-  }
-
-  .content {
-    padding: 20px 16px;
-  }
-}
-/* ═══════════════════════════════════════════════════════════════════════
    SHARED COMPONENTS — CompletionCard + ProgressBar
    These classes style the JS-rendered components so they match the rest
    of the design system (previously they used raw inline styles).
@@ -3575,7 +3106,7 @@ label {
 
 .ds-progress-row-label {
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
   min-width: 55px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -3594,9 +3125,9 @@ label {
 }
 
 .ds-progress-badge {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
-  color: #10B981;
+  color: #047857;
   background: #D1FAE5;
   padding: 2px 4px;
   border-radius: 3px;
@@ -3620,13 +3151,13 @@ label {
 .ds-completion-loading {
   padding: 20px;
   text-align: center;
-  color: #6B7280;
+  color: #616A75;
   font-size: 14px;
 }
 
 .ds-completion-error {
   padding: 16px;
-  color: #DC2626;
+  color: #B91C1C;
   font-size: 13px;
 }
 
@@ -3648,18 +3179,18 @@ label {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .ds-completion-compact-stats {
   font-size: 11px;
-  color: #6B7280;
+  color: #616A75;
   line-height: 1.4;
 }
 
 .ds-completion-weighted {
-  color: #10B981;
+  color: #047857;
 }
 
 .ds-completion-header {
@@ -3720,8 +3251,8 @@ label {
 }
 
 .ds-completion-metric-subtitle {
-  font-size: 10px;
-  color: #6B7280;
+  font-size: 11px;
+  color: #616A75;
   margin-top: 4px;
 }
 
@@ -3740,7 +3271,7 @@ label {
 
 .ds-completion-stats-label {
   font-size: 12px;
-  color: #6B7280;
+  color: #616A75;
   margin-top: 4px;
 }
 
@@ -3777,7 +3308,7 @@ label {
 }
 
 .ds-completion-breakdown-weight {
-  color: #6B7280;
+  color: #616A75;
 }
 
 .ds-completion-breakdown-track {
@@ -3794,5 +3325,5 @@ label {
 
 .ds-completion-breakdown-count {
   text-align: right;
-  color: #6B7280;
+  color: #616A75;
 }

@@ -9,11 +9,11 @@
     :root {
       --tm-red:#E31837;
       --dark:#1F2937;
-      --gray:#6B7280;
+      --gray:#616A75;
       --light:#F9FAFB;
       --white:#FFFFFF;
-      --green:#059669;
-      --amber:#F59E0B;
+      --green:#047857;
+      --amber:#B45309;
       --blue:#3B82F6;
     }
 
@@ -70,7 +70,7 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       margin-bottom: 20px;
     }
@@ -89,7 +89,7 @@
     }
 
     .stat-label {
-      font-size: 11px;
+      font-size: 12px;
       color: var(--gray);
       margin-top: 4px;
       text-transform: uppercase;
@@ -222,7 +222,7 @@
 
     @media (max-width: 600px) {
       body { padding-bottom: 72px; }
-      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
       .stat-value { font-size: 20px; }
     }
 
@@ -248,7 +248,7 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--gray);
       min-width: 64px;
@@ -278,10 +278,12 @@
     .error-state {
       text-align: center;
       padding: 40px;
-      color: #DC2626;
+      color: #B91C1C;
     }
   </style>
-</head>
+  <link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/components.css">
+  </head>
 <body>
 
 <header class="top-bar" role="banner">
@@ -360,7 +362,7 @@
 <div id="submitModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
   <div style="background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; margin: 20px;">
     <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Submit for Review</h3>
-    <p style="margin: 0 0 16px 0; font-size: 14px; color: #6B7280;">
+    <p style="margin: 0 0 16px 0; font-size: 14px; color: #616A75;">
       You are about to submit <strong id="submitCount">0</strong> feature(s) for admin review. 
       Once submitted, you cannot make changes until approved or returned for redo.
     </p>
@@ -371,6 +373,7 @@
   </div>
 </div>
 
+<script src="../js/ftth-ui.js"></script>
 <script src="js/fiber-api.js"></script>
 <script src="js/api.js"></script>
 <script>
@@ -438,7 +441,7 @@
     } catch (err) {
       console.error('Failed to load assignments:', err);
       document.getElementById('projectsContainer').innerHTML = 
-        `<div class="error-state">Failed to load projects: ${err.message}</div>`;
+        `<div class="error-state">Failed to load projects: ${FtthUI.humanize(err)}</div>`;
     }
   }
 
@@ -548,20 +551,23 @@
     `;
   }
 
-  function openSubmitModal(projectId) {
-    pendingSubmitProjectId = projectId;
-    
-    // Count selected features for this project
-    const projectFeatures = currentAssignments
-      .filter(job => job.project?.id === projectId && job.feature)
-      .map(job => job.feature.id);
-    
-    const selectedCount = Array.from(selectedFeatures).filter(id => projectFeatures.includes(id)).length;
-    
-    if (selectedCount === 0) {
-      alert('Please select at least one feature to submit');
-      return;
-    }
+    async function openSubmitModal(projectId) {
+      pendingSubmitProjectId = projectId;
+      
+      // Count selected features for this project
+      const projectFeatures = currentAssignments
+        .filter(job => job.project?.id === projectId && job.feature)
+        .map(job => job.feature.id);
+      
+      const selectedCount = Array.from(selectedFeatures).filter(id => projectFeatures.includes(id)).length;
+      
+      if (selectedCount === 0) {
+        await FtthUI.alert({
+          title: 'Nothing selected',
+          message: 'Please select at least one feature to submit.'
+        });
+        return;
+      }
     
     document.getElementById('submitCount').textContent = selectedCount;
     document.getElementById('submitModal').style.display = 'flex';
@@ -582,7 +588,10 @@
     const featuresToSubmit = Array.from(selectedFeatures).filter(id => projectFeatures.includes(id));
     
     if (featuresToSubmit.length === 0) {
-      alert('No features selected');
+      await FtthUI.alert({
+        title: 'Nothing selected',
+        message: 'No features selected.'
+      });
       return;
     }
 
@@ -598,9 +607,14 @@
       loadStats();
       loadAssignments();
       
-      alert('Features submitted for review successfully!');
+      // Success is not an interruption. A modal that demands a click to
+      // dismiss "submitted successfully" makes the happy path feel broken.
+      FtthUI.toast('Features submitted for review successfully.', 'success');
     } catch (err) {
-      alert('Failed to submit features: ' + err.message);
+      await FtthUI.alert({
+        title: 'Could not submit features',
+        message: FtthUI.humanize(err)
+      });
     }
   }
 

@@ -4,119 +4,233 @@
   <meta charset="UTF-8" />
   <title>LLD Versions | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <style>
+
+      .ftth-meta-row {
+
+        display: flex;
+
+        gap: 20px;
+
+        flex-wrap: wrap;
+
+        margin: 12px 0 0;
+
+        font-size: 13px;
+
+        color: #616A75;
+
+      }
+
+      .ftth-meta-row strong { color: #1F2937; }
+
+      .ftth-project-id {
+
+        font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+
+        font-size: 12px;
+
+        color: #616A75;
+
+        background: #F3F4F6;
+
+        padding: 4px 10px;
+
+        border-radius: 4px;
+
+        word-break: break-all;
+
+      }
+
+      .lld-header-row {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        flex-wrap: wrap;
+
+        gap: 12px;
+
+      }
+
+      .lld-header-row h1 { margin: 0; font-size: 20px; }
+
+      .lld-page-error {
+
+        display: none;
+
+        background: #FEF2F2;
+
+        border: 1px solid #FECACA;
+
+        color: #991B1B;
+
+        border-radius: 10px;
+
+        padding: 14px 18px;
+
+        font-size: 13px;
+
+        margin-bottom: 16px;
+
+      }
+
+      .lld-run-table-wrap { overflow-x: auto; }
+
+  
+
+      /* ---- Progress bar ---- */
+
+      .lld-progress-card {
+
+        display: none;
+
+        margin-bottom: 16px;
+
+        padding: 16px 18px;
+
+        background: #EEF2FF;
+
+        border: 1px solid #C7D2FE;
+
+        border-radius: 10px;
+
+      }
+
+      .lld-progress-card.show { display: block; }
+
+      .lld-progress-head {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        flex-wrap: wrap;
+
+        gap: 8px;
+
+        margin-bottom: 10px;
+
+        font-size: 13px;
+
+        color: #3730A3;
+
+        font-weight: 600;
+
+      }
+
+      .lld-progress-head .pct { font-size: 20px; font-weight: 800; color: #4338CA; }
+
+      .lld-progress-track {
+
+        height: 10px;
+
+        background: #E0E7FF;
+
+        border-radius: 999px;
+
+        overflow: hidden;
+
+      }
+
+      .lld-progress-fill {
+
+        height: 100%;
+
+        width: 0%;
+
+        background: linear-gradient(90deg, #6366F1, #4F46E5);
+
+        border-radius: 999px;
+
+        transition: width 0.4s ease;
+
+      }
+
+      .lld-progress-stage {
+
+        margin-top: 8px;
+
+        font-size: 12px;
+
+        color: #616A75;
+
+      }
+
+  
+
+      /* ---- Action buttons ---- */
+
+      .lld-action-btn {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 5px;
+
+        padding: 6px 10px;
+
+        margin: 2px 4px 2px 0;
+
+        border: 1px solid #D1D5DB;
+
+        background: #FFFFFF;
+
+        color: #1F2937;
+
+        border-radius: 7px;
+
+        font-size: 12px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        text-decoration: none;
+
+        white-space: nowrap;
+
+        transition: all 0.15s ease;
+
+      }
+
+      .lld-action-btn:hover { background: #F3F4F6; border-color: #6B7280; }
+
+      .lld-action-btn.view {
+
+        border-color: #A5B4FC;
+
+        color: #4338CA;
+
+        background: #EEF2FF;
+
+      }
+
+      .lld-action-btn.view:hover { background: #E0E7FF; }
+
+      .lld-action-btn:disabled {
+
+        opacity: 0.45;
+
+        cursor: not-allowed;
+
+        pointer-events: none;
+
+      }
+
+    </style>
+<link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/ftth.css" />
-  <style>
-    .ftth-meta-row {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin: 12px 0 0;
-      font-size: 13px;
-      color: #6B7280;
-    }
-    .ftth-meta-row strong { color: #1F2937; }
-    .ftth-project-id {
-      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
-      font-size: 12px;
-      color: #6B7280;
-      background: #F3F4F6;
-      padding: 4px 10px;
-      border-radius: 4px;
-      word-break: break-all;
-    }
-    .lld-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .lld-header-row h1 { margin: 0; font-size: 20px; }
-    .lld-page-error {
-      display: none;
-      background: #FEF2F2;
-      border: 1px solid #FECACA;
-      color: #991B1B;
-      border-radius: 10px;
-      padding: 14px 18px;
-      font-size: 13px;
-      margin-bottom: 16px;
-    }
-    .lld-run-table-wrap { overflow-x: auto; }
-
-    /* ---- Progress bar ---- */
-    .lld-progress-card {
-      display: none;
-      margin-bottom: 16px;
-      padding: 16px 18px;
-      background: #EEF2FF;
-      border: 1px solid #C7D2FE;
-      border-radius: 10px;
-    }
-    .lld-progress-card.show { display: block; }
-    .lld-progress-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 13px;
-      color: #3730A3;
-      font-weight: 600;
-    }
-    .lld-progress-head .pct { font-size: 20px; font-weight: 800; color: #4338CA; }
-    .lld-progress-track {
-      height: 10px;
-      background: #E0E7FF;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .lld-progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #6366F1, #4F46E5);
-      border-radius: 999px;
-      transition: width 0.4s ease;
-    }
-    .lld-progress-stage {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #6B7280;
-    }
-
-    /* ---- Action buttons ---- */
-    .lld-action-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 6px 10px;
-      margin: 2px 4px 2px 0;
-      border: 1px solid #D1D5DB;
-      background: #FFFFFF;
-      color: #1F2937;
-      border-radius: 7px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: all 0.15s ease;
-    }
-    .lld-action-btn:hover { background: #F3F4F6; border-color: #9CA3AF; }
-    .lld-action-btn.view {
-      border-color: #A5B4FC;
-      color: #4338CA;
-      background: #EEF2FF;
-    }
-    .lld-action-btn.view:hover { background: #E0E7FF; }
-    .lld-action-btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-  </style>
+  <link rel="stylesheet" href="css/components.css">
+  
 </head>
 <body>
 
@@ -132,7 +246,7 @@
           <div class="lld-header-row">
             <div>
               <h1>LLD Versions</h1>
-              <div style="margin-top:6px;font-size:13px;color:#6B7280;">
+              <div style="margin-top:6px;font-size:13px;color:#616A75;">
                 <strong id="projectName" style="color:#1F2937;">Loading&#x2026;</strong>
               </div>
               <div class="ftth-meta-row">
@@ -173,7 +287,7 @@
         <!-- Run history -->
         <div class="card">
           <h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:#1F2937;">
-            LLD Run History <span class="badge" style="font-size:11px;font-weight:600;color:#6B7280;background:#F3F4F6;padding:2px 10px;border-radius:999px;" id="runsCount">0</span>
+            LLD Run History <span class="badge" style="font-size:11px;font-weight:600;color:#616A75;background:#F3F4F6;padding:2px 10px;border-radius:999px;" id="runsCount">0</span>
           </h3>
           <div class="lld-run-table-wrap">
             <table class="lld-run-table">
@@ -202,12 +316,12 @@
         <!-- Cross-run diff (Tier-1 A24) -->
         <div class="card" id="diffCard">
           <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;color:#1F2937;">
-            &#x1F9F9; Version Diff <span style="font-size:11px;font-weight:600;color:#6B7280;background:#F3F4F6;padding:2px 10px;border-radius:999px;">what changed between runs</span>
+            &#x1F9F9; Version Diff <span style="font-size:11px;font-weight:600;color:#616A75;background:#F3F4F6;padding:2px 10px;border-radius:999px;">what changed between runs</span>
           </h3>
-          <div style="margin-bottom:10px;font-size:12.5px;color:#6B7280;">Compare two completed LLD runs — per-layer feature counts, network length and validation, straight from the persisted outputs.</div>
+          <div style="margin-bottom:10px;font-size:12.5px;color:#616A75;">Compare two completed LLD runs — per-layer feature counts, network length and validation, straight from the persisted outputs.</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
             <select id="diffFrom" style="padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:12.5px;background:#fff;"></select>
-            <span style="color:#6B7280;font-size:13px;">&#x2192;</span>
+            <span style="color:#616A75;font-size:13px;">&#x2192;</span>
             <select id="diffTo" style="padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:12.5px;background:#fff;"></select>
             <button id="diffBtn" class="lld-action-btn view" type="button">Compare</button>
           </div>
@@ -228,7 +342,7 @@
               <tbody id="diffBody"></tbody>
             </table>
           </div>
-          <div id="diffEmpty" style="font-size:12.5px;color:#6B7280;">At least two completed LLD runs are needed for a diff.</div>
+          <div id="diffEmpty" style="font-size:12.5px;color:#616A75;">At least two completed LLD runs are needed for a diff.</div>
         </div>
 
       </div>
@@ -236,7 +350,8 @@
   </main>
 </div>
 
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script src="js/ftth-config.js"></script>
 <script src="fiber-api.js"></script>
 <script src="js/ftth-lld-api.js"></script>

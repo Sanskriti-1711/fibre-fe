@@ -7,121 +7,234 @@
 
   <!-- MapLibre GL -->
   <script src="vendor/maplibre/maplibre-gl.js"></script>
+  
+  <style>
+
+      .ftth-results-layout { display:flex; width:100%; height:100vh; overflow:hidden; }
+
+      .ftth-map-pane { flex:1; position:relative; min-width:0; }
+
+      .ftth-map-pane #map { width:100%; height:100%; position:absolute; top:0; left:0; }
+
+      .ftth-side-pane { width:380px; flex-shrink:0; background:#FFFFFF; border-left:1px solid #E5E7EB; display:flex; flex-direction:column; overflow-y:auto; }
+
+      .ftth-side-pane-header { padding:20px 20px 12px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+
+      .ftth-side-pane-header h2 { margin:0 0 4px; font-size:16px; color:#1F2937; display:flex; align-items:center; gap:8px; }
+
+      .ftth-side-pane-header h2 .back-link { font-size:13px; font-weight:400; color:#616A75; text-decoration:none; margin-left:auto; }
+
+      .ftth-side-pane-header h2 .back-link:hover { color:#E31837; }
+
+      .ftth-side-pane-header .project-id { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#616A75; margin-top:4px; word-break:break-all; }
+
+      .ftth-side-pane-section { padding:16px 20px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
+
+      .ftth-side-pane-section:last-child { border-bottom:none; }
+
+      .ftth-side-pane-section h3 { margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#616A75; display:flex; align-items:center; justify-content:space-between; }
+
+      .ftth-side-pane-section h3 .badge { font-size: 11px; font-weight:600; color:#616A75; background:#F3F4F6; padding:2px 8px; border-radius:999px; }
+
+      .ftth-layer-controls { display:flex; flex-direction:column; }
+
+      .ftth-layer-toggle { display:flex; align-items:center; gap:10px; padding:9px 0; cursor:pointer; border-bottom:1px solid #F3F4F6; }
+
+      .ftth-layer-toggle .layer-name { font-size:13px; color:#1F2937; flex:1; }
+
+      .ftth-layer-toggle .layer-count { font-size:11px; color:#6B7280; }
+
+      .ftth-layer-color-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+      .ftth-empty-state { text-align:center; padding:40px 20px; color:#616A75; }
+
+      .ftth-empty-state .icon { font-size:40px; margin-bottom:12px; }
+
+      .ftth-empty-state p { font-size:14px; margin:0 0 16px; }
+
+      .ftth-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+      .ftth-legend-group { margin-bottom:10px; }
+
+      .ftth-legend-group:last-child { margin-bottom:0; }
+
+      .ftth-legend-title { font-size: 11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#6B7280; margin-bottom:6px; }
+
+      .ftth-legend-row { display:flex; align-items:center; gap:9px; padding:2px 0; font-size:12px; color:#374151; }
+
+      .ftth-legend-swatch { width:26px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+      .ftth-legend-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+      .ftth-summary-item { background:#F9FAFB; border-radius:6px; padding:10px; text-align:center; }
+
+      .ftth-summary-item .value { font-size:20px; font-weight:700; color:#1F2937; }
+
+      .ftth-summary-item .label { font-size: 11px; color:#616A75; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+
+      .ftth-basemap-switcher { position:absolute; top:12px; right:12px; display:flex; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); padding:4px; gap:2px; }
+
+      .ftth-basemap-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; padding:6px 0 4px; border:none; background:transparent; border-radius:8px; cursor:pointer; transition:all 0.2s ease; color:#616A75; font-size: 11px; font-weight:500; gap:2px; }
+
+      .ftth-basemap-btn .icon { font-size:18px; line-height:1; }
+
+      .ftth-basemap-btn:hover { background:#F3F4F6; color:#374151; }
+
+      .ftth-basemap-btn.active { background:#4F46E5; color:#FFFFFF; box-shadow:0 1px 4px rgba(79,70,229,0.3); }
+
+  
+
+      /* ── Identify / highlight tool ─────────────────────────────────── */
+
+      .ftth-identify-btn {
+
+        position:absolute; top:64px; right:12px; z-index:10;
+
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+
+        width:52px; padding:6px 0 4px;
+
+        border:none; background:#FFFFFF; border-radius:8px;
+
+        cursor:pointer; transition:all 0.2s ease;
+
+        color:#616A75; font-size: 11px; font-weight:500; gap:2px;
+
+        box-shadow:0 2px 12px rgba(0,0,0,0.15);
+
+      }
+
+      .ftth-identify-btn .icon { font-size:18px; line-height:1; transition:transform 0.2s ease; }
+
+      .ftth-identify-btn .label { font-size: 11px; line-height:1; white-space:nowrap; }
+
+      .ftth-identify-btn:hover { background:#F3F4F6; color:#374151; }
+
+      .ftth-identify-btn.active { background:#4F46E5; color:#FFFFFF; box-shadow:0 1px 4px rgba(79,70,229,0.3); }
+
+      .ftth-identify-btn.active:hover { background:#4338CA; }
+
+      .ftth-identify-btn.active .icon { transform:scale(1.1); }
+
+  
+
+      .ftth-inspector {
+
+        position:absolute; top:122px; right:12px; z-index:9;
+
+        width:330px; max-width:calc(100% - 24px); max-height:calc(100% - 150px);
+
+        display:flex; flex-direction:column;
+
+        background:#FFFFFF; border-radius:12px;
+
+        box-shadow:0 4px 24px rgba(0,0,0,0.18); overflow:hidden;
+
+      }
+
+      .ftth-inspector-header {
+
+        display:flex; align-items:center; justify-content:space-between; gap:8px;
+
+        padding:10px 14px; background:#1F2937; color:#FFFFFF; flex-shrink:0;
+
+      }
+
+      .ftth-inspector-title { min-width:0; }
+
+      .ftth-inspector-layer { font-size:13px; font-weight:700; display:block; }
+
+      .ftth-inspector-fid { font-size: 11px; color:#6B7280; font-family:'SF Mono','Menlo',monospace; }
+
+      .ftth-inspector-close {
+
+        border:none; background:transparent; color:#6B7280;
+
+        font-size:20px; line-height:1; cursor:pointer; padding:0 4px; flex-shrink:0;
+
+      }
+
+      .ftth-inspector-close:hover { color:#FFFFFF; }
+
+      .ftth-inspector-body { overflow-y:auto; }
+
+      .ftth-inspector-empty { padding:20px; text-align:center; color:#616A75; font-size:13px; }
+
+      .ftth-inspector-table { width:100%; border-collapse:collapse; font-size:12px; }
+
+      .ftth-inspector-table tr { border-bottom:1px solid #F3F4F6; }
+
+      .ftth-inspector-table tr:nth-child(even) { background:#F9FAFB; }
+
+      .ftth-inspector-table td { padding:6px 10px; vertical-align:top; word-break:break-word; }
+
+      .ftth-inspector-table td.k { color:#616A75; font-weight:600; white-space:nowrap; width:38%; }
+
+      .ftth-inspector-table td.v { color:#1F2937; font-family:'SF Mono','Menlo','Consolas',monospace; }
+
+      .ftth-inspector-footer { padding:8px 10px; border-top:1px solid #E5E7EB; flex-shrink:0; }
+
+      .ftth-inspector-footer button {
+
+        width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px;
+
+        background:#F9FAFB; color:#374151; font-size:12px; font-weight:600; cursor:pointer;
+
+      }
+
+      .ftth-inspector-footer button:hover { background:#F3F4F6; }
+
+      .ftth-lld-download-btn {
+
+        display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+
+        padding:13px 14px; margin-top:6px;
+
+        background:linear-gradient(135deg,#4F46E5,#4338CA);
+
+        border:none; border-radius:10px;
+
+        text-decoration:none; color:#FFFFFF;
+
+        font-size:14px; font-weight:700;
+
+        cursor:pointer; transition:all 0.2s ease;
+
+        box-shadow:0 2px 8px rgba(79,70,229,0.3);
+
+      }
+
+      .ftth-lld-download-btn:hover { background:linear-gradient(135deg,#4338CA,#3730A3); transform:translateY(-1px); }
+
+      .ftth-lld-download-btn:disabled { opacity:0.5; cursor:not-allowed; }
+
+      .ftth-validation-box { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:12px; font-size:12px; color:#374151; }
+
+      .ftth-validation-box .ok { color:#047857; font-weight:600; }
+
+      .ftth-validation-box .warn { color:#B45309; font-weight:600; }
+
+      .ftth-permit-legend { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:8px 12px; font-size:12px; color:#374151; }
+
+      @media (max-width:768px) {
+
+        .ftth-results-layout { flex-direction:column-reverse; }
+
+        .ftth-side-pane { width:100%; max-height:40vh; border-left:none; border-top:1px solid #E5E7EB; }
+
+        .ftth-map-pane #map { height:60vh; position:relative; }
+
+      }
+
+    </style>
+<link rel="stylesheet" href="css/tokens.css">
   <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
 
   <link rel="stylesheet" href="css/main.css" />
   <link rel="stylesheet" href="css/ftth.css" />
+  <link rel="stylesheet" href="css/components.css">
 
-  <style>
-    .ftth-results-layout { display:flex; width:100%; height:100vh; overflow:hidden; }
-    .ftth-map-pane { flex:1; position:relative; min-width:0; }
-    .ftth-map-pane #map { width:100%; height:100%; position:absolute; top:0; left:0; }
-    .ftth-side-pane { width:380px; flex-shrink:0; background:#FFFFFF; border-left:1px solid #E5E7EB; display:flex; flex-direction:column; overflow-y:auto; }
-    .ftth-side-pane-header { padding:20px 20px 12px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
-    .ftth-side-pane-header h2 { margin:0 0 4px; font-size:16px; color:#1F2937; display:flex; align-items:center; gap:8px; }
-    .ftth-side-pane-header h2 .back-link { font-size:13px; font-weight:400; color:#6B7280; text-decoration:none; margin-left:auto; }
-    .ftth-side-pane-header h2 .back-link:hover { color:#E31837; }
-    .ftth-side-pane-header .project-id { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; margin-top:4px; word-break:break-all; }
-    .ftth-side-pane-section { padding:16px 20px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
-    .ftth-side-pane-section:last-child { border-bottom:none; }
-    .ftth-side-pane-section h3 { margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#6B7280; display:flex; align-items:center; justify-content:space-between; }
-    .ftth-side-pane-section h3 .badge { font-size:10px; font-weight:600; color:#6B7280; background:#F3F4F6; padding:2px 8px; border-radius:999px; }
-    .ftth-layer-controls { display:flex; flex-direction:column; }
-    .ftth-layer-toggle { display:flex; align-items:center; gap:10px; padding:9px 0; cursor:pointer; border-bottom:1px solid #F3F4F6; }
-    .ftth-layer-toggle .layer-name { font-size:13px; color:#1F2937; flex:1; }
-    .ftth-layer-toggle .layer-count { font-size:11px; color:#9CA3AF; }
-    .ftth-layer-color-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-    .ftth-empty-state { text-align:center; padding:40px 20px; color:#6B7280; }
-    .ftth-empty-state .icon { font-size:40px; margin-bottom:12px; }
-    .ftth-empty-state p { font-size:14px; margin:0 0 16px; }
-    .ftth-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .ftth-legend-group { margin-bottom:10px; }
-    .ftth-legend-group:last-child { margin-bottom:0; }
-    .ftth-legend-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#9CA3AF; margin-bottom:6px; }
-    .ftth-legend-row { display:flex; align-items:center; gap:9px; padding:2px 0; font-size:12px; color:#374151; }
-    .ftth-legend-swatch { width:26px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .ftth-legend-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ftth-summary-item { background:#F9FAFB; border-radius:6px; padding:10px; text-align:center; }
-    .ftth-summary-item .value { font-size:20px; font-weight:700; color:#1F2937; }
-    .ftth-summary-item .label { font-size:10px; color:#6B7280; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
-    .ftth-basemap-switcher { position:absolute; top:12px; right:12px; z-index:10; display:flex; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); padding:4px; gap:2px; }
-    .ftth-basemap-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; padding:6px 0 4px; border:none; background:transparent; border-radius:8px; cursor:pointer; transition:all 0.2s ease; color:#6B7280; font-size:10px; font-weight:500; gap:2px; }
-    .ftth-basemap-btn .icon { font-size:18px; line-height:1; }
-    .ftth-basemap-btn:hover { background:#F3F4F6; color:#374151; }
-    .ftth-basemap-btn.active { background:#4F46E5; color:#FFFFFF; box-shadow:0 1px 4px rgba(79,70,229,0.3); }
-
-    /* ── Identify / highlight tool ─────────────────────────────────── */
-    .ftth-identify-btn {
-      position:absolute; top:64px; right:12px; z-index:10;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      width:52px; padding:6px 0 4px;
-      border:none; background:#FFFFFF; border-radius:8px;
-      cursor:pointer; transition:all 0.2s ease;
-      color:#6B7280; font-size:10px; font-weight:500; gap:2px;
-      box-shadow:0 2px 12px rgba(0,0,0,0.15);
-    }
-    .ftth-identify-btn .icon { font-size:18px; line-height:1; transition:transform 0.2s ease; }
-    .ftth-identify-btn .label { font-size:9px; line-height:1; white-space:nowrap; }
-    .ftth-identify-btn:hover { background:#F3F4F6; color:#374151; }
-    .ftth-identify-btn.active { background:#4F46E5; color:#FFFFFF; box-shadow:0 1px 4px rgba(79,70,229,0.3); }
-    .ftth-identify-btn.active:hover { background:#4338CA; }
-    .ftth-identify-btn.active .icon { transform:scale(1.1); }
-
-    .ftth-inspector {
-      position:absolute; top:122px; right:12px; z-index:9;
-      width:330px; max-width:calc(100% - 24px); max-height:calc(100% - 150px);
-      display:flex; flex-direction:column;
-      background:#FFFFFF; border-radius:12px;
-      box-shadow:0 4px 24px rgba(0,0,0,0.18); overflow:hidden;
-    }
-    .ftth-inspector-header {
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-      padding:10px 14px; background:#1F2937; color:#FFFFFF; flex-shrink:0;
-    }
-    .ftth-inspector-title { min-width:0; }
-    .ftth-inspector-layer { font-size:13px; font-weight:700; display:block; }
-    .ftth-inspector-fid { font-size:10px; color:#9CA3AF; font-family:'SF Mono','Menlo',monospace; }
-    .ftth-inspector-close {
-      border:none; background:transparent; color:#9CA3AF;
-      font-size:20px; line-height:1; cursor:pointer; padding:0 4px; flex-shrink:0;
-    }
-    .ftth-inspector-close:hover { color:#FFFFFF; }
-    .ftth-inspector-body { overflow-y:auto; }
-    .ftth-inspector-empty { padding:20px; text-align:center; color:#6B7280; font-size:13px; }
-    .ftth-inspector-table { width:100%; border-collapse:collapse; font-size:12px; }
-    .ftth-inspector-table tr { border-bottom:1px solid #F3F4F6; }
-    .ftth-inspector-table tr:nth-child(even) { background:#F9FAFB; }
-    .ftth-inspector-table td { padding:6px 10px; vertical-align:top; word-break:break-word; }
-    .ftth-inspector-table td.k { color:#6B7280; font-weight:600; white-space:nowrap; width:38%; }
-    .ftth-inspector-table td.v { color:#1F2937; font-family:'SF Mono','Menlo','Consolas',monospace; }
-    .ftth-inspector-footer { padding:8px 10px; border-top:1px solid #E5E7EB; flex-shrink:0; }
-    .ftth-inspector-footer button {
-      width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px;
-      background:#F9FAFB; color:#374151; font-size:12px; font-weight:600; cursor:pointer;
-    }
-    .ftth-inspector-footer button:hover { background:#F3F4F6; }
-    .ftth-lld-download-btn {
-      display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
-      padding:13px 14px; margin-top:6px;
-      background:linear-gradient(135deg,#4F46E5,#4338CA);
-      border:none; border-radius:10px;
-      text-decoration:none; color:#FFFFFF;
-      font-size:14px; font-weight:700;
-      cursor:pointer; transition:all 0.2s ease;
-      box-shadow:0 2px 8px rgba(79,70,229,0.3);
-    }
-    .ftth-lld-download-btn:hover { background:linear-gradient(135deg,#4338CA,#3730A3); transform:translateY(-1px); }
-    .ftth-lld-download-btn:disabled { opacity:0.5; cursor:not-allowed; }
-    .ftth-validation-box { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:12px; font-size:12px; color:#374151; }
-    .ftth-validation-box .ok { color:#047857; font-weight:600; }
-    .ftth-validation-box .warn { color:#B45309; font-weight:600; }
-    .ftth-permit-legend { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:8px 12px; font-size:12px; color:#374151; }
-    @media (max-width:768px) {
-      .ftth-results-layout { flex-direction:column-reverse; }
-      .ftth-side-pane { width:100%; max-height:40vh; border-left:none; border-top:1px solid #E5E7EB; }
-      .ftth-map-pane #map { height:60vh; position:relative; }
-    }
-  </style>
+  
 </head>
 <body>
 
@@ -159,7 +272,7 @@
       </div>
 
       <div id="mapLoading" class="ftth-map-loading">
-        <div><div class="spinner" style="margin:0 auto 12px;"></div><div style="font-size:14px;color:#6B7280;">Loading LLD layers&#x2026;</div></div>
+        <div><div class="spinner" style="margin:0 auto 12px;"></div><div style="font-size:14px;color:#616A75;">Loading LLD layers&#x2026;</div></div>
       </div>
     </div>
 
@@ -208,12 +321,12 @@
 
       <div class="ftth-side-pane-section">
         <h3>BOQ / BOM</h3>
-        <div id="boqSection" style="font-size:12px;color:#6B7280;">
+        <div id="boqSection" style="font-size:12px;color:#616A75;">
           <button id="boqToggleBtn" class="ftth-lld-download-btn" type="button" style="width:100%;margin-bottom:6px;">
             <span class="icon">&#x1F4CA;</span>
             <span>Show BOQ / BOM</span>
           </button>
-          <button id="boqDownloadBtn" class="ftth-lld-download-btn" type="button" style="width:100%;background:#059669;">
+          <button id="boqDownloadBtn" class="ftth-lld-download-btn" type="button" style="width:100%;background:#047857;">
             <span class="icon">&#x1F4E5;</span>
             <span>Download BOQ XLSX</span>
           </button>
@@ -225,7 +338,8 @@
   </div>
 </div>
 
-<script src="partials/sidebar-loader.js" data-sidebar-base="../"></script>
+<script src="partials/sidebar-loader.js" data-sidebar-base="../"></script><script src="js/ftth-ui.js"></script>
+
 <script src="js/ftth-config.js"></script>
 <script src="fiber-api.js"></script>
 <script src="js/ftth-lld-api.js"></script>
@@ -258,15 +372,15 @@
 
   // Permit-status colouring: worst (most blocking) status wins per feature.
   var PERMIT_STATUS_COLORS = {
-    approved: '#10B981',
-    ready: '#10B981',
+    approved: '#047857',
+    ready: '#047857',
     submitted: '#3B82F6',
     under_review: '#3B82F6',
-    evidence_required: '#F59E0B',
-    identified: '#F59E0B',
+    evidence_required: '#B45309',
+    identified: '#B45309',
     rejected: '#EF4444',
-    closed: '#9CA3AF',
-    not_required: '#9CA3AF',
+    closed: '#6B7280',
+    not_required: '#6B7280',
   };
   var PERMIT_STATUS_PRIORITY = {
     rejected: 0, under_review: 1, submitted: 2, evidence_required: 3, identified: 4,
@@ -281,7 +395,7 @@
     final_trenches: { fill: '#3B82F6', outline: '#1D4ED8', opacity: 0.7, lineWidth: 3 },
     feeder_cable: { fill: '#EF4444', outline: '#B91C1C', lineWidth: 4.5 },
     distribution_cable: { fill: '#F97316', outline: '#C2410C', lineWidth: 3 },
-    feeder_ducts: { fill: '#F59E0B', outline: '#B45309', lineWidth: 4.5 },
+    feeder_ducts: { fill: '#B45309', outline: '#B45309', lineWidth: 4.5 },
     distribution_ducts: { fill: '#EAB308', outline: '#A16207', lineWidth: 3 },
     drop_ducts: { fill: '#EC4899', outline: '#9D174D', lineWidth: 2.5 },
     coupleurs: { fill: '#14B8A6', outline: '#0F766E', pointRadius: 6 },
@@ -291,7 +405,7 @@
   };
 
   function colorFor(name) {
-    return LLD_COLORS[name] || { fill: '#6B7280', outline: '#374151', opacity: 0.5 };
+    return LLD_COLORS[name] || { fill: '#616A75', outline: '#374151', opacity: 0.5 };
   }
 
   function renderPermitLegend(counts) {
@@ -306,9 +420,9 @@
     var rows = [
       ['#EF4444', 'Rejected', counts.rejected],
       ['#3B82F6', 'Submitted / Under Review', counts.under_review + counts.submitted],
-      ['#F59E0B', 'Identified / Evidence', counts.evidence_required + counts.identified],
-      ['#10B981', 'Ready / Approved', counts.ready + counts.approved],
-      ['#9CA3AF', 'Closed / Not Required', counts.closed + counts.not_required],
+      ['#B45309', 'Identified / Evidence', counts.evidence_required + counts.identified],
+      ['#047857', 'Ready / Approved', counts.ready + counts.approved],
+      ['#6B7280', 'Closed / Not Required', counts.closed + counts.not_required],
     ];
     el.innerHTML = rows.map(function (r) {
       return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;">'
@@ -327,11 +441,13 @@
         basemap: 'streets',
         onLoad: function () { loadLldData(); }
       });
+      // Live pointer position: WGS84 lng/lat plus EPSG:25833 easting/northing.
+      if (window.FtthMap.mountCoordinateReadout) { window.FtthMap.mountCoordinateReadout(map); }
       renderMapLegend();
       if (map.loaded()) loadLldData();
     } catch (err) {
       console.error('Map init failed:', err);
-      mapLoadingEl.innerHTML = '<p style="color:#DC2626;">Failed to initialize map: ' + escapeHtml(err.message) + '</p>';
+      mapLoadingEl.innerHTML = '<p style="color:#B91C1C;">Failed to initialize map: ' + escapeHtml(FtthUI.humanize(err)) + '</p>';
     }
   }
 
@@ -343,7 +459,7 @@
 
   async function loadLldData() {
     if (!projectId || !lldVersion) {
-      mapLoadingEl.innerHTML = '<p style="color:#6B7280;font-size:16px;">No project or LLD version specified. <a href="ftth-lld-versions.html" style="color:#4F46E5;">Open LLD Versions</a></p>';
+      mapLoadingEl.innerHTML = '<p style="color:#616A75;font-size:16px;">No project or LLD version specified. <a href="ftth-lld-versions.html" style="color:#4F46E5;">Open LLD Versions</a></p>';
       return;
     }
     try {
@@ -393,7 +509,7 @@
       mapLoadingEl.style.display = 'none';
     } catch (err) {
       console.error('Failed to load LLD data:', err);
-      mapLoadingEl.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;">Failed to load LLD output: ' + escapeHtml(err.message) + '</p></div>';
+      mapLoadingEl.innerHTML = '<div style="text-align:center;"><p style="color:#B91C1C;font-size:14px;">Failed to load LLD output: ' + escapeHtml(FtthUI.humanize(err)) + '</p></div>';
     }
   }
 
@@ -463,7 +579,7 @@
     drill_trench: 1,
     existing_infrastructure: 1,
     existing_infrastructure_points: 1,
-    aerial_drop_trenches: 1,
+    aerial_spans: 1,
     aerial_cable: 1
   };
 
@@ -572,8 +688,14 @@
     });
   }
 
-  downloadBtn.addEventListener('click', function () {
-    if (!projectId || !lldVersion) { alert('No project or LLD version selected.'); return; }
+  downloadBtn.addEventListener('click', async function () {
+    if (!projectId || !lldVersion) {
+      await FtthUI.alert({
+        title: 'Nothing to download',
+        message: 'No project or LLD version is selected.'
+      });
+      return;
+    }
     window.FtthLldApi.downloadRunZip(projectId, lldVersion);
   });
 
@@ -589,7 +711,7 @@
     var totals = (data && data.boq_totals) || {};
     var grand = totals.grand_total || 0;
     if (!rows.length) {
-      boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;">No BOQ rows computed yet.</div>';
+      boqBody.innerHTML = '<div style="padding:16px;color:#616A75;">No BOQ rows computed yet.</div>';
       return;
     }
     var html = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
@@ -626,7 +748,7 @@
       if (anom.ai_summary) {
         html += '<div style="padding:6px 8px;border-radius:6px;background:#F5F3FF;border:1px solid #DDD6FE;color:#5B21B6;">\uD83E\uDDE0 '
           + escapeHtml(anom.ai_summary)
-          + '<div style="margin-top:3px;font-size:10px;color:#7C3AED;">' + escapeHtml(anom.ai_disclaimer || '') + '</div></div>';
+          + '<div style="margin-top:3px;font-size: 11px;color:#7C3AED;">' + escapeHtml(anom.ai_disclaimer || '') + '</div></div>';
       }
       html += '</div>';
     }
@@ -641,7 +763,7 @@
         var url = '/api/ftth/hld/results/' + encodeURIComponent(projectId) + '/boq/';
         window.FiberApi.apiFetch(url, { method: 'GET' })
           .then(function(data) { boqLoaded = true; renderBoqBody(data); if (boqBody) boqBody.style.display = 'block'; })
-          .catch(function(err) { alert('Failed to load BOQ: ' + err.message); })
+          .catch(function(err) { alert('Failed to load BOQ: ' + FtthUI.humanize(err)); })
           .finally(function() { boqToggleBtn.disabled = false; });
       } else if (boqBody) {
         boqBody.style.display = (boqBody.style.display === 'none') ? 'block' : 'none';
@@ -669,7 +791,7 @@
             setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 200);
           });
         })
-        .catch(function(err) { alert('Download failed: ' + err.message); });
+        .catch(function(err) { alert('Download failed: ' + FtthUI.humanize(err)); });
     });
   }
 

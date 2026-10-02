@@ -6,12 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <!-- MapLibre GL -->
+<script src="js/ftth-ui.js"></script>
   <script src="vendor/maplibre/maplibre-gl.js"></script>
-  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
-  
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-  
   <style>
     .approved-survey-layout {
       display: flex;
@@ -153,7 +149,7 @@
     
     .version-stats {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 12px;
     }
@@ -409,6 +405,13 @@
       animation: ftth-spin 0.8s linear infinite;
     }
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
+  
 </head>
 <body>
 
@@ -759,6 +762,13 @@
       center: [0, 0],
       zoom: 2
     });
+
+    // Live pointer position: WGS84 longitude/latitude plus the project CRS
+    // (EPSG:25833) easting/northing, so a coordinate can be read off the map
+    // and typed straight into the design.
+    if (window.FtthMap && window.FtthMap.mountCoordinateReadout) {
+      window.FtthMap.mountCoordinateReadout(map);
+    }
     
     map.on('load', function() {
       document.getElementById('mapLoading').style.display = 'none';
@@ -914,13 +924,17 @@
   
   // Run LLD button
   document.getElementById('runLldBtn').addEventListener('click', async function() {
-    if (!confirm('Run LLD with this approved survey version?')) return;
+      if (!await window.FtthUI.confirm({
+        title: 'Run LLD?',
+        message: 'Run LLD with this approved survey version?',
+        confirmLabel: 'Run LLD'
+      })) return;
     try {
       const result = await window.FtthLldApi.runLld(projectId);
       showToast('LLD run started: ' + (result.lld_version || 'ok'));
       setTimeout(function() { window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId); }, 800);
     } catch (err) {
-      showToast('Failed to run LLD: ' + (err.message || err));
+      showToast('Failed to run LLD: ' + (FtthUI.humanize(err)));
     }
   });
 </script>

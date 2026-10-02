@@ -31,7 +31,7 @@ const WeightManagerModal = {
       this.totalDefined = data.total_defined_weight || 0;
       this._renderContent(data);
     } catch (err) {
-      this._showError(err.message);
+      this._showError(FtthUI.humanize(err));
     }
   },
 
@@ -82,7 +82,7 @@ const WeightManagerModal = {
         width: 100%;
         text-align: center;
       ">
-        <div style="font-size: 14px; color: #6B7280;">Loading layer weights...</div>
+        <div style="font-size: 14px; color: #616A75;">Loading layer weights...</div>
       </div>
     `;
   },
@@ -96,7 +96,7 @@ const WeightManagerModal = {
         max-width: 500px;
         width: 100%;
       ">
-        <div style="color: #DC2626; margin-bottom: 16px;">Error: ${message}</div>
+        <div style="color: #B91C1C; margin-bottom: 16px;">Error: ${message}</div>
         <button onclick="WeightManagerModal.close()" style="
           padding: 8px 16px;
           background: #374151;
@@ -137,7 +137,7 @@ const WeightManagerModal = {
     header.innerHTML = `
       <div>
         <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">Configure Layer Weights</h3>
-        <p style="margin: 4px 0 0 0; font-size: 12px; color: #6B7280;">
+        <p style="margin: 4px 0 0 0; font-size: 12px; color: #616A75;">
           Define importance of each layer for dynamic completion calculation
         </p>
       </div>
@@ -145,7 +145,7 @@ const WeightManagerModal = {
         background: none;
         border: none;
         font-size: 20px;
-        color: #9CA3AF;
+        color: #6B7280;
         cursor: pointer;
         padding: 4px;
       ">&times;</button>
@@ -156,7 +156,7 @@ const WeightManagerModal = {
     const infoBanner = document.createElement('div');
     infoBanner.style.cssText = `
       background: #F0FDF4;
-      border-left: 4px solid #10B981;
+      border-left: 4px solid #047857;
       padding: 12px 16px;
       margin: 16px 24px 0 24px;
       border-radius: 4px;
@@ -201,7 +201,7 @@ const WeightManagerModal = {
       row.innerHTML = `
         <div>
           <div style="font-size: 13px; font-weight: 500; color: #374151;">${layer.layer_name}</div>
-          <div style="font-size: 11px; color: #6B7280;">${layer.layer_id}</div>
+          <div style="font-size: 11px; color: #616A75;">${layer.layer_id}</div>
         </div>
         <div style="position: relative;">
           <input
@@ -217,7 +217,7 @@ const WeightManagerModal = {
             style="
               width: 100%;
               padding: 8px 24px 8px 10px;
-              border: 1px solid ${layer.has_weight ? '#10B981' : '#D1D5DB'};
+              border: 1px solid ${layer.has_weight ? '#047857' : '#D1D5DB'};
               border-radius: 6px;
               font-size: 13px;
               text-align: right;
@@ -229,14 +229,14 @@ const WeightManagerModal = {
             top: 50%;
             transform: translateY(-50%);
             font-size: 12px;
-            color: #9CA3AF;
+            color: #6B7280;
             pointer-events: none;
           ">%</span>
         </div>
         <div style="text-align: center;">
           ${layer.has_weight 
-            ? '<span style="font-size: 11px; color: #10B981; font-weight: 600;">✓</span>'
-            : `<span style="font-size: 10px; color: #9CA3AF;">~${autoWeight.toFixed(0)}%</span>`
+            ? '<span style="font-size: 11px; color: #047857; font-weight: 600;">✓</span>'
+            : `<span style="font-size: 11px; color: #6B7280;">~${autoWeight.toFixed(0)}%</span>`
           }
         </div>
       `;
@@ -269,12 +269,12 @@ const WeightManagerModal = {
     totalRow.innerHTML = `
       <div style="font-size: 13px; color: #374151;">
         <strong>Total Defined:</strong> 
-        <span id="totalWeightDisplay" style="font-weight: 600; color: ${validation.isValid ? '#10B981' : '#DC2626'};">
+        <span id="totalWeightDisplay" style="font-weight: 600; color: ${validation.isValid ? '#047857' : '#B91C1C'};">
           ${this.totalDefined.toFixed(1)}%
         </span>
-        ${!validation.isValid ? `<span style="color: #DC2626; margin-left: 8px; font-size: 12px;">${validation.message}</span>` : ''}
+        ${!validation.isValid ? `<span style="color: #B91C1C; margin-left: 8px; font-size: 12px;">${validation.message}</span>` : ''}
       </div>
-      <div style="font-size: 12px; color: #6B7280;">
+      <div style="font-size: 12px; color: #616A75;">
         Remaining: <span id="remainingWeightDisplay">${remainingWeight.toFixed(1)}%</span>
       </div>
     `;
@@ -313,7 +313,7 @@ const WeightManagerModal = {
         style="
           padding: 8px 20px;
           font-size: 13px;
-          background: ${validation.isValid ? '#10B981' : '#9CA3AF'};
+          background: ${validation.isValid ? '#047857' : '#6B7280'};
           color: white;
           border: none;
           border-radius: 6px;
@@ -359,7 +359,7 @@ const WeightManagerModal = {
     if (totalDisplay) {
       const validation = this._validateWeights();
       totalDisplay.textContent = `${this.totalDefined.toFixed(1)}%`;
-      totalDisplay.style.color = validation.isValid ? '#10B981' : '#DC2626';
+      totalDisplay.style.color = validation.isValid ? '#047857' : '#B91C1C';
     }
 
     if (remainingDisplay) {
@@ -370,7 +370,7 @@ const WeightManagerModal = {
     if (saveBtn) {
       const validation = this._validateWeights();
       saveBtn.disabled = !validation.isValid;
-      saveBtn.style.background = validation.isValid ? '#10B981' : '#9CA3AF';
+      saveBtn.style.background = validation.isValid ? '#047857' : '#6B7280';
       saveBtn.style.cursor = validation.isValid ? 'pointer' : 'not-allowed';
     }
   },
@@ -388,7 +388,7 @@ const WeightManagerModal = {
         row.style.borderColor = hasWeight ? '#A7F3D0' : '#E5E7EB';
       }
       
-      input.style.borderColor = hasWeight ? '#10B981' : '#D1D5DB';
+      input.style.borderColor = hasWeight ? '#047857' : '#D1D5DB';
     });
 
     this._updateSummaryDisplay();
@@ -445,7 +445,7 @@ const WeightManagerModal = {
       
       this.close();
     } catch (err) {
-      alert('Failed to save weights: ' + err.message);
+      alert('Failed to save weights: ' + FtthUI.humanize(err));
       if (saveBtn) {
         saveBtn.disabled = false;
         saveBtn.textContent = 'Save Weights';

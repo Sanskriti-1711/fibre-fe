@@ -9,13 +9,13 @@
     :root {
       --tm-red:#E31837;
       --dark:#1F2937;
-      --gray:#6B7280;
+      --gray:#616A75;
       --light:#F9FAFB;
       --white:#FFFFFF;
-      --green:#059669;
-      --amber:#F59E0B;
+      --green:#047857;
+      --amber:#B45309;
       --blue:#3B82F6;
-      --red:#DC2626;
+      --red:#B91C1C;
     }
 
     * { box-sizing:border-box; font-family:system-ui, -apple-system, sans-serif; }
@@ -85,7 +85,7 @@
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       margin-bottom: 16px;
     }
@@ -108,7 +108,7 @@
     .stat-value.redo { color: var(--red); }
 
     .stat-label {
-      font-size: 10px;
+      font-size: 12px;
       color: var(--gray);
       margin-top: 4px;
       text-transform: uppercase;
@@ -159,9 +159,9 @@
 
     .feature-icon.pole { background: #3B82F6; }
     .feature-icon.cable { background: #8B5CF6; }
-    .feature-icon.cabinet { background: #F59E0B; }
-    .feature-icon.joint { background: #10B981; }
-    .feature-icon.default { background: #6B7280; }
+    .feature-icon.cabinet { background: #B45309; }
+    .feature-icon.joint { background: #047857; }
+    .feature-icon.default { background: #616A75; }
 
     .feature-details {
       flex: 1;
@@ -267,10 +267,12 @@
     }
 
     @media (max-width: 600px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
-</head>
+  <link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/components.css">
+  </head>
 <body>
 
 <header class="top-bar" role="banner">
@@ -332,6 +334,7 @@
   </div>
 </div>
 
+<script src="../js/ftth-ui.js"></script>
 <script src="js/fiber-api.js"></script>
 <script src="js/api.js"></script>
 <script>
@@ -421,7 +424,7 @@
     } catch (err) {
       console.error('Failed to load features:', err);
       document.getElementById('featuresContainer').innerHTML = 
-        `<div class="error-state">Failed to load features: ${err.message}</div>`;
+        `<div class="error-state">Failed to load features: ${FtthUI.humanize(err)}</div>`;
     }
   }
 

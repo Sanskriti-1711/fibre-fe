@@ -231,7 +231,7 @@
     const s = (status || '').toLowerCase();
 
     let label = s;
-    let dotColor = '#6B7280';
+    let dotColor = '#616A75';
     let bg = '#F3F4F6';
     let textColor = '#374151';
 
@@ -242,7 +242,7 @@
       textColor = '#1D4ED8';
     } else if (s === 'completed' || s === 'success') {
       label = 'Completed';
-      dotColor = '#10B981';
+      dotColor = '#047857';
       bg = '#ECFDF5';
       textColor = '#065F46';
     } else if (s === 'failed' || s === 'error') {
@@ -252,7 +252,7 @@
       textColor = '#991B1B';
     } else if (s === 'pending' || s === 'queued') {
       label = 'Pending';
-      dotColor = '#F59E0B';
+      dotColor = '#B45309';
       bg = '#FFFBEB';
       textColor = '#92400E';
     }
@@ -289,7 +289,7 @@
    */
   function createProgressBar(pct, options) {
     const value = Math.max(0, Math.min(100, Number(pct) || 0));
-    const color = value >= 80 ? '#10B981' : value >= 40 ? '#F59E0B' : '#3B82F6';
+    const color = value >= 80 ? '#047857' : value >= 40 ? '#B45309' : '#3B82F6';
 
     const el = document.createElement('div');
     el.className = 'ftth-progress-bar';
@@ -318,7 +318,7 @@
     const fill = barEl.querySelector('.ftth-progress-fill');
     if (!fill) return;
     const value = Math.max(0, Math.min(100, Number(pct) || 0));
-    const color = value >= 80 ? '#10B981' : value >= 40 ? '#F59E0B' : '#3B82F6';
+    const color = value >= 80 ? '#047857' : value >= 40 ? '#B45309' : '#3B82F6';
     fill.style.width = value + '%';
     fill.style.background = color;
   }
@@ -358,7 +358,7 @@
     labelSpan.textContent = name;
 
     const countSpan = document.createElement('span');
-    countSpan.style.cssText = 'font-size:11px; color:#6B7280; font-weight:500;';
+    countSpan.style.cssText = 'font-size:11px; color:#616A75; font-weight:500;';
     countSpan.textContent = count !== undefined ? (count + ' features') : '';
 
     el.appendChild(cb);
@@ -447,7 +447,7 @@
         var icon = document.createElement('div');
         icon.className = 'ftth-step-icon';
         if (isCompleted) {
-          icon.innerHTML = '<span style="color:#10B981;font-size:16px;">\u2713</span>';
+          icon.innerHTML = '<span style="color:#047857;font-size:16px;">\u2713</span>';
           icon.style.background = '#ECFDF5';
           icon.style.borderColor = '#A7F3D0';
         } else if (isRunning) {

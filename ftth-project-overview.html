@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>Project Overview | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
   <style>
     .overview-content { max-width: 1000px; margin: 0 auto; }
 
@@ -44,7 +42,7 @@
 
     .ov-table { width:100%; border-collapse:collapse; font-size:13px; }
     .ov-table th, .ov-table td { padding:9px 12px; border-bottom:1px solid #F3F4F6; text-align:left; }
-    .ov-table th { font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; }
+    .ov-table th { font-size: 12px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; }
 
     .ov-team { display:flex; flex-wrap:wrap; gap:10px; }
     .ov-member {
@@ -77,6 +75,10 @@
     .ov-actions a { text-decoration:none; }
     .ov-error { display:none; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; border-radius:10px; padding:14px 18px; font-size:13px; margin-bottom:16px; }
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -157,6 +159,7 @@
   </main>
 </div>
 
+<script src="js/ftth-ui.js"></script>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -262,7 +265,7 @@
           renderTeamManage(users || []);
         } catch (e) {
           document.getElementById('ovTeamManage').innerHTML =
-            '<span style="color:#B91C1C;font-size:12px;">Could not load users: '+esc(e.message || e)+'</span>';
+            '<span style="color:#B91C1C;font-size:12px;">Could not load users: '+esc(FtthUI.humanize(e))+'</span>';
         }
       }
     } catch (e) {
@@ -279,16 +282,24 @@
       msg.textContent = '';
       await loadTeamManagement();
     } catch (e) {
-      msg.textContent = 'Failed: ' + (e.message || e);
+      msg.textContent = 'Failed: ' + (FtthUI.humanize(e));
     }
   }
   async function removeMember(memberId) {
-    if (!window.confirm('Remove this team member?')) return;
+    if (!await window.FtthUI.confirm({
+      title: 'Remove this team member?',
+      message: 'They lose access to this project immediately.',
+      confirmLabel: 'Remove',
+      danger: true
+    })) return;
     try {
       await window.FtthLldApi.removeMember(projectId, memberId);
       await loadTeamManagement();
     } catch (e) {
-      window.alert('Failed to remove member: ' + (e.message || e));
+      await window.FtthUI.alert({
+        title: 'Could not remove member',
+        message: FtthUI.humanize(e)
+      });
     }
   }
 
@@ -497,7 +508,7 @@
       if (pkgGen) pkgGen.addEventListener('click', generatePermitPackage);
       if (pkgBtn) pkgBtn.style.display = 'none';  // inline actions are in the card body
     } catch (err) {
-      bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Permits unavailable: ' + esc(err.message || err) + '</span>';
+      bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Permits unavailable: ' + esc(FtthUI.humanize(err)) + '</span>';
     } finally {
       if (analyzeBtn) analyzeBtn.disabled = false;
     }
@@ -511,7 +522,7 @@
       var summary = await window.FtthLldApi.generatePermitPackage(projectId);
       await renderPermits();
     } catch (err) {
-      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Package generation failed: ' + esc(err.message || err) + '</span>';
+      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Package generation failed: ' + esc(FtthUI.humanize(err)) + '</span>';
       if (btn) btn.disabled = false;
     }
   }
@@ -523,7 +534,7 @@
       await window.FtthLldApi.runPermitAnalysis(projectId);
       await renderPermits();
     } catch (err) {
-      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Analysis failed: ' + esc(err.message || err) + '</span>';
+      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Analysis failed: ' + esc(FtthUI.humanize(err)) + '</span>';
     }
   }
 
@@ -545,7 +556,7 @@
       await loadTeamManagement();
       await renderPermits();
     } catch (err) {
-      document.getElementById('ovError').textContent = 'Failed to load overview: ' + (err.message || err);
+      document.getElementById('ovError').textContent = 'Failed to load overview: ' + (FtthUI.humanize(err));
       document.getElementById('ovError').style.display = 'block';
     }
   })();

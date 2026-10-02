@@ -9,7 +9,7 @@
     :root {
       --tm-red: #E31837;
       --tm-dark: #1F2937;
-      --tm-gray: #6B7280;
+      --tm-gray: #616A75;
       --tm-light: #F9FAFB;
       --tm-white: #FFFFFF;
     }
@@ -137,7 +137,9 @@
       color: var(--tm-gray);
     }
   </style>
-</head>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  </head>
 <body>
 
   <div class="top-bar">
@@ -176,6 +178,7 @@
     </div>
   </div>
   </div>
+<script src="js/ftth-ui.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
   window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
@@ -203,7 +206,7 @@
       }
       window.location.href = "dashboard.html";
     } catch (e) {
-      errorEl.textContent = e && e.message ? e.message : "Login failed";
+      errorEl.textContent = e && FtthUI.humanize(e) ? FtthUI.humanize(e) : "Login failed";
       errorEl.style.display = "block";
     }
   }

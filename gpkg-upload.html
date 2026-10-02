@@ -9,11 +9,11 @@
     :root {
       --tm-red: #E31837;
       --tm-dark: #1F2937;
-      --tm-gray: #6B7280;
+      --tm-gray: #616A75;
       --tm-light: #F9FAFB;
       --tm-white: #FFFFFF;
       --border: #E5E7EB;
-      --green: #059669;
+      --green: #047857;
     }
 
     * {
@@ -58,7 +58,7 @@
     }
 
     .nav-label {
-      color: #9CA3AF;
+      color: #6B7280;
       font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.08em;
@@ -133,6 +133,19 @@
       align-items: flex-end;
       gap: 12px;
       margin-bottom: 28px;
+    }
+
+    /* The file picker and the Upload button are one row on a desk, but the
+       pair is 391px of content in a 246px column at 390px. With no wrap
+       the button is not squeezed — it is pushed to x=382 and lands
+       entirely off-screen, so the only way to upload becomes invisible. */
+    @media (max-width: 640px) {
+      .flex-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .flex-row > * { width: 100%; min-width: 0; }
     }
 
     .options {
@@ -242,7 +255,9 @@
       cursor: pointer;
     }
   </style>
+  <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -303,7 +318,8 @@
     </main>
   </div>
 
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 </body>
 <script src="fiber-api.js"></script>
 <script>
@@ -383,7 +399,7 @@
       showStatus('uploadStatus', 'File uploaded successfully. Discovering layers...', false);
       await discoverAndShowLayers();
     } catch (e) {
-      showStatus('uploadStatus', e && e.message ? e.message : 'Failed to upload file.', true);
+      showStatus('uploadStatus', e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Failed to upload file.', true);
     } finally {
       setLoading('uploadBtn', false);
     }
@@ -418,7 +434,7 @@
       showStatus('uploadStatus', `Found ${availableLayers.length} layer(s). Select the layers you want to import.`, false);
     } catch (e) {
       console.error('Discover error:', e);
-      showStatus('uploadStatus', e && e.message ? e.message : 'Failed to discover layers.', true);
+      showStatus('uploadStatus', e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Failed to discover layers.', true);
     }
   }
 
@@ -479,7 +495,7 @@
         window.location.href = 'projects.html';
       }, 1500);
     } catch (e) {
-      showStatus('importStatus', e && e.message ? e.message : 'Failed to import layers.', true);
+      showStatus('importStatus', e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Failed to import layers.', true);
       setLoading('importBtn', false);
     }
   }

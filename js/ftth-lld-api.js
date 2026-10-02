@@ -234,7 +234,7 @@
       })
       .catch(function (err) {
         console.error('Download error:', err);
-        alert('Download failed: ' + err.message);
+        alert('Download failed: ' + FtthUI.humanize(err));
       });
   }
 

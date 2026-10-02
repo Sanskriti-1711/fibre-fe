@@ -58,7 +58,7 @@ async function loadEngineers() {
 
     if (!list.length) {
       const tr = document.createElement("tr");
-      tr.innerHTML = '<td colspan="5" style="padding:16px;color:#6B7280;">No engineers found</td>';
+      tr.innerHTML = '<td colspan="5" style="padding:16px;color:#616A75;">No engineers found</td>';
       tbody.appendChild(tr);
       return;
     }
@@ -89,18 +89,30 @@ async function loadEngineers() {
         e.preventDefault();
         const engineerId = a.getAttribute("data-id");
         if (!engineerId) return;
-        if (!confirm("Remove this engineer?")) return;
+        const row = a.closest("tr");
+        const who = row && row.cells[0] ? row.cells[0].textContent.trim() : "this engineer";
+        const ok = await window.FtthUI.confirm({
+          title: "Remove " + who + "?",
+          message: "They lose access to every project they were assigned to.",
+          lines: [
+            "Their assignment history is kept for audit.",
+            "Past survey and LLD work they recorded is not deleted."
+          ],
+          danger: true,
+          confirmLabel: "Remove engineer"
+        });
+        if (!ok) return;
 
         try {
           await window.FiberApi.deleteEngineer(decodeURIComponent(engineerId));
           await loadEngineers();
         } catch (err) {
-          setEngineersError(err && err.message ? err.message : "Failed to remove engineer");
+          setEngineersError(FtthUI.humanize(err));
         }
       });
     });
   } catch (e) {
-    setEngineersError(e && e.message ? e.message : "Failed to load engineers");
+    setEngineersError(FtthUI.humanize(e));
   }
 }
 

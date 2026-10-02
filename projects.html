@@ -5,7 +5,9 @@
   <title>Projects | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+<link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
+<link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -97,6 +99,7 @@
 </div>
 
 </body>
+<script src="js/ftth-ui.js"></script>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -334,13 +337,19 @@
         window.open(url, '_blank', 'noopener');
       });
     });
-    tbody.querySelectorAll('.delete-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
+      tbody.querySelectorAll('.delete-btn').forEach(function (btn) {
+        btn.addEventListener('click', async function (e) {
         const projectId = e.currentTarget.getAttribute('data-id');
         const type = e.currentTarget.getAttribute('data-type') || 'survey';
-        if (projectId && confirm('Are you sure you want to delete this project?')) {
-          handleDeleteProject(projectId, type);
-        }
+          var ok = await window.FtthUI.confirm({
+            title: 'Delete this project?',
+            message: 'This cannot be undone. Any survey and design work under this project goes with it.',
+            confirmLabel: 'Delete',
+            danger: true
+          });
+          if (projectId && ok) {
+            handleDeleteProject(projectId, type);
+          }
       });
     });
 
@@ -506,7 +515,7 @@
         closeAssignModal();
         loadProjects({});
       } catch (e) {
-        statusEl.textContent = (e && e.message ? e.message : 'Assignment failed');
+        statusEl.textContent = (FtthUI.humanize(e));
       } finally {
         confirmBtn.disabled = false;
       }

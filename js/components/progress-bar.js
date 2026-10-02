@@ -65,7 +65,7 @@ const ProgressBar = {
     const standardRow = this._createLabeledRow('Standard', standard, '#3B82F6', showLabels);
     container.appendChild(standardRow);
 
-    const dynamicRow = this._createLabeledRow('Dynamic', dynamic, '#10B981', showLabels, true);
+    const dynamicRow = this._createLabeledRow('Dynamic', dynamic, '#047857', showLabels, true);
     container.appendChild(dynamicRow);
 
     return container;
@@ -103,8 +103,8 @@ const ProgressBar = {
   },
 
   _getColor(percentage) {
-    if (percentage >= 80) return '#10B981'; // Green
-    if (percentage >= 50) return '#F59E0B'; // Amber
+    if (percentage >= 80) return '#047857'; // Green
+    if (percentage >= 50) return '#B45309'; // Amber
     return '#EF4444'; // Red
   },
 

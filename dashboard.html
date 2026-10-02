@@ -4,293 +4,624 @@
   <meta charset="UTF-8" />
   <title>Dashboard | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/main.css" />
+  
   <style>
-    /* ══════════════════════ Dashboard — FTTH Command Center ══════════════════════ */
 
-    :root {
-      --dash-hld: #6366F1;      /* indigo  */
-      --dash-survey: #10B981;   /* emerald */
-      --dash-lld: #8B5CF6;      /* violet  */
-      --dash-red: #E31837;
-      --dash-ink: #111827;
-      --dash-muted: #6B7280;
-      --dash-line: #E5E7EB;
-      --dash-bg: #F4F5FA;
-    }
+      /* ══════════════════════ Dashboard — FTTH Command Center ══════════════════════ */
 
-    body { background: var(--dash-bg); }
+  
 
-    .dash-content { padding-bottom: 48px; }
+      :root {
 
-    /* ── Hero ─────────────────────────────────────────────────────────── */
-    .dash-hero {
-      position: relative;
-      overflow: hidden;
-      border-radius: 18px;
-      padding: 30px 34px;
-      margin-bottom: 24px;
-      color: #fff;
-      background:
-        radial-gradient(1100px 320px at 88% -40%, rgba(139,92,246,0.55), transparent 60%),
-        radial-gradient(900px 300px at 8% -30%, rgba(227,24,55,0.5), transparent 55%),
-        linear-gradient(135deg, #111827 0%, #1F2937 55%, #312E81 130%);
-      box-shadow: 0 18px 40px -18px rgba(17,24,39,0.55);
-    }
-    .dash-hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
-      background-size: 34px 34px;
-      pointer-events: none;
-    }
-    .dash-hero-inner { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; }
-    .dash-hero h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; }
-    .dash-hero .sub { margin-top: 6px; font-size: 13.5px; color: #C7CBD6; }
-    .dash-hero .hello { font-size: 13px; font-weight: 700; color: #FCA5A5; text-transform: uppercase; letter-spacing: 0.14em; }
+        --dash-hld: #6366F1;      /* indigo  */
 
-    .dash-hero-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        --dash-survey: #047857;   /* emerald */
 
-    .dash-clock {
-      text-align: right;
-      line-height: 1.2;
-    }
-    .dash-clock .time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
-    .dash-clock .date { font-size: 11.5px; color: #9CA3AF; margin-top: 2px; }
+        --dash-lld: #8B5CF6;      /* violet  */
 
-    .dash-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      font-size: 12.5px;
-      font-weight: 700;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.16);
-      color: #D1D5DB;
-      white-space: nowrap;
-    }
-    .dash-status .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #9CA3AF;
-      box-shadow: 0 0 0 0 rgba(156,163,175,0.5);
-    }
-    .dash-status.ok .dot { background: #34D399; animation: dash-pulse 2s infinite; }
-    .dash-status.warn .dot { background: #FBBF24; animation: dash-pulse 1.6s infinite; }
-    .dash-status.down .dot { background: #F87171; animation: dash-pulse 1s infinite; }
-    @keyframes dash-pulse {
-      0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.45); }
-      70% { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
-      100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
-    }
+        --dash-red: #E31837;
 
-    .dash-refresh {
-      display: inline-flex; align-items: center; gap: 7px;
-      padding: 8px 14px; border-radius: 10px;
-      background: #fff; color: #1F2937;
-      border: none; font-size: 12.5px; font-weight: 700; cursor: pointer;
-      box-shadow: 0 6px 16px -6px rgba(0,0,0,0.4);
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
-    }
-    .dash-refresh:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -6px rgba(0,0,0,0.45); }
-    .dash-refresh.spinning svg { animation: dash-spin 0.8s linear infinite; }
-    @keyframes dash-spin { to { transform: rotate(360deg); } }
+        --dash-ink: #111827;
 
-    /* ── Pipeline rail ────────────────────────────────────────────────── */
-    .dash-rail {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr auto 1fr;
-      gap: 0;
-      align-items: stretch;
-      margin-bottom: 24px;
-    }
-    .dash-stage {
-      position: relative;
-      background: #fff;
-      border: 1px solid var(--dash-line);
-      border-radius: 16px;
-      padding: 18px 20px;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      box-shadow: 0 4px 14px -8px rgba(0,0,0,0.12);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-      overflow: hidden;
-    }
-    .dash-stage:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -14px rgba(0,0,0,0.22); }
-    .dash-stage .stage-glow {
-      position: absolute; top: 0; left: 0; right: 0; height: 4px;
-      opacity: 0.9;
-    }
-    .dash-stage.hld .stage-glow { background: linear-gradient(90deg, #6366F1, #818CF8); }
-    .dash-stage.survey .stage-glow { background: linear-gradient(90deg, #10B981, #34D399); }
-    .dash-stage.lld .stage-glow { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+        --dash-muted: #616A75;
 
-    .dash-stage .stage-icon {
-      width: 46px; height: 46px; border-radius: 13px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; flex-shrink: 0;
-    }
-    .dash-stage.hld .stage-icon { background: #EEF2FF; }
-    .dash-stage.survey .stage-icon { background: #ECFDF5; }
-    .dash-stage.lld .stage-icon { background: #F5F3FF; }
+        --dash-line: #E5E7EB;
 
-    .dash-stage .stage-meta { flex: 1; min-width: 0; }
-    .dash-stage .stage-name { font-size: 14.5px; font-weight: 800; color: var(--dash-ink); display: flex; align-items: center; gap: 8px; }
-    .dash-stage .stage-sub { font-size: 12px; color: var(--dash-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dash-stage .stage-count { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-    .dash-stage.hld .stage-count { color: var(--dash-hld); }
-    .dash-stage.survey .stage-count { color: var(--dash-survey); }
-    .dash-stage.lld .stage-count { color: var(--dash-lld); }
+        --dash-bg: #F4F5FA;
 
-    .dash-stage .stage-badge {
-      font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
-      padding: 3px 8px; border-radius: 999px;
-    }
-    .dash-stage .stage-badge.live { background: #ECFDF5; color: #047857; animation: dash-blink 1.8s ease-in-out infinite; }
-    .dash-stage .stage-badge.idle { background: #F3F4F6; color: #6B7280; }
-    @keyframes dash-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+      }
 
-    .dash-connector {
-      display: flex; align-items: center; justify-content: center;
-      padding: 0 10px; color: #9CA3AF;
-    }
-    .dash-connector .chev { font-size: 20px; font-weight: 800; }
+  
 
-    @media (max-width: 1080px) {
-      .dash-rail { grid-template-columns: 1fr; gap: 12px; }
-      .dash-connector { transform: rotate(90deg); padding: 2px 0; }
-    }
+      body { background: var(--dash-bg); }
 
-    /* ── KPI grid ─────────────────────────────────────────────────────── */
-    .dash-kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .dash-kpi {
-      background: #fff;
-      border: 1px solid var(--dash-line);
-      border-radius: 16px;
-      padding: 18px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      text-decoration: none;
-      color: inherit;
-      box-shadow: 0 4px 14px -10px rgba(0,0,0,0.14);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .dash-kpi:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -14px rgba(0,0,0,0.24); }
-    .dash-kpi .kpi-top { display: flex; align-items: center; justify-content: space-between; }
-    .dash-kpi .kpi-label { font-size: 12px; font-weight: 700; color: var(--dash-muted); text-transform: uppercase; letter-spacing: 0.07em; }
-    .dash-kpi .kpi-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-    .dash-kpi .kpi-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
-    .dash-kpi .kpi-value { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; line-height: 1; }
-    .dash-kpi .kpi-spark { width: 110px; height: 38px; flex-shrink: 0; }
-    .dash-kpi .kpi-note { font-size: 11.5px; color: var(--dash-muted); margin-top: 2px; }
-    .dash-kpi.kpi-hld .kpi-icon { background: #EEF2FF; }
-    .dash-kpi.kpi-survey .kpi-icon { background: #ECFDF5; }
-    .dash-kpi.kpi-lld .kpi-icon { background: #F5F3FF; }
-    .dash-kpi.kpi-total .kpi-icon { background: #FEF2F2; }
-    .dash-kpi.kpi-permit .kpi-icon { background: #FFFBEB; }
+  
 
-    /* ── Charts row ───────────────────────────────────────────────────── */
-    .dash-charts {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .dash-card {
-      background: #fff;
-      border: 1px solid var(--dash-line);
-      border-radius: 16px;
-      padding: 20px 22px;
-      box-shadow: 0 4px 14px -10px rgba(0,0,0,0.14);
-    }
-    .dash-card .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .dash-card .card-title { font-size: 14.5px; font-weight: 800; color: var(--dash-ink); }
-    .dash-card .card-hint { font-size: 11.5px; color: var(--dash-muted); }
-    .dash-donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-    .dash-donut-wrap canvas { flex-shrink: 0; }
-    .dash-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 150px; }
-    .dash-legend .lg-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #374151; }
-    .dash-legend .lg-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
-    .dash-legend .lg-val { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .dash-legend .lg-pct { color: var(--dash-muted); width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+      .dash-content { padding-bottom: 48px; }
 
-    /* LLD runs bar list */
-    .dash-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
-    .dash-bar-row { display: grid; grid-template-columns: minmax(90px, 150px) 1fr 40px; align-items: center; gap: 10px; }
-    .dash-bar-row .bar-label { font-size: 12px; font-weight: 600; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .dash-bar-row .bar-track { height: 10px; background: #F3F4F6; border-radius: 999px; overflow: hidden; }
-    .dash-bar-row .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8B5CF6, #A78BFA); width: 0; transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
-    .dash-bar-row .bar-val { font-size: 12px; font-weight: 800; color: var(--dash-ink); text-align: right; font-variant-numeric: tabular-nums; }
-    .dash-bar-empty { font-size: 12.5px; color: var(--dash-muted); padding: 14px 0; text-align: center; }
+  
 
-    /* ── Queue table ──────────────────────────────────────────────────── */
-    .dash-card-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
-    .dash-search {
-      display: inline-flex; align-items: center; gap: 8px;
-      border: 1px solid var(--dash-line); border-radius: 10px;
-      padding: 7px 12px; background: #F9FAFB; min-width: 220px;
-    }
-    .dash-search input { border: none; outline: none; background: transparent; font-size: 13px; width: 100%; color: var(--dash-ink); }
-    .dash-search svg { flex-shrink: 0; opacity: 0.55; }
+      /* ── Hero ─────────────────────────────────────────────────────────── */
 
-    .dash-queue-row { display: flex; align-items: center; gap: 8px; }
-    .dash-pill { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; }
-    .dash-pill.ready { background: #ECFDF5; color: #047857; }
-    .dash-pill.review { background: #FFFBEB; color: #B45309; }
-    .dash-pill.needs { background: #FEF2F2; color: #B91C1C; }
+      .dash-hero {
 
-    .dash-progress { display: flex; align-items: center; gap: 8px; min-width: 140px; }
-    .dash-progress .track { flex: 1; height: 7px; background: #F3F4F6; border-radius: 999px; overflow: hidden; }
-    .dash-progress .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #10B981, #34D399); width: 0; transition: width 0.8s ease; }
-    .dash-progress .pct { font-size: 11.5px; font-weight: 800; color: var(--dash-muted); width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+        position: relative;
 
-    .dash-counts { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .dash-counts .c { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 8px; }
-    .dash-counts .c-ok { background: #ECFDF5; color: #047857; }
-    .dash-counts .c-no { background: #FEF2F2; color: #B91C1C; }
-    .dash-counts .c-pen { background: #FFFBEB; color: #B45309; }
+        overflow: hidden;
 
-    /* ── Timeline ─────────────────────────────────────────────────────── */
-    .dash-timeline { display: flex; flex-direction: column; gap: 0; margin-top: 6px; }
-    .dash-tl-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
-    .dash-tl-item:last-child { border-bottom: none; }
-    .dash-tl-rail { display: flex; flex-direction: column; align-items: center; }
-    .dash-tl-dot { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-    .dash-tl-dot.hld { background: #EEF2FF; }
-    .dash-tl-dot.lld { background: #F5F3FF; }
-    .dash-tl-body { flex: 1; min-width: 0; }
-    .dash-tl-title { font-size: 13.5px; font-weight: 700; color: var(--dash-ink); }
-    .dash-tl-sub { font-size: 12px; color: var(--dash-muted); margin-top: 2px; }
-    .dash-tl-time { font-size: 11px; color: #9CA3AF; margin-top: 3px; }
-    .dash-tl-link { font-size: 12px; font-weight: 700; color: var(--dash-red); text-decoration: none; margin-top: 4px; display: inline-block; }
-    .dash-tl-link:hover { text-decoration: underline; }
-    .dash-empty { text-align: center; color: var(--dash-muted); font-size: 13px; padding: 26px 0; }
+        border-radius: 18px;
 
-    /* ── Skeleton ─────────────────────────────────────────────────────── */
-    .dash-skel { border-radius: 8px; background: linear-gradient(90deg, #F1F3F5 25%, #E8EAED 40%, #F1F3F5 60%); background-size: 300% 100%; animation: dash-shimmer 1.3s infinite; }
-    @keyframes dash-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+        padding: 30px 34px;
 
-    /* ── Fade-in ──────────────────────────────────────────────────────── */
-    .dash-fade { opacity: 0; transform: translateY(8px); animation: dash-fadein 0.45s ease forwards; }
-    @keyframes dash-fadein { to { opacity: 1; transform: translateY(0); } }
+        margin-bottom: 24px;
 
-    .dash-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-    @media (max-width: 1000px) { .dash-grid-2 { grid-template-columns: 1fr; } }
-  </style>
+        color: #fff;
+
+        background:
+
+          radial-gradient(1100px 320px at 88% -40%, rgba(109, 40, 217, 0.34), transparent 62%),
+
+          radial-gradient(900px 300px at 8% -30%, rgba(190, 24, 60, 0.26), transparent 58%),
+
+          linear-gradient(135deg, #0B1120 0%, #111827 58%, #1E1B4B 130%);
+
+        box-shadow: 0 18px 40px -18px rgba(17, 24, 39, 0.55);
+
+      }
+
+      .dash-hero::before {
+
+        content: "";
+
+        position: absolute;
+
+        inset: 0;
+
+        background: linear-gradient(100deg, rgba(6, 10, 20, 0.80) 0%, rgba(6, 10, 20, 0.62) 50%, rgba(6, 10, 20, 0.55) 100%);
+
+        pointer-events: none;
+
+      }
+
+      .dash-hero::after {
+
+        content: "";
+
+        position: absolute;
+
+        inset: 0;
+
+        background-image:
+
+          linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
+
+          linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
+
+        background-size: 34px 34px;
+
+        pointer-events: none;
+
+      }
+
+      .dash-hero-inner { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; }
+
+      .dash-hero h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; }
+
+      .dash-hero .sub { margin-top: 6px; font-size: 13.5px; color: #D3D8E2; }
+
+      .dash-hero .hello { font-size: 13px; font-weight: 700; color: #FCA5A5; text-transform: uppercase; letter-spacing: 0.14em; }
+
+  
+
+      .dash-hero-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+  
+
+      .dash-clock {
+
+        text-align: right;
+
+        line-height: 1.2;
+
+      }
+
+      .dash-clock .time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
+
+      .dash-clock .date { font-size: 12px; color: #AEB6C4; margin-top: 2px; }
+
+  
+
+      .dash-status {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        padding: 8px 14px;
+
+        border-radius: 999px;
+
+        font-size: 12.5px;
+
+        font-weight: 700;
+
+        background: rgba(255,255,255,0.08);
+
+        border: 1px solid rgba(255,255,255,0.16);
+
+        color: #D1D5DB;
+
+        white-space: nowrap;
+
+      }
+
+      .dash-status .dot {
+
+        width: 8px; height: 8px; border-radius: 50%;
+
+        background: #6B7280;
+
+        box-shadow: 0 0 0 0 rgba(156,163,175,0.5);
+
+      }
+
+      .dash-status.ok .dot { background: #34D399; animation: dash-pulse 2s infinite; }
+
+      .dash-status.warn .dot { background: #FBBF24; animation: dash-pulse 1.6s infinite; }
+
+      .dash-status.down .dot { background: #F87171; animation: dash-pulse 1s infinite; }
+
+      @keyframes dash-pulse {
+
+        0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.45); }
+
+        70% { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
+
+        100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+
+      }
+
+  
+
+      /* ── Pipeline rail ────────────────────────────────────────────────── */
+
+      .dash-rail {
+
+        display: grid;
+
+        grid-template-columns: 1fr auto 1fr auto 1fr;
+
+        gap: 0;
+
+        align-items: stretch;
+
+        margin-bottom: 24px;
+
+      }
+
+      .dash-stage {
+
+        position: relative;
+
+        background: #fff;
+
+        border: 1px solid var(--dash-line);
+
+        border-radius: 16px;
+
+        padding: 18px 20px;
+
+        cursor: pointer;
+
+        text-decoration: none;
+
+        color: inherit;
+
+        display: flex;
+
+        gap: 14px;
+
+        align-items: center;
+
+        box-shadow: 0 4px 14px -8px rgba(0,0,0,0.12);
+
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+        overflow: hidden;
+
+      }
+
+      .dash-stage:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -14px rgba(0,0,0,0.22); }
+
+      .dash-stage .stage-glow {
+
+        position: absolute; top: 0; left: 0; right: 0; height: 4px;
+
+        opacity: 0.9;
+
+      }
+
+      .dash-stage.hld .stage-glow { background: linear-gradient(90deg, #6366F1, #818CF8); }
+
+      .dash-stage.survey .stage-glow { background: linear-gradient(90deg, #047857, #34D399); }
+
+      .dash-stage.lld .stage-glow { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+
+  
+
+      .dash-stage .stage-icon {
+
+        width: 46px; height: 46px; border-radius: 13px;
+
+        display: flex; align-items: center; justify-content: center;
+
+        font-size: 22px; flex-shrink: 0;
+
+      }
+
+      .dash-stage.hld .stage-icon { background: #EEF2FF; }
+
+      .dash-stage.survey .stage-icon { background: #ECFDF5; }
+
+      .dash-stage.lld .stage-icon { background: #F5F3FF; }
+
+  
+
+      .dash-stage .stage-meta { flex: 1; min-width: 0; }
+
+      .dash-stage .stage-name { font-size: 14.5px; font-weight: 800; color: var(--dash-ink); display: flex; align-items: center; gap: 8px; }
+
+      .dash-stage .stage-sub { font-size: 12px; color: var(--dash-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      .dash-stage .stage-count { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+
+      .dash-stage.hld .stage-count { color: var(--dash-hld); }
+
+      .dash-stage.survey .stage-count { color: var(--dash-survey); }
+
+      .dash-stage.lld .stage-count { color: var(--dash-lld); }
+
+  
+
+      .dash-stage .stage-badge {
+
+        font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+
+        padding: 3px 8px; border-radius: 999px;
+
+      }
+
+      .dash-stage .stage-badge.live { background: #ECFDF5; color: #047857; animation: dash-blink 1.8s ease-in-out infinite; }
+
+      .dash-stage .stage-badge.idle { background: #F3F4F6; color: #616A75; }
+
+      .dash-stage .stage-badge.offline { background: #FEF2F2; color: #B91C1C; }
+
+      @keyframes dash-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+  
+
+      .dash-connector {
+
+        display: flex; align-items: center; justify-content: center;
+
+        padding: 0 10px; color: #6B7280;
+
+      }
+
+      .dash-connector .chev { font-size: 20px; font-weight: 800; }
+
+  
+
+      @media (max-width: 1080px) {
+
+        .dash-rail { grid-template-columns: 1fr; gap: 12px; }
+
+        .dash-connector { transform: rotate(90deg); padding: 2px 0; }
+
+      }
+
+      /* ── Hero, phone ───────────────────────────────────────────────────
+
+         The hero was the one place a phone lost content rather than
+         reflowing it. `.dash-hero-right` is a flex row whose status pill
+         is `white-space: nowrap`, so it held a 610px min-content width
+         inside a 290px column; `min-width: auto` stopped it shrinking,
+         and the hero's `overflow: hidden` quietly deleted the overflow.
+         At 390px that swallowed 320px — including the entire service
+         status, which is the one thing the hero exists to report.
+
+         The fix is not a smaller pill. A status line that cannot wrap is
+         a status line that gets cut off, and the truncated version still
+         reads as "everything is fine" because the severity word is what
+         disappears. So the right-hand stack takes the full width, the
+         pill is allowed to wrap, and the text keeps its min-content so it
+         still breaks between words rather than mid-token. */
+      @media (max-width: 640px) {
+
+        .dash-hero-inner {
+
+          flex-direction: column;
+
+          align-items: stretch;
+
+          gap: 16px;
+
+        }
+
+        .dash-hero-right {
+
+          width: 100%;
+
+          min-width: 0;   /* the single line that was hiding the status */
+
+          gap: 10px;
+
+        }
+
+        .dash-hero h1 { font-size: 22px; }
+
+        .dash-status {
+
+          white-space: normal;   /* the pill may wrap; the truth may not truncate */
+
+          align-items: flex-start;
+
+        }
+
+        .dash-status .dot { margin-top: 4px; flex: none; }
+
+        .dash-status #heroStatusText,
+        .dash-status span:last-child { min-width: 0; }
+
+        .dash-clock { flex: none; }
+
+      }
+
+  
+
+      /* ── KPI grid ─────────────────────────────────────────────────────── */
+
+      .dash-kpis {
+
+        display: grid;
+
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+
+        gap: 16px;
+
+        margin-bottom: 24px;
+
+      }
+
+      .dash-kpi {
+
+        background: #fff;
+
+        border: 1px solid var(--dash-line);
+
+        border-radius: 16px;
+
+        padding: 18px 20px;
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 8px;
+
+        text-decoration: none;
+
+        color: inherit;
+
+        box-shadow: 0 4px 14px -10px rgba(0,0,0,0.14);
+
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+      }
+
+      .dash-kpi:hover { transform: translateY(-2px); box-shadow: 0 14px 28px -14px rgba(0,0,0,0.24); }
+
+      .dash-kpi .kpi-top { display: flex; align-items: center; justify-content: space-between; }
+
+      .dash-kpi .kpi-label { font-size: 12px; font-weight: 700; color: var(--dash-muted); text-transform: uppercase; letter-spacing: 0.07em; }
+
+      .dash-kpi .kpi-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+      .dash-kpi .kpi-bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+
+      .dash-kpi .kpi-value { font-size: 30px; font-weight: 800; letter-spacing: -0.6px; line-height: 1; }
+
+      .dash-kpi .kpi-spark { width: 110px; height: 38px; flex-shrink: 0; }
+
+      .dash-kpi .kpi-note { font-size: 12px; color: var(--dash-muted); margin-top: 2px; }
+
+      .dash-kpi.kpi-hld .kpi-icon { background: #EEF2FF; }
+
+      .dash-kpi.kpi-survey .kpi-icon { background: #ECFDF5; }
+
+      .dash-kpi.kpi-lld .kpi-icon { background: #F5F3FF; }
+
+      .dash-kpi.kpi-total .kpi-icon { background: #FEF2F2; }
+
+      .dash-kpi.kpi-permit .kpi-icon { background: #FFFBEB; }
+
+  
+
+      /* ── Charts row ───────────────────────────────────────────────────── */
+
+      .dash-charts {
+
+        display: grid;
+
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+        gap: 16px;
+
+        margin-bottom: 24px;
+
+      }
+
+      .dash-card {
+
+        background: #fff;
+
+        border: 1px solid var(--dash-line);
+
+        border-radius: 16px;
+
+        padding: 20px 22px;
+
+        box-shadow: 0 4px 14px -10px rgba(0,0,0,0.14);
+
+      }
+
+      .dash-card .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+
+      .dash-card .card-title { font-size: 14.5px; font-weight: 800; color: var(--dash-ink); }
+
+      .dash-card .card-hint { font-size: 12px; color: var(--dash-muted); }
+
+      .dash-donut-wrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+
+      .dash-donut-wrap canvas { flex-shrink: 0; }
+
+      .dash-legend { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 150px; }
+
+      .dash-legend .lg-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #374151; }
+
+      .dash-legend .lg-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+      .dash-legend .lg-val { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+      .dash-legend .lg-pct { color: var(--dash-muted); width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  
+
+      /* LLD runs bar list */
+
+      .dash-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+
+      .dash-bar-row { display: grid; grid-template-columns: minmax(90px, 150px) 1fr 40px; align-items: center; gap: 10px; }
+
+      .dash-bar-row .bar-label { font-size: 12px; font-weight: 600; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      .dash-bar-row .bar-track { height: 10px; background: #F3F4F6; border-radius: 999px; overflow: hidden; }
+
+      .dash-bar-row .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #8B5CF6, #A78BFA); width: 0; transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+
+      .dash-bar-row .bar-val { font-size: 12px; font-weight: 800; color: var(--dash-ink); text-align: right; font-variant-numeric: tabular-nums; }
+
+      .dash-bar-empty { font-size: 12.5px; color: var(--dash-muted); padding: 14px 0; text-align: center; }
+
+  
+
+      /* ── Queue table ──────────────────────────────────────────────────── */
+
+      .dash-card-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+
+      .dash-search {
+
+        display: inline-flex; align-items: center; gap: 8px;
+
+        border: 1px solid var(--dash-line); border-radius: 10px;
+
+        padding: 7px 12px; background: #F9FAFB; min-width: 220px;
+
+      }
+
+      .dash-search input { border: none; outline: none; background: transparent; font-size: 13px; width: 100%; color: var(--dash-ink); }
+
+      .dash-search svg { flex-shrink: 0; opacity: 0.55; }
+
+  
+
+      .dash-queue-row { display: flex; align-items: center; gap: 8px; }
+
+      .dash-pill { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.03em; }
+
+      .dash-pill.ready { background: #ECFDF5; color: #047857; }
+
+      .dash-pill.review { background: #FFFBEB; color: #B45309; }
+
+      .dash-pill.needs { background: #FEF2F2; color: #B91C1C; }
+
+  
+
+      .dash-progress { display: flex; align-items: center; gap: 8px; min-width: 140px; }
+
+      .dash-progress .track { flex: 1; height: 7px; background: #F3F4F6; border-radius: 999px; overflow: hidden; }
+
+      .dash-progress .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #047857, #34D399); width: 0; transition: width 0.8s ease; }
+
+      .dash-progress .pct { font-size: 12px; font-weight: 800; color: var(--dash-muted); width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  
+
+      .dash-counts { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+      .dash-counts .c { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 8px; }
+
+      .dash-counts .c-ok { background: #ECFDF5; color: #047857; }
+
+      .dash-counts .c-no { background: #FEF2F2; color: #B91C1C; }
+
+      .dash-counts .c-pen { background: #FFFBEB; color: #B45309; }
+
+  
+
+      /* ── Timeline ─────────────────────────────────────────────────────── */
+
+      .dash-timeline { display: flex; flex-direction: column; gap: 0; margin-top: 6px; }
+
+      .dash-tl-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+
+      .dash-tl-item:last-child { border-bottom: none; }
+
+      .dash-tl-rail { display: flex; flex-direction: column; align-items: center; }
+
+      .dash-tl-dot { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+
+      .dash-tl-dot.hld { background: #EEF2FF; }
+
+      .dash-tl-dot.lld { background: #F5F3FF; }
+
+      .dash-tl-body { flex: 1; min-width: 0; }
+
+      .dash-tl-title { font-size: 13.5px; font-weight: 700; color: var(--dash-ink); }
+
+      .dash-tl-sub { font-size: 12px; color: var(--dash-muted); margin-top: 2px; }
+
+      .dash-tl-time { font-size: 11px; color: #6B7280; margin-top: 3px; }
+
+      .dash-tl-link { font-size: 12px; font-weight: 700; color: var(--dash-red); text-decoration: none; margin-top: 4px; display: inline-block; }
+
+      .dash-tl-link:hover { text-decoration: underline; }
+
+      .dash-empty { text-align: center; color: var(--dash-muted); font-size: 13px; padding: 26px 0; }
+
+  
+
+      /* ── Fade-in ──────────────────────────────────────────────────────── */
+
+      .dash-fade { opacity: 0; transform: translateY(8px); animation: dash-fadein 0.45s ease forwards; }
+
+      @keyframes dash-fadein { to { opacity: 1; transform: translateY(0); } }
+
+  
+
+      .dash-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+
+      @media (max-width: 1000px) { .dash-grid-2 { grid-template-columns: 1fr; } }
+
+    </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+  <link rel="stylesheet" href="css/components.css">
+  
 </head>
 <body>
 
@@ -312,9 +643,11 @@
             <div class="time" id="heroTime">--:--:--</div>
             <div class="date" id="heroDate">—</div>
           </div>
-          <span class="dash-status" id="heroStatus"><span class="dot"></span><span id="heroStatusText">Checking systems…</span></span>
-          <button class="dash-refresh" id="btnRefresh" title="Refresh data">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+          <span class="dash-status" id="heroStatus" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="heroStatusText">Checking systems…</span></span>
+          <button class="ftth-refresh-btn" id="btnRefresh" type="button">
+            <span class="ftth-refresh-btn__icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+            </span>
             Refresh
           </button>
         </div>
@@ -468,10 +801,10 @@
         </div>
         <div class="dash-search">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input id="queueSearch" type="text" placeholder="Search projects…" />
+            <input id="queueSearch" type="search" placeholder="Search projects…" aria-label="Search projects in the approval queue" />
         </div>
       </div>
-      <div class="table-card" style="box-shadow:none;border:1px solid var(--dash-line);">
+        <div class="table-card table-card--inset">
         <table>
           <thead>
             <tr>
@@ -483,7 +816,7 @@
               <th>Pending</th>
               <th>Progress</th>
               <th>Status</th>
-              <th></th>
+              <th>Review</th>
             </tr>
           </thead>
           <tbody id="queueBody">
@@ -527,7 +860,7 @@
             <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">Run &amp; View LLD</div><div class="stage-sub">Generate the detailed network design</div></div>
           </a>
           <a class="dash-stage" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="projects.html">
-            <span class="stage-glow" style="background:linear-gradient(90deg,#374151,#6B7280);"></span>
+            <span class="stage-glow" style="background:linear-gradient(90deg,#374151,#616A75);"></span>
             <div class="stage-icon" style="width:38px;height:38px;font-size:17px;background:#F3F4F6;">🗃️</div>
             <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">All Projects</div><div class="stage-sub">Browse every project by stage flag</div></div>
           </a>
@@ -545,6 +878,7 @@
   window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
 </script>
 <script src="fiber-api.js"></script>
+<script src="js/ftth-ui.js"></script>
 <script src="js/ftth-api.js"></script>
 <script src="js/ftth-lld-api.js"></script>
 <script>
@@ -635,7 +969,7 @@
     ctx.font = '800 26px system-ui';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(String(center), cx, cy - 5);
-    ctx.fillStyle = '#6B7280';
+    ctx.fillStyle = '#616A75';
     ctx.font = '600 11px system-ui';
     ctx.fillText(sub || '', cx, cy + 17);
   }
@@ -683,11 +1017,13 @@
   }
 
   /* ── state ────────────────────────────────────────────────────── */
-  var state = { hld: [], queue: [], runs: [], total: 0, permits: null, ok: 0, fail: 0 };
+  var state = { hld: null, queue: null, runs: null, total: null, permits: null, allProjects: null };
+  var health = { hld: 'idle', queue: 'idle', runs: 'idle', permits: 'idle', total: 'idle' };
   var loading = false;
 
   function countUp(el, target, suffix) {
     if (!el) return;
+    if (!FtthUI.motionOk()) { el.textContent = String(target) + (suffix || ''); return; }
     suffix = suffix || '';
     var start = 0, dur = 600, t0 = null;
     function step(ts) {
@@ -700,129 +1036,233 @@
     requestAnimationFrame(step);
   }
 
-  /* ── loaders ──────────────────────────────────────────────────── */
+  /* ── loaders ────────────────────────────────────────────────────
+     Each loader reports pass or fail. A failure is recorded, never
+     silently replaced with an empty array, so the renderer can show
+     "we could not reach this" instead of "there is nothing here".
+
+     The error itself is kept on health.<key>Err. Discarding it was what
+     made every failure read as a generic outage: the renderer had nothing
+     to classify, so a dead session and a dead server produced the same
+     "check that the API is running" advice. */
   async function loadHld() {
+    health.hld = 'loading';
+    health.hldErr = null;
     try {
-      var list = await window.FtthApi.listProjects(200);
-      state.hld = asArray(list);
-      state.ok++;
-    } catch (e) { state.fail++; state.hld = []; }
+      state.hld = asArray(await FtthUI.withTimeout(window.FtthApi.listProjects(200), 12000, 'HLD projects'));
+      health.hld = 'ok';
+    } catch (e) { health.hld = 'fail'; health.hldErr = e; state.hld = null; }
   }
 
   async function loadQueue() {
+    health.queue = 'loading';
+    health.queueErr = null;
     try {
-      var lp = await window.FtthLldApi.listProjects();
+      var lp = await FtthUI.withTimeout(window.FtthLldApi.listProjects(), 12000, 'Survey approval queue');
       state.queue = (lp && lp.projects) || [];
-      state.ok++;
-    } catch (e) { state.fail++; state.queue = []; }
+      health.queue = 'ok';
+    } catch (e) { health.queue = 'fail'; health.queueErr = e; state.queue = null; }
   }
 
   async function loadRuns() {
+    health.runs = 'loading';
+    health.runsErr = null;
     try {
-      var lr = await window.FtthLldApi.listRuns();
+      var lr = await FtthUI.withTimeout(window.FtthLldApi.listRuns(), 12000, 'LLD runs');
       state.runs = (lr && lr.runs) || [];
-      state.ok++;
-    } catch (e) { state.fail++; state.runs = []; }
+      health.runs = 'ok';
+    } catch (e) { health.runs = 'fail'; health.runsErr = e; state.runs = null; }
   }
 
   async function loadTotal() {
+    health.total = 'loading';
+    health.totalErr = null;
     try {
-      var data = await window.FiberApi.listProjects();
-      state.total = asArray(data).length;
-      state.ok++;
-    } catch (e) { state.fail++; state.total = 0; }
+      var data = asArray(await FtthUI.withTimeout(window.FiberApi.listProjects(), 12000, 'Projects'));
+      state.total = data.length;
+      state.allProjects = data;
+      health.total = 'ok';
+    } catch (e) { health.total = 'fail'; health.totalErr = e; state.total = null; state.allProjects = null; }
   }
 
   async function loadPermits() {
+    health.permits = 'loading';
+    health.permitsErr = null;
     try {
-      state.permits = await window.FtthLldApi.getPermitSummary();
-      state.ok++;
-    } catch (e) { state.fail++; state.permits = null; }
+      state.permits = await FtthUI.withTimeout(window.FtthLldApi.getPermitSummary(), 20000, 'Permit analysis');
+      health.permits = 'ok';
+    } catch (e) { health.permits = 'fail'; health.permitsErr = e; state.permits = null; }
   }
 
   /* ── renderers ────────────────────────────────────────────────── */
-  function renderRail() {
-    var hld = state.hld, queue = state.queue, runs = state.runs;
 
-    var hldDone = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
+  /* Each stage renders one of three truths, never conflated:
+     "we could not reach this" (null) vs "there is nothing here" ([]). */
+  function stageValue(healthKey, el, text) {
+    var el2 = $(el);
+    if (!el2) return;
+    if (health[healthKey] === 'fail') {
+      el2.textContent = '—';
+      el2.classList.add('value-unknown');
+      el2.setAttribute('title', 'Could not load — the design service is unreachable');
+    } else {
+      el2.textContent = text;
+      el2.classList.remove('value-unknown');
+      el2.removeAttribute('title');
+    }
+  }
+
+  function stageBadge(healthKey, id, liveText, idleText) {
+    var b = $(id);
+    if (!b) return;
+    if (health[healthKey] === 'fail') {
+      b.textContent = 'OFFLINE';
+      b.className = 'stage-badge offline';
+    } else {
+      b.textContent = liveText;
+      b.className = 'stage-badge live';
+    }
+  }
+
+  function renderRail() {
+    /* `health` decides what the operator is told; the arrays are only
+       used for arithmetic, so a failed load is safe to treat as zero
+       here because stageValue/stageBadge suppress the misleading 0. */
+    var hld = state.hld || [], queue = state.queue || [], runs = state.runs || [];
+
+    var hldDone = hld.filter(function (p) { return String(p.status || '').indexOf('complete') !== -1; }).length;
     var hldBusy = hld.length - hldDone;
-    $('hldCount').textContent = hld.length;
+    stageValue('hld', 'hldCount', String(hld.length));
     $('hldSub').textContent = hld.length ? (hldDone + ' completed · ' + hldBusy + ' in progress') : 'No HLD runs yet — upload one to start';
-    var hldBadge = $('hldBadge');
-    hldBadge.textContent = hldBusy ? 'LIVE' : 'IDLE';
-    hldBadge.className = 'stage-badge ' + (hldBusy ? 'live' : 'idle');
+    stageBadge('hld', 'hldBadge', hldBusy ? 'LIVE' : 'IDLE', 'IDLE');
 
     var pendingAll = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
     var readyCount = queue.filter(function (p) { return p.ready; }).length;
-    $('surveyCount').textContent = queue.length;
+    stageValue('queue', 'surveyCount', String(queue.length));
     $('surveySub').textContent = queue.length ? (pendingAll + ' pending · ' + readyCount + ' ready for LLD') : 'No survey changes yet';
-    var surveyBadge = $('surveyBadge');
-    surveyBadge.textContent = pendingAll ? 'LIVE' : 'IDLE';
-    surveyBadge.className = 'stage-badge ' + (pendingAll ? 'live' : 'idle');
+    stageBadge('queue', 'surveyBadge', pendingAll ? 'LIVE' : 'IDLE', 'IDLE');
 
-    $('lldCount').textContent = runs.length;
+    stageValue('runs', 'lldCount', String(runs.length));
     var last = runs[0];
     $('lldSub').textContent = runs.length
       ? 'latest: ' + (last.lld_version || 'V?') + ' · ' + esc(last.project_name || '')
       : 'No LLD runs yet — review survey changes first';
-    var lldBadge = $('lldBadge');
-    lldBadge.textContent = runs.length ? 'RUNS' : 'IDLE';
-    lldBadge.className = 'stage-badge ' + (runs.length ? 'live' : 'idle');
+    stageBadge('runs', 'lldBadge', 'RUNS', 'IDLE');
+  }
+
+  function kpiValue(healthKey, id, noteId, value, note, spark, sparkColor, series) {
+    if (health[healthKey] === 'fail') {
+      var v = $(id);
+      if (v) { v.textContent = '—'; v.classList.add('value-unknown'); v.setAttribute('title', 'Could not load'); }
+      if ($(noteId)) { $(noteId).textContent = 'unavailable'; }
+      drawSpark($(spark), [null, null], sparkColor);
+      return;
+    }
+    var el = $(id);
+    if (el) el.classList.remove('value-unknown');
+    countUp(el, value);
+    if ($(noteId)) $(noteId).textContent = note;
+    drawSpark($(spark), series, sparkColor);
   }
 
   function renderKpis() {
-    var hld = state.hld, queue = state.queue, runs = state.runs;
+    var hld = state.hld || [], queue = state.queue || [], runs = state.runs || [];
 
-    countUp($('kpiHld'), hld.length);
-    var hldDone = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
-    $('kpiHldNote').textContent = hldDone + ' completed';
-    drawSpark($('sparkHld'), dailySeries(hld, function (p) { return p.created_at; }), '#6366F1');
+    var hldDone = hld.filter(function (p) { return String(p.status || '').indexOf('complete') !== -1; }).length;
+    kpiValue('hld', 'kpiHld', 'kpiHldNote', hld.length, hldDone + ' completed',
+      'sparkHld', '#6366F1', dailySeries(hld, function (p) { return p.created_at; }));
 
     var pending = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
-    countUp($('kpiPending'), pending);
     var readyCount = queue.filter(function (p) { return p.ready; }).length;
-    $('kpiPendingNote').textContent = readyCount + ' projects LLD-ready';
-    drawSpark($('sparkPending'), queue.map(function (p) { return p.pending || 0; }), '#10B981');
+    kpiValue('queue', 'kpiPending', 'kpiPendingNote', pending, readyCount + ' projects LLD-ready',
+      'sparkPending', '#047857', queue.map(function (p) { return p.pending || 0; }));
 
-    countUp($('kpiLld'), runs.length);
-    var done = runs.filter(function (r) { return String(r.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
-    $('kpiLldNote').textContent = done + ' completed runs';
-    drawSpark($('sparkLld'), dailySeries(runs, function (r) { return r.run_date; }), '#8B5CF6');
+    var done = runs.filter(function (r) { return String(r.status || '').indexOf('complete') !== -1; }).length;
+    kpiValue('runs', 'kpiLld', 'kpiLldNote', runs.length, done + ' completed runs',
+      'sparkLld', '#6D28D9', dailySeries(runs, function (r) { return r.run_date; }));
 
-    countUp($('kpiTotal'), state.total);
-    $('kpiTotalNote').textContent = 'across all stage flags';
-    drawSpark($('sparkTotal'), dailySeries(asArray(window.__allProjects || []), function (p) { return p.created_at; }), '#E31837');
+    kpiValue('total', 'kpiTotal', 'kpiTotalNote', state.total, 'across all stage flags',
+      'sparkTotal', '#E31837', dailySeries(state.allProjects || [], function (p) { return p.created_at; }));
 
     var pm = state.permits;
-    if (pm && (pm.total || pm.total_groups)) {
-      // Clubbed street-level permits (one per street per rule); the raw
-      // segment count is shown in the note for context.
+    if (health.permits === 'fail') {
+      kpiValue('permits', 'kpiPermit', 'kpiPermitNote', 0, '', 'sparkPermit', '#92400E', []);
+    } else if (pm && (pm.total || pm.total_groups)) {
       var groups = pm.total_groups || pm.total;
-      countUp($('kpiPermit'), groups);
       var readyN = pm.ready || 0;
       var identN = (pm.group_by_status && pm.group_by_status.identified) || 0;
-      $('kpiPermitNote').textContent = readyN + ' ready · ' + identN + ' identified · ' + (pm.projects_with_permits || 0) + ' project(s) · ' + pm.total + ' sections';
-      var sparkVals = (pm.projects || []).map(function (p) { return p.groups || p.permits || 0; });
-      drawSpark($('sparkPermit'), sparkVals.length ? sparkVals : [0], '#D97706');
+      kpiValue('permits', 'kpiPermit', 'kpiPermitNote', groups,
+        readyN + ' ready · ' + identN + ' identified · ' + (pm.projects_with_permits || 0) + ' project(s) · ' + pm.total + ' sections',
+        'sparkPermit', '#92400E', (pm.projects || []).map(function (p) { return p.groups || p.permits || 0; }));
     } else {
-      $('kpiPermit').textContent = 0;
-      $('kpiPermitNote').textContent = 'no analysis run yet';
-      drawSpark($('sparkPermit'), [0], '#D97706');
+      kpiValue('permits', 'kpiPermit', 'kpiPermitNote', 0, 'no analysis run yet', 'sparkPermit', '#92400E', [0]);
     }
+  }
+
+  /* A chart whose data failed is not a chart with zero data. It says so
+     in the same box, and the surrounding card keeps its shape. */
+  /* The reason a panel failed, in words that name the actual cause. The
+     error is passed through, not discarded: a 401 must not be reported as
+     "check that the API is running". */
+  function whyFailed(healthKey) {
+    return FtthUI.errorMessage(health[healthKey + 'Err']);
+  }
+
+  /* A "Try again" button is only honest when retrying could plausibly work.
+     A 401 that already ran its token refresh will fail identically forever,
+     so we send the user to sign in instead of offering a dead-end button. */
+  function failureAction(healthKey) {
+    var err = health[healthKey + 'Err'];
+    var kind = FtthUI.errorKind(err);
+    if (kind === 'unauthorized') {
+      return '<a class="panel-state__action" href="index.html">Sign in again →</a>';
+    }
+    return '<button type="button" class="panel-state__retry" data-retry="' +
+      esc(healthKey) + '">Try again</button>';
+  }
+
+  function wireRetries(root) {
+    (root || document).querySelectorAll('[data-retry]').forEach(function (b) {
+      b.addEventListener('click', loadAll);
+    });
+  }
+
+  function chartUnavailable(hintId, legendId, canvasId, what, healthKey) {
+    var hint = $(hintId);
+    if (hint) hint.textContent = 'unavailable';
+    var cv = $(canvasId);
+    if (cv) { cv.style.visibility = 'hidden'; }
+    var lg = $(legendId);
+    if (lg) {
+      lg.innerHTML = '<div class="panel-state panel-state--error" style="padding:18px 14px;">' +
+        '<p class="panel-state__title">Can’t load ' + esc(what) + '</p>' +
+        '<p class="panel-state__body">' + esc(whyFailed(healthKey)) + '</p>' +
+        failureAction(healthKey) + '</div>';
+      wireRetries(lg);
+    }
+  }
+
+  function chartAvailable(canvasId) {
+    var cv = $(canvasId);
+    if (cv) cv.style.visibility = '';
   }
 
   function renderDonuts() {
     // HLD status donut
     var hld = state.hld;
-    var comp = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('complete') !== -1; }).length;
-    var run = hld.filter(function (p) { return /run|progress|queue/.test(String(p.status || '').toLowerCase()); }).length;
-    var fail = hld.filter(function (p) { return String(p.status || '').toLowerCase().indexOf('fail') !== -1; }).length;
+    if (hld === null) {
+      chartUnavailable('hldChartHint', 'legendHld', 'donutHld', 'HLD pipeline status', 'hld');
+    } else {
+    chartAvailable('donutHld');
+    var comp = hld.filter(function (p) { return String(p.status || '').indexOf('complete') !== -1; }).length;
+    var run = hld.filter(function (p) { return /run|progress|queue/.test(String(p.status || '')); }).length;
+    var fail = hld.filter(function (p) { return String(p.status || '').indexOf('fail') !== -1; }).length;
     var other = hld.length - comp - run - fail;
     var hldSegs = [
-      { label: 'Completed', value: comp, color: '#10B981' },
-      { label: 'In progress', value: run, color: '#F59E0B' },
+      { label: 'Completed', value: comp, color: '#047857' },
+      { label: 'In progress', value: run, color: '#B45309' },
       { label: 'Failed', value: fail, color: '#EF4444' },
-      { label: 'Other', value: other, color: '#9CA3AF' }
+      { label: 'Other', value: other, color: '#6B7280' }
     ];
     drawDonut($('donutHld'), hldSegs, hld.length, 'projects');
     $('hldChartHint').textContent = hld.length + ' HLD runs';
@@ -831,19 +1271,24 @@
       return '<div class="lg-row"><span class="lg-swatch" style="background:' + s.color + '"></span>' + s.label +
         '<span class="lg-pct">' + pct + '%</span><span class="lg-val">' + s.value + '</span></div>';
     }).join('');
+    }
 
     // queue status donut
     var queue = state.queue;
+    if (queue === null) {
+      chartUnavailable('queueChartHint', 'legendQueue', 'donutQueue', 'survey review status', 'queue');
+    } else {
+    chartAvailable('donutQueue');
     var qApproved = queue.reduce(function (s, p) { return s + (p.approved || 0); }, 0);
     var qRejected = queue.reduce(function (s, p) { return s + (p.rejected || 0); }, 0);
     var qNeeds = queue.reduce(function (s, p) { return s + (p.needs_correction || 0); }, 0);
     var qPending = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
     var qTotal = qApproved + qRejected + qNeeds + qPending;
     var qSegs = [
-      { label: 'Approved', value: qApproved, color: '#10B981' },
+      { label: 'Approved', value: qApproved, color: '#047857' },
       { label: 'Rejected', value: qRejected, color: '#EF4444' },
-      { label: 'Needs correction', value: qNeeds, color: '#F59E0B' },
-      { label: 'Pending', value: qPending, color: '#9CA3AF' }
+      { label: 'Needs correction', value: qNeeds, color: '#B45309' },
+      { label: 'Pending', value: qPending, color: '#6B7280' }
     ];
     drawDonut($('donutQueue'), qSegs, qTotal, 'changes');
     $('queueChartHint').textContent = qTotal + ' changes · ' + queue.length + ' projects';
@@ -852,11 +1297,21 @@
       return '<div class="lg-row"><span class="lg-swatch" style="background:' + s.color + '"></span>' + s.label +
         '<span class="lg-pct">' + pct + '%</span><span class="lg-val">' + s.value + '</span></div>';
     }).join('');
+    }
 
     // LLD runs bars
     var runs = state.runs;
-    $('lldChartHint').textContent = runs.length + ' runs';
     var barEl = $('lldBars');
+    if (runs === null) {
+      $('lldChartHint').textContent = 'unavailable';
+      barEl.innerHTML = '<div class="panel-state panel-state--error" style="padding:18px 14px;">' +
+        '<p class="panel-state__title">Can’t load LLD runs</p>' +
+        '<p class="panel-state__body">' + esc(whyFailed('runs')) + '</p>' +
+        failureAction('runs') + '</div>';
+      wireRetries(barEl);
+      return;
+    }
+    $('lldChartHint').textContent = runs.length + ' runs';
     if (!runs.length) {
       barEl.innerHTML = '<div class="dash-bar-empty">No LLD runs yet — run LLD after survey approval.</div>';
       return;
@@ -883,6 +1338,18 @@
 
   function renderQueueTable(filter) {
     var tbody = $('queueBody');
+
+    if (state.queue === null) {
+      $('queueHint').textContent = 'unavailable';
+      tbody.innerHTML = '<tr><td colspan="9"><div class="panel-state panel-state--error">' +
+        '<p class="panel-state__title">Can’t load the approval queue</p>' +
+        '<p class="panel-state__body">' + esc(whyFailed('queue')) + '</p>' +
+        failureAction('queue') +
+        '</div></td></tr>';
+      wireRetries(tbody);
+      return;
+    }
+
     var queue = state.queue.slice();
     if (filter) {
       var q = filter.toLowerCase();
@@ -911,7 +1378,7 @@
         '<td style="color:#047857;font-weight:700;font-variant-numeric:tabular-nums;">' + (p.approved || 0) + '</td>' +
         '<td style="color:#B91C1C;font-weight:700;font-variant-numeric:tabular-nums;">' + (p.rejected || 0) + '</td>' +
         '<td style="color:#B45309;font-weight:700;font-variant-numeric:tabular-nums;">' + (p.needs_correction || 0) + '</td>' +
-        '<td style="color:#6B7280;font-variant-numeric:tabular-nums;">' + (p.pending || 0) + '</td>' +
+        '<td style="color:#616A75;font-variant-numeric:tabular-nums;">' + (p.pending || 0) + '</td>' +
         '<td><div class="dash-progress"><span class="track"><span class="fill" data-w="' + pct + '%"></span></span><span class="pct">' + pct + '%</span></div></td>' +
         '<td><span class="dash-pill ' + (ready ? 'ready' : 'review') + '">' + (ready ? 'LLD READY' : 'REVIEWING') + '</span></td>' +
         '<td><a class="action-link" href="ftth-survey-changes.html?project_id=' + encodeURIComponent(p.project_id) + '">Review →</a></td>';
@@ -924,19 +1391,19 @@
 
   function renderTimeline() {
     var events = [];
-    state.hld.forEach(function (p) {
+    (state.hld || []).forEach(function (p) {
       events.push({
         t: p.created_at,
         kind: 'hld',
         icon: '🏗️',
-        title: 'HLD pipeline ' + (String(p.status || '').toLowerCase().indexOf('complete') !== -1 ? 'completed' : 'created'),
+        title: 'HLD pipeline ' + (String(p.status || '').indexOf('complete') !== -1 ? 'completed' : 'created'),
         sub: p.name || p.project_id,
         link: 'ftth-hld-results.html?project_id=' + encodeURIComponent(p.project_id),
         linkText: 'View results'
       });
     });
-    state.runs.forEach(function (r) {
-      var done = String(r.status || '').toLowerCase().indexOf('complete') !== -1;
+    (state.runs || []).forEach(function (r) {
+      var done = String(r.status || '').indexOf('complete') !== -1;
       events.push({
         t: r.run_date,
         kind: 'lld',
@@ -949,13 +1416,30 @@
     });
     events.sort(function (a, b) { return new Date(b.t) - new Date(a.t); });
     events = events.slice(0, 10);
-    $('activityHint').textContent = events.length + ' events';
 
     var tl = $('timeline');
-    if (!events.length) {
-      tl.innerHTML = '<div class="dash-empty">No activity yet — the story starts with your first HLD run.</div>';
+
+    if (state.hld === null && state.runs === null) {
+      $('activityHint').textContent = 'unavailable';
+      // Two loaders feed this panel; report whichever failure we can name.
+      var activityKey = health.hld === 'fail' ? 'hld' : 'runs';
+      tl.innerHTML = '<div class="panel-state panel-state--error">' +
+        '<p class="panel-state__title">Can’t load activity</p>' +
+        '<p class="panel-state__body">' + esc(whyFailed(activityKey)) + '</p>' +
+        failureAction(activityKey) + '</div>';
+      wireRetries(tl);
       return;
     }
+
+    if (!events.length) {
+      $('activityHint').textContent = '0 events';
+      tl.innerHTML = '<div class="panel-state panel-state--empty">' +
+        '<p class="panel-state__title">No runs yet</p>' +
+        '<p class="panel-state__body">Upload an HLD area to start the pipeline. Every run will appear here.</p>' +
+        '<a class="panel-state__action" href="ftth-hld.html">Upload HLD →</a></div>';
+      return;
+    }
+    $('activityHint').textContent = events.length + ' events';
     tl.innerHTML = events.map(function (e) {
       return '<div class="dash-tl-item">' +
         '<div class="dash-tl-rail"><span class="dash-tl-dot ' + e.kind + '">' + e.icon + '</span></div>' +
@@ -966,50 +1450,92 @@
     }).join('');
   }
 
+  var ENDPOINT_LABEL = {
+    hld: 'HLD projects', queue: 'Survey approval queue',
+    runs: 'LLD runs', permits: 'Permit analysis', total: 'Projects'
+  };
+
   function renderStatus() {
     var el = $('heroStatus'), txt = $('heroStatusText');
+    var failed = Object.keys(health).filter(function (k) { return health[k] === 'fail'; });
+    var total = Object.keys(health).length;
     el.className = 'dash-status';
-    if (state.fail === 0 && state.ok > 0) {
+
+    if (failed.length === 0) {
       el.classList.add('ok');
-      txt.textContent = 'All systems operational';
-    } else if (state.ok > 0) {
+      txt.textContent = 'All ' + total + ' services responding';
+    } else if (failed.length < total) {
       el.classList.add('warn');
-      txt.textContent = state.fail + ' service(s) unreachable';
+      txt.textContent = failed.length + ' of ' + total + ' unreachable: ' +
+        failed.map(function (k) { return ENDPOINT_LABEL[k]; }).join(', ');
     } else {
       el.classList.add('down');
-      txt.textContent = 'Backend unreachable';
+      txt.textContent = 'Design service unreachable — showing last known data';
     }
+  }
+
+  function describeCharts() {
+    var hld = state.hld, queue = state.queue, runs = state.runs;
+
+    if (hld === null) {
+      FtthUI.describeCanvas($('donutHld'), 'HLD pipeline status. Could not load this chart.');
+    } else {
+      var comp = hld.filter(function (p) { return String(p.status || '').indexOf('complete') !== -1; }).length;
+      FtthUI.describeCanvas($('donutHld'),
+        'HLD pipeline status donut. ' + hld.length + ' HLD runs, ' + comp + ' completed.');
+    }
+
+    if (queue === null) {
+      FtthUI.describeCanvas($('donutQueue'), 'Survey review status. Could not load this chart.');
+    } else {
+      var qPending = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
+      FtthUI.describeCanvas($('donutQueue'),
+        'Survey review status donut. ' + qPending + ' changes still pending across ' + queue.length + ' projects.');
+    }
+
+    FtthUI.describeCanvas($('sparkHld'), 'Fourteen-day trend of HLD runs created.');
+    FtthUI.describeCanvas($('sparkPending'), 'Pending review count per project.');
+    FtthUI.describeCanvas($('sparkLld'), 'Fourteen-day trend of LLD runs started.');
+    FtthUI.describeCanvas($('sparkTotal'), 'Fourteen-day trend of projects created.');
+    FtthUI.describeCanvas($('sparkPermit'), 'Permit groups per project.');
   }
 
   /* ── master loader ────────────────────────────────────────────── */
   async function loadAll() {
     if (loading) return;
     loading = true;
-    $('btnRefresh').classList.add('spinning');
-    state.ok = 0; state.fail = 0;
+    var btn = $('btnRefresh');
+    btn.classList.add('is-busy');
+    btn.disabled = true;
 
-    await Promise.all([
-      loadHld(),
-      loadQueue(),
-      loadRuns(),
-      loadPermits(),
-      loadTotal().then(function () {
-        // keep raw list for total-projects sparkline
-        return window.FiberApi.listProjects().then(function (data) {
-          window.__allProjects = asArray(data);
-        }).catch(function () { window.__allProjects = []; });
-      })
-    ]);
+    await Promise.all([loadHld(), loadQueue(), loadRuns(), loadPermits(), loadTotal()]);
 
-    renderRail();
-    renderKpis();
-    renderDonuts();
-    renderQueueTable($('queueSearch').value.trim());
-    renderTimeline();
-    renderStatus();
+    try {
+      renderRail();
+      renderKpis();
+      renderDonuts();
+      renderQueueTable($('queueSearch').value.trim());
+      renderTimeline();
+      renderStatus();
+      describeCharts();
+    } catch (renderErr) {
+      console.error('Dashboard render failed:', renderErr);
+      FtthUI.toast('The dashboard could not draw its figures. Try refreshing.', 'error');
+    }
+
+    var failed = Object.keys(health).filter(function (k) { return health[k] === 'fail'; });
+    if (failed.length) {
+      FtthUI.toast(
+        failed.length === Object.keys(health).length
+          ? 'Design service unreachable — the figures below could not be loaded.'
+          : failed.length + ' of 5 services unreachable: ' + failed.map(function (k) { return ENDPOINT_LABEL[k]; }).join(', ') + '.',
+        'error'
+      );
+    }
 
     loading = false;
-    $('btnRefresh').classList.remove('spinning');
+    btn.classList.remove('is-busy');
+    btn.disabled = false;
   }
 
   /* ── wire up ──────────────────────────────────────────────────── */
@@ -1020,15 +1546,21 @@
 
   // subtle stagger reveal for the sections
   var cards = document.querySelectorAll('.dash-card, .dash-stage, .dash-kpi');
-  cards.forEach(function (c, i) {
-    if (c.classList.contains('dash-fade')) {
-      c.style.animationDelay = (i * 40) + 'ms';
-      c.style.animationDuration = '0.45s';
-    }
-  });
+  if (FtthUI.motionOk()) {
+    cards.forEach(function (c, i) {
+      if (c.classList.contains('dash-fade')) {
+        c.style.animationDelay = (i * 40) + 'ms';
+        c.style.animationDuration = '0.45s';
+      }
+    });
+  }
 
   loadAll();
-  setInterval(loadAll, 30000);
+
+  /* Auto-refresh pauses when the tab is hidden. The old unconditional
+     setInterval kept rebuilding #queueBody for nobody. */
+  var poller = FtthUI.poll(loadAll, 30000);
+  poller.start();
 })();
 </script>
 </body>

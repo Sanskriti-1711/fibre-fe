@@ -9,7 +9,7 @@
     :root {
       --tm-red:#E31837;
       --tm-dark:#1F2937;
-      --tm-gray:#6B7280;
+      --tm-gray:#616A75;
       --tm-light:#F9FAFB;
       --tm-white:#FFFFFF;
       --border:#E5E7EB;
@@ -54,7 +54,7 @@
     }
 
     .nav-label {
-      color:#9CA3AF;
+      color:#6B7280;
       font-size:12px;
       font-weight:600;
       letter-spacing:0.08em;
@@ -117,7 +117,10 @@
       margin-bottom:18px;
     }
 
-    button {
+    /* Scoped to the form. A bare `button { width: 100% }` also matched the
+       shared shell's nav toggle, stretching the 44px hamburger to 366px and
+       pushing the page 95px past the viewport on a phone. */
+    form button {
       width:100%;
       background:var(--tm-red);
       color:#fff;
@@ -128,7 +131,9 @@
       cursor:pointer;
     }
   </style>
-</head>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  </head>
 <body>
 
 <div class="layout">
@@ -166,7 +171,8 @@
 
 </body>
 <script src="fiber-api.js"></script>
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script>
   window.FiberAuth.requireLogin();
 
@@ -184,7 +190,7 @@
       return;
     }
     el.style.display = "block";
-    el.style.color = isError ? "#B91C1C" : "#059669";
+    el.style.color = isError ? "#B91C1C" : "#047857";
     el.textContent = text;
   }
 
@@ -203,7 +209,7 @@
       document.getElementById("inviteEmail").value = "";
       document.getElementById("invitePassword").value = "";
     } catch (e) {
-      setInviteMsg(e && e.message ? e.message : "Failed to create engineer", true);
+      setInviteMsg(e && FtthUI.humanize(e) ? FtthUI.humanize(e) : "Failed to create engineer", true);
     }
   }
 </script>

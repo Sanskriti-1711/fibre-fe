@@ -1,6 +1,13 @@
 <aside class="sidebar" id="sharedSidebar">
-  <h2>Tech Mahindra</h2>
-  <nav class="nav" id="sharedNav">
+  <div class="sidebar__bar">
+    <h2>Tech Mahindra</h2>
+    <button type="button" class="nav-toggle-btn" id="navToggleBtn"
+            aria-expanded="false" aria-controls="sharedNav">
+      <span class="nav-toggle-icon" aria-hidden="true"></span>
+      <span class="nav-toggle-text">Menu</span>
+    </button>
+  </div>
+  <nav class="nav" id="sharedNav" aria-label="Main">
     <div class="nav-section">
       <span class="nav-label">Overview</span>
       <a data-page="dashboard" href="dashboard.html">Dashboard</a>
@@ -29,3 +36,7 @@
     </div>
   </nav>
 </aside>
+<!-- Scrim: a real tap target that closes the drawer. Separate from .sidebar
+     so it can span the viewport while the drawer sits above it. -->
+<div class="nav-scrim" id="navScrim" hidden></div>
+

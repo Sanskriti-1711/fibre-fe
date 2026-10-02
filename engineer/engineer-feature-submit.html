@@ -4,8 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Engineer Feature Submit</title>
+<script src="../js/ftth-ui.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js" defer></script>
+  <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="../css/components.css">
 </head>
 <body class="engineer-feature-submit">
 
@@ -485,9 +488,9 @@
       setComplianceStatus('Submitted successfully!', 'Awaiting compliance review. Result: Pass or Review.', 'review');
 
     } catch (error) {
-      submitStatus.textContent = 'Error: ' + (error.message || 'Failed to submit feature.');
+      submitStatus.textContent = 'Error: ' + (FtthUI.humanize(error));
       submitStatus.classList.remove('success');
-      setComplianceStatus('Submission failed.', error.message || 'Please try again.', 'failed');
+      setComplianceStatus('Submission failed.', FtthUI.humanize(error) || 'Please try again.', 'failed');
     }
   }
 

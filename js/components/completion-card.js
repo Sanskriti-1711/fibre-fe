@@ -36,7 +36,7 @@ const CompletionCard = {
     } catch (err) {
       container.innerHTML = `
         <div class="ds-completion-error">
-          Failed to load completion: ${err.message}
+          Failed to load completion: ${FtthUI.humanize(err)}
         </div>
       `;
     }
@@ -68,7 +68,7 @@ const CompletionCard = {
     if (data.weights_defined) {
       const dynamicCircle = this._createMiniCircle(
         data.dynamic_completion,
-        '#10B981',
+        '#047857',
         'D'
       );
       container.appendChild(dynamicCircle);
@@ -141,7 +141,7 @@ const CompletionCard = {
       const weightsBtn = document.createElement('button');
       weightsBtn.className = 'ds-completion-weights-btn';
       weightsBtn.textContent = data.weights_defined ? 'Edit Weights' : 'Set Weights';
-      weightsBtn.style.background = data.weights_defined ? '#10B981' : '#F59E0B';
+      weightsBtn.style.background = data.weights_defined ? '#047857' : '#B45309';
       weightsBtn.onclick = () => this._openWeightManager(projectId);
       header.appendChild(weightsBtn);
     }
@@ -162,7 +162,7 @@ const CompletionCard = {
     metricsGrid.appendChild(this._createMetricCard(
       'Dynamic Completion',
       data.dynamic_completion,
-      '#10B981',
+      '#047857',
       data.weights_defined ? 'Weight-based calculation' : 'Set weights to enable',
       data.weights_defined
     ));
@@ -193,7 +193,7 @@ const CompletionCard = {
     card.style.borderColor = enabled ? color : 'transparent';
 
     card.innerHTML = `
-      <div class="ds-completion-metric-value" style="color: ${enabled ? color : '#9CA3AF'};">${Number(value).toFixed(1)}%</div>
+      <div class="ds-completion-metric-value" style="color: ${enabled ? color : '#6B7280'};">${Number(value).toFixed(1)}%</div>
       <div class="ds-completion-metric-title">${title}</div>
       <div class="ds-completion-metric-subtitle">${subtitle}</div>
     `;

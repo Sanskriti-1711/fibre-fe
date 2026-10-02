@@ -76,7 +76,7 @@
       fill: '#3B82F6', outline: '#1D4ED8', opacity: 0.6, lineWidth: 6, lineDash: [], label: 'Trench Routes',
     },
     feeder_cable: {
-      fill: '#DC2626', outline: '#7F1D1D', opacity: 0.85, lineWidth: 1.8, lineDash: [], label: 'Feeder Cable',
+      fill: '#B91C1C', outline: '#7F1D1D', opacity: 0.85, lineWidth: 1.8, lineDash: [], label: 'Feeder Cable',
     },
     distribution_cable: {
       fill: '#F97316', outline: '#C2410C', opacity: 0.85, lineWidth: 1.3, lineDash: [], label: 'Distribution Cable',
@@ -87,10 +87,10 @@
     // Aerial spans carry fibre on poles instead of in a duct: same thin
     // weight as a cable, amber so it reads as "not underground".
     aerial_cable: {
-      fill: '#F59E0B', outline: '#B45309', opacity: 0.85, lineWidth: 1.6, lineDash: [], label: 'Aerial Cable',
+      fill: '#B45309', outline: '#B45309', opacity: 0.85, lineWidth: 1.6, lineDash: [], label: 'Aerial Cable',
     },
     feeder_ducts: {
-      fill: '#F59E0B', outline: '#B45309', opacity: 0.75, lineWidth: 3.6, lineDash: [], label: 'Feeder Ducts (trunk)',
+      fill: '#B45309', outline: '#B45309', opacity: 0.75, lineWidth: 3.6, lineDash: [], label: 'Feeder Ducts (trunk)',
     },
     distribution_ducts: {
       fill: '#8B5CF6', outline: '#6D28D9', opacity: 0.75, lineWidth: 3, lineDash: [], label: 'Distribution Ducts (branch)',
@@ -110,7 +110,10 @@
       fill: '#06B6D4', outline: '#0891B2', opacity: 0.7, lineWidth: 5, lineDash: [], label: 'PDPs',
     },
     mfg: {
-      fill: '#10B981', outline: '#047857', opacity: 0.7, lineWidth: 5, lineDash: [], label: 'MFG',
+      fill: '#047857', outline: '#047857', opacity: 0.7, lineWidth: 5, lineDash: [], label: 'MFG',
+    },
+    mfg_service_areas: {
+      fill: '#65A30D', outline: '#3F6212', opacity: 0.18, lineWidth: 2, lineDash: [4, 2], label: 'MFG Service Areas',
     },
     buildings: {
       fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4, label: 'Buildings',
@@ -119,15 +122,15 @@
       fill: '#64748B', outline: '#94A3B8', opacity: 0.7, lineWidth: 2.5, lineDash: [], pointRadius: 7, label: 'Existing Infrastructure',
     },
     default: {
-      fill: '#6B7280', outline: '#374151', opacity: 0.4, label: 'Layer',
+      fill: '#616A75', outline: '#374151', opacity: 0.4, label: 'Layer',
     },
     // Sub-layer color map used when a group GeoJSON is tagged per-feature with
     // a `sublayer` property (merged feeder/distribution/drop ducts, etc.)
     SUBLAYER_COLORS: {
-      'Feeder_Ducts': '#F59E0B',
+      'Feeder_Ducts': '#B45309',
       'Distribution_Ducts': '#8B5CF6',
       'Drop_Ducts': '#EC4899',
-      'Feeder_Cable': '#DC2626',
+      'Feeder_Cable': '#B91C1C',
       'Distribution_Cable': '#F97316',
     },
     // Shades of the same base colour: used to differentiate asset types
@@ -146,9 +149,9 @@
       // Structural node types from the trench designer (uppercase NODE_TYPE).
       'HDD_PIT': '#B91C1C',
       'PDP': '#06B6D4',
-      'BEND': '#6B7280',
+      'BEND': '#616A75',
       'JUNCTION': '#7C3AED',
-      'PULL': '#F59E0B',
+      'PULL': '#B45309',
     },
   };
 
@@ -201,7 +204,7 @@
     // Colours are the ones the palette already used for these layers.
     // Keep the dense premise/object layer visually subordinate to the network
     // landmarks, while making the two primary source markers easy to find.
-    mfg: { shape: 'hexagon', color: '#10B981', size: 1.15 },
+    mfg: { shape: 'hexagon', color: '#047857', size: 1.15 },
     pdps: { shape: 'triangle', color: '#06B6D4', size: 1.1 },
     // One symbol per chamber SUBTYPE: a Bore is the HDD entry/exit opening,
     // a Handhole is a small lid, a Manhole is a walk-in shaft. Same size, so
@@ -220,7 +223,7 @@
     // A pole is a POINT, so it cannot be dashed the way a span is; the cross
     // glyph is what marks it, and 0.6 was too small to see at project zoom
     // (Berlin has only a handful of poles, so they were easy to miss).
-    poles: { shape: 'cross', color: '#F59E0B', size: 1.1 },
+    poles: { shape: 'cross', color: '#B45309', size: 1.1 },
     // Object/premise points are the densest layer. Keep them deliberately small
     // so they do not visually outrank the PDP and MFG landmarks.
     objects: { shape: 'dot', color: '#8B5CF6', size: 0.72 },
@@ -250,8 +253,8 @@
         HDD_PIT: { shape: 'diamond', color: '#B91C1C' },
         JUNCTION: { shape: 'square', color: '#334155' },
         PDP: { shape: 'triangle', color: '#0E7490' },
-        BEND: { shape: 'dot', color: '#6B7280' },
-        PULL: { shape: 'cross', color: '#F59E0B' },
+        BEND: { shape: 'dot', color: '#616A75' },
+        PULL: { shape: 'cross', color: '#B45309' },
       },
     },
   };
@@ -268,22 +271,24 @@
     // all (it is a span on a pole). The designer classifies every span into
     // exactly these four, so the map can too.
     // Aerial legs: the trench designer's `Aerial_Drops` (classified, never dug)
-    // and the pole stage's `Aerial_Drop_Trenches`. Checked BEFORE `trenches`,
-    // because `aerial_drop_trenches` also contains the word "trench" and would
-    // otherwise be drawn as an excavated span.
+    // and the pole stage's `Aerial_Spans` (the span it BUILDS for them). The
+    // old name was `Aerial_Drop_Trenches`, which had to be tested BEFORE
+    // `trenches` because the word "trench" made it match the excavated-span
+    // rule; the rename to `Aerial_Spans` removes that ordering trap, and the
+    // alias entry below keeps older stored projects rendering correctly.
     aerial_drops: {
       field: 'TRENCH_TYPE',
       useBucketColor: true,
       buckets: [
         // The classified leg (`Aerial_Drops`) and the span the pole stage
-        // BUILDS for it (`Aerial_Drop_Trenches`, TRENCH_TYPE `Aerial_Drop`)
+        // BUILDS for it (`Aerial_Spans`, TRENCH_TYPE `Aerial_Drop`)
         // carry different values for the same construction class, and the
         // bucket matcher is an exact compare — with only `Aerial` listed the
-        // drop trenches matched no bucket at all and fell through to a plain
+        // spans matched no bucket at all and fell through to a plain
         // undashed line, which is why the aerial routes read as ordinary
         // trench on the map.
-        { value: 'Aerial', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
-        { value: 'Aerial_Drop', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+        { value: 'Aerial', color: '#B45309', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+        { value: 'Aerial_Drop', color: '#B45309', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
       ],
     },
     trenches: {
@@ -296,7 +301,7 @@
         // which read as "not a trench" — only HDD keeps a stroke pattern, and
         // that is because it is drilled rather than dug.
         { value: 'Garden', color: '#16A34A', width: 4, dash: null, aliases: ['garden'] },
-        { value: 'Aerial', color: '#F59E0B', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+        { value: 'Aerial', color: '#B45309', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
       ],
       useBucketColor: true,
     },
@@ -309,7 +314,7 @@
       field: 'DUCT_TYPE',
       useBucketColor: true,
       buckets: [
-        { value: '4-Way HDPE', color: '#F59E0B', width: 3.6, dash: null, aliases: ['feeder'] },
+        { value: '4-Way HDPE', color: '#B45309', width: 3.6, dash: null, aliases: ['feeder'] },
         { value: '2-Way HDPE', color: '#8B5CF6', width: 3, dash: null, aliases: ['distribution'] },
         { value: '1-Way HDPE', color: '#EC4899', width: 2.2, dash: null, aliases: ['drop'] },
       ],
@@ -320,13 +325,13 @@
       field: 'CABLE_TYPE',
       useBucketColor: true,
       buckets: [
-        { value: 'Feeder', color: '#DC2626', width: 1.8, dash: null, aliases: ['feeder'] },
+        { value: 'Feeder', color: '#B91C1C', width: 1.8, dash: null, aliases: ['feeder'] },
         { value: 'Distribution', color: '#F97316', width: 1.3, dash: null, aliases: ['distribution'] },
         { value: 'Drop', color: '#22C55E', width: 1, dash: null, aliases: ['drop'] },
         // `Aerial_Cable` is the span the drop hangs from, not a duct-pulled
         // cable: same amber as the aerial trench, dashed, so it reads as the
         // overhead route instead of falling back to a flat default stroke.
-        { value: 'Aerial', color: '#F59E0B', width: 1.6, dash: [6, 3], aliases: ['aerial'] },
+        { value: 'Aerial', color: '#B45309', width: 1.6, dash: [6, 3], aliases: ['aerial'] },
       ],
     },
   };
@@ -955,7 +960,7 @@
           html += '<div><strong>' + escapeHtmlProp(k) + ':</strong> ' + escapeHtmlProp(String(props[k])) + '</div>';
         });
         if (allKeys.length > keys.length) {
-          html += '<div style="margin-top:6px;color:#6B7280;">… and ' +
+          html += '<div style="margin-top:6px;color:#616A75;">… and ' +
             (allKeys.length - keys.length) + ' more attribute(s)</div>';
         }
         html += '</div>';
@@ -1173,6 +1178,15 @@
 
   function _legendGlyph(shape, color, size) {
     var geom = shape === 'ringSquare' ? SHAPE_PATHS.square : (SHAPE_PATHS[shape] || SHAPE_PATHS.circle);
+    // Same rule as _iconSvg: `circle` and `dot` are SVG elements, not path
+    // data. Without this guard the legend emitted <path d="<circle cx=...">
+    // — invalid path data, so those legend swatches rendered as nothing
+    // while the map markers themselves were fine.
+    if (geom.charAt(0) === '<') {
+      return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">'
+        + '<g fill="' + color + '" stroke="#FFFFFF" stroke-width="2.2">'
+        + geom + '</g></svg>';
+    }
     if (shape === 'cross') {
       return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">'
         + '<path d="' + geom + '" fill="none" stroke="' + color + '" stroke-width="4" stroke-linecap="round"/></svg>';
@@ -1186,7 +1200,8 @@
     mfg: 'MFG (exchange)', pdps: 'PDP (splitter)', chambers: 'Chamber',
     coupleurs: 'Coupler', poles: 'Pole (aerial)', objects: 'Premise / object',
     premises: 'Premise / object',    trench_nodes: 'Trench node',
-    'aerial_drops': 'Aerial drop', aerial_drop_trenches: 'Aerial drop',
+    'aerial_drops': 'Aerial drop', aerial_spans: 'Aerial drop',
+    aerial_drop_trenches: 'Aerial drop',
     brownfield: 'Existing infra', trenches: 'Trench', ducts: 'Duct', cables: 'Cable',
     // Only meaningful for a layer that is SPLIT per tier upstream; the legend
     // lists one row per bucket so the tier colours are explained.
@@ -1245,11 +1260,168 @@
   }
 
   // ------------------------------------------------------------------
+  // Projected coordinates (UTM)
+  // ------------------------------------------------------------------
+
+  // The design is stored in a projected metre CRS — EPSG:2583x (ETRS89 / UTM
+  // zone 3xN) or EPSG:3263x (WGS84 / UTM) — while MapLibre speaks WGS84
+  // degrees.  A degrees-only readout therefore cannot be compared against a
+  // coordinate in the design or in an exported GeoJSON, so the hover pill
+  // prints easting/northing as well.  The forward transverse-Mercator series
+  // below is the standard USGS one and is good to about a millimetre inside
+  // the zone and still under a metre even 13 degrees outside it (checked
+  // against pyproj), far finer than a pointer pixel.
+  var UTM_ELLIPSOIDS = {
+    etrs89: { a: 6378137, f: 1 / 298.257222101 },
+    wgs84: { a: 6378137, f: 1 / 298.257223563 },
+  };
+
+  function _utmParams(crs) {
+    var code = String(crs == null || crs === '' ? 'EPSG:25833' : crs).replace(/[^0-9]/g, '');
+    var params = { zone: 33, ellipsoid: UTM_ELLIPSOIDS.etrs89, south: false };
+    if (code.length === 5 && code.indexOf('258') === 0) {
+      params.zone = Number(code.slice(3));
+    } else if (code.length === 5 && code.indexOf('326') === 0) {
+      params.zone = Number(code.slice(3));
+      params.ellipsoid = UTM_ELLIPSOIDS.wgs84;
+    } else if (code.length === 5 && code.indexOf('327') === 0) {
+      params.zone = Number(code.slice(3));
+      params.ellipsoid = UTM_ELLIPSOIDS.wgs84;
+      params.south = true;
+    }
+    if (!(params.zone >= 1 && params.zone <= 60)) { params.zone = 33; params.ellipsoid = UTM_ELLIPSOIDS.etrs89; params.south = false; }
+    return params;
+  }
+
+  /**
+   * Convert WGS84 lng/lat to UTM easting/northing for the given CRS.
+   *
+   * ETRS89 and WGS84 differ by centimetres in Europe, so a 2583x coordinate
+   * computed from WGS84 input is well inside the tolerance a pointer implies.
+   */
+  function utmForward(lng, lat, crs) {
+    var p = _utmParams(crs);
+    var a = p.ellipsoid.a, f = p.ellipsoid.f;
+    var e2 = f * (2 - f);
+    var ep2 = e2 / (1 - e2);
+    var k0 = 0.9996;
+    var rad = Math.PI / 180;
+    var lon0 = (p.zone * 6 - 183) * rad;
+    var phi = Number(lat) * rad, lam = Number(lng) * rad;
+    var sinPhi = Math.sin(phi), cosPhi = Math.cos(phi), tanPhi = Math.tan(phi);
+    var n = a / Math.sqrt(1 - e2 * sinPhi * sinPhi);
+    var t = tanPhi * tanPhi;
+    var c = ep2 * cosPhi * cosPhi;
+    var A = cosPhi * (lam - lon0);
+    var A2 = A * A;
+    var M = a * ((1 - e2 / 4 - (3 * e2 * e2) / 64 - (5 * e2 * e2 * e2) / 256) * phi
+      - ((3 * e2) / 8 + (3 * e2 * e2) / 32 + (45 * e2 * e2 * e2) / 1024) * Math.sin(2 * phi)
+      + ((15 * e2 * e2) / 256 + (45 * e2 * e2 * e2) / 1024) * Math.sin(4 * phi)
+      - ((35 * e2 * e2 * e2) / 3072) * Math.sin(6 * phi));
+    var prefix = p.south ? 32700 : (p.ellipsoid === UTM_ELLIPSOIDS.etrs89 ? 25800 : 32600);
+    return {
+      easting: 500000 + k0 * n * (A + ((1 - t + c) * A2 * A) / 6
+        + ((5 - 18 * t + t * t + 72 * c - 58 * ep2) * A2 * A2 * A) / 120),
+      northing: (p.south ? 10000000 : 0) + k0 * (M + n * tanPhi * (A2 / 2
+        + ((5 - t + 9 * c + 4 * c * c) * A2 * A2) / 24
+        + ((61 - 58 * t + t * t + 600 * c - 330 * ep2) * A2 * A2 * A2) / 720)),
+      crs: 'EPSG:' + (prefix + p.zone),
+    };
+  }
+
+  // ------------------------------------------------------------------
+  // Hover coordinate readout
+  // ------------------------------------------------------------------
+
+  /**
+   * Print the pointer's position into a small readout element as the cursor
+   * moves across the map.
+   *
+   * MapLibre hands back WGS84 lng/lat, which are the map's own x/y, so they
+   * are written straight out at the same 5-decimal precision the surface
+   * review card uses for the point it classified, with the project's projected
+   * easting/northing on a second line.  The handler only sets text on `el` and
+   * never touches the canvas cursor, so it cannot fight the crosshair the
+   * inspect / surface-pick modes install.
+   *
+   * opts: { crs, decimals, projected, labels, emptyText, clearOnLeave, onMove }
+   * Returns { el, lastLngLat, setActive, detach }, so a page can feed the very
+   * coordinate it just displayed into whatever a click does.
+   */
+  function attachCoordinateReadout(map, el, opts) {
+    if (!map || !el) return null;
+    opts = opts || {};
+    var decimals = Number(opts.decimals) >= 0 ? Number(opts.decimals) : 5;
+    var emptyText = opts.emptyText || 'Hover the map for coordinates';
+    var last = null;
+    function fmt(v) { return Number(v).toFixed(decimals); }
+    function describe(ll) {
+      var lines = [];
+      lines.push(opts.labels === false
+        ? fmt(ll.lng) + ', ' + fmt(ll.lat)
+        : 'x ' + fmt(ll.lng) + '  \u00b7  y ' + fmt(ll.lat));
+      if (opts.projected !== false) {
+        var p = utmForward(ll.lng, ll.lat, opts.crs);
+        lines.push('E ' + p.easting.toFixed(2) + '  \u00b7  N ' + p.northing.toFixed(2));
+      }
+      return lines.join('\n');
+    }
+    function onMove(e) {
+      var ll = e && e.lngLat;
+      if (!ll) return;
+      last = { lng: Number(ll.lng), lat: Number(ll.lat) };
+      el.textContent = describe(last);
+      if (typeof opts.onMove === 'function') { opts.onMove(last); }
+    }
+    function onLeave() {
+      if (opts.clearOnLeave !== false) { el.textContent = emptyText; }
+    }
+    map.on('mousemove', onMove);
+    map.on('mouseout', onLeave);
+    el.textContent = emptyText;
+    return {
+      el: el,
+      lastLngLat: function () { return last; },
+      setActive: function (active) { el.classList.toggle('ftth-coord-readout-active', !!active); },
+      detach: function () {
+        map.off('mousemove', onMove);
+        map.off('mouseout', onLeave);
+      },
+    };
+  }
+
+  /**
+   * Create the readout pill inside the map's own container and attach the
+   * handler to it.  MapLibre's container already carries position:relative, so
+   * this lands in the map's bottom-right corner on every page without each page
+   * having to add markup or positioning CSS of its own.
+   */
+  function mountCoordinateReadout(map, opts) {
+    if (!map || typeof map.getContainer !== 'function') return null;
+    opts = opts || {};
+    var host = map.getContainer();
+    if (!host) return null;
+    // A page that rebuilds its map (feature review does) would otherwise stack
+    // one pill per rebuild inside the same reused container.
+    var stale = host.getElementsByClassName('ftth-coord-readout');
+    while (stale.length) { stale[0].parentNode.removeChild(stale[0]); }
+    var el = document.createElement('div');
+    el.className = 'ftth-coord-readout';
+    el.id = opts.id || 'coordReadout';
+    el.title = opts.title || ('Pointer position \u2014 WGS84 longitude (x) / latitude (y)'
+      + (opts.projected === false ? '' : ' and ' + (opts.crs || 'EPSG:25833') + ' easting (E) / northing (N)'));
+    host.appendChild(el);
+    return attachCoordinateReadout(map, el, opts);
+  }
+
+  // ------------------------------------------------------------------
   // Exports
   // ------------------------------------------------------------------
 
   window.FtthMap = {
     initMap: initMap, getMap: getMap, addGeoJSONLayer: addGeoJSONLayer,
+    attachCoordinateReadout: attachCoordinateReadout, mountCoordinateReadout: mountCoordinateReadout,
+    utmForward: utmForward,
     setLayerVisible: setLayerVisible, fitToLayers: fitToLayers,
     getBaseStyles: getBaseStyles, setBaseStyle: setBaseStyle,
     SUBLAYER_COLORS: LAYER_COLORS.SUBLAYER_COLORS,

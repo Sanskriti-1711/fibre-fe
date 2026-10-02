@@ -4,17 +4,28 @@
   <meta charset="UTF-8" />
   <title>Feature Details | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <style>
+
+      #auditMap {
+
+        height: 240px;
+
+        border-radius: 8px;
+
+        overflow: hidden;
+
+        background: #E5E7EB;
+
+      }
+
+    </style>
+<link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css" />
   <script src="vendor/maplibre/maplibre-gl.js"></script>
   <link rel="stylesheet" href="css/main.css" />
-  <style>
-    #auditMap {
-      height: 240px;
-      border-radius: 8px;
-      overflow: hidden;
-      background: #E5E7EB;
-    }
-  </style>
+  <link rel="stylesheet" href="css/components.css">
+  
 </head>
 <body class="audit-detail">
 
@@ -24,7 +35,7 @@
   <main class="content">
     <div class="container">
 
-      <div id="breadcrumb" style="margin: 4px 0 12px; font-size: 13px; color: #6B7280; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div id="breadcrumb" style="margin: 4px 0 12px; font-size: 13px; color: #616A75; display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <div style="min-width:0;">
           <a id="crumbProject" href="projects.html" style="color: inherit; text-decoration: none;">Project</a>
           <span> / </span>
@@ -56,7 +67,7 @@
             <span id="fieldPhotoPlaceholder">No photo uploaded</span>
             <img id="fieldPhoto" style="max-width: 100%; max-height: 240px; display: none; object-fit: contain;" alt="Field photo" />
           </div>
-          <div id="photoUploadInfo" style="margin-top: 8px; font-size: 12px; color: #6B7280;"></div>
+          <div id="photoUploadInfo" style="margin-top: 8px; font-size: 12px; color: #616A75;"></div>
         </div>
       </div>
 
@@ -101,7 +112,8 @@
 </div>
 
 </body>
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script src="fiber-api.js"></script>
 <script src="js/feature-details.js"></script>
 </html>

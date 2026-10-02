@@ -14,7 +14,7 @@ const detailEngineer = document.getElementById('detailEngineer');
 const detailCompletion = document.getElementById('detailCompletion');
 const layerBasicsBody = document.getElementById('layerBasicsBody');
 
-const layerPalette = ['#0EA5E9', '#10B981', '#F59E0B', '#6366F1', '#EF4444', '#14B8A6'];
+const layerPalette = ['#0369A1', '#047857', '#B45309', '#6366F1', '#EF4444', '#14B8A6'];
 
 function pickProjectId(p) {
   return (p && (p.uuid || p.id || p.project_uuid || p.pk)) || null;
@@ -353,7 +353,7 @@ async function loadAndRenderProject() {
 
   } catch (error) {
     console.error('Error loading project data:', error);
-    document.getElementById('projectDescription').textContent = 'Error loading project data: ' + error.message;
+    document.getElementById('projectDescription').textContent = 'Error loading project data: ' + FtthUI.humanize(error);
   } finally {
     setLoading(false);
   }
@@ -366,7 +366,7 @@ function highlightLayer(layerId, baseColor) {
   try {
     map.setPaintProperty(layerId, paintKey, '#E31837');
     setTimeout(function () {
-      try { map.setPaintProperty(layerId, paintKey, baseColor || '#0EA5E9'); } catch (_) {}
+      try { map.setPaintProperty(layerId, paintKey, baseColor || '#0369A1'); } catch (_) {}
     }, 1200);
   } catch (_) {}
 }

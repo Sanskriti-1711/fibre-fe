@@ -9,7 +9,7 @@
     :root {
       --tm-red: #E31837;
       --tm-dark: #1F2937;
-      --tm-gray: #6B7280;
+      --tm-gray: #616A75;
       --tm-light: #F9FAFB;
       --tm-white: #FFFFFF;
       --border: #E5E7EB;
@@ -57,7 +57,7 @@
     }
 
     .nav-label {
-      color: #9CA3AF;
+      color: #6B7280;
       font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.08em;
@@ -147,7 +147,9 @@
       cursor: pointer;
     }
   </style>
-</head>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+  </head>
 <body>
 
   <div class="layout">
@@ -182,7 +184,8 @@
   </div>
 
 </body>
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script src="js/ftth-config.js"></script>
 <script>
   window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
@@ -201,7 +204,7 @@
       return;
     }
     el.style.display = 'block';
-    el.style.color = isError ? '#B91C1C' : '#059669';
+    el.style.color = isError ? '#B91C1C' : '#047857';
     el.textContent = text;
   }
 

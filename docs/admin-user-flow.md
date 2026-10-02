@@ -24,6 +24,11 @@ This document describes the complete user flow for **Admin (Subadmin)** users in
 }
 ```
 
+> Example payload only — this is not a seeded account. Create it with
+> `python manage.py seed_dev_admin` in `fiber-backend` (see that README).
+> Without a real user this endpoint answers
+> `400 {"non_field_errors": ["Invalid credentials"]}`.
+
 **Response:**
 ```json
 {

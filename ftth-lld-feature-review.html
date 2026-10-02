@@ -6,12 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <!-- MapLibre GL -->
+<script src="js/ftth-ui.js"></script>
   <script src="vendor/maplibre/maplibre-gl.js"></script>
-  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
-  
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-  
   <style>
     /* ── LLD Feature Review Layout ─────────────────────────────────────── */
     .lld-feature-layout {
@@ -187,7 +183,7 @@
       background: #F9FAFB;
       font-weight: 600;
       color: #6B7280;
-      font-size: 11px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
@@ -449,6 +445,13 @@
       background: #DC2626;
     }
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+<link rel="stylesheet" href="css/components.css">
+  
 </head>
 <body>
 
@@ -910,6 +913,14 @@
       center: [0, 0],
       zoom: 2
     });
+
+    // Live pointer position: WGS84 longitude/latitude plus the project CRS
+    // (EPSG:25833) easting/northing.  This page rebuilds its map on every
+    // feature switch, and the mount replaces the old pill rather than stacking
+    // a second one into the reused container.
+    if (window.FtthMap && window.FtthMap.mountCoordinateReadout) {
+      window.FtthMap.mountCoordinateReadout(map);
+    }
     
     map.on('load', function() {
       document.getElementById('mapLoading').style.display = 'none';
@@ -1105,9 +1116,13 @@
       return;
     }
     
-    if (!confirm(`Are you sure you want to ${action === 'approved' ? 'accept' : action === 'rejected' ? 'redo' : 'request correction'} this change?`)) {
-      return;
-    }
+      if (!await window.FtthUI.confirm({
+        title: 'Confirm this decision',
+        message: `Are you sure you want to ${action === 'approved' ? 'accept' : action === 'rejected' ? 'redo' : 'request correction'} this change?`,
+        confirmLabel: 'Confirm'
+      })) {
+        return;
+      }
     
     const actionMap = { approved: 'approve', rejected: 'reject', needs_correction: 'correction' };
     
@@ -1129,7 +1144,7 @@
       document.getElementById('reviewComment').value = '';
     } catch (err) {
       console.error('Failed to submit review:', err);
-      showToast('Failed to submit review: ' + (err.message || err), 'error');
+      showToast('Failed to submit review: ' + (FtthUI.humanize(err)), 'error');
     }
   }
   

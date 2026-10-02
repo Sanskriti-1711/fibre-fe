@@ -139,7 +139,7 @@ function renderFeatures(features, projectId, layerId) {
   setText("featureMeta", list.length ? `${list.length} total` : "0 total");
 
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">No features found</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#616A75;">No features found</td></tr>';
     return;
   }
 
@@ -224,7 +224,7 @@ async function loadLayerDetails() {
     setLoading(false);
     setError("Missing required query params. Use ?project_id=...&layer_id=...");
     const tbody = qs("featuresBody");
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">-</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#616A75;">-</td></tr>';
     return;
   }
 
@@ -245,9 +245,9 @@ async function loadLayerDetails() {
     renderFeatures(features, projectId, layerId);
     loadFieldConfig(projectId, layerId);
   } catch (e) {
-    setError(e && e.message ? e.message : "Failed to load layer details");
+    setError(FtthUI.humanize(e));
     const tbody = qs("featuresBody");
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">Failed to load</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#616A75;">Failed to load</td></tr>';
   } finally {
     setLoading(false);
   }
@@ -287,7 +287,7 @@ function renderFieldConfig(schema) {
   list.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
 
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="4" style="padding:16px;color:#6B7280;">No fields found for this layer. Import a layer with attributes first.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="padding:16px;color:#616A75;">No fields found for this layer. Import a layer with attributes first.</td></tr>';
     return;
   }
 

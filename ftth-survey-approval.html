@@ -5,7 +5,9 @@
   <title>Survey Approval | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -30,13 +32,13 @@
     <div class="table-card" style="margin-bottom: 16px;">
       <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;">
         <div style="min-width: 200px;">
-          <label for="filterProject" style="font-size: 12px; font-weight: 600; color: #6B7280; display: block; margin-bottom: 6px;">Project</label>
+          <label for="filterProject" style="font-size: 12px; font-weight: 600; color: #616A75; display: block; margin-bottom: 6px;">Project</label>
           <select id="filterProject" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
             <option value="">All Submitted Projects</option>
           </select>
         </div>
         <div style="min-width: 180px;">
-          <label for="filterStatus" style="font-size: 12px; font-weight: 600; color: #6B7280; display: block; margin-bottom: 6px;">Status</label>
+          <label for="filterStatus" style="font-size: 12px; font-weight: 600; color: #616A75; display: block; margin-bottom: 6px;">Status</label>
           <select id="filterStatus" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
             <option value="under_review" selected>Pending Review</option>
             <option value="">All Statuses</option>
@@ -44,28 +46,28 @@
             <option value="redo">Redo Requested</option>
           </select>
         </div>
-        <button id="clearFilters" class="create-btn" type="button" style="background: #DC2626;">Clear</button>
+        <button id="clearFilters" class="create-btn" type="button" style="background: #B91C1C;">Clear</button>
       </div>
     </div>
 
     <!-- Loading State -->
     <div id="loadingState" style="display: none; text-align: center; padding: 40px;">
-      <div style="font-size: 16px; color: #6B7280;">Loading approval queue...</div>
+      <div style="font-size: 16px; color: #616A75;">Loading approval queue...</div>
     </div>
 
     <!-- Survey Changes (engineer edits to the HLD, auto-queued for approval) -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 36px;">
       <div>
         <h2 style="margin: 0; font-size: 18px; font-weight: 700; color: #374151;">Survey Changes</h2>
-        <p style="margin: 4px 0 0 0; font-size: 13px; color: #6B7280;">
+        <p style="margin: 4px 0 0 0; font-size: 13px; color: #616A75;">
           Engineer edits to the design — view on map, approve, or request redo
         </p>
       </div>
-      <div style="font-size: 12px; color: #9CA3AF;" id="surveyChangesCount"></div>
+      <div style="font-size: 12px; color: #6B7280;" id="surveyChangesCount"></div>
     </div>
     <div class="table-card" style="margin-top: 12px;">
       <div id="surveyChangesContainer">
-        <div style="padding: 40px; text-align: center; color: #6B7280;">Loading survey changes...</div>
+        <div style="padding: 40px; text-align: center; color: #616A75;">Loading survey changes...</div>
       </div>
     </div>
 
@@ -76,19 +78,20 @@
 <div id="rejectModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
   <div style="background: white; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">
     <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Request Redo</h3>
-    <p style="margin: 0 0 16px 0; font-size: 14px; color: #6B7280;">
+    <p style="margin: 0 0 16px 0; font-size: 14px; color: #616A75;">
       Provide feedback to the engineer about what needs to be corrected.
     </p>
     <textarea id="rejectReason" placeholder="Enter rejection reason..." style="width: 100%; padding: 12px; border: 1px solid #D1D5DB; border-radius: 6px; font-size: 14px; min-height: 100px; resize: vertical;"></textarea>
     <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px;">
       <button onclick="closeRejectModal()" style="padding: 8px 16px; border: 1px solid #D1D5DB; background: white; border-radius: 6px; cursor: pointer;">Cancel</button>
-      <button id="confirmRejectBtn" style="padding: 8px 16px; background: #F59E0B; color: white; border: none; border-radius: 6px; cursor: pointer;">Confirm Redo</button>
+      <button id="confirmRejectBtn" style="padding: 8px 16px; background: #B45309; color: white; border: none; border-radius: 6px; cursor: pointer;">Confirm Redo</button>
     </div>
   </div>
 </div>
 
 </body>
-<script src="partials/sidebar-loader.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
 <script src="fiber-api.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -135,10 +138,10 @@
   const SURVEY_STATUS_META = {
     new:           { label: 'New',           text: '#2563EB', bg: '#DBEAFE' },
     modified:      { label: 'Modified',      text: '#B45309', bg: '#FEF3C7' },
-    removed:       { label: 'Removed',       text: '#DC2626', bg: '#FEE2E2' },
-    pending_review:{ label: 'Pending Review',text: '#F59E0B', bg: '#FEF3C7' },
-    approved:      { label: 'Approved',      text: '#059669', bg: '#D1FAE5' },
-    completed:     { label: 'Completed',     text: '#059669', bg: '#D1FAE5' },
+    removed:       { label: 'Removed',       text: '#B91C1C', bg: '#FEE2E2' },
+    pending_review:{ label: 'Pending Review',text: '#B45309', bg: '#FEF3C7' },
+    approved:      { label: 'Approved',      text: '#047857', bg: '#D1FAE5' },
+    completed:     { label: 'Completed',     text: '#047857', bg: '#D1FAE5' },
     rejected:      { label: 'Redo',          text: '#EF4444', bg: '#FEE2E2' },
   };
 
@@ -175,7 +178,7 @@
         ? `${surveyChanges.length} change(s)` : '';
 
       if (!surveyChanges.length) {
-        container.innerHTML = '<div style="padding: 40px; text-align: center; color: #6B7280;">No survey changes match your criteria</div>';
+        container.innerHTML = '<div style="padding: 40px; text-align: center; color: #616A75;">No survey changes match your criteria</div>';
         return;
       }
 
@@ -192,7 +195,7 @@
         html += `
           <div style="padding: 12px 16px; background: #F9FAFB; border-bottom: 1px solid #E5E7EB; font-weight: 700; font-size: 13px; color: #374151;">
             📁 ${escapeHtml(name)}
-            <span style="font-weight: 500; color: #9CA3AF;">(${byProject[name].length})</span>
+            <span style="font-weight: 500; color: #6B7280;">(${byProject[name].length})</span>
           </div>
         `;
         html += '<div style="overflow-x: auto;"><table><thead><tr>' +
@@ -201,26 +204,26 @@
           '</tr></thead><tbody>';
 
         for (const sc of byProject[name]) {
-          const meta = SURVEY_STATUS_META[sc.survey_status] || { label: sc.survey_status, text: '#6B7280', bg: '#F3F4F6' };
+          const meta = SURVEY_STATUS_META[sc.survey_status] || { label: sc.survey_status, text: '#616A75', bg: '#F3F4F6' };
           const isPending = SURVEY_PENDING_STATUSES.includes(sc.survey_status);
           html += `<tr>
             <td>
               <div style="font-weight:500;color:#374151;">${escapeHtml(sc.layer_name || 'Feature')}</div>
-              <div style="font-size:11px;color:#9CA3AF;">${escapeHtml(String(sc.id).slice(0, 8))}</div>
+              <div style="font-size:11px;color:#6B7280;">${escapeHtml(String(sc.id).slice(0, 8))}</div>
             </td>
-            <td><span style="font-size:12px;color:#6B7280;background:#F3F4F6;padding:2px 8px;border-radius:10px;">${escapeHtml(sc.layer_id || '')}</span></td>
+            <td><span style="font-size:12px;color:#616A75;background:#F3F4F6;padding:2px 8px;border-radius:10px;">${escapeHtml(sc.layer_id || '')}</span></td>
             <td>
               <div style="font-size:13px;color:#374151;">${escapeHtml(sc.engineer_name || 'Unknown')}</div>
-              <div style="font-size:11px;color:#9CA3AF;">v${sc.version_number || 1}</div>
+              <div style="font-size:11px;color:#6B7280;">v${sc.version_number || 1}</div>
             </td>
-            <td style="font-size:12px;color:#6B7280;max-width:260px;">${changeSummaryText(sc)}</td>
+            <td style="font-size:12px;color:#616A75;max-width:260px;">${changeSummaryText(sc)}</td>
             <td><span style="display:inline-block;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;color:${meta.text};background:${meta.bg};">${escapeHtml(meta.label)}</span></td>
             <td>
               <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button onclick="viewSurveyChangeOnMap('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#3B82F6;color:white;border:none;border-radius:4px;cursor:pointer;">View on Map</button>
                 ${isPending ? `
-                  <button onclick="approveSurveyChange('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#10B981;color:white;border:none;border-radius:4px;cursor:pointer;">Approve</button>
-                  <button onclick="openSurveyRedoModal('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#F59E0B;color:white;border:none;border-radius:4px;cursor:pointer;">Redo</button>
+                  <button onclick="approveSurveyChange('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#047857;color:white;border:none;border-radius:4px;cursor:pointer;">Approve</button>
+                  <button onclick="openSurveyRedoModal('${sc.id}')" style="padding:6px 12px;font-size:12px;background:#B45309;color:white;border:none;border-radius:4px;cursor:pointer;">Redo</button>
                 ` : ''}
               </div>
             </td>
@@ -231,7 +234,7 @@
       container.innerHTML = html;
     } catch (err) {
       console.error('Failed to load survey changes:', err);
-      container.innerHTML = `<div style="padding:40px;text-align:center;color:#DC2626;">Failed to load survey changes: ${escapeHtml(err.message)}</div>`;
+      container.innerHTML = `<div style="padding:40px;text-align:center;color:#B91C1C;">Failed to load survey changes: ${escapeHtml(FtthUI.humanize(err))}</div>`;
     } finally {
       loading.style.display = 'none';
     }
@@ -260,7 +263,10 @@
   async function viewSurveyChangeOnMap(featureId) {
     const sc = surveyChanges.find(x => String(x.id) === String(featureId));
     if (!sc || !sc.project) {
-      alert('No project linked to this change');
+      await FtthUI.alert({
+        title: 'No project linked',
+        message: 'No project is linked to this change, so there is no map to open.'
+      });
       return;
     }
     const token = (window.FiberAuth && window.FiberAuth.getAccess) ? window.FiberAuth.getAccess() : '';
@@ -269,12 +275,23 @@
   }
 
   async function approveSurveyChange(featureId) {
-    if (!confirm('Approve this survey change?')) return;
+    const ok = await window.FtthUI.confirm({
+      title: 'Approve this survey change?',
+      message: 'Approving accepts what the surveyor recorded in the field as accurate.',
+      lines: [
+        'The change becomes permanent survey data, not a proposal.',
+        'The HLD design will be re-run against it downstream.',
+        'If the survey is wrong, it needs a further change request to correct.'
+      ],
+      danger: true,
+      confirmLabel: 'Approve change'
+    });
+    if (!ok) return;
     try {
       await window.FiberApi.approveSurveyChange(featureId, 'Approved via approval queue');
       loadSurveyChanges();
     } catch (err) {
-      alert('Failed to approve: ' + err.message);
+      window.FtthUI.alert({ title: 'Could not approve', message: err.message, variant: 'danger' });
     }
   }
 
@@ -293,16 +310,25 @@
   document.getElementById('confirmRejectBtn').addEventListener('click', async () => {
     const reason = document.getElementById('rejectReason').value.trim();
     if (!reason) {
-      alert('Please provide a rejection reason');
+      await FtthUI.alert({
+        title: 'Reason required',
+        message: 'Please provide a rejection reason — the survey engineer sees this.'
+      });
+      const field = document.getElementById('rejectReason');
+      if (field) { field.setAttribute('aria-invalid', 'true'); field.focus(); }
       return;
     }
     try {
       await window.FiberApi.redoSurveyChange(pendingSurveyRedoId, reason);
       pendingSurveyRedoId = null;
       closeRejectModal();
+      FtthUI.toast('Redo requested', 'success');
       loadSurveyChanges();
     } catch (err) {
-      alert('Failed to request redo: ' + err.message);
+      await FtthUI.alert({
+        title: 'Could not request redo',
+        message: FtthUI.humanize(err)
+      });
     }
   });
 

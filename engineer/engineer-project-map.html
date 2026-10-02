@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -6,9 +6,12 @@
   <title>Project Map</title>
 
   <!-- MapLibre GL -->
+  <link rel="stylesheet" href="../css/tokens.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css" />
+<script src="../js/ftth-ui.js"></script>
   <script src="../vendor/maplibre/maplibre-gl.js"></script>
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="../css/components.css">
 </head>
 <body class="engineer-project-map">
 
@@ -58,12 +61,12 @@
   map.addControl(new maplibregl.AttributionControl({ compact: true }));
 
   var statusColors = {
-    'PENDING': '#D97706',
-    'SUBMITTED': '#D97706',
-    'COMPLETED': '#059669',
-    'APPROVED': '#059669',
-    'REJECTED': '#DC2626',
-    'FAILED': '#DC2626'
+    'PENDING': '#92400E',
+    'SUBMITTED': '#92400E',
+    'COMPLETED': '#047857',
+    'APPROVED': '#047857',
+    'REJECTED': '#B91C1C',
+    'FAILED': '#B91C1C'
   };
 
   function esc(str) {
@@ -132,7 +135,7 @@
       var geojson = {
         type: 'FeatureCollection',
         features: featuresWithCoords.map(function (f) {
-          var color = statusColors[String(f.status).toUpperCase()] || '#6B7280';
+          var color = statusColors[String(f.status).toUpperCase()] || '#616A75';
           return {
             type: 'Feature',
             geometry: { type: 'Point', coordinates: [f.lng, f.lat] },

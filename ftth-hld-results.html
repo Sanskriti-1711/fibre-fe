@@ -132,6 +132,17 @@
     .ftth-surface-ai-pick { margin-top:10px; width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; background:#FFFFFF; color:#1F2937; font-size:12px; font-weight:600; cursor:pointer; }
     .ftth-surface-ai-pick.active { border-color:#2563EB; color:#1D4ED8; background:#EFF6FF; }
     .ftth-surface-ai-pick[disabled] { opacity:.6; cursor:progress; }
+    .ftth-surface-ai-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+    .ftth-surface-ai-btn { padding:5px 9px; border:1px solid #D1D5DB; border-radius:6px; background:#FFFFFF; color:#1F2937; font-size:11px; font-weight:600; cursor:pointer; }
+    .ftth-surface-ai-btn.primary { border-color:#2563EB; color:#1D4ED8; background:#EFF6FF; }
+    .ftth-surface-ai-btn[disabled] { opacity:.6; cursor:progress; }
+    .ftth-surface-ai-patch { display:block; width:100%; margin-top:8px; border:1px solid #D1D5DB; border-radius:6px; background:#E5E7EB; }
+    .ftth-surface-ai-patch-note { margin-top:4px; color:#6B7280; font-size:11px; }
+    .ftth-surface-ai-group { margin-top:10px; }
+    .ftth-surface-ai-group > summary { cursor:pointer; font-size:12px; font-weight:600; color:#1F2937; padding:4px 0; }
+    .ftth-surface-ai-count { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; background:#E5E7EB; color:#374151; font-size:11px; font-weight:600; }
+    .ftth-surface-ai-card.is-detected { border-color:#BFDBFE; background:#F0F7FF; }
+    .ftth-surface-ai-more { margin-top:8px; width:100%; padding:6px 10px; border:1px dashed #D1D5DB; border-radius:8px; background:#FFFFFF; color:#374151; font-size:11px; font-weight:600; cursor:pointer; }
 
     .ftth-survey-btn {
       display:flex; align-items:center; gap:10px; width:100%;
@@ -391,6 +402,17 @@
         if (!isNaN(zv) && zv >= 1 && zv <= 20) { initZoom = zv; }
       }
       map = window.FtthMap.initMap('map', { id:'results', center:initCenter, zoom:initZoom, basemap:'streets', onLoad:function(){ loadPipelineData(); } });
+      // Live pointer position. The results map is the one that sends a clicked
+      // point to the AI surface review, so the reader needs to see the exact
+      // coordinate they are about to classify — and while the pick is armed the
+      // readout hands that same coordinate to the click (see
+      // initSurfaceAIPointPicker), so the number on screen is the number sent.
+      if (window.FtthMap.mountCoordinateReadout) {
+        surfaceReadout = window.FtthMap.mountCoordinateReadout(map, {
+          crs: params.get('crs') || 'EPSG:25833',
+          onMove: function (lngLat) { if (surfaceAIPickOn) { surfacePickPoint = lngLat; } },
+        });
+      }
       renderMapLegend();
       if (map.loaded()) { loadPipelineData(); }
     } catch(err) {
@@ -555,9 +577,16 @@
   // ---------------------------------------------------------------
   var surfaceAIPickOn = false;
   var surfaceAIPickWired = false;
+  var surfaceReadout = null;
+  // The coordinate the readout showed when the pointer last moved while the
+  // pick was armed.  Sending this instead of the raw click position keeps the
+  // request identical to what the reader just read off the map.
+  var surfacePickPoint = null;
 
   function setSurfaceAIPickActive(active) {
     surfaceAIPickOn = !!active;
+    surfacePickPoint = null;
+    if (surfaceReadout) { surfaceReadout.setActive(surfaceAIPickOn); }
     var pickBtn = document.getElementById('surfaceAIPickBtn');
     if (pickBtn) {
       pickBtn.classList.toggle('active', surfaceAIPickOn);
@@ -587,6 +616,7 @@
     box.innerHTML = '<article class="ftth-surface-ai-card"><strong>' + escapeHtml(label) + '</strong>'
       + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
       + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
+      + surfacePatchHtml(item)
       + '</article>';
   }
 
@@ -598,7 +628,9 @@
     if (box) box.innerHTML = '<div class="ftth-surface-ai-note">Fetching imagery and asking the model...</div>';
     if (pickBtn) pickBtn.disabled = true;
     try {
-      var item = await window.FtthApi.classifySurfaceAt(projectId, { lng: lngLat.lng, lat: lngLat.lat });
+      // Ask for the patch too, so the card shows the imagery the answer came from.
+      var item = await window.FtthApi.classifySurfaceAt(
+        projectId, { lng: lngLat.lng, lat: lngLat.lat }, { include_imagery: true });
       renderSurfaceAIPoint(item);
     } catch (err) {
       if (box) {
@@ -625,8 +657,226 @@
     if (map) {
       map.on('click', function (e) {
         if (!surfaceAIPickOn) return;
-        classifySurfaceAtClick(e.lngLat);
+        // Prefer the hovered coordinate the readout was displaying, so a click
+        // on a point framed with the readout sends exactly that point.
+        classifySurfaceAtClick(surfacePickPoint || e.lngLat);
       });
+    }
+    // One listener on the panel, which survives every innerHTML re-render, so
+    // the per-span "show imagery" and "detect with AI" buttons keep working on
+    // cards built later.
+    var section = document.getElementById('surfaceAIReviewSection');
+    if (section && !section.dataset.surfaceWired) {
+      section.dataset.surfaceWired = '1';
+      section.addEventListener('click', onSurfaceReviewClick);
+    }
+  }
+
+  // ---------------------------------------------------------------
+  // Undetected surfaces: spans no source layer could name. Each row can
+  // show the imagery the model would use, or spend ONE AI call on that
+  // span. Nothing is sent until the reader asks, so a batch is never
+  // fired at a credit budget it did not agree to.
+  // ---------------------------------------------------------------
+  var surfaceReviewItems = [];
+  var surfaceReport = null;
+  var SURFACE_UNDETECTED_PAGE = 20;
+  var SURFACE_DETECTED_PAGE = 10;
+  var surfaceUndetectedShown = SURFACE_UNDETECTED_PAGE;
+  var surfaceDetectedShown = SURFACE_DETECTED_PAGE;
+
+  function surfaceStatusText(item) {
+    return String((item && item.review_status) || 'pending').replace(/_/g, ' ');
+  }
+
+  // 'pending' is the only status that carries an AI answer; everything else
+  // (no_imagery, error, not_processed_limit, deferred_rate_limit, awaiting_*)
+  // is still an unanswered span, i.e. undetected.
+  function surfaceAnswered(item) {
+    return surfaceStatusText(item) === 'pending';
+  }
+
+  function surfacePercent(value) {
+    var n = Number(value);
+    return Number.isFinite(n) ? Math.round(n * 100) + '%' : '';
+  }
+
+  /**
+   * The imagery patch, inline, with its attribution.
+   *
+   * `image_base64` is only present when a classify asked for it or a preview
+   * fetched it: the batch artifact stores no image bytes, so an undetected row
+   * shows nothing until one of those two actions runs.
+   */
+  function surfacePatchHtml(item) {
+    if (!item) return '';
+    if (!item.image_base64) {
+      var why = surfaceStatusText(item);
+      if (why === 'disabled' || why === 'awaiting imagery source') return '';
+      return '<div class="ftth-surface-ai-patch-note">No patch to show'
+        + (why === 'no imagery' ? ' \u2014 no imagery source covers this location.' : '.') + '</div>';
+    }
+    var src = 'data:' + (item.image_mime_type || 'image/jpeg') + ';base64,' + item.image_base64;
+    var caption = [
+      item.imagery_source || '',
+      item.imagery_date ? 'captured ' + item.imagery_date : '',
+      item.imagery_route_overlaid === true ? 'planned route drawn'
+        : item.imagery_route_overlaid === false ? 'no route marker' : '',
+    ].filter(Boolean).join(' \u00b7 ');
+    return '<img class="ftth-surface-ai-patch" alt="Imagery patch sent to the model" src="' + src + '">'
+      + (caption ? '<div class="ftth-surface-ai-patch-note">' + escapeHtml(caption) + '</div>' : '');
+  }
+
+  function surfaceCardHtml(item, index) {
+    var answered = surfaceAnswered(item);
+    var label;
+    var meta;
+    if (answered) {
+      label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
+      meta = [
+        item.span_id ? 'Span ' + item.span_id : '',
+        surfacePercent(item.confidence) ? surfacePercent(item.confidence) + ' confidence' : 'Confidence unavailable',
+        'detected by AI',
+        item.imagery_source ? 'Source: ' + item.imagery_source : '',
+        item.imagery_date ? 'Date: ' + item.imagery_date : '',
+      ].filter(Boolean).join(' \u00b7 ');
+    } else {
+      label = item.span_id ? 'Span ' + item.span_id : 'Span';
+      meta = [
+        'Not detected by our sources',
+        item.claimed_surface ? 'marked ' + item.claimed_surface : 'no source claim',
+        item.geometry_reason ? String(item.geometry_reason).replace(/_/g, ' ') : '',
+        surfacePercent(item.geometry_confidence) ? 'geometry ' + surfacePercent(item.geometry_confidence) : '',
+        surfacePercent(item.known_share) ? 'source cover ' + surfacePercent(item.known_share) : '',
+      ].filter(Boolean).join(' \u00b7 ');
+    }
+    var actions = answered ? ''
+      : '<div class="ftth-surface-ai-actions">'
+        + '<button class="ftth-surface-ai-btn" type="button" data-surface-action="preview">Show imagery</button>'
+        + '<button class="ftth-surface-ai-btn primary" type="button" data-surface-action="detect">Detect with AI (1 call)</button>'
+        + '</div>';
+    return '<article class="ftth-surface-ai-card' + (answered ? ' is-detected' : '') + '"'
+      + ' data-surface-index="' + index + '">'
+      + '<strong>' + escapeHtml(label) + '</strong>'
+      + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
+      + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
+      + (item.error_detail ? '<div class="ftth-surface-ai-meta">Model reply: ' + escapeHtml(item.error_detail) + '</div>' : '')
+      + actions
+      + surfacePatchHtml(item)
+      + '<div class="ftth-surface-ai-detail"></div>'
+      + '</article>';
+  }
+
+  function surfaceSetCardBusy(card, busy, message) {
+    if (!card) return;
+    var buttons = card.querySelectorAll('[data-surface-action]');
+    for (var i = 0; i < buttons.length; i++) { buttons[i].disabled = !!busy; }
+    var detail = card.querySelector('.ftth-surface-ai-detail');
+    if (message && detail) {
+      detail.innerHTML = '<div class="ftth-surface-ai-patch-note">' + escapeHtml(message) + '</div>';
+    }
+  }
+
+  async function showSurfaceSpanImagery(item, card) {
+    if (!window.FtthApi || !window.FtthApi.previewSurfaceImagery) return;
+    surfaceSetCardBusy(card, true, 'Fetching the imagery patch \u2014 no AI call...');
+    var detail = card ? card.querySelector('.ftth-surface-ai-detail') : null;
+    try {
+      var patch = await window.FtthApi.previewSurfaceImagery(projectId, {
+        coordinates: item.coordinates,
+        coordinates_crs: item.coordinates_crs,
+        span_id: item.span_id,
+      });
+      if (detail) { detail.innerHTML = surfacePatchHtml(patch); }
+    } catch (err) {
+      if (detail) {
+        detail.innerHTML = '<div class="ftth-surface-ai-patch-note">Could not fetch imagery: '
+          + escapeHtml(FtthUI.humanize(err)) + '</div>';
+      }
+    } finally {
+      surfaceSetCardBusy(card, false);
+    }
+  }
+
+  async function detectSurfaceSpan(item, card) {
+    if (!window.FtthApi || !window.FtthApi.classifySurfaceSpan) return;
+    surfaceSetCardBusy(card, true, 'Fetching imagery and asking the model \u2014 one AI call...');
+    try {
+      var updated = await window.FtthApi.classifySurfaceSpan(projectId, item);
+      // Keep the one artifact-item object in sync so a later panel re-render
+      // shows the same answer, then swap just this card in place so the reader
+      // keeps the patch in front of them instead of it jumping sections.
+      Object.assign(item, updated);
+      if (card) {
+        var index = Number(card.getAttribute('data-surface-index'));
+        card.outerHTML = surfaceCardHtml(item, Number.isInteger(index) ? index : 0);
+      }
+      surfaceRefreshCounts();
+    } catch (err) {
+      var detail = card && card.querySelector('.ftth-surface-ai-detail');
+      if (detail) {
+        detail.innerHTML = '<div class="ftth-surface-ai-patch-note">Could not classify this span: '
+          + escapeHtml(FtthUI.humanize(err)) + '</div>';
+      }
+      surfaceSetCardBusy(card, false);
+    }
+  }
+
+  function surfaceCounts() {
+    var undetected = 0;
+    var answered = 0;
+    surfaceReviewItems.forEach(function (item) {
+      if (surfaceAnswered(item)) { answered += 1; } else { undetected += 1; }
+    });
+    return { undetected: undetected, answered: answered };
+  }
+
+  function surfaceRefreshCounts() {
+    var counts = surfaceCounts();
+    var badge = document.getElementById('surfaceAIReviewBadge');
+    if (badge) {
+      badge.textContent = counts.answered
+        ? counts.answered + ' detected \u00b7 ' + counts.undetected + ' open'
+        : 'No suggestions';
+    }
+    var summary = document.getElementById('surfaceAISummary');
+    if (summary) {
+      summary.textContent = counts.undetected + ' span(s) have no surface from OpenStreetMap or any '
+        + 'source layer; ' + counts.answered + ' already answered by AI.';
+    }
+    var undetectedEl = document.getElementById('surfaceAIUndetectedCount');
+    if (undetectedEl) { undetectedEl.textContent = counts.undetected; }
+    var answeredEl = document.getElementById('surfaceAIDetectedCount');
+    if (answeredEl) { answeredEl.textContent = counts.answered; }
+  }
+
+  async function onSurfaceReviewClick(event) {
+    var target = event.target;
+    if (!target || !target.getAttribute) return;
+    if (target.id === 'surfaceAIMoreUndetected' || target.id === 'surfaceAIMoreDetected') {
+      if (target.id === 'surfaceAIMoreUndetected') {
+        surfaceUndetectedShown += SURFACE_UNDETECTED_PAGE;
+      } else {
+        surfaceDetectedShown += SURFACE_DETECTED_PAGE;
+      }
+      if (surfaceReport) {
+        renderSurfaceAIReview(surfaceReport,
+          document.getElementById('surfaceAIReviewBody'),
+          document.getElementById('surfaceAIReviewBadge'));
+      }
+      return;
+    }
+    var action = target.getAttribute('data-surface-action');
+    if (!action) return;
+    var card = target.closest ? target.closest('[data-surface-index]') : null;
+    if (!card) return;
+    var index = Number(card.getAttribute('data-surface-index'));
+    if (!Number.isInteger(index) || index < 0 || index >= surfaceReviewItems.length) return;
+    var item = surfaceReviewItems[index];
+    if (action === 'preview') {
+      await showSurfaceSpanImagery(item, card);
+    } else if (action === 'detect') {
+      await detectSurfaceSpan(item, card);
     }
   }
 
@@ -641,6 +891,9 @@
         badge.textContent = 'None';
         return;
       }
+      surfaceReport = report;
+      surfaceUndetectedShown = SURFACE_UNDETECTED_PAGE;
+      surfaceDetectedShown = SURFACE_DETECTED_PAGE;
       renderSurfaceAIReview(report, body, badge);
     } catch (err) {
       body.textContent = 'Could not load the review report: ' + FtthUI.humanize(err);
@@ -650,34 +903,66 @@
 
   function renderSurfaceAIReview(report, body, badge) {
     var suggestions = Array.isArray(report.suggestions) ? report.suggestions : [];
-    var aiCount = suggestions.filter(function (item) { return !!item.AI_SURFACE; }).length;
-    badge.textContent = aiCount ? aiCount + ' suggestions' : (report.status || 'No suggestions').replace(/_/g, ' ');
+    surfaceReviewItems = suggestions;
     var note = report.reason || (report.status === 'ready'
       ? 'AI suggestions are advisory only; review each before use.'
       : 'No AI suggestion was generated. Existing geometry results are unchanged.');
-    var html = '<div class="ftth-surface-ai-note">' + escapeHtml(note) + '</div>';
-    if (suggestions.length) {
-      html += '<div class="ftth-surface-ai-list" style="margin-top:10px;">';
-      suggestions.forEach(function (item) {
-        var label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
-        var confidence = item.confidence == null || item.confidence === '' ? NaN : Number(item.confidence);
-        var confidenceText = Number.isFinite(confidence) ? Math.round(confidence * 100) + '% confidence' : 'Confidence unavailable';
-        var statusText = String(item.review_status || 'pending').replace(/_/g, ' ');
-        var meta = [
-          item.span_id ? 'Span ' + item.span_id : '',
-          confidenceText,
-          statusText,
-          item.imagery_source ? 'Source: ' + item.imagery_source : '',
-          item.imagery_date ? 'Date: ' + item.imagery_date : '',
-        ].filter(Boolean).join(' · ');
-        html += '<article class="ftth-surface-ai-card"><strong>' + escapeHtml(label) + '</strong>'
-          + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
-          + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
-          + (item.error_detail ? '<div class="ftth-surface-ai-meta">Model reply: ' + escapeHtml(item.error_detail) + '</div>' : '')
-          + '</article>';
-      });
-      html += '</div>';
+    var undetected = [];
+    var answered = [];
+    suggestions.forEach(function (item, index) {
+      if (surfaceAnswered(item)) { answered.push(index); } else { undetected.push(index); }
+    });
+    if (badge) {
+      badge.textContent = answered.length
+        ? answered.length + ' detected \u00b7 ' + undetected.length + ' open'
+        : (report.status || 'No suggestions').replace(/_/g, ' ');
     }
+    var html = '<div class="ftth-surface-ai-note">' + escapeHtml(note) + '</div>';
+    html += '<div class="ftth-surface-ai-meta" id="surfaceAISummary">' + escapeHtml(String(undetected.length))
+      + ' span(s) have no surface from OpenStreetMap or any source layer; '
+      + escapeHtml(String(answered.length)) + ' already answered by AI.</div>';
+
+    // The undetected list is the request: name exactly what our sources could not
+    // determine, and let the reader opt each span into one AI call or look at the
+    // imagery first. Nothing here fires a call on its own.
+    html += '<details class="ftth-surface-ai-group" open>'
+      + '<summary>Undetected surfaces <span class="ftth-surface-ai-count" id="surfaceAIUndetectedCount">'
+      + undetected.length + '</span></summary>'
+      + '<div class="ftth-surface-ai-note">Each span here has no surface from OpenStreetMap or any source '
+      + 'layer. Show the imagery patch the model would use, or run a single AI detect on that one span \u2014 '
+      + 'nothing is sent until you ask, so no credits are spent on spans you do not choose.</div>'
+      + '<div class="ftth-surface-ai-list">';
+    if (!undetected.length) {
+      html += '<div class="ftth-surface-ai-note">Nothing left undetected.</div>';
+    } else {
+      undetected.slice(0, surfaceUndetectedShown).forEach(function (index) {
+        html += surfaceCardHtml(suggestions[index], index);
+      });
+      if (undetected.length > surfaceUndetectedShown) {
+        html += '<button class="ftth-surface-ai-more" type="button" id="surfaceAIMoreUndetected">Show '
+          + Math.min(SURFACE_UNDETECTED_PAGE, undetected.length - surfaceUndetectedShown)
+          + ' more of ' + (undetected.length - surfaceUndetectedShown) + '</button>';
+      }
+    }
+    html += '</div></details>';
+
+    html += '<details class="ftth-surface-ai-group">'
+      + '<summary>Answered by AI <span class="ftth-surface-ai-count" id="surfaceAIDetectedCount">'
+      + answered.length + '</span></summary>'
+      + '<div class="ftth-surface-ai-list">';
+    if (!answered.length) {
+      html += '<div class="ftth-surface-ai-note">No span has an AI answer yet.</div>';
+    } else {
+      answered.slice(0, surfaceDetectedShown).forEach(function (index) {
+        html += surfaceCardHtml(suggestions[index], index);
+      });
+      if (answered.length > surfaceDetectedShown) {
+        html += '<button class="ftth-surface-ai-more" type="button" id="surfaceAIMoreDetected">Show '
+          + Math.min(SURFACE_DETECTED_PAGE, answered.length - surfaceDetectedShown)
+          + ' more of ' + (answered.length - surfaceDetectedShown) + '</button>';
+      }
+    }
+    html += '</div></details>';
     // A resumed or rate-limited run only makes sense next to how much of the
     // batch it actually touched, so report the counts together.
     var progress = [];

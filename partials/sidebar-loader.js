@@ -59,10 +59,32 @@
       .then(function(html) {
         sidebarContainer.innerHTML = html;
         setActiveNavItem();
+        initDrawer();
       })
       .catch(function(err) {
         console.error('Error loading sidebar:', err);
       });
+  }
+
+  /* The mobile shell. Above 860px the drawer stays closed and the sidebar is
+     an ordinary rail, so this costs nothing on desktop. Failures here are
+     logged, never thrown: a navigation that cannot open is bad, but a page
+     whose data cannot load because navigation threw is worse. */
+  function initDrawer() {
+    if (!window.FtthUI || !window.FtthUI.Drawer) return;
+    var sidebar = document.getElementById('sharedSidebar');
+    var toggle = document.getElementById('navToggleBtn');
+    var scrim = document.getElementById('navScrim');
+    if (!sidebar || !toggle) return;
+    try {
+      window.__ftthDrawer = window.FtthUI.Drawer({
+        sidebar: sidebar,
+        toggle: toggle,
+        scrim: scrim
+      });
+    } catch (err) {
+      console.warn('Nav drawer unavailable:', err);
+    }
   }
 
   if (document.readyState === 'loading') {
