@@ -1168,6 +1168,45 @@
   }
 
   /**
+   * How many times a layer is asked for before it is called failed.
+   *
+   * The engine answers 502 when a layer query hits something transient -- a
+   * database blip while nine layers are in flight. That is a retry, not a dead
+   * layer, and the difference matters: a layer marked failed is never asked for
+   * again, so a single blip on "objects" reads to the planner as "the object
+   * points are gone". Measured: the same nine layers, fired twice, failed on a
+   * different subset each time.
+   */
+  const LAYER_ATTEMPTS = 3;
+
+  function layerFailureIsTransient(err) {
+    const status = Number(err && (err.status || err.statusCode));
+    // 5xx is the server saying "not now"; 429 is "not so fast". A status we
+    // never got means the request itself failed (offline, reset, timeout),
+    // which is equally worth one more try. A 4xx is a real answer -- a bad
+    // area or an unknown layer -- and retrying it just repeats the refusal.
+    if (!status || Number.isNaN(status)) return true;
+    return status >= 500 || status === 429;
+  }
+
+  async function fetchInputLayer(layer) {
+    let last = null;
+    for (let attempt = 1; attempt <= LAYER_ATTEMPTS; attempt++) {
+      try {
+        return await FtthApi.getInputLayer(areaRequestState, layer);
+      } catch (err) {
+        last = err;
+        if (attempt === LAYER_ATTEMPTS || !layerFailureIsTransient(err)) throw err;
+        setLayerState(layer, 'retrying…');
+        await new Promise(function (resolve) {
+          setTimeout(resolve, 400 * attempt);
+        });
+      }
+    }
+    throw last;
+  }
+
+  /**
    * Fetch a layer onto the map once, then show or hide it.
    *
    * Each layer is independent: one that fails marks itself and leaves the rest
@@ -1180,7 +1219,7 @@
       loadingLayers[layer] = true;
       setLayerState(layer, 'loading…');
       try {
-        const geojson = await FtthApi.getInputLayer(areaRequestState, layer);
+        const geojson = await fetchInputLayer(layer);
         reviewLayers[layer] = geojson;
         window.FtthMap.addGeoJSONLayer(areaMap, 'input-' + layer, geojson, {
           // Objects are points and are the layer that was asked to be visible;
