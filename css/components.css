@@ -1,0 +1,1384 @@
+/* ══════════════════════════════════════════════════════════════════
+   components.css — every shared component in the product, defined once.
+
+   Extracted from the second, refined layer of main.css and from the
+   primitives that had been stranded inside individual pages' inline
+   <style> blocks. Pages that link this file no longer need to
+   redeclare .ftth-toast, .ftth-refresh-btn, or the panel states.
+
+   Three craft decisions are baked in here:
+     · elevation is declared once — cards wear a shadow, not a border
+       AND a shadow
+     · no zero-offset chromatic halos on anything
+     · one card radius, 12px, product-wide
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Reset ──────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  font-family: var(--font-body);
+}
+
+/* ── Focus ──────────────────────────────────────────────────────────
+   The first :focus-visible rule in the product's history. */
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.sidebar :where(a, button):focus-visible { outline-color: var(--focus-on-dark); }
+
+input:focus,
+select:focus,
+textarea:focus { outline: none; }
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* ── Layout shell ───────────────────────────────────────────────── */
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-7) var(--space-7);
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────── */
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  padding: var(--space-5) var(--space-3);
+  background: linear-gradient(180deg, var(--sidebar-top) 0%, var(--sidebar-bottom) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  margin: 0 0 var(--space-6);
+  padding: 0 var(--space-3);
+  font-size: 17px;
+  font-weight: var(--weight-black);
+  letter-spacing: 0.4px;
+  color: var(--brand-on-dark);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sidebar h2::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--brand);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.nav-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-label {
+  padding: 0 var(--space-3);
+  margin-bottom: 6px;
+  color: var(--sidebar-ink-dim);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nav a {
+  position: relative;
+  display: block;
+  padding: 9px var(--space-3);
+  border-radius: 8px;
+  font-size: var(--text-base);
+  color: var(--sidebar-ink);
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition);
+}
+
+.nav a:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+}
+
+.nav a.active {
+  background: rgba(227, 24, 55, 0.14);
+  color: #FFFFFF;
+  font-weight: var(--weight-semibold);
+}
+
+/* An active-state indicator, not a card accent — 3px, absolute,
+   and only ever rendered on the one current page. */
+.nav a.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--brand);
+}
+
+/* ── Page header ────────────────────────────────────────────────── */
+
+.header {
+  margin-bottom: var(--space-6);
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-black);
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+
+.header p {
+  margin: 6px 0 0;
+  font-size: var(--text-base);
+  color: var(--muted);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────── */
+
+.create-btn,
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-ghost,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: 1.3;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition),
+              border-color var(--transition), transform var(--transition),
+              box-shadow var(--transition);
+}
+
+.create-btn,
+.btn-primary {
+  background: var(--brand);
+  color: #FFFFFF;
+  box-shadow: var(--shadow-sm);
+}
+
+.create-btn:hover,
+.btn-primary:hover {
+  background: var(--brand-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: var(--ink-soft);
+  color: #FFFFFF;
+}
+
+.btn-secondary:hover { background: var(--muted-strong); }
+
+.btn-outline,
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink-soft);
+  border-color: var(--line-strong);
+}
+
+.btn-outline:hover,
+.btn-ghost:hover {
+  background: var(--surface-sunken);
+  border-color: #CBD5E1;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #FFFFFF;
+}
+
+.btn-danger:hover { background: var(--danger-deep); }
+
+.btn:disabled,
+.create-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-sm {
+  padding: 6px var(--space-3);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+}
+
+.btn-lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-md);
+}
+
+/* ── Cards, sections, tables ────────────────────────────────────────
+   Elevation declared once: a soft shadow, no hairline border. */
+
+.section,
+.card,
+.table-card,
+.kpi-card {
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.table-card { overflow: hidden; }
+
+/* Inset variant, for a table panel nested inside another card.
+
+   The dashboard's approval-queue table did this inline —
+   `box-shadow:none;border:1px solid var(--dash-line)` — and the appearance was
+   right, so it has been kept exactly. What changed is the mechanism: an inline
+   style cannot be found by searching, cannot follow a token change, and opts
+   the one panel out of every later elevation decision. A named modifier keeps
+   the same rendered result while putting the choice in the design system.
+
+   The reason to draw a border instead of a second shadow: two stacked shadows
+   on nested white surfaces read as a rendering error. A hairline reads as
+   "inside this", which is the actual relationship. */
+.table-card--inset {
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.section { padding: var(--space-6); }
+
+.table-card > table:first-child:last-child {
+  margin: calc(var(--space-6) * -1);
+  width: calc(100% + var(--space-6) * 2);
+}
+
+.kpi-card {
+  padding: var(--space-4);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-value {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+tbody td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: #F8FAFC; }
+
+/* ── Badges and chips ───────────────────────────────────────────── */
+
+.badge,
+.status-badge,
+.pill,
+.layer-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* One pill on this page holds a sentence, not a status word:
+   "We prioritize GPS from image metadata. Browser location is the
+   fallback." With the chip's nowrap it laid out at 403px on a 390px
+   screen and hung 29px off the right edge, taking "is the fallback" —
+   the actual fallback instruction — with it.
+
+   The chip itself keeps its nowrap: a badge that wraps is a badge that
+   stops looking like a badge. Only this prose use opts out. */
+body.engineer-feature-submit .pill {
+  display: block;
+  white-space: normal;
+  max-width: 100%;
+  border-radius: var(--radius);
+}
+
+.status-badge.completed,
+.badge-green { background: var(--success-soft); color: var(--success-deep); }
+
+.status-badge.pending,
+.badge-amber { background: var(--warning-soft); color: var(--warning-deep); }
+
+.status-badge.failed,
+.badge-red { background: var(--danger-soft); color: var(--danger-deep); }
+
+.badge-blue { background: var(--info-soft); color: #1E40AF; }
+.badge-gray { background: #F3F4F6; color: var(--muted-strong); }
+
+/* ── Forms ──────────────────────────────────────────────────────── */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="search"],
+select,
+textarea {
+  padding: 10px var(--space-3);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: var(--text-base);
+  background: var(--surface);
+  color: var(--ink);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--brand);
+  box-shadow: var(--focus-ring);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+label {
+  font-size: 12.5px;
+  font-weight: var(--weight-semibold);
+  color: var(--ink-soft);
+}
+
+/* ── Empty state ────────────────────────────────────────────────── */
+
+.empty-state,
+.dash-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: var(--space-9) var(--space-6);
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--text-base);
+}
+
+.empty-state .empty-icon {
+  font-size: 42px;
+  opacity: 0.85;
+}
+
+.empty-state h3 {
+  margin: 0;
+  font-size: var(--text-md);
+  color: var(--ink-soft);
+}
+
+.empty-state p {
+  margin: 0;
+  max-width: 42ch;
+}
+
+/* ── Alerts ─────────────────────────────────────────────────────── */
+
+.alert {
+  padding: var(--space-3) var(--space-4);
+  border-radius: 8px;
+  font-size: var(--text-base);
+  border: 1px solid transparent;
+  margin-bottom: var(--space-4);
+}
+
+.alert-success { background: var(--success-soft); border-color: var(--success-line); color: var(--success-deep); }
+.alert-warning { background: var(--warning-soft); border-color: var(--warning-line); color: var(--warning-deep); }
+.alert-error,
+.alert-danger { background: var(--danger-soft); border-color: var(--danger-line); color: var(--danger-deep); }
+.alert-info { background: var(--info-soft); border-color: var(--info-line); color: #1E40AF; }
+
+/* ── Modal ──────────────────────────────────────────────────────── */
+
+.modal {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 0;
+  background: var(--surface);
+}
+
+/* ── Dialog ───────────────────────────────────────────────────────
+   Styles the native <dialog> the FtthUI.confirm/alert/prompt API opens.
+   The element is a top-layer child of the viewport, not of .content, so it
+   escapes the sidebar's stacking context and the page's own overflow.
+
+   :modal matches only while the dialog is actually modal, which lets the
+   closed and open states share a transform without a class or attribute on
+   the markup. ::backdrop cannot be animated from a transition on the
+   element, so the fade lives on the dialog's own opacity instead. */
+
+.ftth-dialog {
+  width: min(520px, calc(100vw - var(--space-6) * 2));
+  max-width: none;
+  max-height: calc(100vh - var(--space-8) * 2);
+  margin: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* Default UA style is `display: none` until open; this keeps the element
+   out of the a11y tree and off the tab order when it is not a top-layer
+   modal, without relying on the UA sheet. */
+.ftth-dialog:not(:modal) { display: none; }
+
+/* No entry transition, and the reason is worth keeping: @starting-style and
+   Element.animate() both fail on a <dialog> opened with showModal(). The
+   element is display:none until showModal() runs in the same task, so neither
+   gets a committed pre-open frame to animate from — @starting-style's
+   from-values stick and the JS animation stays pending at currentTime 0.
+   Either way the dialog renders at opacity 0 while the page behind is inert,
+   which for a destructive confirmation means the app appears to freeze. So
+   this element is always fully visible the moment it opens. The ::backdrop
+   still fades, since the backdrop is not gated on this element's animation. */
+.ftth-dialog:modal {
+  display: flex;
+  flex-direction: column;
+  opacity: 1;
+  transform: none;
+}
+
+.ftth-dialog::backdrop {
+  background: rgba(9, 12, 18, 0.55);
+}
+
+.ftth-dialog__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+
+.ftth-dialog__title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: var(--weight-semibold);
+  color: var(--ink);
+}
+
+.ftth-dialog__close {
+  flex-shrink: 0;
+  /* 44px even though it is a secondary control (Escape and Cancel both work
+     too): it is still a tap target, and a dialog header has room for it. The
+     glyph stays visually small inside the larger box. */
+  width: 44px;
+  height: 44px;
+  margin: -8px -8px 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.ftth-dialog__close:hover {
+  background: var(--surface-sunken, rgba(16, 24, 40, 0.06));
+  color: var(--ink);
+}
+
+.ftth-dialog__body {
+  padding: 0 var(--space-5) var(--space-2);
+}
+
+.ftth-dialog__message {
+  margin: 0 0 var(--space-3);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* The consequence list. This is the part a native confirm cannot express:
+   not "are you sure?" but what specifically stops being true afterwards. */
+.ftth-dialog__points {
+  margin: 0 0 var(--space-3);
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.ftth-dialog__points li { margin-bottom: 4px; }
+
+.ftth-dialog__note {
+  margin: 0 0 var(--space-3);
+  font-size: 12.5px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.ftth-dialog__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5) var(--space-5);
+}
+
+/* Destructive: the confirm button is red, and the title carries a rule above
+   it. Colour alone is not the signal — the label says "Delete"/"Close permit"
+   rather than "OK". */
+.ftth-dialog--danger .ftth-dialog__head {
+  border-top: 3px solid var(--danger, #B91C1C);
+  padding-top: var(--space-4);
+}
+
+/* ── Dialog fields ─────────────────────────────────────────────── */
+
+.ftth-field {
+  display: block;
+  margin: 0 0 var(--space-2);
+}
+
+.ftth-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: var(--weight-medium, 500);
+  color: var(--ink);
+}
+
+.ftth-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.ftth-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.ftth-input--invalid { border-color: var(--danger, #B91C1C); }
+
+.ftth-field__error {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--danger, #B91C1C);
+}
+
+.ftth-field__hint {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.ftth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition),
+              color var(--transition);
+}
+
+.ftth-btn--primary {
+  background: var(--brand);
+  color: #fff;
+}
+
+.ftth-btn--primary:hover { filter: brightness(0.94); }
+
+.ftth-btn--secondary {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.ftth-btn--secondary:hover { background: rgba(16, 24, 40, 0.04); }
+
+.ftth-btn--danger {
+  background: var(--danger, #B91C1C);
+  color: #fff;
+}
+
+.ftth-btn--danger:hover { filter: brightness(0.94); }
+
+.ftth-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbars ─────────────────────────────────────────────────── */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ── Toast ─────────────────────────────────────────────────────────
+   Was defined inside one page's inline <style> and used by three, so
+   failure messages rendered as unstyled text at the foot of the page. */
+
+.ftth-toast-stack {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(400px, calc(100vw - var(--space-5) * 2));
+  pointer-events: none;
+}
+
+.ftth-toast {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: 13px 42px 13px var(--space-4);
+  border-radius: var(--radius);
+  background: var(--ink-soft);
+  color: var(--surface-sunken);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: 1.45;
+  box-shadow: var(--shadow-lg);
+  animation: ftth-toast-in var(--duration-slow) var(--ease-out);
+  overflow-wrap: break-word;
+}
+
+.ftth-toast--error { background: var(--danger-strong); }
+.ftth-toast--success { background: var(--success-deep); }
+.ftth-toast--info { background: var(--ink-soft); }
+
+.ftth-toast.is-leaving {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--duration) ease, transform var(--duration) ease;
+}
+
+.ftth-toast__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.ftth-toast__close:hover { opacity: 1; background: rgba(255, 255, 255, 0.12); }
+
+@keyframes ftth-toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Refresh button ─────────────────────────────────────────────── */
+
+.ftth-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+
+.ftth-refresh-btn:hover { background: #F3F4F6; border-color: var(--muted); color: var(--ink); }
+.ftth-refresh-btn:active { background: #E5E7EB; }
+.ftth-refresh-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
+.ftth-refresh-btn.is-busy { cursor: progress; }
+.ftth-refresh-btn.is-busy .ftth-refresh-btn__icon { animation: ftth-spin 0.9s linear infinite; }
+.ftth-refresh-btn__icon { display: inline-flex; flex-shrink: 0; }
+
+@keyframes ftth-spin { to { transform: rotate(360deg); } }
+
+/* ── Panel states ───────────────────────────────────────────────── */
+
+.panel-state-host { position: relative; min-height: 40px; }
+
+.panel-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-5);
+  text-align: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  color: var(--muted-strong);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.panel-state[hidden] { display: none; }
+
+.panel-state--loading {
+  flex-direction: row;
+  justify-content: flex-start;
+  text-align: left;
+  color: var(--muted);
+}
+
+.panel-state--error {
+  border-style: solid;
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+  color: var(--danger-strong);
+}
+
+.panel-state__title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--weight-black);
+  color: var(--ink);
+}
+
+.panel-state--error .panel-state__title { color: var(--danger-strong); }
+
+.panel-state__body {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.panel-state--error .panel-state__body { color: var(--danger-deep); }
+
+.panel-state__action {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: var(--weight-bold);
+  color: var(--danger);
+  text-decoration: none;
+}
+
+.panel-state__action:hover { text-decoration: underline; }
+
+.panel-state__retry {
+  min-height: 36px;
+  margin-top: var(--space-1);
+  padding: 8px var(--space-4);
+  border: 1px solid var(--danger-deep);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--danger-deep);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+
+.panel-state__retry:hover { background: var(--danger-soft); }
+
+.panel-spinner {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--muted);
+  border-radius: 50%;
+  animation: ftth-spin 0.8s linear infinite;
+}
+
+.value-unknown { color: var(--muted); cursor: help; }
+
+/* Touch targets and the reduced-motion opt-out live with the structure they
+   belong to, further down this file, so there is exactly one place to change
+   them. The motion block below is the global safety net: the drawer, the
+   scrim and the toast all inherit the clamp from it without each having to
+   remember. */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .panel-spinner,
+  .dash-skel,
+  .ftth-spin { animation: none !important; }
+  .dash-skel { background: var(--line); }
+}
+
+/* ── Responsive shell ──────────────────────────────────────────────
+   The mobile problem this replaces: below 860px the sidebar expanded into a
+   full-width block that rendered all eleven links as a grid *above* the
+   page, so opening the app on a phone meant scrolling past a wall of
+   navigation before reaching a single project. Measured at 390px, that
+   block was 464px tall against 390px of screen.
+
+   The shell now has three structural states rather than one collapsed
+   compromise:
+
+     >=861px  a 260px rail, always open. The working desktop layout.
+     640-860  a 56px sticky top bar, nav off-canvas. Tablet in portrait.
+     <640px   the same bar. The table stops pretending it fits (see the
+              table section) rather than clipping the actions column away.
+
+   The drawer is not a CSS-only disclosure: a scrim that closes on tap,
+   Escape to dismiss, and focus that moves in and returns are behaviours a
+   checkbox cannot provide. They live in FtthUI.Drawer, wired from
+   sidebar-loader.js, which is the one script every shell page loads. */
+
+.sidebar__bar { display: contents; }
+
+.nav-toggle-btn { display: none; }
+
+.nav-scrim { display: none; }
+
+@media (max-width: 860px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  /* The bar is sticky rather than static: on a long page you keep the way
+     back to navigation, and the content does not slide under it. */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: sticky;
+    top: 0;
+    z-index: 70;
+    padding: 0;
+    overflow: visible;
+    background: var(--sidebar-top);
+  }
+
+  .sidebar__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    min-height: 56px;
+    padding: 6px var(--space-4);
+  }
+
+  .sidebar h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+  }
+
+  .nav-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+    /* 44px: this is a <button>, not one of the zero-padding row actions,
+       but it is the most-tapped control in the mobile shell. */
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--sidebar-ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: var(--weight-semibold);
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    user-select: none;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .nav-toggle-btn:hover { background: rgba(255, 255, 255, 0.11); }
+
+  .nav-toggle-btn:focus-visible {
+    outline: 2px solid var(--focus-on-dark);
+    outline-offset: 2px;
+  }
+
+  /* Three bars from one element: the element is the middle bar, and the two
+     pseudo-elements are the outer ones. One consistent stroke weight, no
+     glyph standing in for an icon. */
+  .nav-toggle-icon {
+    position: relative;
+    width: 16px;
+    height: 2px;
+    flex-shrink: 0;
+    background: currentColor;
+    border-radius: 2px;
+    transition: background var(--transition);
+  }
+
+  .nav-toggle-icon::before,
+  .nav-toggle-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 16px;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform var(--transition);
+  }
+
+  .nav-toggle-icon::before { top: -5px; }
+  .nav-toggle-icon::after { top: 5px; }
+
+  /* Open: the bars become a cross and the label says so. The label text is
+     swapped with a CSS ::after so the accessible name stays truthful
+     without a script. */
+  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-icon { background: transparent; }
+  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-icon::before { transform: translateY(5px) rotate(45deg); }
+  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-icon::after { transform: translateY(-5px) rotate(-45deg); }
+  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-text { font-size: 0; }
+  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-text::after {
+    content: "Close";
+    font-size: 13px;
+  }
+
+  /* Off-canvas. The drawer is translated out of view rather than hidden, so
+     the opening transition has somewhere to come from. */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 80;
+    width: min(82vw, 300px);
+    max-height: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--space-5) var(--space-4) var(--space-8);
+    background: linear-gradient(180deg, var(--sidebar-top) 0%, var(--sidebar-bottom) 100%);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform var(--duration) var(--ease-out), visibility 0s linear var(--duration);
+  }
+
+  .sidebar.is-open .nav {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform var(--duration) var(--ease-out), visibility 0s;
+  }
+
+  .nav-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 75;
+    background: rgba(9, 12, 18, 0.55);
+    opacity: 0;
+    transition: opacity var(--duration) var(--ease-out);
+  }
+
+  .nav-scrim:not([hidden]) { opacity: 1; }
+
+  /* Groups keep their labels. The old `display: contents` flattened them
+     into a grid and lost the grouping that made the nav scannable. */
+  .nav-section { display: block; margin-top: var(--space-6); }
+  .nav-section:first-child { margin-top: 0; }
+
+  .nav-label {
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+
+  .nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Scrolling belongs to the page, not the drawer, while the drawer is shut. */
+  body.has-nav-open { overflow: hidden; }
+
+  .content {
+    padding: 20px 16px;
+  }
+}
+
+/* Narrow phones: the bar tightens, the drawer takes more of the width, and
+   the content gutters shrink so a data table gets every pixel it can. */
+@media (max-width: 480px) {
+  .nav { width: min(88vw, 320px); }
+  .content { padding: var(--space-4); }
+  .sidebar__bar { padding: 6px var(--space-3); }
+}
+
+/* ── Table structure ───────────────────────────────────────────────
+   The original clipping defect: a 9-column table measured 848px inside a
+   358px wrapper marked overflow:hidden, so 490px — including every row
+   action — was present in the DOM and unreachable by finger, scroll or
+   keyboard.
+
+   The fix is not a wider wrapper. It is deciding what a table owes a
+   narrow screen:
+
+     >=1024px  all columns, no scroll.
+     640-1023  horizontal scroll, first column pinned so you never lose
+               your place, plus an edge shadow that appears only when
+               there is more to see.
+     <640px    the Actions column is pinned to the right edge of the
+               scroller and the data scrolls under it. A 9-column table
+               cannot be read on a phone; scrolling it sideways and hiding
+               the one column the user came for is the worse of the two.
+
+   Wrapper selection is STRUCTURAL, not a class allowlist. The allowlist
+   version listed five class names and silently missed every wrapper added
+   later — `.container` on engineers-list.html kept overflow-x:visible and
+   clipped the actions column, while `.pm-table-card` had an inline
+   `overflow:hidden` that won the cascade outright. Both are now covered by
+   the `div:has(> table)` term, so the next table that appears is fixed
+   without anyone remembering to add its class here. */
+
+/* Any element directly wrapping a table, plus the named wrappers for
+   non-div containers. */
+:is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+    .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+    .ov-card-body, div:has(> table)) {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+:is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+    .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+    .ov-card-body) > table,
+div:has(> table) > table {
+  min-width: 100%;
+}
+
+/* An edge shadow that only appears while there is more table to the right.
+   `background-attachment: local` on the wrapper makes the shadow track the
+   scroll position, so it behaves like a real edge rather than a decoration
+   stuck to the container. */
+:is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+    .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+    .ov-card-body, div:has(> table)) {
+  background-image:
+    linear-gradient(to right, var(--surface) 30%, rgba(255, 255, 255, 0)),
+    linear-gradient(to right, rgba(255, 255, 255, 0), var(--surface) 70%),
+    linear-gradient(to right, rgba(16, 24, 40, 0.09), rgba(255, 255, 255, 0)),
+    linear-gradient(to left, rgba(16, 24, 40, 0.09), rgba(255, 255, 255, 0));
+  background-position: left center, right center, left center, right center;
+  background-repeat: no-repeat;
+  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+@media (max-width: 1023px) {
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) > table,
+  div:has(> table) > table {
+    min-width: 720px;
+  }
+}
+
+/* Phone: pin the actions column, and let the data scroll under it.
+
+   Two intermediate designs were measured and rejected before this one.
+
+   A disclosure — hiding the actions header and turning the actions cell into
+   a full-width block under its row — was tried first and failed: it only
+   works if the table fits the screen, and it does not. Releasing the 720px
+   floor and the two inline 160px header floors took the table from 848px to
+   682px, and 682px of seven columns will not compress into 358px. The
+   "disclosure" cell then sat at x≈620, still off-screen — the same defect as
+   the clipping it was meant to fix, wearing a different hat.
+
+   Stacking every cell into a label/value pair would genuinely fit, but it
+   needs a data-label on every <td> in every row renderer across the app. That
+   is the thorough answer, not the quick one, and it is not a change to make
+   silently in a stylesheet.
+
+   So the actions column is sticky to the right edge of the scroller. The data
+   columns still scroll, the wrapper's edge shadow shows there is more, and the
+   one control the user came for — View / Assign / Delete — is on screen and
+   tappable at every scroll position. Zero renderer changes. */
+@media (max-width: 639px) {
+  /* Release the floors so there is less to scroll. The 720px is the tier
+     above; the 160px is inline on projects.html's Standard and Dynamic
+     headers, added for desktop legibility. An inline declaration outranks a
+     stylesheet rule, so winning here takes `!important` deliberately — the
+     override target is inline, not a lower-specificity sheet. Above 640px
+     those columns keep their 160px. */
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) > table,
+  div:has(> table) > table { min-width: 0; }
+
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) th,
+  div:has(> table) th { min-width: 0 !important; }
+
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) th,
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) td,
+  div:has(> table) th,
+  div:has(> table) td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* The pinned column. Opaque background and a left-edge shadow, so the
+     scrolling data passes cleanly underneath instead of showing through. */
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) thead th:last-child,
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) tbody td:last-child,
+  div:has(> table) thead th:last-child,
+  div:has(> table) tbody td:last-child {
+    position: sticky;
+    right: 0;
+    background: var(--surface);
+    box-shadow: -10px 0 10px -8px rgba(16, 24, 40, 0.22);
+  }
+
+  /* Header sits above the body cells so the sticky column has a name on
+     screen and not just in the accessibility tree. */
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) thead th:last-child,
+  div:has(> table) thead th:last-child { z-index: 3; }
+
+  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
+      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
+      .ov-card-body) tbody td:last-child,
+  div:has(> table) tbody td:last-child {
+    z-index: 1;
+    white-space: nowrap;
+  }
+}
+
+/* ── Map furniture layering ────────────────────────────────────────
+   `.ftth-map-loading` is an inset-0 opaque scrim (ftth.css) at z-index
+   10. The four map pages also declared their basemap switcher at
+   z-index 10, and because the switcher is earlier in DOM order the
+   scrim painted over it — eight of thirteen sampled controls sat
+   behind a loading overlay, so a control the user could legitimately
+   press was not clickable and announced nothing about why.
+
+   Equal z-index is the whole bug: it makes stacking depend on document
+   order. The overlay owns 10; interactive furniture owns 20. The
+   per-page declarations were removed rather than overridden, so there
+   is now exactly one place that decides what covers what, and adding a
+   fifth map page inherits correct layering instead of a fourth copy of
+   the same number. */
+.ftth-basemap-switcher,
+.lld-view-mode,
+.ftth-identify-btn,
+.ftth-map-legend {
+  z-index: 20;
+}
+
+/* The scrim should not swallow pointer events once it is dismissed,
+   and should stop covering the map as soon as the map reports ready.
+   `display` is still toggled by script; this only guarantees the
+   hidden state can never intercept a click. */
+.ftth-map-loading[hidden],
+.ftth-map-loading[style*="display: none"],
+.ftth-map-loading[style*="display:none"] {
+  pointer-events: none;
+}
+
+/* ── Tap targets ───────────────────────────────────────────────────
+   Measured at 390px: 17 interactive marks under 44px, worst of all the
+   row actions at 28x17 — a 17px-tall link is the primary action on a
+   project row and it was being served to fingers.
+
+   The row actions are the correction that matters. They are deliberately
+   text-only elsewhere, so the fix enlarges the hit area without changing
+   how they look: a padded box with a negative margin, so the optical
+   spacing between actions is unchanged while the target is not. */
+.action-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 6px 10px;
+  margin: -6px 0;
+}
+
+.action-link.assign-btn,
+.action-link.delete-btn {
+  /* These were zero-padding inline buttons; keep the row's rhythm by pulling
+     the added padding back out horizontally. */
+  margin-left: -4px;
+  margin-right: -4px;
+}
+
+@media (pointer: coarse) {
+  button,
+  .ftth-refresh-btn,
+  .run-lld-btn,
+  .action-link,
+  .nav a,
+  .nav-toggle-btn,
+  /* Upload HLD is an <a class="create-btn">: the tag selectors above miss it,
+     and it is the primary action on projects.html. */
+  .create-btn,
+  input[type="button"],
+  input[type="submit"],
+  input[type="search"],
+  input[type="text"],
+  select {
+    min-height: 44px;
+  }
+  .ftth-refresh-btn { padding: 10px var(--space-4); }
+  .panel-state__retry { min-height: 44px; padding: 10px 18px; }
+  .ftth-toast__close { width: 44px; height: 44px; top: 6px; right: 6px; }
+  .nav a { display: flex; align-items: center; }
+  .dash-pill, .stage-badge { min-height: 32px; }
+  /* 43px was one pixel short on every select in the filter bar. */
+  select { min-height: 44px; }
+}

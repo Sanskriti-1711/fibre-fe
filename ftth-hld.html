@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <title>FTTH Design | Tech Mahindra</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
   <style>
     .ftth-upload-content {
       max-width: 680px;
@@ -317,6 +314,11 @@
     .ftth-layer-state { color:#6B7280; font-weight:400; }
 
   </style>
+<link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/ftth.css" />
+  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/components.css">
 </head>
 <body>
 
@@ -555,6 +557,7 @@
   </main>
 </div>
 
+<script src="js/ftth-ui.js"></script>
 <script src="partials/sidebar-loader.js"></script>
 <script src="js/ftth-config.js"></script>
 <script>
@@ -706,7 +709,7 @@
       runBtn.classList.remove('loading');
       runBtnText.textContent = 'Run Design Pipeline';
       updateRunButton();
-      showError('Failed to start pipeline: ' + (err && err.message ? err.message : err));
+      showError('Failed to start pipeline: ' + (FtthUI.humanize(err)));
     }
   });
 
@@ -860,6 +863,9 @@
         basemap: 'streets',
         onLoad: function () { drawBoundary(); }
       });
+      // Live pointer position, so a boundary coordinate can be read off the
+      // preview map as WGS84 lng/lat and EPSG:25833 easting/northing.
+      if (window.FtthMap.mountCoordinateReadout) { window.FtthMap.mountCoordinateReadout(areaMap); }
     } else {
       drawBoundary();
     }
@@ -1223,18 +1229,26 @@
     reviewPremises = [];
     reviewObjects = [];
     renderInputReview();
-    // Phase 1: what has to be on the map. Fetched independently so one slow or
-    // failing layer cannot hold back the premise points.
-    await Promise.all(CORE_LAYERS.map(function (layer) {
-      return ensureLayer(layer).catch(function () { return null; });
-    }));
-    updateLayerStatuses();
-    // Phase 2: the two bulk layers, after the map already has something on it.
-    LAZY_LAYERS.forEach(function (layer) {
-      const box = document.querySelector('[data-input-layer="' + layer + '"]');
-      const wanted = box ? box.checked : (layer === 'objects');
-      ensureLayer(layer, wanted).catch(function () { return null; });
+    // Premises and the map furniture first: they are what has to be on the map.
+    // Started independently so one slow or failing layer cannot hold back the
+    // rest.
+    CORE_LAYERS.forEach(function (layer) {
+      ensureLayer(layer).catch(function () { return null; });
     });
+    updateLayerStatuses();
+    // The two bulk layers run on their own schedule and are deliberately NOT
+    // awaited behind the core batch. They used to be, so one slow premises or
+    // boundaries fetch held the objects back with it: the premise points would
+    // render and the object points would never appear at all, with the objects
+    // checkbox already ticked. A short delay still lets the map paint the
+    // premise points before ~10 MB of buildings lands on top of them.
+    window.setTimeout(function () {
+      LAZY_LAYERS.forEach(function (layer) {
+        const box = document.querySelector('[data-input-layer="' + layer + '"]');
+        const wanted = box ? box.checked : (layer === 'objects');
+        ensureLayer(layer, wanted).catch(function () { return null; });
+      });
+    }, 250);
   }
 
   // ----------------------------------------------------------------
