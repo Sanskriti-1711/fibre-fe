@@ -1062,7 +1062,10 @@
   const OBJECT_COLUMNS_FIRST = [
     'osm_object_id', 'building', 'name', 'addr:housenumber', 'addr:street',
     'addr:postcode', 'addr:city', 'addr:suburb', 'building:levels',
-    'building:flats', 'footprint_m2', 'tag_count'
+    'building:flats', 'footprint_m2',
+    // The households this building contributes, so a block of flats reads as
+    // several households on one point rather than as one building.
+    'households', 'household_method', 'premises', 'tag_count'
   ];
 
   /** Every attribute actually present, important ones first, then all the rest. */
@@ -1104,8 +1107,17 @@
       }).join('') + '</tr>';
     }).join('');
     const status = host.querySelector('.ftth-object-status');
+    // The household total over the filtered set, not over the shown page: it is
+    // the number the design is sized on, so it must not change when the table
+    // truncates at 1,000 rows.
+    const hhTotal = filtered.reduce(function (sum, f) {
+      return sum + (Number((f.properties || {}).households) || 0);
+    }, 0);
+    const hhNote = hhTotal
+      ? ' carrying ' + hhTotal.toLocaleString() + ' household(s)'
+      : '';
     if (status) status.textContent = 'Showing ' + shown.length + ' of ' + filtered.length +
-      ' building objects, ' + cols.length + ' attributes each' +
+      ' building objects' + hhNote + ', ' + cols.length + ' attributes each' +
       (filtered.length > shown.length ? ' (first 1,000 shown)' : '') + '.';
   }
 
@@ -1125,7 +1137,7 @@
     // [layer, label, checked, lazy]
     const names = [
       ['premises','Premises / households', true, false],
-      ['objects','Objects (building points, all attributes)', true, true],
+      ['objects','Objects (building points + household counts)', true, true],
       ['buildings','Building footprints (heavy)', false, true],
       ['roads','Roads', true, false],
       ['railways','Railways', true, false],
@@ -1145,7 +1157,7 @@
       '<div class="ftth-premise-table-wrap"><table class="ftth-premise-table"><thead><tr>' +
       '<th>ADDR_ID</th><th>Address</th><th>No.</th><th>Postcode</th><th>District</th>' +
       '<th>HH</th><th>HH_METHOD</th><th>Coordinates</th></tr></thead><tbody></tbody></table></div>' +
-      '<div style="margin-top:16px;"><strong>Objects (building points, all OSM attributes)</strong></div>' +
+      '<div style="margin-top:16px;"><strong>Objects (building points, all OSM attributes + household count)</strong></div>' +
       '<div class="ftth-object-status">Loading objects…</div>' +
       '<input class="ftth-object-search" placeholder="Search any attribute — building type, levels, amenity, roof shape…">' +
       '<div class="ftth-premise-table-wrap"><table class="ftth-object-table">' +
