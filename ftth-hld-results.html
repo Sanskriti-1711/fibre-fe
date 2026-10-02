@@ -1306,9 +1306,9 @@
     cables: ['feature_id','CABLE_TYPE','cable_id','FIBER_COUNT','SPLIT_MODULES','UTIL_PCT','SPARE_PCT','length_m','PDP_IDS','PDP_ID','POLYGON_ID','MFG_ID'],
     ducts: ['feature_id','DUCT_ID','DUCT_TYPE','capacity_total','capacity_used','capacity_spare','OCCUPANCY_PCT','length_m','PDP_ID','POLYGON_ID','START_CHAMBER','END_CHAMBER','PARENT_TRENCH'],
     chambers: ['feature_id','CHAMBER_ID','CHAMBER_TYPE','SUBTYPE','REASON','PDP_ID','HDD','START_CHAMBER','END_CHAMBER'],
-    pdps: ['feature_id','PDP_ID','POLYGON_ID','HH','SPLIT_CNT','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
-    objects: ['feature_id','addr_id','PDP_ID','POLYGON_ID','HH','address','SURFACE'],
-    polygons: ['feature_id','POLYGON_ID','PDP_ID','HH','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
+    pdps: ['feature_id','PDP_ID','POLYGON_ID','households','SPLIT_CNT','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
+    objects: ['feature_id','ADDR_ID','PDP_ID','POLYGON_ID','households','household_method','premises','address','SURFACE'],
+    polygons: ['feature_id','POLYGON_ID','PDP_ID','households','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
     mfg: ['feature_id','MFG_ID','PDP_COUNT','PDP_IDS'],
     mfg_service_areas: ['feature_id','MFG_ID','HH_COUNT','MIN_HH','MAX_HH','RANGE_M','CAPACITY_STATUS','REVIEW'],
   };

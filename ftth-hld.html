@@ -1036,7 +1036,7 @@
     const filtered = reviewPremises.filter(function (f) {
       const p = f.properties || {};
       if (!q) return true;
-      return ['ADDR_ID','Address','Housenumber','Postcode','District','HH','HH_METHOD']
+      return ['ADDR_ID','Address','Housenumber','Postcode','District','households','household_method']
         .some(function (key) { return String(p[key] || '').toLowerCase().indexOf(q) !== -1; });
     });
     const shown = filtered.slice(0, 2000);
@@ -1045,8 +1045,8 @@
       const p = f.properties || {};
       return '<tr><td>' + escapeHtml(p.ADDR_ID) + '</td><td>' + escapeHtml(p.Address) +
         '</td><td>' + escapeHtml(p.Housenumber) + '</td><td>' + escapeHtml(p.Postcode) +
-        '</td><td>' + escapeHtml(p.District) + '</td><td>' + escapeHtml(p.HH) +
-        '</td><td>' + escapeHtml(p.HH_METHOD) + '</td><td>' + escapeHtml(p.latitude) +
+        '</td><td>' + escapeHtml(p.District) + '</td><td>' + escapeHtml(p.households) +
+        '</td><td>' + escapeHtml(p.household_method) + '</td><td>' + escapeHtml(p.latitude) +
         ', ' + escapeHtml(p.longitude) + '</td></tr>';
     }).join('');
     const status = host.querySelector('.ftth-review-status');
@@ -1153,10 +1153,10 @@
           ' data-input-layer="' + x[0] + '"> ' + escapeHtml(x[1]) +
           ' <span class="ftth-layer-state" data-layer-state="' + x[0] + '"></span></label>';
       }).join('') + '</div>' +
-      '<input class="ftth-premise-search" placeholder="Search address, postcode, district, HH or HH_METHOD…">' +
+      '<input class="ftth-premise-search" placeholder="Search address, postcode, district, households or household_method…">' +
       '<div class="ftth-premise-table-wrap"><table class="ftth-premise-table"><thead><tr>' +
       '<th>ADDR_ID</th><th>Address</th><th>No.</th><th>Postcode</th><th>District</th>' +
-      '<th>HH</th><th>HH_METHOD</th><th>Coordinates</th></tr></thead><tbody></tbody></table></div>' +
+      '<th>households</th><th>household_method</th><th>Coordinates</th></tr></thead><tbody></tbody></table></div>' +
       '<div style="margin-top:16px;"><strong>Objects (building points, all OSM attributes + household count)</strong></div>' +
       '<div class="ftth-object-status">Loading objects…</div>' +
       '<input class="ftth-object-search" placeholder="Search any attribute — building type, levels, amenity, roof shape…">' +
