@@ -89,6 +89,14 @@
     aerial_cable: {
       fill: '#B45309', outline: '#B45309', opacity: 0.85, lineWidth: 1.6, lineDash: [], label: 'Aerial Cable',
     },
+    // The overhead SPAN the pole + aerial stage builds for an aerial leg (the
+    // cable above is what runs on it). It had no entry at all, so it fell
+    // through to `default` and drew as an unknown grey line next to the amber
+    // cable it carries; it now takes the same amber and weight as that cable so
+    // the overhead chain reads as one thing.
+    aerial_spans: {
+      fill: '#B45309', outline: '#B45309', opacity: 0.85, lineWidth: 1.6, lineDash: [], label: 'Aerial Drop',
+    },
     feeder_ducts: {
       fill: '#B45309', outline: '#B45309', opacity: 0.75, lineWidth: 3.6, lineDash: [], label: 'Feeder Ducts (trunk)',
     },
@@ -1201,7 +1209,6 @@
     coupleurs: 'Coupler', poles: 'Pole (aerial)', objects: 'Premise / object',
     premises: 'Premise / object',    trench_nodes: 'Trench node',
     'aerial_drops': 'Aerial drop', aerial_spans: 'Aerial drop',
-    aerial_drop_trenches: 'Aerial drop',
     brownfield: 'Existing infra', trenches: 'Trench', ducts: 'Duct', cables: 'Cable',
     // Only meaningful for a layer that is SPLIT per tier upstream; the legend
     // lists one row per bucket so the tier colours are explained.
