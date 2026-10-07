@@ -1336,6 +1336,113 @@
     };
   }
 
+  /**
+   * Convert UTM easting/northing back to WGS84 lng/lat for the given CRS.
+   *
+   * The inverse of utmForward, using the same ellipsoids and the standard
+   * USGS (Snyder) series. It exists so a design artifact that stores a route in
+   * its projected CRS (e.g. a surface review span in EPSG:25833) can be placed
+   * on the WGS84 map: an artifact's coordinates are only meaningful with the
+   * CRS it names, and the map has no other way to read them.
+   */
+  function utmInverse(easting, northing, crs) {
+    var p = _utmParams(crs);
+    var a = p.ellipsoid.a, f = p.ellipsoid.f;
+    var e2 = f * (2 - f);
+    var ep2 = e2 / (1 - e2);
+    var k0 = 0.9996;
+    var x = Number(easting) - 500000;
+    var y = Number(northing) - (p.south ? 10000000 : 0);
+    var M = y / k0;
+    var mu = M / (a * (1 - e2 / 4 - (3 * e2 * e2) / 64 - (5 * e2 * e2 * e2) / 256));
+    var e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
+    var phi1 = mu
+      + ((3 * e1) / 2 - (27 * e1 * e1 * e1) / 32) * Math.sin(2 * mu)
+      + ((21 * e1 * e1) / 16 - (55 * e1 * e1 * e1 * e1) / 32) * Math.sin(4 * mu)
+      + ((151 * e1 * e1 * e1) / 96) * Math.sin(6 * mu);
+    var sinPhi1 = Math.sin(phi1), cosPhi1 = Math.cos(phi1), tanPhi1 = Math.tan(phi1);
+    var n1 = a / Math.sqrt(1 - e2 * sinPhi1 * sinPhi1);
+    var t1 = tanPhi1 * tanPhi1;
+    var c1 = ep2 * cosPhi1 * cosPhi1;
+    var r1 = (a * (1 - e2)) / Math.pow(1 - e2 * sinPhi1 * sinPhi1, 1.5);
+    var d = x / (n1 * k0);
+    var d2 = d * d, d3 = d2 * d, d4 = d2 * d2, d5 = d4 * d, d6 = d4 * d2;
+    var lat = phi1 - ((n1 * tanPhi1) / r1)
+      * (d2 / 2
+        - ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * ep2) * d4) / 24
+        + ((61 + 90 * t1 + 298 * c1 + 45 * t1 * t1 - 252 * ep2 - 3 * c1 * c1) * d6) / 720);
+    var lng = (d
+      - ((1 + 2 * t1 + c1) * d3) / 6
+      + ((5 - 2 * c1 + 28 * t1 - 3 * c1 * c1 + 8 * ep2 + 24 * t1 * t1) * d5) / 120) / cosPhi1;
+    var lon0 = (p.zone * 6 - 183) * (Math.PI / 180);
+    return { lng: (lon0 + lng) * (180 / Math.PI), lat: lat * (180 / Math.PI) };
+  }
+
+  /**
+   * Read an (x, y) pair in the CRS it names as WGS84 lng/lat.
+   *
+   * A geographic CRS — or a pair whose magnitudes are already degrees — passes
+   * through untouched; anything else is treated as UTM (the CRSs the design and
+   * surface review write: EPSG:258xx ETRS89 and EPSG:326xx/327xx WGS84). Values
+   * that are not finite return null so a caller can skip the point rather than
+   * frame the map on NaN.
+   */
+  function toLngLat(x, y, crs) {
+    x = Number(x); y = Number(y);
+    if (!isFinite(x) || !isFinite(y)) return null;
+    var code = String(crs == null ? '' : crs).replace(/[^0-9]/g, '');
+    var geographic = code === '' || code === '4326' || code === '4258' || code === '4269';
+    if (geographic || (Math.abs(x) <= 180 && Math.abs(y) <= 90)) {
+      return { lng: x, lat: y };
+    }
+    var ll = utmInverse(x, y, crs);
+    // The series inverse is exact near the central meridian but its error grows
+    // with distance from it — tens of metres once a project sits ~15+° away
+    // (this dataset's spans are ~17° out, which the truncated series reads as
+    // ~76 m). utmForward stays accurate to metres there, so re-project the
+    // estimate and correct by the residual, which converges in two or three
+    // steps to the forward's own accuracy (~1–2 m, far below a span's length).
+    var rad = Math.PI / 180;
+    for (var i = 0; i < 4; i++) {
+      var f = utmForward(ll.lng, ll.lat, crs);
+      var dE = x - f.easting, dN = y - f.northing;
+      if (Math.abs(dE) < 1e-4 && Math.abs(dN) < 1e-4) break;
+      var phi = ll.lat * rad;
+      var mPerDegLat = 111132.92 - 559.82 * Math.cos(2 * phi) + 1.175 * Math.cos(4 * phi) - 0.0023 * Math.cos(6 * phi);
+      var mPerDegLng = 111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi) + 0.118 * Math.cos(5 * phi);
+      if (!mPerDegLng) break;
+      ll = { lng: ll.lng + dE / mPerDegLng, lat: ll.lat + dN / mPerDegLat };
+    }
+    return ll;
+  }
+
+  /**
+   * Frame a WGS84 geometry on the map and paint it on the highlight layer.
+   *
+   * This is the "go look at this span" half of the surface review: a line gets
+   * fitBounds with padding, a single point gets a centred zoom, and either way
+   * the geometry is mirrored onto the highlight source so the reader can see
+   * exactly which span was framed. Coordinates are already lng/lat — the page
+   * converts from the artifact's own CRS with toLngLat first. Returns true when
+   * the camera moved.
+   */
+  function fitToLngLatGeometry(map, feature, opts) {
+    if (!map || !feature || !feature.geometry) return false;
+    opts = opts || {};
+    var bounds = featureBounds(feature);
+    if (!bounds) return false;
+    highlightFeatureData(map, feature);
+    var maxZoom = opts.maxZoom == null ? 18 : opts.maxZoom;
+    var duration = opts.duration == null ? 700 : opts.duration;
+    var sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
+    if (Math.abs(ne.lng - sw.lng) < 1e-9 && Math.abs(ne.lat - sw.lat) < 1e-9) {
+      map.easeTo({ center: [sw.lng, sw.lat], zoom: maxZoom, duration: duration });
+    } else {
+      map.fitBounds(bounds, { padding: opts.padding || 60, maxZoom: maxZoom, duration: duration });
+    }
+    return true;
+  }
+
   // ------------------------------------------------------------------
   // Hover coordinate readout
   // ------------------------------------------------------------------
@@ -1428,7 +1535,8 @@
   window.FtthMap = {
     initMap: initMap, getMap: getMap, addGeoJSONLayer: addGeoJSONLayer,
     attachCoordinateReadout: attachCoordinateReadout, mountCoordinateReadout: mountCoordinateReadout,
-    utmForward: utmForward,
+    utmForward: utmForward, utmInverse: utmInverse, toLngLat: toLngLat,
+    fitToLngLatGeometry: fitToLngLatGeometry,
     setLayerVisible: setLayerVisible, fitToLayers: fitToLayers,
     getBaseStyles: getBaseStyles, setBaseStyle: setBaseStyle,
     SUBLAYER_COLORS: LAYER_COLORS.SUBLAYER_COLORS,

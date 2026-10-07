@@ -143,6 +143,10 @@
     .ftth-surface-ai-count { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; background:#E5E7EB; color:#374151; font-size:11px; font-weight:600; }
     .ftth-surface-ai-card.is-detected { border-color:#BFDBFE; background:#F0F7FF; }
     .ftth-surface-ai-more { margin-top:8px; width:100%; padding:6px 10px; border:1px dashed #D1D5DB; border-radius:8px; background:#FFFFFF; color:#374151; font-size:11px; font-weight:600; cursor:pointer; }
+    .ftth-surface-ai-card { cursor:pointer; transition:border-color .12s, box-shadow .12s; }
+    .ftth-surface-ai-card:hover { border-color:#93C5FD; box-shadow:0 0 0 2px rgba(37,99,235,.10); }
+    .ftth-surface-ai-card.is-located { border-color:#2563EB; box-shadow:0 0 0 2px rgba(37,99,235,.20); }
+    .ftth-surface-ai-locate { border-color:#BFDBFE; color:#1D4ED8; background:#EFF6FF; }
 
     .ftth-survey-btn {
       display:flex; align-items:center; gap:10px; width:100%;
@@ -333,7 +337,7 @@
 <script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
 <script src="js/ftth-api.js"></script>
 <script src="js/ftth-state.js"></script>
-<script src="js/ftth-map.js?v=20260920b"></script>
+<script src="js/ftth-map.js?v=20261006a"></script>
 <script src="js/ftth-components.js"></script>
 <script>
   window.FiberAuth.requireLogin();
@@ -489,7 +493,7 @@
         await Promise.all(allLayers.map(function(layer, index){ return loadLayerGeoJSON(layer, index); }));
         // Draw order must not depend on which HTTP response landed first.
         try { window.FtthMap.applyZOrder(map); } catch (_e) {}
-        setTimeout(function(){ try{ if (!params.get('center') && !params.get('zoom')) { window.FtthMap.fitToLayers(map, 50); } }catch(_){} }, 500);
+        setTimeout(function(){ try{ if (!params.get('center') && !params.get('zoom') && !surfaceLocated) { window.FtthMap.fitToLayers(map, 50); } }catch(_){} }, 500);
       } else {
         showEmpty('No layers generated.');
       }
@@ -582,6 +586,10 @@
   // pick was armed.  Sending this instead of the raw click position keeps the
   // request identical to what the reader just read off the map.
   var surfacePickPoint = null;
+  // Set once the reader frames a span, so the initial fit-to-layers (which can
+  // still be pending while layers stream in) does not yank the map back off the
+  // span they just asked to see.
+  var surfaceLocated = false;
 
   function setSurfaceAIPickActive(active) {
     surfaceAIPickOn = !!active;
@@ -750,13 +758,17 @@
         surfacePercent(item.known_share) ? 'source cover ' + surfacePercent(item.known_share) : '',
       ].filter(Boolean).join(' \u00b7 ');
     }
-    var actions = answered ? ''
-      : '<div class="ftth-surface-ai-actions">'
-        + '<button class="ftth-surface-ai-btn" type="button" data-surface-action="preview">Show imagery</button>'
-        + '<button class="ftth-surface-ai-btn primary" type="button" data-surface-action="detect">Detect with AI (1 call)</button>'
-        + '</div>';
+    // Every card carries its span route, so "locate" works on both lists; only
+    // the undetected cards additionally offer the imagery preview and the AI call.
+    var actions = '<div class="ftth-surface-ai-actions">'
+      + '<button class="ftth-surface-ai-btn ftth-surface-ai-locate" type="button" data-surface-action="locate">Locate on map</button>'
+      + (answered ? ''
+        : '<button class="ftth-surface-ai-btn" type="button" data-surface-action="preview">Show imagery</button>'
+          + '<button class="ftth-surface-ai-btn primary" type="button" data-surface-action="detect">Detect with AI (1 call)</button>')
+      + '</div>';
     return '<article class="ftth-surface-ai-card' + (answered ? ' is-detected' : '') + '"'
-      + ' data-surface-index="' + index + '">'
+      + ' data-surface-index="' + index + '"'
+      + ' title="Click to show this span on the map">'
       + '<strong>' + escapeHtml(label) + '</strong>'
       + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
       + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
@@ -850,6 +862,47 @@
     if (answeredEl) { answeredEl.textContent = counts.answered; }
   }
 
+  // ---------------------------------------------------------------
+  // Locate on map: a review span stores its own route in the design's
+  // projected CRS, so convert it to lng/lat, frame it and paint it on
+  // the highlight layer. This is the "click a span and see where it is"
+  // half of the review — the model's answer is about a place, and the
+  // reader needs to look at that place before trusting it.
+  // ---------------------------------------------------------------
+  function surfaceSpanLngLatFeature(item) {
+    if (!item || !Array.isArray(item.coordinates) || !item.coordinates.length) return null;
+    if (!window.FtthMap || !window.FtthMap.toLngLat) return null;
+    var crs = item.coordinates_crs || params.get('crs') || 'EPSG:25833';
+    var points = [];
+    item.coordinates.forEach(function (pt) {
+      if (!Array.isArray(pt) || pt.length < 2) return;
+      var ll = window.FtthMap.toLngLat(pt[0], pt[1], crs);
+      if (ll && isFinite(ll.lng) && isFinite(ll.lat)) points.push([ll.lng, ll.lat]);
+    });
+    if (!points.length) return null;
+    return {
+      type: 'Feature',
+      properties: { span_id: item.span_id || '' },
+      geometry: points.length === 1
+        ? { type: 'Point', coordinates: points[0] }
+        : { type: 'LineString', coordinates: points },
+    };
+  }
+
+  function locateSurfaceSpan(item, card) {
+    if (!map) return;
+    var feature = surfaceSpanLngLatFeature(item);
+    if (!feature) return;
+    surfaceLocated = true;
+    try {
+      window.FtthMap.fitToLngLatGeometry(map, feature, { padding: 80, maxZoom: 18 });
+    } catch (_e) { /* framing is best-effort; never block the review */ }
+    // Mark the card the reader clicked so the list shows which span the map frames.
+    var located = document.querySelectorAll('#surfaceAIReviewBody .ftth-surface-ai-card.is-located');
+    for (var i = 0; i < located.length; i++) { located[i].classList.remove('is-located'); }
+    if (card) card.classList.add('is-located');
+  }
+
   async function onSurfaceReviewClick(event) {
     var target = event.target;
     if (!target || !target.getAttribute) return;
@@ -866,17 +919,20 @@
       }
       return;
     }
-    var action = target.getAttribute('data-surface-action');
-    if (!action) return;
     var card = target.closest ? target.closest('[data-surface-index]') : null;
     if (!card) return;
     var index = Number(card.getAttribute('data-surface-index'));
     if (!Number.isInteger(index) || index < 0 || index >= surfaceReviewItems.length) return;
     var item = surfaceReviewItems[index];
+    var action = target.getAttribute('data-surface-action');
     if (action === 'preview') {
       await showSurfaceSpanImagery(item, card);
     } else if (action === 'detect') {
       await detectSurfaceSpan(item, card);
+    } else {
+      // Anywhere else on the card — the meta text, the patch, or the "Locate on
+      // map" button — frames that span, leaving the action buttons above intact.
+      locateSurfaceSpan(item, card);
     }
   }
 

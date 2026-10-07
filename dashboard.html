@@ -107,9 +107,9 @@
 
       .dash-hero h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; }
 
-      .dash-hero .sub { margin-top: 6px; font-size: 13.5px; color: #D3D8E2; }
+      .dash-hero .sub { margin-top: 6px; font-size: 13.5px; color: #9CA3AF; }
 
-      .dash-hero .hello { font-size: 13px; font-weight: 700; color: #FCA5A5; text-transform: uppercase; letter-spacing: 0.14em; }
+      .dash-hero .hello { font-size: 13px; font-weight: 700; color: #E57373; text-transform: uppercase; letter-spacing: 0.14em; }
 
   
 
@@ -127,7 +127,7 @@
 
       .dash-clock .time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
 
-      .dash-clock .date { font-size: 12px; color: #AEB6C4; margin-top: 2px; }
+      .dash-clock .date { font-size: 12px; color: #6B7280; margin-top: 2px; }
 
   
 
@@ -297,6 +297,17 @@
 
       .dash-stage .stage-badge.idle { background: #F3F4F6; color: #616A75; }
 
+      .dash-quick-actions { display: flex; flex-direction: column; gap: 10px; }
+
+      .dash-quick-action { padding: 12px 16px; gap: 12px; }
+      .dash-quick-action .stage-icon { width: 38px; height: 38px; border-radius: 10px; font-size: 17px; }
+      .dash-quick-action .stage-name { font-size: 13.5px; }
+      .dash-quick-action .stage-sub { font-size: 11.5px; }
+      .dash-quick-action .stage-glow { height: 3px; }
+      .dash-quick-action.projects .stage-glow { background: linear-gradient(90deg, #374151, #616A75); }
+      .dash-quick-action.projects .stage-icon { background: #F3F4F6; }
+      .dash-quick-action:hover { transform: none; box-shadow: 0 4px 14px -8px rgba(0,0,0,0.12); }
+
       .dash-stage .stage-badge.offline { background: #FEF2F2; color: #B91C1C; }
 
       @keyframes dash-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
@@ -438,11 +449,7 @@
 
       .dash-kpi .kpi-note { font-size: 12px; color: var(--dash-muted); margin-top: 2px; }
 
-      .dash-kpi.kpi-hld .kpi-icon { background: #EEF2FF; }
-
       .dash-kpi.kpi-survey .kpi-icon { background: #ECFDF5; }
-
-      .dash-kpi.kpi-lld .kpi-icon { background: #F5F3FF; }
 
       .dash-kpi.kpi-total .kpi-icon { background: #FEF2F2; }
 
@@ -689,19 +696,6 @@
 
     <!-- ══════ KPI grid ══════ -->
     <div class="dash-kpis">
-      <a class="dash-kpi kpi-hld" href="ftth-hld-projects.html">
-        <div class="kpi-top">
-          <span class="kpi-label">HLD Runs</span>
-          <span class="kpi-icon">🏗️</span>
-        </div>
-        <div class="kpi-bottom">
-          <div>
-            <div class="kpi-value" id="kpiHld">–</div>
-            <div class="kpi-note" id="kpiHldNote">loading…</div>
-          </div>
-          <canvas class="kpi-spark" id="sparkHld"></canvas>
-        </div>
-      </a>
       <a class="dash-kpi kpi-survey" href="ftth-survey-changes.html">
         <div class="kpi-top">
           <span class="kpi-label">Pending Reviews</span>
@@ -713,19 +707,6 @@
             <div class="kpi-note" id="kpiPendingNote">loading…</div>
           </div>
           <canvas class="kpi-spark" id="sparkPending"></canvas>
-        </div>
-      </a>
-      <a class="dash-kpi kpi-lld" href="ftth-lld-outputs.html">
-        <div class="kpi-top">
-          <span class="kpi-label">LLD Runs</span>
-          <span class="kpi-icon">📐</span>
-        </div>
-        <div class="kpi-bottom">
-          <div>
-            <div class="kpi-value" id="kpiLld">–</div>
-            <div class="kpi-note" id="kpiLldNote">loading…</div>
-          </div>
-          <canvas class="kpi-spark" id="sparkLld"></canvas>
         </div>
       </a>
       <a class="dash-kpi kpi-total" href="projects.html">
@@ -781,15 +762,6 @@
         </div>
       </div>
 
-      <div class="dash-card dash-fade">
-        <div class="card-head">
-          <span class="card-title">LLD Runs by Project</span>
-          <span class="card-hint" id="lldChartHint">–</span>
-        </div>
-        <div class="dash-bars" id="lldBars">
-          <div class="dash-bar-empty">Loading…</div>
-        </div>
-      </div>
     </div>
 
     <!-- ══════ Approval queue ══════ -->
@@ -843,26 +815,26 @@
           <span class="card-title">Pipeline Quick Actions</span>
           <span class="card-hint">Jump straight to the work</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <a class="dash-stage hld" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="ftth-hld.html">
+        <div class="dash-quick-actions">
+          <a class="dash-stage hld dash-quick-action" href="ftth-hld.html">
             <span class="stage-glow"></span>
-            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;">📤</div>
-            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">Upload &amp; Run HLD</div><div class="stage-sub">Kick off a new high-level design</div></div>
+            <div class="stage-icon">📤</div>
+            <div class="stage-meta"><div class="stage-name">Upload &amp; Run HLD</div><div class="stage-sub">Kick off a new high-level design</div></div>
           </a>
-          <a class="dash-stage survey" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="ftth-survey-changes.html">
+          <a class="dash-stage survey dash-quick-action" href="ftth-survey-changes.html">
             <span class="stage-glow"></span>
-            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;">✔️</div>
-            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">Review Survey Changes</div><div class="stage-sub">Approve, reject or request corrections</div></div>
+            <div class="stage-icon">✔️</div>
+            <div class="stage-meta"><div class="stage-name">Review Survey Changes</div><div class="stage-sub">Approve, reject or request corrections</div></div>
           </a>
-          <a class="dash-stage lld" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="ftth-lld-outputs.html">
+          <a class="dash-stage lld dash-quick-action" href="ftth-lld-outputs.html">
             <span class="stage-glow"></span>
-            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;">🚀</div>
-            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">Run &amp; View LLD</div><div class="stage-sub">Generate the detailed network design</div></div>
+            <div class="stage-icon">🚀</div>
+            <div class="stage-meta"><div class="stage-name">Run &amp; View LLD</div><div class="stage-sub">Generate the detailed network design</div></div>
           </a>
-          <a class="dash-stage" style="padding:12px 16px;cursor:pointer;text-decoration:none;" href="projects.html">
-            <span class="stage-glow" style="background:linear-gradient(90deg,#374151,#616A75);"></span>
-            <div class="stage-icon" style="width:38px;height:38px;font-size:17px;background:#F3F4F6;">🗃️</div>
-            <div class="stage-meta"><div class="stage-name" style="font-size:13.5px;">All Projects</div><div class="stage-sub">Browse every project by stage flag</div></div>
+          <a class="dash-stage dash-quick-action projects" href="projects.html">
+            <span class="stage-glow"></span>
+            <div class="stage-icon">🗃️</div>
+            <div class="stage-meta"><div class="stage-name">All Projects</div><div class="stage-sub">Browse every project by stage flag</div></div>
           </a>
         </div>
       </div>
@@ -1017,8 +989,8 @@
   }
 
   /* ── state ────────────────────────────────────────────────────── */
-  var state = { hld: null, queue: null, runs: null, total: null, permits: null, allProjects: null };
-  var health = { hld: 'idle', queue: 'idle', runs: 'idle', permits: 'idle', total: 'idle' };
+  var state = { hld: null, queue: null, total: null, permits: null, allProjects: null };
+  var health = { hld: 'idle', queue: 'idle', permits: 'idle', total: 'idle' };
   var loading = false;
 
   function countUp(el, target, suffix) {
@@ -1062,16 +1034,6 @@
       state.queue = (lp && lp.projects) || [];
       health.queue = 'ok';
     } catch (e) { health.queue = 'fail'; health.queueErr = e; state.queue = null; }
-  }
-
-  async function loadRuns() {
-    health.runs = 'loading';
-    health.runsErr = null;
-    try {
-      var lr = await FtthUI.withTimeout(window.FtthLldApi.listRuns(), 12000, 'LLD runs');
-      state.runs = (lr && lr.runs) || [];
-      health.runs = 'ok';
-    } catch (e) { health.runs = 'fail'; health.runsErr = e; state.runs = null; }
   }
 
   async function loadTotal() {
@@ -1128,7 +1090,7 @@
     /* `health` decides what the operator is told; the arrays are only
        used for arithmetic, so a failed load is safe to treat as zero
        here because stageValue/stageBadge suppress the misleading 0. */
-    var hld = state.hld || [], queue = state.queue || [], runs = state.runs || [];
+    var hld = state.hld || [], queue = state.queue || [];
 
     var hldDone = hld.filter(function (p) { return String(p.status || '').indexOf('complete') !== -1; }).length;
     var hldBusy = hld.length - hldDone;
@@ -1141,13 +1103,6 @@
     stageValue('queue', 'surveyCount', String(queue.length));
     $('surveySub').textContent = queue.length ? (pendingAll + ' pending · ' + readyCount + ' ready for LLD') : 'No survey changes yet';
     stageBadge('queue', 'surveyBadge', pendingAll ? 'LIVE' : 'IDLE', 'IDLE');
-
-    stageValue('runs', 'lldCount', String(runs.length));
-    var last = runs[0];
-    $('lldSub').textContent = runs.length
-      ? 'latest: ' + (last.lld_version || 'V?') + ' · ' + esc(last.project_name || '')
-      : 'No LLD runs yet — review survey changes first';
-    stageBadge('runs', 'lldBadge', 'RUNS', 'IDLE');
   }
 
   function kpiValue(healthKey, id, noteId, value, note, spark, sparkColor, series) {
@@ -1166,7 +1121,7 @@
   }
 
   function renderKpis() {
-    var hld = state.hld || [], queue = state.queue || [], runs = state.runs || [];
+    var hld = state.hld || [], queue = state.queue || [];
 
     var hldDone = hld.filter(function (p) { return String(p.status || '').indexOf('complete') !== -1; }).length;
     kpiValue('hld', 'kpiHld', 'kpiHldNote', hld.length, hldDone + ' completed',
@@ -1176,10 +1131,6 @@
     var readyCount = queue.filter(function (p) { return p.ready; }).length;
     kpiValue('queue', 'kpiPending', 'kpiPendingNote', pending, readyCount + ' projects LLD-ready',
       'sparkPending', '#047857', queue.map(function (p) { return p.pending || 0; }));
-
-    var done = runs.filter(function (r) { return String(r.status || '').indexOf('complete') !== -1; }).length;
-    kpiValue('runs', 'kpiLld', 'kpiLldNote', runs.length, done + ' completed runs',
-      'sparkLld', '#6D28D9', dailySeries(runs, function (r) { return r.run_date; }));
 
     kpiValue('total', 'kpiTotal', 'kpiTotalNote', state.total, 'across all stage flags',
       'sparkTotal', '#E31837', dailySeries(state.allProjects || [], function (p) { return p.created_at; }));
