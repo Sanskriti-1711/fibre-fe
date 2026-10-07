@@ -6,7 +6,7 @@
       window.FIBER_BASE_URL = 'http://localhost:8000';
     }
   }
-  const BASE_URL = window.FIBER_BASE_URL || "https://fiberbackend.zeabur.app";
+  const BASE_URL = window.FIBER_BASE_URL || "https://fibre-backend-wml3.onrender.com";
   const STORAGE_KEY = "fiber_auth";
 
   function buildUrl(path) {

@@ -8,7 +8,7 @@
   }
 
   const BASE_URL =
-    (window.FIBER_BASE_URL || "https://fiberbackend.zeabur.app").replace(/\/+$/, '');
+    (window.FIBER_BASE_URL || "https://fibre-backend-wml3.onrender.com").replace(/\/+$/, '');
   const STORAGE_KEY = "fiber_auth";
 
   function buildUrl(path) {

@@ -11,7 +11,7 @@
     if (host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0') {
       return 'http://localhost:8000';
     }
-    return 'https://fiberbackend.zeabur.app';
+    return 'https://fibre-backend-wml3.onrender.com';
   })();
   const BASE_URL = window.FIBER_BASE_URL || DETECTED_BASE_URL;
 
