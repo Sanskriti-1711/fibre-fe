@@ -111,19 +111,19 @@
 .ftth-dropzone:hover,
 .ftth-dropzone:focus {
   border-color: #E31837;
-  background: #FEF2F2;
+  background: var(--danger-soft);
 }
 
 .ftth-dropzone.drag-over {
   border-color: #E31837;
-  background: #FEE2E2;
+  background: var(--danger-soft);
   border-style: solid;
 }
 
 .ftth-dropzone.has-file {
-  border-color: #047857;
+  border-color: var(--stage-survey);
   border-style: solid;
-  background: #ECFDF5;
+  background: var(--success-soft);
   padding: 18px 16px;
 }
 
@@ -224,15 +224,15 @@
 }
 
 .ftth-log-warn .ftth-log-msg {
-  color: #FBBF24;
+  color: var(--warning);
 }
 
 .ftth-log-error .ftth-log-msg {
-  color: #F87171;
+  color: var(--danger);
 }
 
 .ftth-log-success .ftth-log-msg {
-  color: #34D399;
+  color: var(--success);
 }
 
 /* ------------------------------------------------------------------
@@ -611,15 +611,15 @@
 }
 
 .lld-readiness-status.not-ready {
-  background: #FEF2F2;
-  color: #B91C1C;
-  border: 1px solid #FECACA;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger-line);
 }
 
 .lld-readiness-status.ready {
-  background: #ECFDF5;
-  color: #047857;
-  border: 1px solid #A7F3D0;
+  background: var(--success-soft);
+  color: var(--stage-survey);
+  border: 1px solid var(--success-line);
 }
 
 .lld-readiness-status.ready .dot { animation: ftth-pulse 1.6s ease-in-out infinite; }
@@ -655,8 +655,8 @@
   margin-top: 2px;
 }
 
-.lld-count-item.approved .value { color: #047857; }
-.lld-count-item.rejected .value { color: #B91C1C; }
+.lld-count-item.approved .value { color: var(--stage-survey); }
+.lld-count-item.rejected .value { color: var(--danger); }
 .lld-count-item.correction .value { color: #92400E; }
 .lld-count-item.pending .value { color: #2563EB; }
 
@@ -683,7 +683,7 @@
 .lld-resolution .fill {
   height: 100%;
   border-radius: 4px;
-  background: linear-gradient(90deg, #047857, #047857);
+  background: linear-gradient(90deg, var(--stage-survey), var(--stage-survey));
   transition: width 0.45s ease;
 }
 
@@ -766,7 +766,7 @@
 }
 
 .lld-btn-run {
-  background: linear-gradient(135deg, #047857, #047857);
+  background: linear-gradient(135deg, var(--stage-survey), var(--stage-survey));
   color: #FFFFFF;
   box-shadow: 0 2px 10px rgba(5, 150, 105, 0.35);
   font-size: 15px;
@@ -774,7 +774,7 @@
 }
 
 .lld-btn-run:hover:not(:disabled) {
-  background: linear-gradient(135deg, #047857, #065F46);
+  background: linear-gradient(135deg, var(--stage-survey), #065F46);
   transform: translateY(-1px);
   box-shadow: 0 4px 14px rgba(5, 150, 105, 0.45);
 }
@@ -810,8 +810,8 @@
   margin-top: 10px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #ECFDF5;
-  border: 1px solid #A7F3D0;
+  background: var(--success-soft);
+  border: 1px solid var(--success-line);
   font-size: 12.5px;
   color: #065F46;
   font-weight: 600;
@@ -823,7 +823,7 @@
   width: 26px;
   height: 26px;
   border-radius: 8px;
-  background: #047857;
+  background: var(--stage-survey);
   color: #FFF;
   display: inline-flex;
   align-items: center;
@@ -983,21 +983,21 @@
 }
 
 .lld-badge-approved {
-  background: #ECFDF5;
-  color: #047857;
-  border: 1px solid #A7F3D0;
+  background: var(--success-soft);
+  color: var(--stage-survey);
+  border: 1px solid var(--success-line);
 }
 
 .lld-badge-rejected {
-  background: #FEF2F2;
-  color: #B91C1C;
-  border: 1px solid #FECACA;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger-line);
 }
 
 .lld-badge-correction {
   background: #FFFBEB;
-  color: #B45309;
-  border: 1px solid #FDE68A;
+  color: var(--stage-survey);
+  border: 1px solid var(--warning-line);
 }
 
 .lld-type-badge {
@@ -1010,9 +1010,9 @@
 }
 
 .lld-type-geometry { background: #F3E8FF; color: #7E22CE; }
-.lld-type-attribute { background: #FEF3C7; color: #B45309; }
-.lld-type-new { background: #D1FAE5; color: #047857; }
-.lld-type-removed { background: #FEE2E2; color: #B91C1C; }
+.lld-type-attribute { background: var(--warning-soft); color: var(--stage-survey); }
+.lld-type-new { background: var(--success-soft); color: var(--stage-survey); }
+.lld-type-removed { background: var(--danger-soft); color: var(--danger); }
 
 /* Change risk (Tier-1 A5) — deterministic severity × likelihood × LLD impact */
 .lld-risk-badge {
@@ -1027,10 +1027,10 @@
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
-.lld-risk-critical { background: #FEE2E2; color: #991B1B; }
+.lld-risk-critical { background: var(--danger-soft); color: #991B1B; }
 .lld-risk-high { background: #FFEDD5; color: #9A3412; }
-.lld-risk-medium { background: #FEF3C7; color: #92400E; }
-.lld-risk-low { background: #ECFDF5; color: #047857; }
+.lld-risk-medium { background: var(--warning-soft); color: #92400E; }
+.lld-risk-low { background: var(--success-soft); color: var(--stage-survey); }
 .lld-risk-unknown { background: #F3F4F6; color: #616A75; }
 
 /* ------------------------------------------------------------------
@@ -1139,8 +1139,8 @@
 
 .lld-reason {
   background: #FFFBEB;
-  border: 1px solid #FDE68A;
-  border-left: 4px solid #B45309;
+  border: 1px solid var(--warning-line);
+  border-left: 4px solid var(--stage-survey);
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 12.5px;
@@ -1189,7 +1189,7 @@
 .lld-diff-table .old-val {
   color: #616A75;
   text-decoration: line-through;
-  text-decoration-color: #B91C1C;
+  text-decoration-color: var(--danger);
 }
 
 .lld-diff-table .arrow {
@@ -1200,7 +1200,7 @@
 
 .lld-diff-table .new-val {
   font-weight: 700;
-  color: #B45309;
+  color: var(--stage-survey);
 }
 
 .lld-diff-table .attr-reason {
@@ -1399,28 +1399,28 @@
 .lld-action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
 .lld-action-approve {
-  background: #ECFDF5;
-  color: #047857;
-  border-color: #A7F3D0;
+  background: var(--success-soft);
+  color: var(--stage-survey);
+  border-color: var(--success-line);
 }
 
-.lld-action-approve:hover { background: #D1FAE5; }
+.lld-action-approve:hover { background: var(--success-soft); }
 
 .lld-action-reject {
-  background: #FEF2F2;
-  color: #B91C1C;
-  border-color: #FECACA;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border-color: var(--danger-line);
 }
 
-.lld-action-reject:hover { background: #FEE2E2; }
+.lld-action-reject:hover { background: var(--danger-soft); }
 
 .lld-action-correction {
   background: #FFFBEB;
-  color: #B45309;
-  border-color: #FDE68A;
+  color: var(--stage-survey);
+  border-color: var(--warning-line);
 }
 
-.lld-action-correction:hover { background: #FEF3C7; }
+.lld-action-correction:hover { background: var(--warning-soft); }
 
 .lld-resolved-note {
   display: flex;
@@ -1433,9 +1433,9 @@
   margin-top: 8px;
 }
 
-.lld-resolved-note.approved { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
-.lld-resolved-note.rejected { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
-.lld-resolved-note.correction { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+.lld-resolved-note.approved { background: var(--success-soft); color: var(--stage-survey); border: 1px solid var(--success-line); }
+.lld-resolved-note.rejected { background: var(--danger-soft); color: var(--danger); border: 1px solid var(--danger-line); }
+.lld-resolved-note.correction { background: #FFFBEB; color: var(--stage-survey); border: 1px solid var(--warning-line); }
 .lld-resolved-note.locked { background: #F3F4F6; color: #374151; border: 1px solid #E5E7EB; }
 
 /* Map overlays */
@@ -1571,7 +1571,7 @@
 
 .lld-chain-step .node.hld { background: #EFF6FF; border-color: #93C5FD; }
 .lld-chain-step .node.survey { background: #FFFBEB; border-color: #FCD34D; }
-.lld-chain-step .node.lld { background: #ECFDF5; border-color: #6EE7B7; }
+.lld-chain-step .node.lld { background: var(--success-soft); border-color: #6EE7B7; }
 
 .lld-chain-step .v-id {
   font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
@@ -1649,7 +1649,7 @@
   gap: 10px;
   padding: 12px 16px;
   background: #FFFBEB;
-  border: 1px solid #FDE68A;
+  border: 1px solid var(--warning-line);
   border-radius: 10px;
   font-size: 12.5px;
   color: #78350F;
@@ -1668,3 +1668,4 @@
   .lld-chain-step { max-width: 320px; }
   .lld-run-table { display: block; overflow-x: auto; }
 }
+

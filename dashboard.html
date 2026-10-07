@@ -451,6 +451,8 @@
 
       .dash-kpi.kpi-survey .kpi-icon { background: #ECFDF5; }
 
+      .dash-kpi.kpi-lld .kpi-icon { background: #F5F3FF; }
+
       .dash-kpi.kpi-total .kpi-icon { background: #FEF2F2; }
 
       .dash-kpi.kpi-permit .kpi-icon { background: #FFFBEB; }
@@ -503,11 +505,7 @@
 
       .dash-legend .lg-val { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
 
-      .dash-legend .lg-pct { color: var(--dash-muted); width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
-
-  
-
-      /* LLD runs bar list */
+.dash-legend .lg-pct { color: var(--dash-muted); width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
 
       .dash-bars { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 
@@ -522,8 +520,6 @@
       .dash-bar-row .bar-val { font-size: 12px; font-weight: 800; color: var(--dash-ink); text-align: right; font-variant-numeric: tabular-nums; }
 
       .dash-bar-empty { font-size: 12.5px; color: var(--dash-muted); padding: 14px 0; text-align: center; }
-
-  
 
       /* ── Queue table ──────────────────────────────────────────────────── */
 
@@ -707,6 +703,19 @@
             <div class="kpi-note" id="kpiPendingNote">loading…</div>
           </div>
           <canvas class="kpi-spark" id="sparkPending"></canvas>
+        </div>
+      </a>
+      <a class="dash-kpi kpi-lld" href="ftth-lld-outputs.html">
+        <div class="kpi-top">
+          <span class="kpi-label">LLD Runs</span>
+          <span class="kpi-icon">📐</span>
+        </div>
+        <div class="kpi-bottom">
+          <div>
+            <div class="kpi-value" id="kpiLld">–</div>
+            <div class="kpi-note" id="kpiLldNote">loading…</div>
+          </div>
+          <canvas class="kpi-spark" id="sparkLld"></canvas>
         </div>
       </a>
       <a class="dash-kpi kpi-total" href="projects.html">
@@ -989,8 +998,8 @@
   }
 
   /* ── state ────────────────────────────────────────────────────── */
-  var state = { hld: null, queue: null, total: null, permits: null, allProjects: null };
-  var health = { hld: 'idle', queue: 'idle', permits: 'idle', total: 'idle' };
+  var state = { hld: null, queue: null, runs: null, total: null, permits: null, allProjects: null };
+  var health = { hld: 'idle', queue: 'idle', runs: 'idle', permits: 'idle', total: 'idle' };
   var loading = false;
 
   function countUp(el, target, suffix) {
@@ -1056,6 +1065,16 @@
     } catch (e) { health.permits = 'fail'; health.permitsErr = e; state.permits = null; }
   }
 
+  async function loadRuns() {
+    health.runs = 'loading';
+    health.runsErr = null;
+    try {
+      var lr = await FtthUI.withTimeout(window.FtthLldApi.listRuns(), 12000, 'LLD runs');
+      state.runs = (lr && lr.runs) || [];
+      health.runs = 'ok';
+    } catch (e) { health.runs = 'fail'; health.runsErr = e; state.runs = null; }
+  }
+
   /* ── renderers ────────────────────────────────────────────────── */
 
   /* Each stage renders one of three truths, never conflated:
@@ -1103,6 +1122,14 @@
     stageValue('queue', 'surveyCount', String(queue.length));
     $('surveySub').textContent = queue.length ? (pendingAll + ' pending · ' + readyCount + ' ready for LLD') : 'No survey changes yet';
     stageBadge('queue', 'surveyBadge', pendingAll ? 'LIVE' : 'IDLE', 'IDLE');
+
+    var runs = state.runs || [];
+    stageValue('runs', 'lldCount', String(runs.length));
+    var last = runs[0];
+    $('lldSub').textContent = runs.length
+      ? 'latest: ' + (last.lld_version || 'V?') + ' · ' + esc(last.project_name || '')
+      : 'No LLD runs yet — review survey changes first';
+    stageBadge('runs', 'lldBadge', 'RUNS', 'IDLE');
   }
 
   function kpiValue(healthKey, id, noteId, value, note, spark, sparkColor, series) {
@@ -1249,42 +1276,6 @@
         '<span class="lg-pct">' + pct + '%</span><span class="lg-val">' + s.value + '</span></div>';
     }).join('');
     }
-
-    // LLD runs bars
-    var runs = state.runs;
-    var barEl = $('lldBars');
-    if (runs === null) {
-      $('lldChartHint').textContent = 'unavailable';
-      barEl.innerHTML = '<div class="panel-state panel-state--error" style="padding:18px 14px;">' +
-        '<p class="panel-state__title">Can’t load LLD runs</p>' +
-        '<p class="panel-state__body">' + esc(whyFailed('runs')) + '</p>' +
-        failureAction('runs') + '</div>';
-      wireRetries(barEl);
-      return;
-    }
-    $('lldChartHint').textContent = runs.length + ' runs';
-    if (!runs.length) {
-      barEl.innerHTML = '<div class="dash-bar-empty">No LLD runs yet — run LLD after survey approval.</div>';
-      return;
-    }
-    var byProject = {};
-    runs.forEach(function (r) {
-      var key = r.project_id || r.project_name;
-      if (!byProject[key]) byProject[key] = { name: r.project_name || r.project_id, n: 0 };
-      byProject[key].n++;
-    });
-    var rows = Object.keys(byProject).map(function (k) { return byProject[k]; })
-      .sort(function (a, b) { return b.n - a.n; }).slice(0, 7);
-    var maxN = Math.max.apply(null, rows.map(function (r) { return r.n; }).concat([1]));
-    barEl.innerHTML = rows.map(function (r, i) {
-      return '<div class="dash-bar-row" style="animation-delay:' + (i * 60) + 'ms">' +
-        '<span class="bar-label" title="' + esc(r.name) + '">' + esc(r.name) + '</span>' +
-        '<span class="bar-track"><span class="bar-fill" data-w="' + Math.round(r.n / maxN * 100) + '%"></span></span>' +
-        '<span class="bar-val">' + r.n + '</span></div>';
-    }).join('');
-    requestAnimationFrame(function () {
-      barEl.querySelectorAll('.bar-fill').forEach(function (f) { f.style.width = f.getAttribute('data-w'); });
-    });
   }
 
   function renderQueueTable(filter) {
@@ -1353,31 +1344,17 @@
         linkText: 'View results'
       });
     });
-    (state.runs || []).forEach(function (r) {
-      var done = String(r.status || '').indexOf('complete') !== -1;
-      events.push({
-        t: r.run_date,
-        kind: 'lld',
-        icon: '📐',
-        title: (done ? 'LLD ' : 'LLD run ') + (r.lld_version || '') + (done ? ' completed' : ' started'),
-        sub: r.project_name || r.project_id + (r.run_by ? ' · by ' + r.run_by : ''),
-        link: 'ftth-lld-outputs.html',
-        linkText: 'View outputs'
-      });
-    });
     events.sort(function (a, b) { return new Date(b.t) - new Date(a.t); });
     events = events.slice(0, 10);
 
     var tl = $('timeline');
 
-    if (state.hld === null && state.runs === null) {
+    if (state.hld === null) {
       $('activityHint').textContent = 'unavailable';
-      // Two loaders feed this panel; report whichever failure we can name.
-      var activityKey = health.hld === 'fail' ? 'hld' : 'runs';
       tl.innerHTML = '<div class="panel-state panel-state--error">' +
         '<p class="panel-state__title">Can’t load activity</p>' +
-        '<p class="panel-state__body">' + esc(whyFailed(activityKey)) + '</p>' +
-        failureAction(activityKey) + '</div>';
+        '<p class="panel-state__body">' + esc(whyFailed('hld')) + '</p>' +
+        failureAction('hld') + '</div>';
       wireRetries(tl);
       return;
     }
@@ -1403,7 +1380,7 @@
 
   var ENDPOINT_LABEL = {
     hld: 'HLD projects', queue: 'Survey approval queue',
-    runs: 'LLD runs', permits: 'Permit analysis', total: 'Projects'
+    permits: 'Permit analysis', total: 'Projects'
   };
 
   function renderStatus() {
@@ -1426,7 +1403,7 @@
   }
 
   function describeCharts() {
-    var hld = state.hld, queue = state.queue, runs = state.runs;
+    var hld = state.hld, queue = state.queue;
 
     if (hld === null) {
       FtthUI.describeCanvas($('donutHld'), 'HLD pipeline status. Could not load this chart.');
@@ -1446,7 +1423,6 @@
 
     FtthUI.describeCanvas($('sparkHld'), 'Fourteen-day trend of HLD runs created.');
     FtthUI.describeCanvas($('sparkPending'), 'Pending review count per project.');
-    FtthUI.describeCanvas($('sparkLld'), 'Fourteen-day trend of LLD runs started.');
     FtthUI.describeCanvas($('sparkTotal'), 'Fourteen-day trend of projects created.');
     FtthUI.describeCanvas($('sparkPermit'), 'Permit groups per project.');
   }
@@ -1459,7 +1435,7 @@
     btn.classList.add('is-busy');
     btn.disabled = true;
 
-    await Promise.all([loadHld(), loadQueue(), loadRuns(), loadPermits(), loadTotal()]);
+    await Promise.all([loadHld(), loadQueue(), loadPermits(), loadTotal()]);
 
     try {
       renderRail();
@@ -1479,7 +1455,7 @@
       FtthUI.toast(
         failed.length === Object.keys(health).length
           ? 'Design service unreachable — the figures below could not be loaded.'
-          : failed.length + ' of 5 services unreachable: ' + failed.map(function (k) { return ENDPOINT_LABEL[k]; }).join(', ') + '.',
+          : failed.length + ' of 4 services unreachable: ' + failed.map(function (k) { return ENDPOINT_LABEL[k]; }).join(', ') + '.',
         'error'
       );
     }

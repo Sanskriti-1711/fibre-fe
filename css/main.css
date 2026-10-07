@@ -1,13 +1,13 @@
 :root {
-  --tm-red: #E31837;
+  --tm-red: var(--brand);
   --tm-dark: #1F2937;
   --tm-gray: #616A75;
   --tm-light: #F9FAFB;
   --tm-white: #FFFFFF;
   --border: #E5E7EB;
-  --green: #047857;
-  --amber: #92400E;
-  --blue: #0369A1;
+  --green: var(--success);
+  --amber: var(--warning);
+  --blue: var(--info);
 }
 
 * {
@@ -499,18 +499,18 @@ tr:hover {
 }
 
 .status-badge.completed {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--success-soft);
+  color: var(--success-deep);
 }
 
 .status-badge.pending {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--warning-soft);
+  color: var(--warning);
 }
 
 .status-badge.failed {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: var(--danger-soft);
+  color: var(--danger-deep);
 }
 
 .btn {
@@ -534,7 +534,7 @@ tr:hover {
 }
 
 .btn-primary:hover {
-  background: #C41230;
+  background: var(--brand-dark);
 }
 
 .section-title {
@@ -580,7 +580,7 @@ tr:hover {
 }
 
 .feature-item:hover {
-  background: #EEF2FF;
+  background: var(--info-soft);
 }
 
 .layer-pill {
@@ -589,9 +589,9 @@ tr:hover {
   gap: 6px;
   padding: 4px 8px;
   border-radius: 999px;
-  background: #EEF2FF;
-  border: 1px solid #E0E7FF;
-  color: #3730A3;
+  background: var(--info-soft);
+  border: 1px solid var(--info-line);
+  color: var(--info-deep);
   font-size: 11px;
   font-weight: 600;
 }
@@ -744,16 +744,16 @@ tr:hover {
 /* ===== Engineer Feature Submit Page Specific ===== */
 
 .engineer-feature-submit {
-  --tm-red: #E31837;
+  --tm-red: var(--brand);
   --dark: #0F172A;
   --gray: #64748B;
   --light: #F8FAFC;
   --white: #FFFFFF;
   --border: #E2E8F0;
-  --green: #047857;
-  --amber: #92400E;
+  --green: var(--success);
+  --amber: var(--warning);
   --ink: #0B1020;
-  --accent: #0369A1;
+  --accent: var(--info);
   --font-head: "Trebuchet MS", "Lucida Sans Unicode", sans-serif;
   --font-body: "Verdana", "Geneva", sans-serif;
   background: radial-gradient(1200px 600px at 20% -10%, #E0F2FE 0%, #F8FAFC 45%, #F1F5F9 100%);
@@ -966,7 +966,7 @@ tr:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0369A1;
+  color: var(--info);
   font-size: 12px;
   border: 1px dashed #7DD3FC;
   margin-bottom: 12px;
@@ -1064,7 +1064,7 @@ tr:hover {
 /* ===== Engineer Notifications Page Specific ===== */
 
 .engineer-notifications {
-  --tm-red: #E31837;
+  --tm-red: var(--brand);
   --dark: #1F2937;
   --gray: #616A75;
   --light: #F9FAFB;
@@ -1177,7 +1177,7 @@ tr:hover {
 /* ===== Engineer Profile Page Specific ===== */
 
 .engineer-profile {
-  --tm-red: #E31837;
+  --tm-red: var(--brand);
   --dark: #1F2937;
   --gray: #616A75;
   --light: #F9FAFB;
@@ -1312,14 +1312,14 @@ tr:hover {
 /* ===== Engineer Project Details Page Specific ===== */
 
 .engineer-project-details {
-  --tm-red: #E31837;
+  --tm-red: var(--brand);
   --dark: #1F2937;
   --gray: #616A75;
   --light: #F9FAFB;
   --white: #FFFFFF;
   --border: #E5E7EB;
-  --green: #047857;
-  --amber: #92400E;
+  --green: var(--success);
+  --amber: var(--warning);
   background: var(--light);
   color: var(--dark);
 }
@@ -1470,9 +1470,9 @@ tr:hover {
 /* ===== Engineer Project Map Page Specific ===== */
 
 .engineer-project-map {
-  --tm-red: #E31837;
-  --green: #047857;
-  --amber: #92400E;
+  --tm-red: var(--brand);
+  --green: var(--success);
+  --amber: var(--warning);
   margin: 0;
   height: 100vh;
 }
@@ -1531,7 +1531,7 @@ tr:hover {
 /* ===== Field Engineer Accept Invite Page Specific ===== */
 
 .fe-accept-invite {
-  --tm-red: #E31837;
+  --tm-red: var(--brand);
   --tm-dark: #1F2937;
   --tm-gray: #616A75;
   --tm-light: #F9FAFB;
@@ -1636,7 +1636,7 @@ tr:hover {
 /* ===== Engineer Login Page Specific ===== */
 
 .engineer-login {
-  --tm-red: #E31837;
+  --tm-red: var(--brand);
   --tm-dark: #1F2937;
   --tm-gray: #616A75;
   --tm-light: #F9FAFB;
@@ -1949,24 +1949,24 @@ tr:hover {
 }
 
 .all-jobs .badge-pending {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--warning-soft);
+  color: var(--warning);
 }
 
 .all-jobs .badge-inprogress {
-  background: #DBEAFE;
+  background: var(--info-soft);
   color: #1E40AF;
 }
 
 .all-jobs .badge-completed {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--success-soft);
+  color: var(--success-deep);
 }
 
 .all-jobs .badge-scope {
-  background: #EEF2FF;
-  color: #3730A3;
-  border: 1px solid #E0E7FF;
+  background: var(--info-soft);
+  color: var(--info-deep);
+  border: 1px solid var(--info-line);
 }
 
 .all-jobs .job-id {
@@ -2261,8 +2261,8 @@ tr:hover {
 }
 
 .engineer-activity-admin .error-banner {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: var(--danger-soft);
+  color: var(--danger-deep);
   padding: 12px 16px;
   border-radius: 6px;
   margin-bottom: 20px;
@@ -2300,7 +2300,7 @@ tr:hover {
 
 .engineer-activity-admin .status-dot.pending { background: var(--amber); }
 .engineer-activity-admin .status-dot.assigned { background: var(--blue); }
-.engineer-activity-admin .status-dot.review { background: #8B5CF6; }
+.engineer-activity-admin .status-dot.review { background: var(--stage-lld); }
 .engineer-activity-admin .status-dot.approved { background: var(--green); }
 .engineer-activity-admin .status-dot.redo { background: var(--tm-red); }
 
@@ -2476,13 +2476,13 @@ tr:hover {
 }
 
 .engineer-activity-admin .scope-badge.project {
-  background: #DBEAFE;
+  background: var(--info-soft);
   color: #1E40AF;
 }
 
 .engineer-activity-admin .scope-badge.layer {
-  background: #EEF2FF;
-  color: #3730A3;
+  background: var(--info-soft);
+  color: var(--info-deep);
 }
 
 .engineer-activity-admin .scope-badge.feature {
@@ -2991,19 +2991,19 @@ tr:hover {
 }
 
 .engineer-activity-admin .status-dot.pending {
-  background: #B45309;
+  background: var(--warning);
 }
 
 .engineer-activity-admin .status-dot.assigned {
-  background: #0369A1;
+  background: var(--info);
 }
 
 .engineer-activity-admin .status-dot.review {
-  background: #8B5CF6;
+  background: var(--stage-lld);
 }
 
 .engineer-activity-admin .status-dot.approved {
-  background: #047857;
+  background: var(--success);
 }
 
 .engineer-activity-admin .status-dot.redo {
@@ -3127,8 +3127,8 @@ tr:hover {
 .ds-progress-badge {
   font-size: 11px;
   font-weight: 700;
-  color: #047857;
-  background: #D1FAE5;
+  color: var(--success);
+  background: var(--success-soft);
   padding: 2px 4px;
   border-radius: 3px;
 }
@@ -3157,7 +3157,7 @@ tr:hover {
 
 .ds-completion-error {
   padding: 16px;
-  color: #B91C1C;
+  color: var(--danger);
   font-size: 13px;
 }
 
@@ -3190,7 +3190,7 @@ tr:hover {
 }
 
 .ds-completion-weighted {
-  color: #047857;
+  color: var(--success);
 }
 
 .ds-completion-header {
@@ -3327,3 +3327,4 @@ tr:hover {
   text-align: right;
   color: #616A75;
 }
+

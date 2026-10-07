@@ -627,16 +627,30 @@
    * writes the same two input files a manual upload would, and runs the
    * unchanged pipeline on them. Returns the new project id.
    */
-  async function runFromArea(request, name, polyMethod) {
+  async function runFromArea(request, name, polyMethod, brownfieldFile) {
     var url = buildUrl(API_PREFIX + '/run-from-area/');
     var payload = areaFields(request);
     if (name) payload.name = name;
     if (polyMethod !== undefined) payload.poly_method = polyMethod;
-    var response = await authFetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+    var response;
+    if (brownfieldFile) {
+      // A brownfield archive is a file, so the request has to be multipart.
+      // The area fields go alongside it as form fields; the view reads both.
+      var fd = new FormData();
+      Object.keys(payload).forEach(function (key) {
+        if (payload[key] !== undefined && payload[key] !== null) {
+          fd.append(key, payload[key]);
+        }
+      });
+      fd.append('brownfield', brownfieldFile);
+      response = await authFetch(url, { method: 'POST', body: fd });
+    } else {
+      response = await authFetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
     var body = await parseBody(response);
     if (!response.ok) throw areaError(body, response);
     return body;

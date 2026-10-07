@@ -318,6 +318,82 @@
     return { start: start, stop: stop, isRunning: function () { return !!timer; } };
   }
 
+  /* ── Poll with exponential backoff on 5xx errors ───────────────────
+     If the server returns 5xx, back off: 30s → 60s → 120s → 240s (max).
+     Resets to base interval on success. Stops on 401 until user refreshes. */
+  function pollWithBackoff(fn, baseIntervalMs, options) {
+    options = options || {};
+    var maxIntervalMs = options.maxIntervalMs || 240000;
+    var currentIntervalMs = baseIntervalMs;
+    var timer = null;
+    var stoppedBy401 = false;
+
+    function run() {
+      if (stoppedBy401) return;
+      if (typeof document !== 'undefined' && document.hidden) return;
+      var promise = fn();
+      if (promise && typeof promise.then === 'function') {
+        promise.then(function () {
+          // Success - reset interval
+          if (currentIntervalMs !== baseIntervalMs) {
+            currentIntervalMs = baseIntervalMs;
+            if (timer) { clearInterval(timer); timer = setInterval(run, currentIntervalMs); }
+          }
+        }).catch(function (err) {
+          var kind = (err && err.kind) || (err && err.status >= 500 && 'server') || 'other';
+          if (kind === 'server' || kind === 'timeout') {
+            // Back off
+            currentIntervalMs = Math.min(currentIntervalMs * 2, maxIntervalMs);
+            if (timer) { clearInterval(timer); timer = setInterval(run, currentIntervalMs); }
+          } else if (kind === 'unauthorized') {
+            stoppedBy401 = true;
+            stop();
+            FtthUI.toast('Session expired. Please refresh the page.', 'error');
+          }
+        });
+      }
+    }
+
+    function start() {
+      if (timer) return;
+      stoppedBy401 = false;
+      currentIntervalMs = baseIntervalMs;
+      if (typeof document !== 'undefined' && document.hidden) return;
+      run();
+      timer = setInterval(run, currentIntervalMs);
+    }
+
+    function stop() {
+      if (!timer) return;
+      clearInterval(timer);
+      timer = null;
+    }
+
+    function reset() {
+      stop();
+      currentIntervalMs = baseIntervalMs;
+      stoppedBy401 = false;
+    }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) stop(); else start();
+      });
+    }
+    return { start: start, stop: stop, reset: reset, isRunning: function () { return !!timer; } };
+  }
+
+  /* ── Debounce helper ────────────────────────────────────────────────
+     Returns a debounced version of fn that waits waitMs after the last call. */
+  function debounce(fn, waitMs) {
+    var timeout = null;
+    return function () {
+      var ctx = this, args = arguments;
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(function () { fn.apply(ctx, args); }, waitMs);
+    };
+  }
+
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -771,6 +847,8 @@
     motionOk: motionOk,
     onMotionChange: onMotionChange,
     poll: poll,
+    pollWithBackoff: pollWithBackoff,
+    debounce: debounce,
     reduceMotion: reduceMotion,
     esc: esc
   };

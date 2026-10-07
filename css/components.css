@@ -625,7 +625,7 @@ label {
    it. Colour alone is not the signal — the label says "Delete"/"Close permit"
    rather than "OK". */
 .ftth-dialog--danger .ftth-dialog__head {
-  border-top: 3px solid var(--danger, #B91C1C);
+  border-top: 3px solid var(--danger, var(--danger));
   padding-top: var(--space-4);
 }
 
@@ -661,12 +661,12 @@ label {
   outline-offset: 1px;
 }
 
-.ftth-input--invalid { border-color: var(--danger, #B91C1C); }
+.ftth-input--invalid { border-color: var(--danger, var(--danger)); }
 
 .ftth-field__error {
   margin: 6px 0 0;
   font-size: 12.5px;
-  color: var(--danger, #B91C1C);
+  color: var(--danger, var(--danger));
 }
 
 .ftth-field__hint {
@@ -709,7 +709,7 @@ label {
 .ftth-btn--secondary:hover { background: rgba(16, 24, 40, 0.04); }
 
 .ftth-btn--danger {
-  background: var(--danger, #B91C1C);
+  background: var(--danger, var(--danger));
   color: #fff;
 }
 
@@ -1382,3 +1382,4 @@ div:has(> table) > table {
   /* 43px was one pixel short on every select in the filter bar. */
   select { min-height: 44px; }
 }
+
