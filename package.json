@@ -1,0 +1,25 @@
+{
+  "name": "fiber-fe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --ext .js && stylelint \"**/*.css\" && prettier --check \"**/*.{html,js,css,json,md}\"",
+    "format": "prettier --write \"**/*.{html,js,css,json,md}\"",
+    "format:check": "prettier --check \"**/*.{html,js,css,json,md}\"",
+    "lint:js": "eslint . --ext .js",
+    "lint:css": "stylelint \"**/*.css\"",
+    "ci:check": "npm run lint"
+  },
+  "devDependencies": {
+    "eslint": "^9.9.0",
+    "globals": "^15.9.0",
+    "prettier": "^3.3.3",
+    "stylelint": "^16.8.0",
+    "stylelint-config-standard": "^36.0.0",
+    "stylelint-prettier": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,3 +1,13 @@
 project_doc.txt
 *.zip
 _preview/
+node_modules/
+
+# One-off repair scripts written while fixing dashboard.html by hand.
+# Not shipped with the frontend, so they stay out of the repo.
+/check_*.js
+/fix_*.js
+/replace_*.js
+/extract_*.js
+/clean_runs.js
+/temp_queue.js
