@@ -13,21 +13,31 @@
 
       :root {
 
-        --dash-hld: #6366F1;      /* indigo  */
+        --dash-hld: #4F46E5;      /* indigo - accessible on light/dark */
 
-        --dash-survey: #047857;   /* emerald */
+        --dash-survey: #059669;   /* emerald - accessible */
 
-        --dash-lld: #8B5CF6;      /* violet  */
+        --dash-lld: #7C3AED;      /* violet - accessible */
 
         --dash-red: #E31837;
 
         --dash-ink: #111827;
 
-        --dash-muted: #616A75;
+        --dash-muted: #4B5563;    /* darker for contrast */
 
-        --dash-line: #E5E7EB;
+        --dash-line: #D1D5DB;
 
         --dash-bg: #F4F5FA;
+
+        --dash-surface: #FFFFFF;
+
+        --dash-hero-ink: #FFFFFF;  /* hero text - pure white for contrast */
+
+        --dash-hero-muted: #D1D5DB; /* hero muted - lighter for contrast */
+
+        --dash-hero-accent: #FCA5A5; /* hero accent - lighter pink for contrast */
+
+        --focus-ring: 0 0 0 3px rgba(79, 70, 229, 0.45);
 
       }
 
@@ -55,15 +65,9 @@
 
         margin-bottom: 24px;
 
-        color: #fff;
+        color: var(--dash-hero-ink);
 
-        background:
-
-          radial-gradient(1100px 320px at 88% -40%, rgba(109, 40, 217, 0.34), transparent 62%),
-
-          radial-gradient(900px 300px at 8% -30%, rgba(190, 24, 60, 0.26), transparent 58%),
-
-          linear-gradient(135deg, #0B1120 0%, #111827 58%, #1E1B4B 130%);
+        background: linear-gradient(135deg, #0B1120 0%, #111827 50%, #1E1B4B 100%);
 
         box-shadow: 0 18px 40px -18px rgba(17, 24, 39, 0.55);
 
@@ -83,33 +87,11 @@
 
       }
 
-      .dash-hero::after {
-
-        content: "";
-
-        position: absolute;
-
-        inset: 0;
-
-        background-image:
-
-          linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px),
-
-          linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px);
-
-        background-size: 34px 34px;
-
-        pointer-events: none;
-
-      }
-
       .dash-hero-inner { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; }
 
       .dash-hero h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.3px; }
 
-      .dash-hero .sub { margin-top: 6px; font-size: 13.5px; color: #9CA3AF; }
-
-      .dash-hero .hello { font-size: 13px; font-weight: 700; color: #E57373; text-transform: uppercase; letter-spacing: 0.14em; }
+      .dash-hero .sub { margin-top: 6px; font-size: 13.5px; color: var(--dash-hero-muted); }
 
   
 
@@ -127,7 +109,7 @@
 
       .dash-clock .time { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 0.5px; }
 
-      .dash-clock .date { font-size: 12px; color: #6B7280; margin-top: 2px; }
+      .dash-clock .date { font-size: 12px; color: var(--dash-hero-muted); margin-top: 2px; }
 
   
 
@@ -147,11 +129,11 @@
 
         font-weight: 700;
 
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.12);
 
-        border: 1px solid rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.2);
 
-        color: #D1D5DB;
+        color: var(--dash-hero-ink);
 
         white-space: nowrap;
 
@@ -161,9 +143,9 @@
 
         width: 8px; height: 8px; border-radius: 50%;
 
-        background: #6B7280;
+        background: var(--dash-hero-muted);
 
-        box-shadow: 0 0 0 0 rgba(156,163,175,0.5);
+        box-shadow: 0 0 0 0 rgba(209, 213, 219, 0.5);
 
       }
 
@@ -175,11 +157,11 @@
 
       @keyframes dash-pulse {
 
-        0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.45); }
+        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
 
-        70% { box-shadow: 0 0 0 7px rgba(52,211,153,0); }
+        70% { box-shadow: 0 0 0 7px rgba(255, 255, 255, 0); }
 
-        100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
 
       }
 
@@ -233,21 +215,32 @@
 
       }
 
-      .dash-stage:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -14px rgba(0,0,0,0.22); }
+      .dash-stage:hover { transform: translateY(-3px); box-shadow: 0 16px 32px -14px rgba(0,0,0,0.22); border-color: var(--dash-hld); }
+
+      .dash-stage:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus-ring), 0 16px 32px -14px rgba(0,0,0,0.22);
+        border-color: var(--dash-hld);
+        transform: translateY(-3px);
+      }
+
+      .dash-stage.survey:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring), 0 16px 32px -14px rgba(0,0,0,0.22); border-color: var(--dash-survey); }
+
+      .dash-stage.lld:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring), 0 16px 32px -14px rgba(0,0,0,0.22); border-color: var(--dash-lld); }
 
       .dash-stage .stage-glow {
 
-        position: absolute; top: 0; left: 0; right: 0; height: 4px;
+        position: absolute; top: 0; left: 0; right: 0; height: 3px;
 
-        opacity: 0.9;
+        opacity: 1;
 
       }
 
-      .dash-stage.hld .stage-glow { background: linear-gradient(90deg, #6366F1, #818CF8); }
+      .dash-stage.hld .stage-glow { background: var(--dash-hld); }
 
-      .dash-stage.survey .stage-glow { background: linear-gradient(90deg, #047857, #34D399); }
+      .dash-stage.survey .stage-glow { background: var(--dash-survey); }
 
-      .dash-stage.lld .stage-glow { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+      .dash-stage.lld .stage-glow { background: var(--dash-lld); }
 
   
 
@@ -304,13 +297,113 @@
       .dash-quick-action .stage-name { font-size: 13.5px; }
       .dash-quick-action .stage-sub { font-size: 11.5px; }
       .dash-quick-action .stage-glow { height: 3px; }
-      .dash-quick-action.projects .stage-glow { background: linear-gradient(90deg, #374151, #616A75); }
+      .dash-quick-action.hld .stage-glow { background: var(--dash-hld); }
+      .dash-quick-action.survey .stage-glow { background: var(--dash-survey); }
+      .dash-quick-action.lld .stage-glow { background: var(--dash-lld); }
+      .dash-quick-action.projects .stage-glow { background: #374151; }
       .dash-quick-action.projects .stage-icon { background: #F3F4F6; }
       .dash-quick-action:hover { transform: none; box-shadow: 0 4px 14px -8px rgba(0,0,0,0.12); }
+
+      .dash-quick-action:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--focus-ring);
+      }
+
+      .dash-quick-action.survey:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
+
+      .dash-quick-action.lld:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
+
+      .dash-quick-action.projects:focus-visible { box-shadow: 0 0 0 3px var(--focus-ring); }
 
       .dash-stage .stage-badge.offline { background: #FEF2F2; color: #B91C1C; }
 
       @keyframes dash-blink { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+   
+
+      /* ── Quick Actions Row (promoted) ───────────────────────────────────── */
+
+      .dash-quick-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .dash-quick-action {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 16px 20px;
+        min-width: 180px;
+        border-radius: 14px;
+        text-decoration: none;
+        color: var(--dash-ink);
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-line);
+        box-shadow: 0 2px 8px -4px rgba(0,0,0,0.1);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+
+      .dash-quick-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px -8px rgba(0,0,0,0.18);
+      }
+
+      .dash-quick-action .qa-icon {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .dash-quick-action .qa-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--dash-ink);
+        text-align: center;
+      }
+
+      .dash-quick-action .qa-sub {
+        font-size: 12px;
+        color: var(--dash-muted);
+        text-align: center;
+        max-width: 160px;
+      }
+
+      .dash-quick-action.hld { border-color: var(--dash-hld); }
+      .dash-quick-action.survey { border-color: var(--dash-survey); }
+      .dash-quick-action.lld { border-color: var(--dash-lld); }
+      .dash-quick-action.projects { border-color: var(--dash-line); }
+
+      @media (max-width: 640px) {
+        .dash-quick-row { gap: 10px; }
+        .dash-quick-action { min-width: calc(50% - 5px); padding: 14px 12px; }
+        .dash-quick-action .qa-label { font-size: 13px; }
+        .dash-quick-action .qa-sub { font-size: 11px; }
+      }
+
+      /* ── Trend Chips (replacing sparklines) ─────────────────────────────── */
+
+      .kpi-trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .kpi-trend.up { background: #ECFDF5; color: #047857; }
+      .kpi-trend.down { background: #FEF2F2; color: #B91C1C; }
+      .kpi-trend.flat { background: #F3F4F6; color: #616A75; }
+
+      .kpi-trend .trend-icon { font-size: 10px; line-height: 1; }
+
+      /* Hide sparklines, show trend chips instead */
+      .kpi-spark { display: none; }
+      .kpi-trend-chip { display: inline-flex; }
 
   
 
@@ -603,13 +696,30 @@
 
       .dash-tl-link:hover { text-decoration: underline; }
 
-      .dash-empty { text-align: center; color: var(--dash-muted); font-size: 13px; padding: 26px 0; }
+.dash-empty { text-align: center; color: var(--dash-muted); font-size: 13px; padding: 26px 0; }
 
-  
+   
+    /* ── Focus visible (accessibility) ────────────────────────────────────── */
+    .ftth-refresh-btn:focus-visible,
+    .dash-kpi:focus-visible,
+    .dash-stage:focus-visible,
+    .dash-quick-action:focus-visible,
+    .action-link:focus-visible,
+    .dash-tl-link:focus-visible,
+    #queueSearch:focus-visible,
+    .panel-state__action:focus-visible,
+    .panel-state__retry:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
 
-      /* ── Fade-in ──────────────────────────────────────────────────────── */
+    .dash-kpi:focus-visible { border-radius: 14px; }
+    .dash-tl-link:focus-visible { border-radius: 4px; }
+    .action-link:focus-visible { border-radius: 4px; }
 
-      .dash-fade { opacity: 0; transform: translateY(8px); animation: dash-fadein 0.45s ease forwards; }
+    /* ── Fade-in ──────────────────────────────────────────────────────── */
+
+    .dash-fade { opacity: 0; transform: translateY(8px); animation: dash-fadein 0.45s ease forwards; }
 
       @keyframes dash-fadein { to { opacity: 1; transform: translateY(0); } }
 
@@ -637,7 +747,6 @@
     <div class="dash-hero">
       <div class="dash-hero-inner">
         <div>
-          <div class="hello" id="heroHello">Loading…</div>
           <h1>FTTH Pipeline Command Center</h1>
           <p class="sub">One window into the HLD &rarr; Survey &rarr; LLD lifecycle &mdash; every stage, every approval, every run.</p>
         </div>
@@ -655,6 +764,30 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <!-- ══════ Quick Actions (promoted to hero area) ══════ -->
+    <div class="dash-quick-row" id="quickActions" style="margin-bottom: 24px;">
+      <a class="dash-quick-action hld" href="ftth-hld.html" tabindex="0">
+        <span class="qa-icon" aria-hidden="true">📤</span>
+        <span class="qa-label">Upload & Run HLD</span>
+        <span class="qa-sub">Kick off a new high-level design</span>
+      </a>
+      <a class="dash-quick-action survey" href="ftth-survey-changes.html" tabindex="0">
+        <span class="qa-icon" aria-hidden="true">✔️</span>
+        <span class="qa-label">Review Survey Changes</span>
+        <span class="qa-sub">Approve, reject or request corrections</span>
+      </a>
+      <a class="dash-quick-action lld" href="ftth-lld-outputs.html" tabindex="0">
+        <span class="qa-icon" aria-hidden="true">🚀</span>
+        <span class="qa-label">Run & View LLD</span>
+        <span class="qa-sub">Generate the detailed network design</span>
+      </a>
+      <a class="dash-quick-action projects" href="projects.html" tabindex="0">
+        <span class="qa-icon" aria-hidden="true">🗃️</span>
+        <span class="qa-label">All Projects</span>
+        <span class="qa-sub">Browse every project by stage flag</span>
+      </a>
     </div>
 
     <!-- ══════ Pipeline rail ══════ -->
@@ -701,8 +834,8 @@
           <div>
             <div class="kpi-value" id="kpiPending">–</div>
             <div class="kpi-note" id="kpiPendingNote">loading…</div>
+            <span class="kpi-trend-chip" id="trendPending" aria-live="polite"></span>
           </div>
-          <canvas class="kpi-spark" id="sparkPending"></canvas>
         </div>
       </a>
       <a class="dash-kpi kpi-lld" href="ftth-lld-outputs.html">
@@ -714,8 +847,8 @@
           <div>
             <div class="kpi-value" id="kpiLld">–</div>
             <div class="kpi-note" id="kpiLldNote">loading…</div>
+            <span class="kpi-trend-chip" id="trendLld" aria-live="polite"></span>
           </div>
-          <canvas class="kpi-spark" id="sparkLld"></canvas>
         </div>
       </a>
       <a class="dash-kpi kpi-total" href="projects.html">
@@ -727,8 +860,8 @@
           <div>
             <div class="kpi-value" id="kpiTotal">–</div>
             <div class="kpi-note" id="kpiTotalNote">loading…</div>
+            <span class="kpi-trend-chip" id="trendTotal" aria-live="polite"></span>
           </div>
-          <canvas class="kpi-spark" id="sparkTotal"></canvas>
         </div>
       </a>
       <a class="dash-kpi kpi-permit" href="ftth-permits.html">
@@ -740,8 +873,8 @@
           <div>
             <div class="kpi-value" id="kpiPermit">–</div>
             <div class="kpi-note" id="kpiPermitNote">loading…</div>
+            <span class="kpi-trend-chip" id="trendPermit" aria-live="polite"></span>
           </div>
-          <canvas class="kpi-spark" id="sparkPermit"></canvas>
         </div>
       </a>
     </div>
@@ -903,13 +1036,6 @@
   }
   setInterval(tickClock, 1000);
   tickClock();
-
-  (function greet() {
-    var h = new Date().getHours();
-    var msg = h < 5 ? 'Night shift running' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-    var el = $('heroHello');
-    if (el) el.textContent = msg + ' · FTTH Network Ops';
-  })();
 
   /* ── canvas helpers ───────────────────────────────────────────── */
   function prepCanvas(cv, cssW, cssH) {
@@ -1132,35 +1258,58 @@
     stageBadge('runs', 'lldBadge', 'RUNS', 'IDLE');
   }
 
-  function kpiValue(healthKey, id, noteId, value, note, spark, sparkColor, series) {
+  function computeTrend(series) {
+    if (!series || series.length < 2) return { dir: 'flat', pct: 0 };
+    var recent = series.slice(-7); // last 7 days
+    var older = series.slice(-14, -7); // 7 days before that
+    var recentSum = recent.reduce(function (a, b) { return a + b; }, 0);
+    var olderSum = older.reduce(function (a, b) { return a + b; }, 0);
+    if (olderSum === 0) return { dir: recentSum > 0 ? 'up' : 'flat', pct: olderSum === 0 ? 0 : 100 };
+    var pct = Math.round(((recentSum - olderSum) / olderSum) * 100);
+    if (pct > 5) return { dir: 'up', pct: pct };
+    if (pct < -5) return { dir: 'down', pct: Math.abs(pct) };
+    return { dir: 'flat', pct: 0 };
+  }
+
+  function renderTrendChip(trendId, series, label) {
+    var el = $(trendId);
+    if (!el) return;
+    var trend = computeTrend(series);
+    var icon = trend.dir === 'up' ? '▲' : trend.dir === 'down' ? '▼' : '●';
+    var text = trend.dir === 'flat' ? label : (icon + ' ' + trend.pct + '% vs last week');
+    el.innerHTML = '<span class="kpi-trend ' + trend.dir + '"><span class="trend-icon" aria-hidden="true">' + icon + '</span>' + esc(text) + '</span>';
+  }
+
+  function kpiValue(healthKey, id, noteId, value, note, trendId, trendColor, series) {
     if (health[healthKey] === 'fail') {
       var v = $(id);
       if (v) { v.textContent = '—'; v.classList.add('value-unknown'); v.setAttribute('title', 'Could not load'); }
       if ($(noteId)) { $(noteId).textContent = 'unavailable'; }
-      drawSpark($(spark), [null, null], sparkColor);
+      var tEl = $(trendId);
+      if (tEl) tEl.innerHTML = '<span class="kpi-trend flat">—</span>';
       return;
     }
     var el = $(id);
     if (el) el.classList.remove('value-unknown');
     countUp(el, value);
     if ($(noteId)) $(noteId).textContent = note;
-    drawSpark($(spark), series, sparkColor);
+    renderTrendChip(trendId, series, 'vs last week');
   }
 
   function renderKpis() {
     var hld = state.hld || [], queue = state.queue || [];
 
-    var hldDone = hld.filter(function (p) { return String(p.status || '').indexOf('complete') !== -1; }).length;
-    kpiValue('hld', 'kpiHld', 'kpiHldNote', hld.length, hldDone + ' completed',
-      'sparkHld', '#6366F1', dailySeries(hld, function (p) { return p.created_at; }));
-
     var pending = queue.reduce(function (s, p) { return s + (p.pending || 0); }, 0);
     var readyCount = queue.filter(function (p) { return p.ready; }).length;
     kpiValue('queue', 'kpiPending', 'kpiPendingNote', pending, readyCount + ' projects LLD-ready',
-      'sparkPending', '#047857', queue.map(function (p) { return p.pending || 0; }));
+      'trendPending', '#047857', queue.map(function (p) { return p.pending || 0; }));
+
+    var runs = state.runs || [];
+    kpiValue('runs', 'kpiLld', 'kpiLldNote', runs.length, 'latest: ' + (runs[0]?.lld_version || 'V?'),
+      'trendLld', '#7C3AED', runs.map(function (r) { return 1; }));
 
     kpiValue('total', 'kpiTotal', 'kpiTotalNote', state.total, 'across all stage flags',
-      'sparkTotal', '#E31837', dailySeries(state.allProjects || [], function (p) { return p.created_at; }));
+      'trendTotal', '#E31837', dailySeries(state.allProjects || [], function (p) { return p.created_at; }));
 
     var pm = state.permits;
     if (health.permits === 'fail') {
@@ -1301,8 +1450,11 @@
     $('queueHint').textContent = state.queue.length + ' projects · ' + pendingAll + ' pending reviews';
 
     if (!queue.length) {
-      tbody.innerHTML = '<tr><td colspan="9"><div class="dash-empty">' +
-        (state.queue.length ? 'No projects match your search.' : 'No projects in the approval queue yet.') +
+      tbody.innerHTML = '<tr><td colspan="9"><div class="panel-state panel-state--empty">' +
+        '<p class="panel-state__title">No projects in the approval queue yet</p>' +
+        '<p class="panel-state__body">Survey changes appear here when field teams submit updates. ' +
+        'Upload an HLD area to kick off the pipeline.</p>' +
+        '<a class="panel-state__action" href="ftth-hld.html">Upload HLD →</a>' +
         '</div></td></tr>';
       return;
     }
