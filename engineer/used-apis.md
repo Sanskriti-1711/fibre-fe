@@ -2,7 +2,7 @@
 
 This document lists all APIs used in the Fiber Engineer Frontend project.
 
-**Base URL:** `https://fiberbackend.zeabur.app`
+**Base URL:** `https://fibre-backend-wml3.onrender.com`
 
 ---
 
@@ -136,7 +136,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```json
 {
   "count": 10,
-  "next": "https://fiberbackend.zeabur.app/api/projects/?page=2",
+  "next": "https://fibre-backend-wml3.onrender.com/api/projects/?page=2",
   "previous": null,
   "results": [
     {
@@ -403,7 +403,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
   "photos": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440300",
-      "url": "https://fiberbackend.zeabur.app/media/photos/segment_a1_001.jpg",
+      "url": "https://fibre-backend-wml3.onrender.com/media/photos/segment_a1_001.jpg",
       "uploaded_at": "2024-01-16T10:30:00Z"
     }
   ],
@@ -443,7 +443,7 @@ description: "Cable installed at pole 123"
 {
   "id": "550e8400-e29b-41d4-a716-446655440301",
   "feature": "550e8400-e29b-41d4-a716-446655440200",
-  "url": "https://fiberbackend.zeabur.app/media/photos/segment_a1_002.jpg",
+  "url": "https://fibre-backend-wml3.onrender.com/media/photos/segment_a1_002.jpg",
   "description": "Cable installed at pole 123",
   "uploaded_by": "550e8400-e29b-41d4-a716-446655440001",
   "uploaded_at": "2024-01-16T15:00:00Z"
@@ -704,7 +704,7 @@ name: "downtown_survey.gpkg"
 ```json
 {
   "count": 15,
-  "next": "https://fiberbackend.zeabur.app/api/assignments/jobs/?page=2",
+  "next": "https://fibre-backend-wml3.onrender.com/api/assignments/jobs/?page=2",
   "previous": null,
   "results": [
     {
@@ -880,7 +880,7 @@ name: "downtown_survey.gpkg"
 ```json
 {
   "count": 25,
-  "next": "https://fiberbackend.zeabur.app/api/engineer/activity/?page=2",
+  "next": "https://fibre-backend-wml3.onrender.com/api/engineer/activity/?page=2",
   "previous": null,
   "results": [
     {
