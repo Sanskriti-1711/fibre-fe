@@ -1,50 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Engineers | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/components.css">
-</head>
-<body class="engineers-list">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Engineers | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body class="engineers-list">
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-<div class="layout">
-  <div id="sidebarContainer"></div>
+      <main class="content">
+        <div class="container">
+          <div class="header">
+            <h1>Field Engineers</h1>
+            <a href="engineers-invite.html" class="btn">Invite Engineer</a>
+          </div>
 
-  <main class="content">
-    <div class="container">
+          <div id="engineersError" style="display: none; margin: 0 0 14px; color: #b91c1c; font-size: 13px"></div>
 
-      <div class="header">
-        <h1>Field Engineers</h1>
-        <a href="engineers-invite.html" class="btn">Invite Engineer</a>
-      </div>
-
-      <div id="engineersError" style="display:none;margin:0 0 14px;color:#B91C1C;font-size:13px;"></div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Status</th>
-              <th>Last Active</th>
-              <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="engineersTbody"></tbody>
-      </table>
-
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Last Active</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="engineersTbody"></tbody>
+          </table>
+        </div>
+      </main>
     </div>
-  </main>
 
-</div>
+    <script src="fiber-api.js"></script>
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
 
-<script src="fiber-api.js"></script>
-<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
-
-<script src="js/engineers-list.js"></script>
-
-</body>
+    <script src="js/engineers-list.js"></script>
+  </body>
 </html>

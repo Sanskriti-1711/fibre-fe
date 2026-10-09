@@ -110,7 +110,7 @@ const WeightManagerModal = {
   },
 
   _renderContent(data) {
-    const undefinedCount = this.layers.filter(l => !l.has_weight).length;
+    const undefinedCount = this.layers.filter((l) => !l.has_weight).length;
     const remainingWeight = Math.max(0, 100 - this.totalDefined);
     const autoWeight = undefinedCount > 0 ? remainingWeight / undefinedCount : 0;
 
@@ -234,9 +234,10 @@ const WeightManagerModal = {
           ">%</span>
         </div>
         <div style="text-align: center;">
-          ${layer.has_weight 
-            ? '<span style="font-size: 11px; color: #047857; font-weight: 600;">✓</span>'
-            : `<span style="font-size: 11px; color: #6B7280;">~${autoWeight.toFixed(0)}%</span>`
+          ${
+            layer.has_weight
+              ? '<span style="font-size: 11px; color: #047857; font-weight: 600;">✓</span>'
+              : `<span style="font-size: 11px; color: #6B7280;">~${autoWeight.toFixed(0)}%</span>`
           }
         </div>
       `;
@@ -333,10 +334,10 @@ const WeightManagerModal = {
   _handleWeightInput(input) {
     const layerId = input.dataset.layerId;
     let value = parseFloat(input.value);
-    
+
     if (isNaN(value) || value < 0) value = 0;
     if (value > 100) value = 100;
-    
+
     this.weights[layerId] = value;
     this._updateTotal();
   },
@@ -347,7 +348,10 @@ const WeightManagerModal = {
   },
 
   _updateTotal() {
-    this.totalDefined = Object.values(this.weights).reduce((sum, w) => sum + (parseFloat(w) || 0), 0);
+    this.totalDefined = Object.values(this.weights).reduce(
+      (sum, w) => sum + (parseFloat(w) || 0),
+      0
+    );
     this._updateSummaryDisplay();
   },
 
@@ -378,16 +382,16 @@ const WeightManagerModal = {
   _refreshUI() {
     // Update row styles based on weight presence
     const rows = this.modal.querySelectorAll('[data-layer-id]');
-    rows.forEach(input => {
+    rows.forEach((input) => {
       const layerId = input.dataset.layerId;
       const hasWeight = this.weights[layerId] > 0;
       const row = input.closest('div[style*="grid-template-columns"]');
-      
+
       if (row) {
         row.style.background = hasWeight ? '#F0FDF4' : '#F9FAFB';
         row.style.borderColor = hasWeight ? '#A7F3D0' : '#E5E7EB';
       }
-      
+
       input.style.borderColor = hasWeight ? '#047857' : '#D1D5DB';
     });
 
@@ -402,12 +406,12 @@ const WeightManagerModal = {
   },
 
   _resetToEqual() {
-    const equalWeight = this.layers.length > 0 ? (100 / this.layers.length) : 0;
-    
-    this.layers.forEach(layer => {
+    const equalWeight = this.layers.length > 0 ? 100 / this.layers.length : 0;
+
+    this.layers.forEach((layer) => {
       this.weights[layer.layer_id] = equalWeight;
     });
-    
+
     this.totalDefined = 100;
     this._renderContent({ layers: this.layers });
   },
@@ -438,11 +442,11 @@ const WeightManagerModal = {
       });
 
       await window.FiberApi.updateLayerWeights(this.projectId, weightsToSave);
-      
+
       if (this.callbacks.onSave) {
         this.callbacks.onSave();
       }
-      
+
       this.close();
     } catch (err) {
       alert('Failed to save weights: ' + FtthUI.humanize(err));
@@ -451,7 +455,7 @@ const WeightManagerModal = {
         saveBtn.textContent = 'Save Weights';
       }
     }
-  }
+  },
 };
 
 // Listen for custom events from CompletionCard
@@ -461,7 +465,7 @@ document.addEventListener('open-weight-manager', (e) => {
     onSave: () => {
       // Refresh page or trigger completion reload
       window.location.reload();
-    }
+    },
   });
 });
 

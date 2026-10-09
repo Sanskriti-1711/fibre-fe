@@ -3,7 +3,7 @@
 
    Extracted from the second, refined layer of main.css and from the
    primitives that had been stranded inside individual pages' inline
-   <style> blocks. Pages that link this file no longer need to
+   \3c style> blocks. Pages that link this file no longer need to
    redeclare .ftth-toast, .ftth-refresh-btn, or the panel states.
 
    Three craft decisions are baked in here:
@@ -43,11 +43,15 @@ body {
   border-radius: 4px;
 }
 
-.sidebar :where(a, button):focus-visible { outline-color: var(--focus-on-dark); }
+.sidebar :where(a, button):focus-visible {
+  outline-color: var(--focus-on-dark);
+}
 
 input:focus,
 select:focus,
-textarea:focus { outline: none; }
+textarea:focus {
+  outline: none;
+}
 
 input:focus-visible,
 select:focus-visible,
@@ -76,7 +80,7 @@ textarea:focus-visible {
   flex-shrink: 0;
   padding: var(--space-5) var(--space-3);
   background: linear-gradient(180deg, var(--sidebar-top) 0%, var(--sidebar-bottom) 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgb(255 255 255 / 6%);
   position: sticky;
   top: 0;
   height: 100vh;
@@ -96,7 +100,7 @@ textarea:focus-visible {
 }
 
 .sidebar h2::before {
-  content: "";
+  content: '';
   width: 10px;
   height: 10px;
   flex-shrink: 0;
@@ -134,24 +138,26 @@ textarea:focus-visible {
   font-size: var(--text-base);
   color: var(--sidebar-ink);
   text-decoration: none;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .nav a:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #FFFFFF;
+  background: rgb(255 255 255 / 6%);
+  color: #fff;
 }
 
 .nav a.active {
-  background: rgba(227, 24, 55, 0.14);
-  color: #FFFFFF;
+  background: rgb(227 24 55 / 14%);
+  color: #fff;
   font-weight: var(--weight-semibold);
 }
 
 /* An active-state indicator, not a card accent — 3px, absolute,
    and only ever rendered on the one current page. */
 .nav a.active::before {
-  content: "";
+  content: '';
   position: absolute;
   left: 0;
   top: 20%;
@@ -205,15 +211,18 @@ textarea:focus-visible {
   line-height: 1.3;
   cursor: pointer;
   text-decoration: none;
-  transition: background var(--transition), color var(--transition),
-              border-color var(--transition), transform var(--transition),
-              box-shadow var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition),
+    border-color var(--transition),
+    transform var(--transition),
+    box-shadow var(--transition);
 }
 
 .create-btn,
 .btn-primary {
   background: var(--brand);
-  color: #FFFFFF;
+  color: #fff;
   box-shadow: var(--shadow-sm);
 }
 
@@ -226,10 +235,12 @@ textarea:focus-visible {
 
 .btn-secondary {
   background: var(--ink-soft);
-  color: #FFFFFF;
+  color: #fff;
 }
 
-.btn-secondary:hover { background: var(--muted-strong); }
+.btn-secondary:hover {
+  background: var(--muted-strong);
+}
 
 .btn-outline,
 .btn-ghost {
@@ -241,15 +252,17 @@ textarea:focus-visible {
 .btn-outline:hover,
 .btn-ghost:hover {
   background: var(--surface-sunken);
-  border-color: #CBD5E1;
+  border-color: #cbd5e1;
 }
 
 .btn-danger {
   background: var(--danger);
-  color: #FFFFFF;
+  color: #fff;
 }
 
-.btn-danger:hover { background: var(--danger-deep); }
+.btn-danger:hover {
+  background: var(--danger-deep);
+}
 
 .btn:disabled,
 .create-btn:disabled {
@@ -282,7 +295,9 @@ textarea:focus-visible {
   box-shadow: var(--shadow-sm);
 }
 
-.table-card { overflow: hidden; }
+.table-card {
+  overflow: hidden;
+}
 
 /* Inset variant, for a table panel nested inside another card.
 
@@ -301,7 +316,9 @@ textarea:focus-visible {
   box-shadow: none;
 }
 
-.section { padding: var(--space-6); }
+.section {
+  padding: var(--space-6);
+}
 
 .table-card > table:first-child:last-child {
   margin: calc(var(--space-6) * -1);
@@ -310,7 +327,9 @@ textarea:focus-visible {
 
 .kpi-card {
   padding: var(--space-4);
-  transition: transform var(--transition), box-shadow var(--transition);
+  transition:
+    transform var(--transition),
+    box-shadow var(--transition);
 }
 
 .kpi-card:hover {
@@ -350,8 +369,13 @@ tbody td {
   vertical-align: top;
 }
 
-tbody tr { transition: background var(--transition); }
-tbody tr:hover { background: #F8FAFC; }
+tbody tr {
+  transition: background var(--transition);
+}
+
+tbody tr:hover {
+  background: #f8fafc;
+}
 
 /* ── Badges and chips ───────────────────────────────────────────── */
 
@@ -386,25 +410,41 @@ body.engineer-feature-submit .pill {
 }
 
 .status-badge.completed,
-.badge-green { background: var(--success-soft); color: var(--success-deep); }
+.badge-green {
+  background: var(--success-soft);
+  color: var(--success-deep);
+}
 
 .status-badge.pending,
-.badge-amber { background: var(--warning-soft); color: var(--warning-deep); }
+.badge-amber {
+  background: var(--warning-soft);
+  color: var(--warning-deep);
+}
 
 .status-badge.failed,
-.badge-red { background: var(--danger-soft); color: var(--danger-deep); }
+.badge-red {
+  background: var(--danger-soft);
+  color: var(--danger-deep);
+}
 
-.badge-blue { background: var(--info-soft); color: #1E40AF; }
-.badge-gray { background: #F3F4F6; color: var(--muted-strong); }
+.badge-blue {
+  background: var(--info-soft);
+  color: #1e40af;
+}
+
+.badge-gray {
+  background: #f3f4f6;
+  color: var(--muted-strong);
+}
 
 /* ── Forms ──────────────────────────────────────────────────────── */
 
-input[type="text"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="date"],
-input[type="search"],
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='number'],
+input[type='date'],
+input[type='search'],
 select,
 textarea {
   padding: 10px var(--space-3);
@@ -414,7 +454,9 @@ textarea {
   font-size: var(--text-base);
   background: var(--surface);
   color: var(--ink);
-  transition: border-color var(--transition), box-shadow var(--transition);
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 input:focus,
@@ -477,11 +519,30 @@ label {
   margin-bottom: var(--space-4);
 }
 
-.alert-success { background: var(--success-soft); border-color: var(--success-line); color: var(--success-deep); }
-.alert-warning { background: var(--warning-soft); border-color: var(--warning-line); color: var(--warning-deep); }
+.alert-success {
+  background: var(--success-soft);
+  border-color: var(--success-line);
+  color: var(--success-deep);
+}
+
+.alert-warning {
+  background: var(--warning-soft);
+  border-color: var(--warning-line);
+  color: var(--warning-deep);
+}
+
 .alert-error,
-.alert-danger { background: var(--danger-soft); border-color: var(--danger-line); color: var(--danger-deep); }
-.alert-info { background: var(--info-soft); border-color: var(--info-line); color: #1E40AF; }
+.alert-danger {
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+  color: var(--danger-deep);
+}
+
+.alert-info {
+  background: var(--info-soft);
+  border-color: var(--info-line);
+  color: #1e40af;
+}
 
 /* ── Modal ──────────────────────────────────────────────────────── */
 
@@ -520,7 +581,9 @@ label {
 /* Default UA style is `display: none` until open; this keeps the element
    out of the a11y tree and off the tab order when it is not a top-layer
    modal, without relying on the UA sheet. */
-.ftth-dialog:not(:modal) { display: none; }
+.ftth-dialog:not(:modal) {
+  display: none;
+}
 
 /* No entry transition, and the reason is worth keeping: @starting-style and
    Element.animate() both fail on a <dialog> opened with showModal(). The
@@ -539,7 +602,7 @@ label {
 }
 
 .ftth-dialog::backdrop {
-  background: rgba(9, 12, 18, 0.55);
+  background: rgb(9 12 18 / 55%);
 }
 
 .ftth-dialog__head {
@@ -560,6 +623,7 @@ label {
 
 .ftth-dialog__close {
   flex-shrink: 0;
+
   /* 44px even though it is a secondary control (Escape and Cancel both work
      too): it is still a tap target, and a dialog header has room for it. The
      glyph stays visually small inside the larger box. */
@@ -576,11 +640,13 @@ label {
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    color var(--transition);
 }
 
 .ftth-dialog__close:hover {
-  background: var(--surface-sunken, rgba(16, 24, 40, 0.06));
+  background: var(--surface-sunken, rgb(16 24 40 / 6%));
   color: var(--ink);
 }
 
@@ -605,7 +671,9 @@ label {
   color: var(--ink);
 }
 
-.ftth-dialog__points li { margin-bottom: 4px; }
+.ftth-dialog__points li {
+  margin-bottom: 4px;
+}
 
 .ftth-dialog__note {
   margin: 0 0 var(--space-3);
@@ -661,7 +729,9 @@ label {
   outline-offset: 1px;
 }
 
-.ftth-input--invalid { border-color: var(--danger, var(--danger)); }
+.ftth-input--invalid {
+  border-color: var(--danger, var(--danger));
+}
 
 .ftth-field__error {
   margin: 6px 0 0;
@@ -689,8 +759,10 @@ label {
   font-weight: var(--weight-semibold);
   cursor: pointer;
   white-space: nowrap;
-  transition: background var(--transition), border-color var(--transition),
-              color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
 }
 
 .ftth-btn--primary {
@@ -698,7 +770,9 @@ label {
   color: #fff;
 }
 
-.ftth-btn--primary:hover { filter: brightness(0.94); }
+.ftth-btn--primary:hover {
+  filter: brightness(0.94);
+}
 
 .ftth-btn--secondary {
   background: var(--surface);
@@ -706,14 +780,18 @@ label {
   color: var(--ink);
 }
 
-.ftth-btn--secondary:hover { background: rgba(16, 24, 40, 0.04); }
+.ftth-btn--secondary:hover {
+  background: rgb(16 24 40 / 4%);
+}
 
 .ftth-btn--danger {
   background: var(--danger, var(--danger));
   color: #fff;
 }
 
-.ftth-btn--danger:hover { filter: brightness(0.94); }
+.ftth-btn--danger:hover {
+  filter: brightness(0.94);
+}
 
 .ftth-btn:focus-visible {
   outline: 2px solid var(--focus);
@@ -722,7 +800,10 @@ label {
 
 /* ── Scrollbars ─────────────────────────────────────────────────── */
 
-::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
 
 ::-webkit-scrollbar-thumb {
   background: var(--line-strong);
@@ -736,10 +817,12 @@ label {
   background-clip: content-box;
 }
 
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 /* ── Toast ─────────────────────────────────────────────────────────
-   Was defined inside one page's inline <style> and used by three, so
+   Was defined inside one page's inline \3c style> and used by three, so
    failure messages rendered as unstyled text at the foot of the page. */
 
 .ftth-toast-stack {
@@ -772,14 +855,24 @@ label {
   overflow-wrap: break-word;
 }
 
-.ftth-toast--error { background: var(--danger-strong); }
-.ftth-toast--success { background: var(--success-deep); }
-.ftth-toast--info { background: var(--ink-soft); }
+.ftth-toast--error {
+  background: var(--danger-strong);
+}
+
+.ftth-toast--success {
+  background: var(--success-deep);
+}
+
+.ftth-toast--info {
+  background: var(--ink-soft);
+}
 
 .ftth-toast.is-leaving {
   opacity: 0;
   transform: translateY(6px);
-  transition: opacity var(--duration) ease, transform var(--duration) ease;
+  transition:
+    opacity var(--duration) ease,
+    transform var(--duration) ease;
 }
 
 .ftth-toast__close {
@@ -801,11 +894,21 @@ label {
   opacity: 0.75;
 }
 
-.ftth-toast__close:hover { opacity: 1; background: rgba(255, 255, 255, 0.12); }
+.ftth-toast__close:hover {
+  opacity: 1;
+  background: rgb(255 255 255 / 12%);
+}
 
 @keyframes ftth-toast-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ── Refresh button ─────────────────────────────────────────────── */
@@ -824,21 +927,52 @@ label {
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
 }
 
-.ftth-refresh-btn:hover { background: #F3F4F6; border-color: var(--muted); color: var(--ink); }
-.ftth-refresh-btn:active { background: #E5E7EB; }
-.ftth-refresh-btn[disabled] { opacity: 0.55; cursor: not-allowed; }
-.ftth-refresh-btn.is-busy { cursor: progress; }
-.ftth-refresh-btn.is-busy .ftth-refresh-btn__icon { animation: ftth-spin 0.9s linear infinite; }
-.ftth-refresh-btn__icon { display: inline-flex; flex-shrink: 0; }
+.ftth-refresh-btn:hover {
+  background: #f3f4f6;
+  border-color: var(--muted);
+  color: var(--ink);
+}
 
-@keyframes ftth-spin { to { transform: rotate(360deg); } }
+.ftth-refresh-btn:active {
+  background: #e5e7eb;
+}
+
+.ftth-refresh-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ftth-refresh-btn.is-busy {
+  cursor: progress;
+}
+
+.ftth-refresh-btn.is-busy .ftth-refresh-btn__icon {
+  animation: ftth-spin 0.9s linear infinite;
+}
+
+.ftth-refresh-btn__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+@keyframes ftth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ── Panel states ───────────────────────────────────────────────── */
 
-.panel-state-host { position: relative; min-height: 40px; }
+.panel-state-host {
+  position: relative;
+  min-height: 40px;
+}
 
 .panel-state {
   display: flex;
@@ -856,7 +990,9 @@ label {
   line-height: 1.5;
 }
 
-.panel-state[hidden] { display: none; }
+.panel-state[hidden] {
+  display: none;
+}
 
 .panel-state--loading {
   flex-direction: row;
@@ -879,7 +1015,9 @@ label {
   color: var(--ink);
 }
 
-.panel-state--error .panel-state__title { color: var(--danger-strong); }
+.panel-state--error .panel-state__title {
+  color: var(--danger-strong);
+}
 
 .panel-state__body {
   margin: 0;
@@ -888,7 +1026,9 @@ label {
   color: var(--muted);
 }
 
-.panel-state--error .panel-state__body { color: var(--danger-deep); }
+.panel-state--error .panel-state__body {
+  color: var(--danger-deep);
+}
 
 .panel-state__action {
   display: inline-block;
@@ -899,7 +1039,9 @@ label {
   text-decoration: none;
 }
 
-.panel-state__action:hover { text-decoration: underline; }
+.panel-state__action:hover {
+  text-decoration: underline;
+}
 
 .panel-state__retry {
   min-height: 36px;
@@ -915,7 +1057,9 @@ label {
   cursor: pointer;
 }
 
-.panel-state__retry:hover { background: var(--danger-soft); }
+.panel-state__retry:hover {
+  background: var(--danger-soft);
+}
 
 .panel-spinner {
   width: 15px;
@@ -927,7 +1071,10 @@ label {
   animation: ftth-spin 0.8s linear infinite;
 }
 
-.value-unknown { color: var(--muted); cursor: help; }
+.value-unknown {
+  color: var(--muted);
+  cursor: help;
+}
 
 /* Touch targets and the reduced-motion opt-out live with the structure they
    belong to, further down this file, so there is exactly one place to change
@@ -936,16 +1083,24 @@ label {
    remember. */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
   .panel-spinner,
   .dash-skel,
-  .ftth-spin { animation: none !important; }
-  .dash-skel { background: var(--line); }
+  .ftth-spin {
+    animation: none !important;
+  }
+
+  .dash-skel {
+    background: var(--line);
+  }
 }
 
 /* ── Responsive shell ──────────────────────────────────────────────
@@ -968,13 +1123,19 @@ label {
    checkbox cannot provide. They live in FtthUI.Drawer, wired from
    sidebar-loader.js, which is the one script every shell page loads. */
 
-.sidebar__bar { display: contents; }
+.sidebar__bar {
+  display: contents;
+}
 
-.nav-toggle-btn { display: none; }
+.nav-toggle-btn {
+  display: none;
+}
 
-.nav-scrim { display: none; }
+.nav-scrim {
+  display: none;
+}
 
-@media (max-width: 860px) {
+@media (width <= 860px) {
   .layout {
     flex-direction: column;
   }
@@ -1012,14 +1173,15 @@ label {
     align-items: center;
     gap: var(--space-2);
     flex-shrink: 0;
+
     /* 44px: this is a <button>, not one of the zero-padding row actions,
        but it is the most-tapped control in the mobile shell. */
     min-height: 44px;
     min-width: 44px;
     padding: 8px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid rgb(255 255 255 / 18%);
     border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgb(255 255 255 / 6%);
     color: var(--sidebar-ink);
     font-family: inherit;
     font-size: 13px;
@@ -1027,10 +1189,14 @@ label {
     letter-spacing: 0.02em;
     cursor: pointer;
     user-select: none;
-    transition: background var(--transition), border-color var(--transition);
+    transition:
+      background var(--transition),
+      border-color var(--transition);
   }
 
-  .nav-toggle-btn:hover { background: rgba(255, 255, 255, 0.11); }
+  .nav-toggle-btn:hover {
+    background: rgb(255 255 255 / 11%);
+  }
 
   .nav-toggle-btn:focus-visible {
     outline: 2px solid var(--focus-on-dark);
@@ -1045,35 +1211,52 @@ label {
     width: 16px;
     height: 2px;
     flex-shrink: 0;
-    background: currentColor;
+    background: currentcolor;
     border-radius: 2px;
     transition: background var(--transition);
   }
 
   .nav-toggle-icon::before,
   .nav-toggle-icon::after {
-    content: "";
+    content: '';
     position: absolute;
     left: 0;
     width: 16px;
     height: 2px;
-    background: currentColor;
+    background: currentcolor;
     border-radius: 2px;
     transition: transform var(--transition);
   }
 
-  .nav-toggle-icon::before { top: -5px; }
-  .nav-toggle-icon::after { top: 5px; }
+  .nav-toggle-icon::before {
+    top: -5px;
+  }
+
+  .nav-toggle-icon::after {
+    top: 5px;
+  }
 
   /* Open: the bars become a cross and the label says so. The label text is
      swapped with a CSS ::after so the accessible name stays truthful
      without a script. */
-  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-icon { background: transparent; }
-  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-icon::before { transform: translateY(5px) rotate(45deg); }
-  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-icon::after { transform: translateY(-5px) rotate(-45deg); }
-  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-text { font-size: 0; }
-  .nav-toggle-btn[aria-expanded="true"] .nav-toggle-text::after {
-    content: "Close";
+  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-icon {
+    background: transparent;
+  }
+
+  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-icon::before {
+    transform: translateY(5px) rotate(45deg);
+  }
+
+  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-icon::after {
+    transform: translateY(-5px) rotate(-45deg);
+  }
+
+  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-text {
+    font-size: 0;
+  }
+
+  .nav-toggle-btn[aria-expanded='true'] .nav-toggle-text::after {
+    content: 'Close';
     font-size: 13px;
   }
 
@@ -1094,13 +1277,17 @@ label {
     box-shadow: var(--shadow-lg);
     transform: translateX(-100%);
     visibility: hidden;
-    transition: transform var(--duration) var(--ease-out), visibility 0s linear var(--duration);
+    transition:
+      transform var(--duration) var(--ease-out),
+      visibility 0s linear var(--duration);
   }
 
   .sidebar.is-open .nav {
     transform: translateX(0);
     visibility: visible;
-    transition: transform var(--duration) var(--ease-out), visibility 0s;
+    transition:
+      transform var(--duration) var(--ease-out),
+      visibility 0s;
   }
 
   .nav-scrim {
@@ -1108,17 +1295,25 @@ label {
     position: fixed;
     inset: 0;
     z-index: 75;
-    background: rgba(9, 12, 18, 0.55);
+    background: rgb(9 12 18 / 55%);
     opacity: 0;
     transition: opacity var(--duration) var(--ease-out);
   }
 
-  .nav-scrim:not([hidden]) { opacity: 1; }
+  .nav-scrim:not([hidden]) {
+    opacity: 1;
+  }
 
   /* Groups keep their labels. The old `display: contents` flattened them
      into a grid and lost the grouping that made the nav scannable. */
-  .nav-section { display: block; margin-top: var(--space-6); }
-  .nav-section:first-child { margin-top: 0; }
+  .nav-section {
+    display: block;
+    margin-top: var(--space-6);
+  }
+
+  .nav-section:first-child {
+    margin-top: 0;
+  }
 
   .nav-label {
     display: block;
@@ -1132,7 +1327,9 @@ label {
   }
 
   /* Scrolling belongs to the page, not the drawer, while the drawer is shut. */
-  body.has-nav-open { overflow: hidden; }
+  body.has-nav-open {
+    overflow: hidden;
+  }
 
   .content {
     padding: 20px 16px;
@@ -1141,10 +1338,18 @@ label {
 
 /* Narrow phones: the bar tightens, the drawer takes more of the width, and
    the content gutters shrink so a data table gets every pixel it can. */
-@media (max-width: 480px) {
-  .nav { width: min(88vw, 320px); }
-  .content { padding: var(--space-4); }
-  .sidebar__bar { padding: 6px var(--space-3); }
+@media (width <= 480px) {
+  .nav {
+    width: min(88vw, 320px);
+  }
+
+  .content {
+    padding: var(--space-4);
+  }
+
+  .sidebar__bar {
+    padding: 6px var(--space-3);
+  }
 }
 
 /* ── Table structure ───────────────────────────────────────────────
@@ -1175,18 +1380,33 @@ label {
 
 /* Any element directly wrapping a table, plus the named wrappers for
    non-div containers. */
-:is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-    .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-    .ov-card-body, div:has(> table)) {
-  overflow-x: auto;
-  overflow-y: visible;
+:is(
+  .table-card,
+  .table-container,
+  .ftth-table-container,
+  .lld-table-wrap,
+  .pm-table-card,
+  .ftth-premise-table-wrap,
+  .lld-run-table-wrap,
+  .ov-card-body,
+  div:has(> table)
+) {
+  overflow: auto visible;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
 }
 
-:is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-    .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-    .ov-card-body) > table,
+:is(
+    .table-card,
+    .table-container,
+    .ftth-table-container,
+    .lld-table-wrap,
+    .pm-table-card,
+    .ftth-premise-table-wrap,
+    .lld-run-table-wrap,
+    .ov-card-body
+  )
+  > table,
 div:has(> table) > table {
   min-width: 100%;
 }
@@ -1195,24 +1415,48 @@ div:has(> table) > table {
    `background-attachment: local` on the wrapper makes the shadow track the
    scroll position, so it behaves like a real edge rather than a decoration
    stuck to the container. */
-:is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-    .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-    .ov-card-body, div:has(> table)) {
+:is(
+  .table-card,
+  .table-container,
+  .ftth-table-container,
+  .lld-table-wrap,
+  .pm-table-card,
+  .ftth-premise-table-wrap,
+  .lld-run-table-wrap,
+  .ov-card-body,
+  div:has(> table)
+) {
   background-image:
-    linear-gradient(to right, var(--surface) 30%, rgba(255, 255, 255, 0)),
-    linear-gradient(to right, rgba(255, 255, 255, 0), var(--surface) 70%),
-    linear-gradient(to right, rgba(16, 24, 40, 0.09), rgba(255, 255, 255, 0)),
-    linear-gradient(to left, rgba(16, 24, 40, 0.09), rgba(255, 255, 255, 0));
-  background-position: left center, right center, left center, right center;
+    linear-gradient(to right, var(--surface) 30%, rgb(255 255 255 / 0%)),
+    linear-gradient(to right, rgb(255 255 255 / 0%), var(--surface) 70%),
+    linear-gradient(to right, rgb(16 24 40 / 9%), rgb(255 255 255 / 0%)),
+    linear-gradient(to left, rgb(16 24 40 / 9%), rgb(255 255 255 / 0%));
+  background-position:
+    left center,
+    right center,
+    left center,
+    right center;
   background-repeat: no-repeat;
-  background-size: 32px 100%, 32px 100%, 14px 100%, 14px 100%;
+  background-size:
+    32px 100%,
+    32px 100%,
+    14px 100%,
+    14px 100%;
   background-attachment: local, local, scroll, scroll;
 }
 
-@media (max-width: 1023px) {
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) > table,
+@media (width <= 1023px) {
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    > table,
   div:has(> table) > table {
     min-width: 720px;
   }
@@ -1239,29 +1483,65 @@ div:has(> table) > table {
    columns still scroll, the wrapper's edge shadow shows there is more, and the
    one control the user came for — View / Assign / Delete — is on screen and
    tappable at every scroll position. Zero renderer changes. */
-@media (max-width: 639px) {
+@media (width <= 639px) {
   /* Release the floors so there is less to scroll. The 720px is the tier
      above; the 160px is inline on projects.html's Standard and Dynamic
      headers, added for desktop legibility. An inline declaration outranks a
      stylesheet rule, so winning here takes `!important` deliberately — the
      override target is inline, not a lower-specificity sheet. Above 640px
      those columns keep their 160px. */
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) > table,
-  div:has(> table) > table { min-width: 0; }
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    > table,
+  div:has(> table) > table {
+    min-width: 0;
+  }
 
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) th,
-  div:has(> table) th { min-width: 0 !important; }
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    th,
+  div:has(> table) th {
+    min-width: 0 !important;
+  }
 
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) th,
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) td,
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    th,
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    td,
   div:has(> table) th,
   div:has(> table) td {
     padding: 10px 12px;
@@ -1270,30 +1550,68 @@ div:has(> table) > table {
 
   /* The pinned column. Opaque background and a left-edge shadow, so the
      scrolling data passes cleanly underneath instead of showing through. */
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) thead th:last-child,
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) tbody td:last-child,
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    thead
+    th:last-child,
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    tbody
+    td:last-child,
   div:has(> table) thead th:last-child,
   div:has(> table) tbody td:last-child {
     position: sticky;
     right: 0;
     background: var(--surface);
-    box-shadow: -10px 0 10px -8px rgba(16, 24, 40, 0.22);
+    box-shadow: -10px 0 10px -8px rgb(16 24 40 / 22%);
   }
 
   /* Header sits above the body cells so the sticky column has a name on
      screen and not just in the accessibility tree. */
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) thead th:last-child,
-  div:has(> table) thead th:last-child { z-index: 3; }
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    thead
+    th:last-child,
+  div:has(> table) thead th:last-child {
+    z-index: 3;
+  }
 
-  :is(.table-card, .table-container, .ftth-table-container, .lld-table-wrap,
-      .pm-table-card, .ftth-premise-table-wrap, .lld-run-table-wrap,
-      .ov-card-body) tbody td:last-child,
+  :is(
+      .table-card,
+      .table-container,
+      .ftth-table-container,
+      .lld-table-wrap,
+      .pm-table-card,
+      .ftth-premise-table-wrap,
+      .lld-run-table-wrap,
+      .ov-card-body
+    )
+    tbody
+    td:last-child,
   div:has(> table) tbody td:last-child {
     z-index: 1;
     white-space: nowrap;
@@ -1326,8 +1644,8 @@ div:has(> table) > table {
    `display` is still toggled by script; this only guarantees the
    hidden state can never intercept a click. */
 .ftth-map-loading[hidden],
-.ftth-map-loading[style*="display: none"],
-.ftth-map-loading[style*="display:none"] {
+.ftth-map-loading[style*='display: none'],
+.ftth-map-loading[style*='display:none'] {
   pointer-events: none;
 }
 
@@ -1374,12 +1692,35 @@ div:has(> table) > table {
   select {
     min-height: 44px;
   }
-  .ftth-refresh-btn { padding: 10px var(--space-4); }
-  .panel-state__retry { min-height: 44px; padding: 10px 18px; }
-  .ftth-toast__close { width: 44px; height: 44px; top: 6px; right: 6px; }
-  .nav a { display: flex; align-items: center; }
-  .dash-pill, .stage-badge { min-height: 32px; }
-  /* 43px was one pixel short on every select in the filter bar. */
-  select { min-height: 44px; }
-}
 
+  .ftth-refresh-btn {
+    padding: 10px var(--space-4);
+  }
+
+  .panel-state__retry {
+    min-height: 44px;
+    padding: 10px 18px;
+  }
+
+  .ftth-toast__close {
+    width: 44px;
+    height: 44px;
+    top: 6px;
+    right: 6px;
+  }
+
+  .nav a {
+    display: flex;
+    align-items: center;
+  }
+
+  .dash-pill,
+  .stage-badge {
+    min-height: 32px;
+  }
+
+  /* 43px was one pixel short on every select in the filter bar. */
+  select {
+    min-height: 44px;
+  }
+}

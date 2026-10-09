@@ -13,11 +13,11 @@
   // ------------------------------------------------------------------
 
   const _state = {
-    projectId: null,        // current / most-recent project UUID
-    results: null,          // cached pipeline result object
-    polling: false,         // is a polling loop active?
-    pollTimerId: null,      // setInterval handle
-    onStatusChange: null,   // callback(prevStatus, nextStatus)
+    projectId: null, // current / most-recent project UUID
+    results: null, // cached pipeline result object
+    polling: false, // is a polling loop active?
+    pollTimerId: null, // setInterval handle
+    onStatusChange: null, // callback(prevStatus, nextStatus)
   };
 
   // ------------------------------------------------------------------
@@ -28,11 +28,10 @@
 
   function persist() {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ projectId: _state.projectId })
-      );
-    } catch (_) { /* quota exceeded — silent */ }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ projectId: _state.projectId }));
+    } catch (_) {
+      /* quota exceeded — silent */
+    }
   }
 
   function loadPersisted() {
@@ -44,7 +43,9 @@
           _state.projectId = parsed.projectId;
         }
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   // Load on script boot so projectId survives simple navigation.

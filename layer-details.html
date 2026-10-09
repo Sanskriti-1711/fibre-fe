@@ -1,47 +1,34 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Layer Details | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>Layer Details | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  
-  <style>
-
+    <style>
       #kpiSection {
-
         grid-template-columns: repeat(6, minmax(0, 1fr));
-
       }
 
       #kpiSection .kpi-card.overview {
-
         min-width: 0;
-
       }
 
       #kpiSection .kpi-title {
-
         font-size: 0.75rem;
-
       }
 
       #kpiSection .kpi-value {
-
         font-size: 1.25rem;
-
       }
 
       .muted {
-
         color: var(--tm-gray);
 
         font-size: 13px;
-
       }
 
       .page-actions {
-
         display: flex;
 
         gap: 12px;
@@ -49,146 +36,154 @@
         align-items: center;
 
         justify-content: flex-end;
-
       }
 
       .btn-secondary {
-
         background: #fff;
 
         color: var(--tm-dark);
 
         border: 1px solid var(--border);
-
       }
 
       .btn-secondary:hover {
-
-        background: #F9FAFB;
-
+        background: #f9fafb;
       }
-
     </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/components.css">
-  
-</head>
-<body>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-<div class="layout">
+      <main class="content">
+        <div class="container">
+          <div class="header" style="display: block">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px">
+              <div>
+                <h1 id="layerTitle">Layer Details</h1>
+                <p id="layerSubtitle" class="project-description">Loading layer details...</p>
+              </div>
+              <div class="page-actions">
+                <a id="backToProjectBtn" class="btn btn-secondary" href="projects.html">Back to Project</a>
+              </div>
+            </div>
 
-  <div id="sidebarContainer"></div>
+            <div id="layerError" style="display: none; margin: 12px 0 0; color: #b91c1c; font-size: 13px"></div>
 
-  <main class="content">
-    <div class="container">
-      <div class="header" style="display: block;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;">
-          <div>
-            <h1 id="layerTitle">Layer Details</h1>
-            <p id="layerSubtitle" class="project-description">Loading layer details...</p>
+            <div id="pageLoader" class="kpi-grid overview" style="padding: 40px; text-align: center">
+              <div
+                style="
+                  display: inline-block;
+                  width: 40px;
+                  height: 40px;
+                  border: 4px solid #e5e7eb;
+                  border-top-color: #0369a1;
+                  border-radius: 50%;
+                  animation: spin 1s linear infinite;
+                "
+              ></div>
+              <p style="margin-top: 12px; color: #616a75">Loading layer data...</p>
+            </div>
+
+            <div class="kpi-grid overview" id="kpiSection" style="display: none">
+              <div class="kpi-card overview">
+                <div class="kpi-title">Total Features</div>
+                <div id="kpiFeatureCount" class="kpi-value">--</div>
+              </div>
+              <div class="kpi-card overview">
+                <div class="kpi-title">Pending</div>
+                <div id="kpiPending" class="kpi-value">--</div>
+              </div>
+              <div class="kpi-card overview">
+                <div class="kpi-title">Assigned</div>
+                <div id="kpiAssigned" class="kpi-value">--</div>
+              </div>
+              <div class="kpi-card overview">
+                <div class="kpi-title">Under Review</div>
+                <div id="kpiUnderReview" class="kpi-value">--</div>
+              </div>
+              <div class="kpi-card overview">
+                <div class="kpi-title">Approved</div>
+                <div id="kpiApproved" class="kpi-value">--</div>
+              </div>
+              <div class="kpi-card overview">
+                <div class="kpi-title">Redo</div>
+                <div id="kpiRedo" class="kpi-value">--</div>
+              </div>
+            </div>
           </div>
-          <div class="page-actions">
-            <a id="backToProjectBtn" class="btn btn-secondary" href="projects.html">Back to Project</a>
+
+          <div class="section" id="fieldConfigSection" style="display: none">
+            <div
+              style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap"
+            >
+              <div>
+                <h3 style="margin: 0">Field Configuration</h3>
+                <div class="muted">
+                  Choose which fields the field engineer fills in on-site, and the input type. Saved per layer; applies
+                  to all its features.
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <button id="allEditableBtn" class="btn btn-secondary" type="button">All editable</button>
+                <button id="allReadonlyBtn" class="btn btn-secondary" type="button">All read-only</button>
+                <button id="resetConfigBtn" class="btn btn-secondary" type="button">Reset to auto</button>
+                <button id="saveConfigBtn" class="btn" type="button">Save configuration</button>
+              </div>
+            </div>
+            <div id="fieldConfigStatus" class="muted" style="margin-top: 8px"></div>
+            <table style="margin-top: 8px">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Key</th>
+                  <th style="text-align: center">Engineer fills?</th>
+                  <th>Input type</th>
+                </tr>
+              </thead>
+              <tbody id="fieldConfigBody">
+                <tr>
+                  <td colspan="4" style="padding: 16px; color: #616a75">Loading field configuration…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+              <h3 style="margin: 0">Features</h3>
+              <div id="featureMeta" class="muted"></div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Feature ID</th>
+                  <th>Status</th>
+                  <th>Assigned To</th>
+                  <th>Planned<br />Measurements</th>
+                  <th>Detected Measurements</th>
+                  <th>Updated</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="featuresBody">
+                <tr>
+                  <td colspan="7" style="padding: 16px; color: #616a75">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-
-        <div id="layerError" style="display:none;margin:12px 0 0;color:#B91C1C;font-size:13px;"></div>
-
-        <div id="pageLoader" class="kpi-grid overview" style="padding: 40px; text-align: center;">
-          <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #0369A1; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-          <p style="margin-top: 12px; color: #616a75;">Loading layer data...</p>
-        </div>
-
-        <div class="kpi-grid overview" id="kpiSection" style="display: none;">
-          <div class="kpi-card overview">
-            <div class="kpi-title">Total Features</div>
-            <div id="kpiFeatureCount" class="kpi-value">--</div>
-          </div>
-          <div class="kpi-card overview">
-            <div class="kpi-title">Pending</div>
-            <div id="kpiPending" class="kpi-value">--</div>
-          </div>
-          <div class="kpi-card overview">
-            <div class="kpi-title">Assigned</div>
-            <div id="kpiAssigned" class="kpi-value">--</div>
-          </div>
-          <div class="kpi-card overview">
-            <div class="kpi-title">Under Review</div>
-            <div id="kpiUnderReview" class="kpi-value">--</div>
-          </div>
-          <div class="kpi-card overview">
-            <div class="kpi-title">Approved</div>
-            <div id="kpiApproved" class="kpi-value">--</div>
-          </div>
-          <div class="kpi-card overview">
-            <div class="kpi-title">Redo</div>
-            <div id="kpiRedo" class="kpi-value">--</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section" id="fieldConfigSection" style="display:none;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-          <div>
-            <h3 style="margin:0;">Field Configuration</h3>
-            <div class="muted">Choose which fields the field engineer fills in on-site, and the input type. Saved per layer; applies to all its features.</div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button id="allEditableBtn" class="btn btn-secondary" type="button">All editable</button>
-            <button id="allReadonlyBtn" class="btn btn-secondary" type="button">All read-only</button>
-            <button id="resetConfigBtn" class="btn btn-secondary" type="button">Reset to auto</button>
-            <button id="saveConfigBtn" class="btn" type="button">Save configuration</button>
-          </div>
-        </div>
-        <div id="fieldConfigStatus" class="muted" style="margin-top:8px;"></div>
-        <table style="margin-top:8px;">
-          <thead>
-            <tr>
-              <th>Field</th>
-              <th>Key</th>
-              <th style="text-align:center;">Engineer fills?</th>
-              <th>Input type</th>
-            </tr>
-          </thead>
-          <tbody id="fieldConfigBody">
-            <tr><td colspan="4" style="padding:16px;color:#616A75;">Loading field configuration…</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="section">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <h3 style="margin:0;">Features</h3>
-          <div id="featureMeta" class="muted"></div>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Feature ID</th>
-              <th>Status</th>
-              <th>Assigned To</th>
-              <th>Planned<br>Measurements</th>
-              <th>Detected Measurements</th>
-                <th>Updated</th>
-                <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="featuresBody">
-            <tr>
-              <td colspan="7" style="padding:16px;color:#616A75;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      </main>
     </div>
-  </main>
-</div>
 
-<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
 
-<script src="fiber-api.js"></script>
-<script src="js/layer-details.js"></script>
-
-</body>
+    <script src="fiber-api.js"></script>
+    <script src="js/layer-details.js"></script>
+  </body>
 </html>

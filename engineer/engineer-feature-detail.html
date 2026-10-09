@@ -1,56 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Feature Details | Tech Mahindra</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feature Details | Tech Mahindra</title>
 
-  <!-- MapLibre GL -->
-  
-  <style>
+    <!-- MapLibre GL -->
 
+    <style>
       :root {
+        --tm-red: #e31837;
 
-        --tm-red:#E31837;
+        --dark: #1f2937;
 
-        --dark:#1F2937;
+        --gray: #616a75;
 
-        --gray:#616A75;
+        --light: #f9fafb;
 
-        --light:#F9FAFB;
+        --white: #ffffff;
 
-        --white:#FFFFFF;
+        --green: #047857;
 
-        --green:#047857;
+        --amber: #b45309;
 
-        --amber:#B45309;
+        --blue: #3b82f6;
 
-        --blue:#3B82F6;
-
-        --red:#B91C1C;
-
+        --red: #b91c1c;
       }
 
-  
-
-      * { box-sizing:border-box; font-family:system-ui, -apple-system, sans-serif; }
-
-  
+      * {
+        box-sizing: border-box;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
 
       body {
+        margin: 0;
 
-        margin:0;
+        background: var(--light);
 
-        background:var(--light);
-
-        color:var(--dark);
-
+        color: var(--dark);
       }
 
-  
-
       .top-bar {
-
         position: sticky;
 
         top: 0;
@@ -68,13 +62,9 @@
         align-items: center;
 
         gap: 12px;
-
       }
 
-  
-
       .top-bar .back-btn {
-
         background: none;
 
         border: none;
@@ -90,13 +80,9 @@
         align-items: center;
 
         justify-content: center;
-
       }
 
-  
-
       .top-bar .brand {
-
         margin: 0;
 
         font-size: 16px;
@@ -106,65 +92,45 @@
         color: var(--tm-red);
 
         letter-spacing: 0.2px;
-
       }
-
-  
 
       .container {
+        padding: 16px;
 
-        padding:16px;
+        max-width: 800px;
 
-        max-width:800px;
-
-        margin:auto;
-
+        margin: auto;
       }
-
-  
 
       h1 {
+        font-size: 20px;
 
-        font-size:20px;
-
-        margin-bottom:4px;
-
+        margin-bottom: 4px;
       }
 
-  
-
       .subtitle {
-
         font-size: 13px;
 
         color: var(--gray);
 
         margin-bottom: 16px;
-
       }
-
-  
 
       .card {
+        background: var(--white);
 
-        background:var(--white);
+        border-radius: 12px;
 
-        border-radius:12px;
+        padding: 16px;
 
-        padding:16px;
+        margin-bottom: 14px;
 
-        margin-bottom:14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
-        box-shadow:0 4px 12px rgba(0,0,0,0.05);
-
-        border: 1px solid #E5E7EB;
-
+        border: 1px solid #e5e7eb;
       }
 
-  
-
       .card-title {
-
         font-size: 14px;
 
         font-weight: 600;
@@ -176,27 +142,19 @@
         text-transform: uppercase;
 
         letter-spacing: 0.5px;
-
       }
-
-  
 
       /* Map Styles */
 
       #map {
-
         height: 280px;
 
         border-radius: 8px;
 
         margin-bottom: 12px;
-
       }
 
-  
-
       .map-info {
-
         display: flex;
 
         gap: 16px;
@@ -204,27 +162,19 @@
         font-size: 13px;
 
         color: var(--gray);
-
       }
 
-  
-
       .map-info-item {
-
         display: flex;
 
         align-items: center;
 
         gap: 4px;
-
       }
-
-  
 
       /* Status Badge */
 
       .status-badge {
-
         display: inline-flex;
 
         align-items: center;
@@ -238,26 +188,32 @@
         font-size: 12px;
 
         font-weight: 600;
-
       }
 
-  
+      .status-assigned {
+        background: #dbeafe;
+        color: #1e40af;
+      }
 
-      .status-assigned { background: #DBEAFE; color: #1E40AF; }
+      .status-under_review {
+        background: #fef3c7;
+        color: #92400e;
+      }
 
-      .status-under_review { background: #FEF3C7; color: #92400E; }
+      .status-approved {
+        background: #d1fae5;
+        color: #065f46;
+      }
 
-      .status-approved { background: #D1FAE5; color: #065F46; }
-
-      .status-redo { background: #FEE2E2; color: #991B1B; }
-
-  
+      .status-redo {
+        background: #fee2e2;
+        color: #991b1b;
+      }
 
       /* Upload Section */
 
       .upload-area {
-
-        border: 2px dashed #D1D5DB;
+        border: 2px dashed #d1d5db;
 
         border-radius: 12px;
 
@@ -269,34 +225,22 @@
 
         transition: all 0.2s;
 
-        background: #FAFAFA;
-
+        background: #fafafa;
       }
-
-  
 
       .upload-area:hover {
-
         border-color: var(--blue);
 
-        background: #F0F9FF;
-
+        background: #f0f9ff;
       }
-
-  
 
       .upload-area.has-file {
-
         border-color: var(--green);
 
-        background: #F0FDF4;
-
+        background: #f0fdf4;
       }
 
-  
-
       .upload-icon {
-
         width: 48px;
 
         height: 48px;
@@ -304,43 +248,27 @@
         margin-bottom: 12px;
 
         color: var(--gray);
-
       }
 
-  
-
       .upload-text {
-
         font-size: 14px;
 
         color: var(--gray);
 
         margin-bottom: 4px;
-
       }
-
-  
 
       .upload-hint {
-
         font-size: 12px;
 
-        color: #6B7280;
-
+        color: #6b7280;
       }
-
-  
 
       .file-input {
-
         display: none;
-
       }
 
-  
-
       .image-preview {
-
         max-width: 100%;
 
         max-height: 300px;
@@ -348,31 +276,23 @@
         border-radius: 8px;
 
         margin-top: 12px;
-
       }
-
-  
 
       /* Input Mode Toggle */
 
       .input-mode-toggle {
-
         display: flex;
 
-        background: #F3F4F6;
+        background: #f3f4f6;
 
         border-radius: 8px;
 
         padding: 4px;
 
         margin-bottom: 16px;
-
       }
 
-  
-
       .mode-btn {
-
         flex: 1;
 
         padding: 10px 16px;
@@ -400,43 +320,27 @@
         justify-content: center;
 
         gap: 6px;
-
       }
 
-  
-
       .mode-btn.active {
-
         background: var(--white);
 
         color: var(--dark);
 
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
-
-  
 
       .mode-btn.ai-btn.active {
-
         color: var(--blue);
-
       }
-
-  
 
       /* Form Styles */
 
       .form-group {
-
         margin-bottom: 16px;
-
       }
 
-  
-
       .form-label {
-
         display: block;
 
         font-size: 13px;
@@ -446,123 +350,85 @@
         color: var(--dark);
 
         margin-bottom: 6px;
-
       }
 
-  
-
       .form-input {
-
         width: 100%;
 
         padding: 10px 12px;
 
-        border: 1px solid #D1D5DB;
+        border: 1px solid #d1d5db;
 
         border-radius: 8px;
 
         font-size: 14px;
 
         transition: border-color 0.2s;
-
       }
 
-  
-
       .form-input:focus {
-
         outline: none;
 
         border-color: var(--blue);
-
       }
-
-  
 
       .form-input:disabled {
-
-        background: #F3F4F6;
+        background: #f3f4f6;
 
         cursor: not-allowed;
-
       }
 
-  
-
       .form-row {
-
         display: grid;
 
         grid-template-columns: 1fr 1fr;
 
         gap: 12px;
-
       }
-
-  
 
       @media (max-width: 600px) {
-
-        .form-row { grid-template-columns: 1fr; }
-
+        .form-row {
+          grid-template-columns: 1fr;
+        }
       }
-
-  
 
       /* AI Mode Placeholder */
 
       .ai-placeholder {
-
         text-align: center;
 
         padding: 40px 20px;
 
         color: var(--gray);
 
-        background: #F9FAFB;
+        background: #f9fafb;
 
         border-radius: 8px;
 
-        border: 1px dashed #E5E7EB;
-
+        border: 1px dashed #e5e7eb;
       }
 
-  
-
       .ai-icon {
-
         font-size: 40px;
 
         margin-bottom: 12px;
-
       }
 
-  
-
       .ai-text {
-
         font-size: 14px;
 
         margin-bottom: 8px;
-
       }
-
-  
 
       .ai-hint {
-
         font-size: 12px;
 
-        color: #6B7280;
-
+        color: #6b7280;
       }
-
-  
 
       /* Submit Button */
 
       .btn {
-
         display: inline-flex;
 
         align-items: center;
@@ -588,81 +454,67 @@
         transition: all 0.2s;
 
         width: 100%;
-
       }
 
-  
+      .btn-primary {
+        background: var(--tm-red);
+        color: white;
+      }
 
-      .btn-primary { background: var(--tm-red); color: white; }
+      .btn-primary:hover {
+        background: #c41230;
+      }
 
-      .btn-primary:hover { background: #C41230; }
+      .btn-success {
+        background: var(--green);
+        color: white;
+      }
 
-      .btn-success { background: var(--green); color: white; }
-
-      .btn-success:hover { background: #047857; }
+      .btn-success:hover {
+        background: #047857;
+      }
 
       .btn:disabled {
-
         opacity: 0.5;
 
         cursor: not-allowed;
-
       }
-
-  
 
       /* Properties List */
 
       .properties-list {
-
         display: grid;
 
         gap: 8px;
-
       }
 
-  
-
       .property-item {
-
         display: flex;
 
         justify-content: space-between;
 
         padding: 10px 12px;
 
-        background: #F9FAFB;
+        background: #f9fafb;
 
         border-radius: 6px;
 
         font-size: 13px;
-
       }
-
-  
 
       .property-key {
-
         color: var(--gray);
-
       }
 
-  
-
       .property-value {
-
         font-weight: 500;
 
         color: var(--dark);
-
       }
-
-  
 
       /* Success Modal */
 
       .modal-overlay {
-
         display: none;
 
         position: fixed;
@@ -675,7 +527,7 @@
 
         bottom: 0;
 
-        background: rgba(0,0,0,0.5);
+        background: rgba(0, 0, 0, 0.5);
 
         z-index: 2000;
 
@@ -684,21 +536,13 @@
         justify-content: center;
 
         padding: 20px;
-
       }
-
-  
 
       .modal-overlay.show {
-
         display: flex;
-
       }
 
-  
-
       .modal-content {
-
         background: white;
 
         border-radius: 16px;
@@ -712,23 +556,21 @@
         text-align: center;
 
         animation: modalPop 0.3s ease;
-
       }
-
-  
 
       @keyframes modalPop {
+        0% {
+          transform: scale(0.9);
+          opacity: 0;
+        }
 
-        0% { transform: scale(0.9); opacity: 0; }
-
-        100% { transform: scale(1); opacity: 1; }
-
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
       }
 
-  
-
       .success-icon {
-
         width: 64px;
 
         height: 64px;
@@ -746,78 +588,54 @@
         margin: 0 auto 16px;
 
         color: white;
-
       }
 
-  
-
       .modal-title {
-
         font-size: 18px;
 
         font-weight: 600;
 
         margin-bottom: 8px;
-
       }
 
-  
-
       .modal-text {
-
         font-size: 14px;
 
         color: var(--gray);
 
         margin-bottom: 20px;
-
       }
-
-  
 
       .redirect-hint {
-
         font-size: 12px;
 
-        color: #6B7280;
-
+        color: #6b7280;
       }
-
-  
 
       /* Loading States */
 
       .loading-state {
-
         text-align: center;
 
         padding: 40px;
 
         color: var(--gray);
-
       }
 
-  
-
       .error-state {
-
         text-align: center;
 
         padding: 40px;
 
         color: var(--red);
-
       }
 
-  
-
       .spinner {
-
         width: 24px;
 
         height: 24px;
 
-        border: 2px solid #E5E7EB;
+        border: 2px solid #e5e7eb;
 
         border-top-color: var(--blue);
 
@@ -826,392 +644,426 @@
         animation: spin 1s linear infinite;
 
         display: inline-block;
-
       }
-
-  
 
       @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="../css/tokens.css" />
+    <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+    <script src="../js/ftth-ui.js"></script>
+    <script src="../vendor/maplibre/maplibre-gl.js"></script>
+  </head>
+  <body>
+    <header class="top-bar" role="banner">
+      <button class="back-btn" onclick="goBack()" aria-label="Go back">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <h2 class="brand">Tech Mahindra</h2>
+    </header>
 
-        to { transform: rotate(360deg); }
+    <div class="container">
+      <h1 id="featureName">Loading...</h1>
+      <div class="subtitle" id="featureMeta">Loading feature details...</div>
 
+      <!-- Status Card -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <div>
+            <div class="card-title">Current Status</div>
+            <span id="statusBadge" class="status-badge">Loading...</span>
+          </div>
+          <div style="text-align: right">
+            <div style="font-size: 12px; color: var(--gray)">Feature ID</div>
+            <div style="font-size: 13px; font-weight: 500; font-family: monospace" id="featureId">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Card -->
+      <div class="card">
+        <div class="card-title">Feature Geo Data</div>
+        <div id="map"></div>
+        <div class="map-info">
+          <div class="map-info-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            <span id="latLng">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Properties Card -->
+      <div class="card">
+        <div class="card-title">Planned Properties</div>
+        <div id="propertiesList" class="properties-list">
+          <div class="loading-state">Loading properties...</div>
+        </div>
+      </div>
+
+      <!-- Image Upload Card -->
+      <div class="card" id="uploadCard">
+        <div class="card-title">Site Photo</div>
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17,8 12,3 7,8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <div class="upload-text">Click to upload photo</div>
+          <div class="upload-hint">JPG, PNG up to 10MB</div>
+        </div>
+        <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)" />
+        <img id="imagePreview" class="image-preview" style="display: none" />
+      </div>
+
+      <!-- Measurements Card -->
+      <div class="card" id="measurementsCard">
+        <div class="card-title">Measurements</div>
+
+        <!-- Input Mode Toggle -->
+        <div class="input-mode-toggle">
+          <button class="mode-btn active" id="manualBtn" onclick="setInputMode('manual')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Manual Entry
+          </button>
+          <button class="mode-btn ai-btn" id="aiBtn" onclick="setInputMode('ai')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21,15 16,10 5,21" />
+            </svg>
+            AI Detection
+          </button>
+        </div>
+
+        <!-- Manual Entry Form -->
+        <div id="manualForm">
+          <div id="measurementsForm">
+            <!-- Dynamic fields will be inserted here -->
+          </div>
+        </div>
+
+        <!-- AI Detection Placeholder -->
+        <div id="aiForm" style="display: none">
+          <div class="ai-placeholder">
+            <div class="ai-icon">🤖</div>
+            <div class="ai-text">AI Detection Coming Soon</div>
+            <div class="ai-hint">Upload an image and our AI will auto-detect measurements</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button class="btn btn-success" id="submitBtn" onclick="submitMeasurements()" style="margin-bottom: 80px">
+        Submit Measurements
+      </button>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+      <div class="modal-content">
+        <div class="success-icon">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20,6 9,17 4,12" />
+          </svg>
+        </div>
+        <div class="modal-title">Submitted Successfully!</div>
+        <div class="modal-text">Your measurements have been submitted for review.</div>
+        <div class="redirect-hint">Redirecting to dashboard in <span id="countdown">2</span>s...</div>
+      </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+      window.EngineerApi.requireLogin();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const projectId = urlParams.get('project_id');
+      const featureId = urlParams.get('feature_id');
+      const engineerId = window.EngineerApi.getUser()?.id;
+
+      let currentFeature = null;
+      let uploadedFile = null;
+      let plannedMeasurements = [];
+      let map = null;
+
+      if (!projectId || !featureId) {
+        document.querySelector('.container').innerHTML = '<div class="error-state">Missing project or feature ID</div>';
       }
 
-    </style>
-<link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css" />
-<link rel="stylesheet" href="../css/components.css">
-<script src="../js/ftth-ui.js"></script>
-  <script src="../vendor/maplibre/maplibre-gl.js"></script>
+      function goBack() {
+        window.location.href = `engineer-project-features.html?project_id=${encodeURIComponent(projectId)}`;
+      }
 
-  
-</head>
-<body>
+      function setInputMode(mode) {
+        document.getElementById('manualBtn').classList.toggle('active', mode === 'manual');
+        document.getElementById('aiBtn').classList.toggle('active', mode === 'ai');
+        document.getElementById('manualForm').style.display = mode === 'manual' ? 'block' : 'none';
+        document.getElementById('aiForm').style.display = mode === 'ai' ? 'block' : 'none';
+      }
 
-<header class="top-bar" role="banner">
-  <button class="back-btn" onclick="goBack()" aria-label="Go back">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M19 12H5M12 19l-7-7 7-7"/>
-    </svg>
-  </button>
-  <h2 class="brand">Tech Mahindra</h2>
-</header>
+      function getStatusClass(status) {
+        return `status-${status}`;
+      }
 
-<div class="container">
-  <h1 id="featureName">Loading...</h1>
-  <div class="subtitle" id="featureMeta">Loading feature details...</div>
+      function getStatusText(status) {
+        const map = {
+          assigned: 'Assigned',
+          under_review: 'Under Review',
+          approved: 'Approved',
+          redo: 'Redo',
+          pending: 'Pending',
+        };
+        return map[status] || status;
+      }
 
-  <!-- Status Card -->
-  <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <div class="card-title">Current Status</div>
-        <span id="statusBadge" class="status-badge">Loading...</span>
-      </div>
-      <div style="text-align: right;">
-        <div style="font-size: 12px; color: var(--gray);">Feature ID</div>
-        <div style="font-size: 13px; font-weight: 500; font-family: monospace;" id="featureId">-</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Map Card -->
-  <div class="card">
-    <div class="card-title">Feature Geo Data</div>
-    <div id="map"></div>
-    <div class="map-info">
-      <div class="map-info-item">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-          <circle cx="12" cy="10" r="3"/>
-        </svg>
-        <span id="latLng">-</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Properties Card -->
-  <div class="card">
-    <div class="card-title">Planned Properties</div>
-    <div id="propertiesList" class="properties-list">
-      <div class="loading-state">Loading properties...</div>
-    </div>
-  </div>
-
-  <!-- Image Upload Card -->
-  <div class="card" id="uploadCard">
-    <div class="card-title">Site Photo</div>
-    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-      <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-        <polyline points="17,8 12,3 7,8"/>
-        <line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>
-      <div class="upload-text">Click to upload photo</div>
-      <div class="upload-hint">JPG, PNG up to 10MB</div>
-    </div>
-    <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)">
-    <img id="imagePreview" class="image-preview" style="display: none;">
-  </div>
-
-  <!-- Measurements Card -->
-  <div class="card" id="measurementsCard">
-    <div class="card-title">Measurements</div>
-    
-    <!-- Input Mode Toggle -->
-    <div class="input-mode-toggle">
-      <button class="mode-btn active" id="manualBtn" onclick="setInputMode('manual')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-        Manual Entry
-      </button>
-      <button class="mode-btn ai-btn" id="aiBtn" onclick="setInputMode('ai')">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <polyline points="21,15 16,10 5,21"/>
-        </svg>
-        AI Detection
-      </button>
-    </div>
-
-    <!-- Manual Entry Form -->
-    <div id="manualForm">
-      <div id="measurementsForm">
-        <!-- Dynamic fields will be inserted here -->
-      </div>
-    </div>
-
-    <!-- AI Detection Placeholder -->
-    <div id="aiForm" style="display: none;">
-      <div class="ai-placeholder">
-        <div class="ai-icon">🤖</div>
-        <div class="ai-text">AI Detection Coming Soon</div>
-        <div class="ai-hint">Upload an image and our AI will auto-detect measurements</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Submit Button -->
-  <button class="btn btn-success" id="submitBtn" onclick="submitMeasurements()" style="margin-bottom: 80px;">
-    Submit Measurements
-  </button>
-</div>
-
-<!-- Success Modal -->
-<div class="modal-overlay" id="successModal">
-  <div class="modal-content">
-    <div class="success-icon">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="20,6 9,17 4,12"/>
-      </svg>
-    </div>
-    <div class="modal-title">Submitted Successfully!</div>
-    <div class="modal-text">Your measurements have been submitted for review.</div>
-    <div class="redirect-hint">Redirecting to dashboard in <span id="countdown">2</span>s...</div>
-  </div>
-</div>
-
-<script src="js/api.js"></script>
-<script>
-  window.EngineerApi.requireLogin();
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const projectId = urlParams.get('project_id');
-  const featureId = urlParams.get('feature_id');
-  const engineerId = window.EngineerApi.getUser()?.id;
-
-  let currentFeature = null;
-  let uploadedFile = null;
-  let plannedMeasurements = [];
-  let map = null;
-
-  if (!projectId || !featureId) {
-    document.querySelector('.container').innerHTML = 
-      '<div class="error-state">Missing project or feature ID</div>';
-  }
-
-  function goBack() {
-    window.location.href = `engineer-project-features.html?project_id=${encodeURIComponent(projectId)}`;
-  }
-
-  function setInputMode(mode) {
-    document.getElementById('manualBtn').classList.toggle('active', mode === 'manual');
-    document.getElementById('aiBtn').classList.toggle('active', mode === 'ai');
-    document.getElementById('manualForm').style.display = mode === 'manual' ? 'block' : 'none';
-    document.getElementById('aiForm').style.display = mode === 'ai' ? 'block' : 'none';
-  }
-
-  function getStatusClass(status) {
-    return `status-${status}`;
-  }
-
-  function getStatusText(status) {
-    const map = {
-      'assigned': 'Assigned',
-      'under_review': 'Under Review',
-      'approved': 'Approved',
-      'redo': 'Redo',
-      'pending': 'Pending'
-    };
-    return map[status] || status;
-  }
-
-  function initMap(lat, lng, geoJsonFeature) {
-    if (map) {
-      map.remove();
-      map = null;
-    }
-    map = new maplibregl.Map({
-      container: 'map',
-      style: {
-        version: 8,
-        sources: {
-          'osm-raster': {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          }
-        },
-        layers: [
-          { id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 }
-        ]
-      },
-      center: [lng, lat],
-      zoom: 17
-    });
-    map.addControl(new maplibregl.NavigationControl(), 'top-left');
-
-    // Render the actual GeoJSON feature shape in red
-    if (geoJsonFeature && geoJsonFeature.geometry) {
-      const sourceId = 'feature-source';
-      const gtype = geoJsonFeature.geometry.type;
-      const isPoint = gtype === 'Point' || gtype === 'MultiPoint';
-
-      map.on('load', function () {
-        if (map.getSource(sourceId)) {
-          try { map.removeLayer('feature-fill'); } catch (_) {}
-          try { map.removeLayer('feature-line'); } catch (_) {}
-          try { map.removeLayer('feature-point'); } catch (_) {}
-          map.removeSource(sourceId);
+      function initMap(lat, lng, geoJsonFeature) {
+        if (map) {
+          map.remove();
+          map = null;
         }
-        map.addSource(sourceId, { type: 'geojson', data: geoJsonFeature });
+        map = new maplibregl.Map({
+          container: 'map',
+          style: {
+            version: 8,
+            sources: {
+              'osm-raster': {
+                type: 'raster',
+                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              },
+            },
+            layers: [{ id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 }],
+          },
+          center: [lng, lat],
+          zoom: 17,
+        });
+        map.addControl(new maplibregl.NavigationControl(), 'top-left');
 
-        if (isPoint) {
-          map.addLayer({
-            id: 'feature-point', type: 'circle', source: sourceId,
-            paint: {
-              'circle-radius': 8, 'circle-color': '#B91C1C', 'circle-opacity': 0.6,
-              'circle-stroke-color': '#B91C1C', 'circle-stroke-width': 2
+        // Render the actual GeoJSON feature shape in red
+        if (geoJsonFeature && geoJsonFeature.geometry) {
+          const sourceId = 'feature-source';
+          const gtype = geoJsonFeature.geometry.type;
+          const isPoint = gtype === 'Point' || gtype === 'MultiPoint';
+
+          map.on('load', function () {
+            if (map.getSource(sourceId)) {
+              try {
+                map.removeLayer('feature-fill');
+              } catch (_) {}
+              try {
+                map.removeLayer('feature-line');
+              } catch (_) {}
+              try {
+                map.removeLayer('feature-point');
+              } catch (_) {}
+              map.removeSource(sourceId);
+            }
+            map.addSource(sourceId, { type: 'geojson', data: geoJsonFeature });
+
+            if (isPoint) {
+              map.addLayer({
+                id: 'feature-point',
+                type: 'circle',
+                source: sourceId,
+                paint: {
+                  'circle-radius': 8,
+                  'circle-color': '#B91C1C',
+                  'circle-opacity': 0.6,
+                  'circle-stroke-color': '#B91C1C',
+                  'circle-stroke-width': 2,
+                },
+              });
+            } else {
+              map.addLayer({
+                id: 'feature-line',
+                type: 'line',
+                source: sourceId,
+                paint: { 'line-color': '#B91C1C', 'line-width': 3, 'line-opacity': 1 },
+              });
+              if (gtype === 'Polygon' || gtype === 'MultiPolygon') {
+                map.addLayer({
+                  id: 'feature-fill',
+                  type: 'fill',
+                  source: sourceId,
+                  paint: { 'fill-color': '#B91C1C', 'fill-opacity': 0.3 },
+                });
+              }
+              // Fit bounds for non-Point geometries
+              const b = featureBoundsOf(geoJsonFeature);
+              if (b) map.fitBounds(b, { padding: 50, maxZoom: 18 });
             }
           });
         } else {
-          map.addLayer({
-            id: 'feature-line', type: 'line', source: sourceId,
-            paint: { 'line-color': '#B91C1C', 'line-width': 3, 'line-opacity': 1 }
-          });
-          if (gtype === 'Polygon' || gtype === 'MultiPolygon') {
-            map.addLayer({
-              id: 'feature-fill', type: 'fill', source: sourceId,
-              paint: { 'fill-color': '#B91C1C', 'fill-opacity': 0.3 }
+          // Fallback: red circle marker if no GeoJSON
+          map.on('load', function () {
+            map.addSource('fallback-point', {
+              type: 'geojson',
+              data: { type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: {} },
             });
-          }
-          // Fit bounds for non-Point geometries
-          const b = featureBoundsOf(geoJsonFeature);
-          if (b) map.fitBounds(b, { padding: 50, maxZoom: 18 });
+            map.addLayer({
+              id: 'fallback-point-layer',
+              type: 'circle',
+              source: 'fallback-point',
+              paint: {
+                'circle-radius': 8,
+                'circle-color': '#B91C1C',
+                'circle-opacity': 0.8,
+                'circle-stroke-color': '#FFFFFF',
+                'circle-stroke-width': 2,
+              },
+            });
+          });
         }
-      });
-    } else {
-      // Fallback: red circle marker if no GeoJSON
-      map.on('load', function () {
-        map.addSource('fallback-point', {
-          type: 'geojson',
-          data: { type: 'Feature', geometry: { type: 'Point', coordinates: [lng, lat] }, properties: {} }
+      }
+
+      function featureBoundsOf(geojson) {
+        if (!geojson || !geojson.geometry || !geojson.geometry.coordinates) return null;
+        const coords = geojson.geometry.coordinates;
+        const type = geojson.geometry.type;
+        const points = [];
+        if (type === 'LineString' || type === 'MultiPoint') points.push(...coords);
+        else if (type === 'MultiLineString' || type === 'Polygon') points.push(...(coords[0] || []));
+        else if (type === 'MultiPolygon') points.push(...((coords[0] && coords[0][0]) || []));
+        if (!points.length) return null;
+        const b = new maplibregl.LngLatBounds();
+        points.forEach((p) => {
+          if (p && p.length >= 2) b.extend(p);
         });
-        map.addLayer({
-          id: 'fallback-point-layer', type: 'circle', source: 'fallback-point',
-          paint: { 'circle-radius': 8, 'circle-color': '#B91C1C', 'circle-opacity': 0.8, 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 2 }
-        });
-      });
-    }
-  }
+        return b;
+      }
 
-  function featureBoundsOf(geojson) {
-    if (!geojson || !geojson.geometry || !geojson.geometry.coordinates) return null;
-    const coords = geojson.geometry.coordinates;
-    const type = geojson.geometry.type;
-    const points = [];
-    if (type === 'LineString' || type === 'MultiPoint') points.push(...coords);
-    else if (type === 'MultiLineString' || type === 'Polygon') points.push(...(coords[0] || []));
-    else if (type === 'MultiPolygon') points.push(...((coords[0] && coords[0][0]) || []));
-    if (!points.length) return null;
-    const b = new maplibregl.LngLatBounds();
-    points.forEach((p) => { if (p && p.length >= 2) b.extend(p); });
-    return b;
-  }
+      async function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-  async function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+        if (!file.type.startsWith('image/')) {
+          await FtthUI.alert({
+            title: 'Wrong file type',
+            message: 'Please select an image file.',
+          });
+          event.target.value = '';
+          return;
+        }
 
-    if (!file.type.startsWith('image/')) {
-      await FtthUI.alert({
-        title: 'Wrong file type',
-        message: 'Please select an image file.'
-      });
-      event.target.value = '';
-      return;
-    }
+        if (file.size > 10 * 1024 * 1024) {
+          await FtthUI.alert({
+            title: 'File too large',
+            message: 'File size must be less than 10MB.',
+          });
+          // Clear the input, or re-opening the same picker fires no change
+          // event and the user cannot retry without a page reload.
+          event.target.value = '';
+          return;
+        }
 
-    if (file.size > 10 * 1024 * 1024) {
-      await FtthUI.alert({
-        title: 'File too large',
-        message: 'File size must be less than 10MB.'
-      });
-      // Clear the input, or re-opening the same picker fires no change
-      // event and the user cannot retry without a page reload.
-      event.target.value = '';
-      return;
-    }
+        uploadedFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const preview = document.getElementById('imagePreview');
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          document.getElementById('uploadArea').classList.add('has-file');
+          document.querySelector('.upload-text').textContent = file.name;
+          document.querySelector('.upload-hint').textContent = 'Click to change photo';
+        };
+        reader.readAsDataURL(file);
+      }
 
-    uploadedFile = file;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const preview = document.getElementById('imagePreview');
-      preview.src = e.target.result;
-      preview.style.display = 'block';
-      document.getElementById('uploadArea').classList.add('has-file');
-      document.querySelector('.upload-text').textContent = file.name;
-      document.querySelector('.upload-hint').textContent = 'Click to change photo';
-    };
-    reader.readAsDataURL(file);
-  }
+      // Read a previously-entered value/unit out of stored field_measurements.
+      // Stored entries are either { value, unit } objects or raw scalars.
+      function existingValue(measurements, key) {
+        const e = measurements && measurements[key];
+        if (e == null) return '';
+        if (typeof e === 'object') return e.value != null ? e.value : '';
+        return e;
+      }
+      function existingUnit(measurements, key) {
+        const e = measurements && measurements[key];
+        return e && typeof e === 'object' && e.unit ? e.unit : 'm';
+      }
 
-  // Read a previously-entered value/unit out of stored field_measurements.
-  // Stored entries are either { value, unit } objects or raw scalars.
-  function existingValue(measurements, key) {
-    const e = measurements && measurements[key];
-    if (e == null) return '';
-    if (typeof e === 'object') return e.value != null ? e.value : '';
-    return e;
-  }
-  function existingUnit(measurements, key) {
-    const e = measurements && measurements[key];
-    return (e && typeof e === 'object' && e.unit) ? e.unit : 'm';
-  }
+      function unitOptions(selected) {
+        return ['m:meters', 'cm:centimeters', 'mm:millimeters', 'ft:feet', 'in:inches']
+          .map((pair) => {
+            const [val, text] = pair.split(':');
+            return `<option value="${val}"${val === selected ? ' selected' : ''}>${text}</option>`;
+          })
+          .join('');
+      }
 
-  function unitOptions(selected) {
-    return ['m:meters', 'cm:centimeters', 'mm:millimeters', 'ft:feet', 'in:inches']
-      .map(pair => {
-        const [val, text] = pair.split(':');
-        return `<option value="${val}"${val === selected ? ' selected' : ''}>${text}</option>`;
-      }).join('');
-  }
+      // Build the engineer form from the layer's derived field_schema.
+      // Falls back to legacy fuzzy detection for features imported before schemas existed.
+      function generateMeasurementFields(schema, properties, measurements) {
+        const form = document.getElementById('measurementsForm');
+        plannedMeasurements = [];
 
-  // Build the engineer form from the layer's derived field_schema.
-  // Falls back to legacy fuzzy detection for features imported before schemas existed.
-  function generateMeasurementFields(schema, properties, measurements) {
-    const form = document.getElementById('measurementsForm');
-    plannedMeasurements = [];
+        if (!Array.isArray(schema) || schema.length === 0) {
+          generateMeasurementFieldsLegacy(properties);
+          return;
+        }
 
-    if (!Array.isArray(schema) || schema.length === 0) {
-      generateMeasurementFieldsLegacy(properties);
-      return;
-    }
+        const editable = schema.filter((f) => f && f.editable).sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    const editable = schema
-      .filter(f => f && f.editable)
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
+        if (editable.length === 0) {
+          form.innerHTML =
+            '<div class="empty-state" style="padding:20px;">No engineer-entered fields for this layer.</div>';
+          return;
+        }
 
-    if (editable.length === 0) {
-      form.innerHTML = '<div class="empty-state" style="padding:20px;">No engineer-entered fields for this layer.</div>';
-      return;
-    }
+        form.innerHTML = editable
+          .map((field) => {
+            const key = field.key;
+            const label = field.label || key;
+            const planned = properties[key] != null ? String(properties[key]) : '';
+            const val = existingValue(measurements, key);
+            plannedMeasurements.push({ key, plannedValue: planned, label });
 
-    form.innerHTML = editable.map(field => {
-      const key = field.key;
-      const label = field.label || key;
-      const planned = properties[key] != null ? String(properties[key]) : '';
-      const val = existingValue(measurements, key);
-      plannedMeasurements.push({ key, plannedValue: planned, label });
+            const placeholder = planned ? `Planned: ${planned}` : 'Enter value';
 
-      const placeholder = planned ? `Planned: ${planned}` : 'Enter value';
-
-      if (field.widget === 'textarea') {
-        return `
+            if (field.widget === 'textarea') {
+              return `
           <div class="form-group" style="margin-bottom:16px;">
             <label class="form-label">${escapeHtml(label)}</label>
             <textarea class="form-input" rows="3"
                       data-measurement="${escapeHtml(key)}" data-widget="textarea"
                       placeholder="${escapeHtml(placeholder)}">${escapeHtml(String(val))}</textarea>
           </div>`;
-      }
+            }
 
-      if (field.widget === 'number' && field.unit) {
-        return `
+            if (field.widget === 'number' && field.unit) {
+              return `
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">${escapeHtml(label)}</label>
@@ -1226,51 +1078,59 @@
               </select>
             </div>
           </div>`;
-      }
+            }
 
-      // text, measurement_text, qc, qc_result -> single text input
-      return `
+            // text, measurement_text, qc, qc_result -> single text input
+            return `
         <div class="form-group" style="margin-bottom:16px;">
           <label class="form-label">${escapeHtml(label)}</label>
           <input type="text" class="form-input"
                  data-measurement="${escapeHtml(key)}" data-widget="text"
                  value="${escapeHtml(String(val))}" placeholder="${escapeHtml(placeholder)}">
         </div>`;
-    }).join('');
+          })
+          .join('');
 
-    // General free-form notes -> stored separately as comparison_notes.
-    form.innerHTML += `
+        // General free-form notes -> stored separately as comparison_notes.
+        form.innerHTML += `
       <div class="form-group" style="margin-top: 16px;">
         <label class="form-label">Additional Notes</label>
         <textarea class="form-input" id="notesInput" rows="3" placeholder="Any additional observations..."></textarea>
       </div>
     `;
-  }
+      }
 
-  // Legacy fallback: fuzzy-detect measurement-like properties (pre-schema features).
-  function generateMeasurementFieldsLegacy(properties) {
-    const form = document.getElementById('measurementsForm');
-    plannedMeasurements = [];
+      // Legacy fallback: fuzzy-detect measurement-like properties (pre-schema features).
+      function generateMeasurementFieldsLegacy(properties) {
+        const form = document.getElementById('measurementsForm');
+        plannedMeasurements = [];
 
-    const measurementKeys = Object.keys(properties).filter(key => {
-      const val = properties[key];
-      return typeof val === 'number' ||
-             ((typeof val === 'string' && !isNaN(parseFloat(val))) &&
-              (key.toLowerCase().includes('height') || key.toLowerCase().includes('width') ||
-               key.toLowerCase().includes('depth') || key.toLowerCase().includes('length') ||
-               key.toLowerCase().includes('diameter') || key.toLowerCase().includes('size') ||
-               key.toLowerCase().includes('measure')));
-    });
+        const measurementKeys = Object.keys(properties).filter((key) => {
+          const val = properties[key];
+          return (
+            typeof val === 'number' ||
+            (typeof val === 'string' &&
+              !isNaN(parseFloat(val)) &&
+              (key.toLowerCase().includes('height') ||
+                key.toLowerCase().includes('width') ||
+                key.toLowerCase().includes('depth') ||
+                key.toLowerCase().includes('length') ||
+                key.toLowerCase().includes('diameter') ||
+                key.toLowerCase().includes('size') ||
+                key.toLowerCase().includes('measure')))
+          );
+        });
 
-    const defaultFields = measurementKeys.length > 0 ? measurementKeys :
-      ['height', 'diameter', 'cable_count', 'pole_depth'];
+        const defaultFields =
+          measurementKeys.length > 0 ? measurementKeys : ['height', 'diameter', 'cable_count', 'pole_depth'];
 
-    form.innerHTML = defaultFields.map(key => {
-      const plannedValue = properties[key] || '';
-      const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-      plannedMeasurements.push({ key, plannedValue, label });
+        form.innerHTML = defaultFields
+          .map((key) => {
+            const plannedValue = properties[key] || '';
+            const label = key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+            plannedMeasurements.push({ key, plannedValue, label });
 
-      return `
+            return `
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">${escapeHtml(label)}</label>
@@ -1285,238 +1145,257 @@
           </div>
         </div>
       `;
-    }).join('');
+          })
+          .join('');
 
-    form.innerHTML += `
+        form.innerHTML += `
       <div class="form-group" style="margin-top: 16px;">
         <label class="form-label">Additional Notes</label>
         <textarea class="form-input" id="notesInput" rows="3" placeholder="Any additional observations..."></textarea>
       </div>
     `;
-  }
-
-  async function loadFeatureDetails() {
-    if (!projectId || !featureId || !engineerId) return;
-
-    try {
-      // Load project details
-      const project = await window.EngineerApi.getProject(projectId);
-
-      // Load feature using the feature API
-      // Response format: { project_id, layer_name, feature: {...}, geojson: {...} }
-      const response = await window.EngineerApi.getFeature(projectId, featureId);
-      
-      console.log('API response:', response);
-      
-      // Get the geojson object which contains the geometry and properties
-      const geoJson = response.geojson || response;
-      const featureData = response.feature || {};
-      
-      // Parse GeoJSON format
-      const geometry = geoJson.geometry || {};
-      const properties = geoJson.properties || {};
-      
-      // Merge all data into currentFeature
-      currentFeature = {
-        ...featureData,
-        ...properties,
-        geometry: geometry,
-        properties: properties,
-        geojson: geoJson
-      };
-      
-      console.log('Parsed feature:', currentFeature);
-      
-      if (!geoJson.geometry) {
-        document.querySelector('.container').innerHTML = 
-          '<div class="error-state">Feature has no geometry data</div>';
-        return;
       }
-      
-      // Extract status from feature data or properties
-      const status = featureData.status || properties.status || 'unknown';
-      
-      // Prefer named WGS84 lat/lng on properties; fall back to GeoJSON [lng, lat].
-      let lat = properties.y || properties.latitude || properties.lat || properties.start_y || properties.End_Y__ || properties.End_Y || properties.End__Y__;
-      let lng = properties.x || properties.longitude || properties.lng || properties.lon || properties.start_x || properties.End_X__ || properties.End_X || properties.End__X__;
 
-      if ((!lat || !lng) && geometry.coordinates && Array.isArray(geometry.coordinates)) {
-        if (geometry.type === 'Point') {
-          lng = geometry.coordinates[0];
-          lat = geometry.coordinates[1];
-        }
-      }
-      
-      console.log('Geometry type:', geometry.type, 'CRS:', geometry.crs?.properties?.name);
-      console.log('Extracted lat/lng:', lat, lng);
-      
-      // Update UI
-      document.getElementById('featureName').textContent = 
-        currentFeature.layer_name || currentFeature.name || currentFeature.feature_name || 'Unknown Feature';
-      document.getElementById('featureMeta').textContent = 
-        `${project.name} • ${currentFeature.feature_type || currentFeature.type || 'Feature'}`;
-      document.getElementById('featureId').textContent = featureId.slice(0, 12) + '...';
-      
-      const statusBadge = document.getElementById('statusBadge');
-      statusBadge.className = `status-badge ${getStatusClass(status)}`;
-      statusBadge.innerHTML = `
+      async function loadFeatureDetails() {
+        if (!projectId || !featureId || !engineerId) return;
+
+        try {
+          // Load project details
+          const project = await window.EngineerApi.getProject(projectId);
+
+          // Load feature using the feature API
+          // Response format: { project_id, layer_name, feature: {...}, geojson: {...} }
+          const response = await window.EngineerApi.getFeature(projectId, featureId);
+
+          console.log('API response:', response);
+
+          // Get the geojson object which contains the geometry and properties
+          const geoJson = response.geojson || response;
+          const featureData = response.feature || {};
+
+          // Parse GeoJSON format
+          const geometry = geoJson.geometry || {};
+          const properties = geoJson.properties || {};
+
+          // Merge all data into currentFeature
+          currentFeature = {
+            ...featureData,
+            ...properties,
+            geometry: geometry,
+            properties: properties,
+            geojson: geoJson,
+          };
+
+          console.log('Parsed feature:', currentFeature);
+
+          if (!geoJson.geometry) {
+            document.querySelector('.container').innerHTML =
+              '<div class="error-state">Feature has no geometry data</div>';
+            return;
+          }
+
+          // Extract status from feature data or properties
+          const status = featureData.status || properties.status || 'unknown';
+
+          // Prefer named WGS84 lat/lng on properties; fall back to GeoJSON [lng, lat].
+          let lat =
+            properties.y ||
+            properties.latitude ||
+            properties.lat ||
+            properties.start_y ||
+            properties.End_Y__ ||
+            properties.End_Y ||
+            properties.End__Y__;
+          let lng =
+            properties.x ||
+            properties.longitude ||
+            properties.lng ||
+            properties.lon ||
+            properties.start_x ||
+            properties.End_X__ ||
+            properties.End_X ||
+            properties.End__X__;
+
+          if ((!lat || !lng) && geometry.coordinates && Array.isArray(geometry.coordinates)) {
+            if (geometry.type === 'Point') {
+              lng = geometry.coordinates[0];
+              lat = geometry.coordinates[1];
+            }
+          }
+
+          console.log('Geometry type:', geometry.type, 'CRS:', geometry.crs?.properties?.name);
+          console.log('Extracted lat/lng:', lat, lng);
+
+          // Update UI
+          document.getElementById('featureName').textContent =
+            currentFeature.layer_name || currentFeature.name || currentFeature.feature_name || 'Unknown Feature';
+          document.getElementById('featureMeta').textContent =
+            `${project.name} • ${currentFeature.feature_type || currentFeature.type || 'Feature'}`;
+          document.getElementById('featureId').textContent = featureId.slice(0, 12) + '...';
+
+          const statusBadge = document.getElementById('statusBadge');
+          statusBadge.className = `status-badge ${getStatusClass(status)}`;
+          statusBadge.innerHTML = `
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           ${status === 'approved' ? '<polyline points="20,6 9,17 4,12"/>' : '<circle cx="12" cy="12" r="10"/>'}
         </svg>
         ${getStatusText(status)}
       `;
 
-      // Initialize map with the full GeoJSON feature for shape rendering
-      if (lat && lng) {
-        const wgs84GeoJson = {
-          type: 'Feature',
-          geometry: {
-            type: geoJson.geometry?.type || 'Point',
-            coordinates: geoJson.geometry?.type === 'Point' ? [lng, lat] : geoJson.geometry?.coordinates
-          },
-          properties: properties
-        };
-        initMap(parseFloat(lat), parseFloat(lng), wgs84GeoJson);
-        document.getElementById('latLng').textContent = 
-          `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
-      } else {
-        document.getElementById('map').innerHTML = 
-          '<div class="loading-state">No location data available</div>';
-      }
+          // Initialize map with the full GeoJSON feature for shape rendering
+          if (lat && lng) {
+            const wgs84GeoJson = {
+              type: 'Feature',
+              geometry: {
+                type: geoJson.geometry?.type || 'Point',
+                coordinates: geoJson.geometry?.type === 'Point' ? [lng, lat] : geoJson.geometry?.coordinates,
+              },
+              properties: properties,
+            };
+            initMap(parseFloat(lat), parseFloat(lng), wgs84GeoJson);
+            document.getElementById('latLng').textContent =
+              `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}`;
+          } else {
+            document.getElementById('map').innerHTML = '<div class="loading-state">No location data available</div>';
+          }
 
-      // Render properties list using already parsed properties
-      const propList = document.getElementById('propertiesList');
-      const propEntries = Object.entries(properties).filter(([k]) => k !== 'geometry' && k !== 'coordinates');
-      
-      if (propEntries.length > 0) {
-        propList.innerHTML = propEntries.map(([key, value]) => `
+          // Render properties list using already parsed properties
+          const propList = document.getElementById('propertiesList');
+          const propEntries = Object.entries(properties).filter(([k]) => k !== 'geometry' && k !== 'coordinates');
+
+          if (propEntries.length > 0) {
+            propList.innerHTML = propEntries
+              .map(
+                ([key, value]) => `
           <div class="property-item">
             <span class="property-key">${escapeHtml(key.replace(/_/g, ' '))}</span>
             <span class="property-value">${escapeHtml(String(value))}</span>
           </div>
-        `).join('');
-      } else {
-        propList.innerHTML = '<div class="empty-state" style="padding: 20px;">No properties available</div>';
-      }
+        `
+              )
+              .join('');
+          } else {
+            propList.innerHTML = '<div class="empty-state" style="padding: 20px;">No properties available</div>';
+          }
 
-      // Generate measurement fields from the layer's derived schema (falls back
-      // to fuzzy detection when a feature predates schema support).
-      // Planned values come from Django's normalized properties (keys match the
-      // schema keys); the GeoJSON `properties` keep original column names and are
-      // used only for the human-readable properties list above.
-      const plannedSource = (featureData.properties && Object.keys(featureData.properties).length)
-        ? featureData.properties : properties;
-      generateMeasurementFields(featureData.field_schema, plannedSource, featureData.field_measurements);
+          // Generate measurement fields from the layer's derived schema (falls back
+          // to fuzzy detection when a feature predates schema support).
+          // Planned values come from Django's normalized properties (keys match the
+          // schema keys); the GeoJSON `properties` keep original column names and are
+          // used only for the human-readable properties list above.
+          const plannedSource =
+            featureData.properties && Object.keys(featureData.properties).length ? featureData.properties : properties;
+          generateMeasurementFields(featureData.field_schema, plannedSource, featureData.field_measurements);
 
-      // Disable form if feature is not in editable state
-      const editableStatuses = ['assigned', 'redo'];
-      if (!editableStatuses.includes(status)) {
-        document.getElementById('measurementsForm').querySelectorAll('input, textarea, select').forEach(el => {
-          el.disabled = true;
-        });
-        document.getElementById('uploadArea').style.pointerEvents = 'none';
-        document.getElementById('uploadArea').style.opacity = '0.5';
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').textContent = 'Feature Locked for Review';
-        document.querySelector('.input-mode-toggle').style.pointerEvents = 'none';
-        document.querySelector('.input-mode-toggle').style.opacity = '0.5';
-      }
-
-    } catch (err) {
-      console.error('Failed to load feature:', err);
-      document.querySelector('.container').innerHTML = 
-        `<div class="error-state">Failed to load feature: ${FtthUI.humanize(err)}</div>`;
-    }
-  }
-
-  async function submitMeasurements() {
-    if (!currentFeature || !engineerId) return;
-
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Submitting...';
-
-    try {
-      // Collect measurements. Numeric widgets store { value:Number, unit };
-      // text/textarea widgets store { value:String } (no unit).
-      const measurements = {};
-      document.querySelectorAll('[data-measurement]').forEach(input => {
-        const key = input.dataset.measurement;
-        const widget = input.dataset.widget || 'number';
-        const value = input.value;
-        if (value === '' || value == null) return;
-
-        if (widget === 'number') {
-          const num = parseFloat(value);
-          if (isNaN(num)) return;
-          const unit = document.querySelector(`[data-unit="${key}"]`)?.value || 'm';
-          measurements[key] = { value: num, unit };
-        } else {
-          measurements[key] = { value: value };
+          // Disable form if feature is not in editable state
+          const editableStatuses = ['assigned', 'redo'];
+          if (!editableStatuses.includes(status)) {
+            document
+              .getElementById('measurementsForm')
+              .querySelectorAll('input, textarea, select')
+              .forEach((el) => {
+                el.disabled = true;
+              });
+            document.getElementById('uploadArea').style.pointerEvents = 'none';
+            document.getElementById('uploadArea').style.opacity = '0.5';
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').textContent = 'Feature Locked for Review';
+            document.querySelector('.input-mode-toggle').style.pointerEvents = 'none';
+            document.querySelector('.input-mode-toggle').style.opacity = '0.5';
+          }
+        } catch (err) {
+          console.error('Failed to load feature:', err);
+          document.querySelector('.container').innerHTML =
+            `<div class="error-state">Failed to load feature: ${FtthUI.humanize(err)}</div>`;
         }
-      });
+      }
 
-      const payload = {
-        measurements: measurements,
-        notes: document.getElementById('notesInput')?.value || '',
-        has_photo: !!uploadedFile
-      };
+      async function submitMeasurements() {
+        if (!currentFeature || !engineerId) return;
 
-      // Upload photo if provided
-      if (uploadedFile) {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Submitting...';
+
         try {
-          await window.EngineerApi.uploadFeaturePhoto(featureId, uploadedFile);
-        } catch (uploadErr) {
-          console.warn('Photo upload failed:', uploadErr);
-          // Continue with submission even if photo fails
+          // Collect measurements. Numeric widgets store { value:Number, unit };
+          // text/textarea widgets store { value:String } (no unit).
+          const measurements = {};
+          document.querySelectorAll('[data-measurement]').forEach((input) => {
+            const key = input.dataset.measurement;
+            const widget = input.dataset.widget || 'number';
+            const value = input.value;
+            if (value === '' || value == null) return;
+
+            if (widget === 'number') {
+              const num = parseFloat(value);
+              if (isNaN(num)) return;
+              const unit = document.querySelector(`[data-unit="${key}"]`)?.value || 'm';
+              measurements[key] = { value: num, unit };
+            } else {
+              measurements[key] = { value: value };
+            }
+          });
+
+          const payload = {
+            measurements: measurements,
+            notes: document.getElementById('notesInput')?.value || '',
+            has_photo: !!uploadedFile,
+          };
+
+          // Upload photo if provided
+          if (uploadedFile) {
+            try {
+              await window.EngineerApi.uploadFeaturePhoto(featureId, uploadedFile);
+            } catch (uploadErr) {
+              console.warn('Photo upload failed:', uploadErr);
+              // Continue with submission even if photo fails
+            }
+          }
+
+          // Submit measurements via API - format per apis.md
+          const apiPayload = {
+            field_measurements: measurements,
+            comparison_notes: document.getElementById('notesInput')?.value || '',
+          };
+          await window.EngineerApi.updateFieldMeasurements(featureId, apiPayload);
+
+          // Submit for review - using bulk submit API per apis.md
+          await window.EngineerApi.submitFeatures([featureId], engineerId);
+
+          // Show success modal
+          document.getElementById('successModal').classList.add('show');
+
+          // Countdown and redirect
+          let seconds = 2;
+          const countdownEl = document.getElementById('countdown');
+          const interval = setInterval(() => {
+            seconds--;
+            countdownEl.textContent = seconds;
+            if (seconds <= 0) {
+              clearInterval(interval);
+              window.location.href = 'engineer-dashboard.html';
+            }
+          }, 1000);
+        } catch (err) {
+          console.error('Failed to submit:', err);
+          alert('Failed to submit: ' + FtthUI.humanize(err));
+          btn.disabled = false;
+          btn.textContent = 'Submit Measurements';
         }
       }
 
-      // Submit measurements via API - format per apis.md
-      const apiPayload = {
-        field_measurements: measurements,
-        comparison_notes: document.getElementById('notesInput')?.value || ''
-      };
-      await window.EngineerApi.updateFieldMeasurements(featureId, apiPayload);
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
 
-      // Submit for review - using bulk submit API per apis.md
-      await window.EngineerApi.submitFeatures([featureId], engineerId);
-
-      // Show success modal
-      document.getElementById('successModal').classList.add('show');
-
-      // Countdown and redirect
-      let seconds = 2;
-      const countdownEl = document.getElementById('countdown');
-      const interval = setInterval(() => {
-        seconds--;
-        countdownEl.textContent = seconds;
-        if (seconds <= 0) {
-          clearInterval(interval);
-          window.location.href = 'engineer-dashboard.html';
-        }
-      }, 1000);
-
-    } catch (err) {
-      console.error('Failed to submit:', err);
-      alert('Failed to submit: ' + FtthUI.humanize(err));
-      btn.disabled = false;
-      btn.textContent = 'Submit Measurements';
-    }
-  }
-
-  function escapeHtml(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
-  // Initialize
-  loadFeatureDetails();
-</script>
-
-</body>
+      // Initialize
+      loadFeatureDetails();
+    </script>
+  </body>
 </html>

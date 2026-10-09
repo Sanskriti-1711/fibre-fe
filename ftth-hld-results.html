@@ -1,1604 +1,2848 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Design Results | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>Design Results | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- MapLibre GL -->
-<script src="js/ftth-ui.js"></script>
-  <script src="vendor/maplibre/maplibre-gl.js"></script>
-  <style>
-    .ftth-results-layout { display:flex; width:100%; height:100vh; overflow:hidden; }
-    .ftth-map-pane { flex:1; position:relative; min-width:0; }
-    .ftth-map-pane #map { width:100%; height:100%; position:absolute; top:0; left:0; }
-    .ftth-side-pane { width:380px; flex-shrink:0; background:#FFFFFF; border-left:1px solid #E5E7EB; display:flex; flex-direction:column; overflow-y:auto; }
-    .ftth-side-pane-header { padding:20px 20px 12px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
-    .ftth-side-pane-header h2 { margin:0 0 4px; font-size:16px; color:#1F2937; display:flex; align-items:center; gap:8px; }
-    .ftth-side-pane-header h2 .back-link { font-size:13px; font-weight:400; color:#6B7280; text-decoration:none; margin-left:auto; }
-    .ftth-side-pane-header h2 .back-link:hover { color:#E31837; }
-    .ftth-side-pane-header .project-id { font-family:'SF Mono','Menlo','Monaco','Consolas',monospace; font-size:11px; color:#6B7280; margin-top:4px; }
-    .ftth-side-pane-section { padding:16px 20px; border-bottom:1px solid #E5E7EB; flex-shrink:0; }
-    .ftth-side-pane-section:last-child { border-bottom:none; flex:1; }
-    .ftth-side-pane-section h3 { margin:0 0 12px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#6B7280; display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
-    .ftth-side-pane-section h3 .chev { display:inline-block; margin-right:8px; transition:transform 0.15s ease; color:#9CA3AF; }
-    .ftth-side-pane-section.collapsed h3 { margin-bottom:0; }
-    .ftth-side-pane-section.collapsed h3 .chev { transform:rotate(-90deg); }
-    .ftth-side-pane-section.collapsed > *:not(h3) { display:none; }
-    .ftth-side-pane-section h3 .badge { font-size:10px; font-weight:600; color:#6B7280; background:#F3F4F6; padding:2px 8px; border-radius:999px; }
-    .ftth-layer-controls { display:flex; flex-direction:column; }
-    .ftth-permit-legend { background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; padding:8px 12px; font-size:12px; color:#374151; }
-    .ftth-permit-legend .permit-row { display:flex; align-items:center; gap:8px; padding:3px 0; }
-    .ftth-permit-legend .permit-dot { width:10px; height:10px; border-radius:999px; flex-shrink:0; }
-    .ftth-permit-legend .permit-count { margin-left:auto; font-weight:600; color:#6B7280; font-size:11px; }
-    .ftth-download-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; background:#F9FAFB; border:1px solid #E5E7EB; border-radius:8px; text-decoration:none; color:#1F2937; font-size:13px; font-weight:500; transition:all 0.15s ease; cursor:pointer; }
-    .ftth-download-btn:hover { background:#F3F4F6; border-color:#D1D5DB; }
-    .ftth-empty-state { text-align:center; padding:40px 20px; color:#6B7280; }
-    .ftth-empty-state .icon { font-size:40px; margin-bottom:12px; }
-    .ftth-empty-state p { font-size:14px; margin:0 0 16px; }
-    .ftth-layer-color-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-    .ftth-legend-group { margin-bottom:10px; }
-    .ftth-legend-group:last-child { margin-bottom:0; }
-    .ftth-legend-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#9CA3AF; margin-bottom:6px; }
-    .ftth-legend-row { display:flex; align-items:center; gap:9px; padding:2px 0; font-size:12px; color:#374151; }
-    .ftth-legend-swatch { width:26px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
-    .ftth-legend-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .ftth-summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .ftth-summary-item { background:#F9FAFB; border-radius:6px; padding:10px; text-align:center; }
-    .ftth-summary-item .value { font-size:20px; font-weight:700; color:#1F2937; }
-    .ftth-summary-item .label { font-size:10px; color:#6B7280; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
-    .ftth-basemap-switcher { position:absolute; top:12px; right:12px; display:flex; background:#FFFFFF; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.15); padding:4px; gap:2px; }
-    .ftth-basemap-btn { display:flex; flex-direction:column; align-items:center; justify-content:center; width:52px; padding:6px 0 4px; border:none; background:transparent; border-radius:8px; cursor:pointer; transition:all 0.2s ease; color:#6B7280; font-size:10px; font-weight:500; gap:2px; }
-    .ftth-basemap-btn .icon { font-size:18px; line-height:1; transition:transform 0.2s ease; }
-    .ftth-basemap-btn .label { font-size:9px; line-height:1; white-space:nowrap; }
-    .ftth-basemap-btn:hover { background:#F3F4F6; color:#374151; }
-    .ftth-basemap-btn:hover .icon { transform:scale(1.15); }
-    .ftth-basemap-btn.active { background:#E31837; color:#FFFFFF; box-shadow:0 1px 4px rgba(227,24,55,0.3); }
-    .ftth-basemap-btn.active:hover { background:#C4142F; }
+    <!-- MapLibre GL -->
+    <script src="js/ftth-ui.js"></script>
+    <script src="vendor/maplibre/maplibre-gl.js"></script>
+    <style>
+      .ftth-results-layout {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .ftth-map-pane {
+        flex: 1;
+        position: relative;
+        min-width: 0;
+      }
+      .ftth-map-pane #map {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      .ftth-side-pane {
+        width: 380px;
+        flex-shrink: 0;
+        background: #ffffff;
+        border-left: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+      }
+      .ftth-side-pane-header {
+        padding: 20px 20px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        flex-shrink: 0;
+      }
+      .ftth-side-pane-header h2 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ftth-side-pane-header h2 .back-link {
+        font-size: 13px;
+        font-weight: 400;
+        color: #6b7280;
+        text-decoration: none;
+        margin-left: auto;
+      }
+      .ftth-side-pane-header h2 .back-link:hover {
+        color: #e31837;
+      }
+      .ftth-side-pane-header .project-id {
+        font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+        font-size: 11px;
+        color: #6b7280;
+        margin-top: 4px;
+      }
+      .ftth-side-pane-section {
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        flex-shrink: 0;
+      }
+      .ftth-side-pane-section:last-child {
+        border-bottom: none;
+        flex: 1;
+      }
+      .ftth-side-pane-section h3 {
+        margin: 0 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        user-select: none;
+      }
+      .ftth-side-pane-section h3 .chev {
+        display: inline-block;
+        margin-right: 8px;
+        transition: transform 0.15s ease;
+        color: #9ca3af;
+      }
+      .ftth-side-pane-section.collapsed h3 {
+        margin-bottom: 0;
+      }
+      .ftth-side-pane-section.collapsed h3 .chev {
+        transform: rotate(-90deg);
+      }
+      .ftth-side-pane-section.collapsed > *:not(h3) {
+        display: none;
+      }
+      .ftth-side-pane-section h3 .badge {
+        font-size: 10px;
+        font-weight: 600;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+      .ftth-layer-controls {
+        display: flex;
+        flex-direction: column;
+      }
+      .ftth-permit-legend {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+        color: #374151;
+      }
+      .ftth-permit-legend .permit-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 0;
+      }
+      .ftth-permit-legend .permit-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        flex-shrink: 0;
+      }
+      .ftth-permit-legend .permit-count {
+        margin-left: auto;
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 11px;
+      }
+      .ftth-download-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #1f2937;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.15s ease;
+        cursor: pointer;
+      }
+      .ftth-download-btn:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+      }
+      .ftth-empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6b7280;
+      }
+      .ftth-empty-state .icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+      .ftth-empty-state p {
+        font-size: 14px;
+        margin: 0 0 16px;
+      }
+      .ftth-layer-color-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .ftth-legend-group {
+        margin-bottom: 10px;
+      }
+      .ftth-legend-group:last-child {
+        margin-bottom: 0;
+      }
+      .ftth-legend-title {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #9ca3af;
+        margin-bottom: 6px;
+      }
+      .ftth-legend-row {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 2px 0;
+        font-size: 12px;
+        color: #374151;
+      }
+      .ftth-legend-swatch {
+        width: 26px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .ftth-legend-label {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ftth-summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .ftth-summary-item {
+        background: #f9fafb;
+        border-radius: 6px;
+        padding: 10px;
+        text-align: center;
+      }
+      .ftth-summary-item .value {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1f2937;
+      }
+      .ftth-summary-item .label {
+        font-size: 10px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-top: 2px;
+      }
+      .ftth-basemap-switcher {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        padding: 4px;
+        gap: 2px;
+      }
+      .ftth-basemap-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        padding: 6px 0 4px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 500;
+        gap: 2px;
+      }
+      .ftth-basemap-btn .icon {
+        font-size: 18px;
+        line-height: 1;
+        transition: transform 0.2s ease;
+      }
+      .ftth-basemap-btn .label {
+        font-size: 9px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .ftth-basemap-btn:hover {
+        background: #f3f4f6;
+        color: #374151;
+      }
+      .ftth-basemap-btn:hover .icon {
+        transform: scale(1.15);
+      }
+      .ftth-basemap-btn.active {
+        background: #e31837;
+        color: #ffffff;
+        box-shadow: 0 1px 4px rgba(227, 24, 55, 0.3);
+      }
+      .ftth-basemap-btn.active:hover {
+        background: #c4142f;
+      }
 
-    /* ── Identify / highlight tool ─────────────────────────────────── */
-    .ftth-identify-btn {
-      position:absolute; top:64px; right:12px; z-index:10;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      width:52px; padding:6px 0 4px;
-      border:none; background:#FFFFFF; border-radius:8px;
-      cursor:pointer; transition:all 0.2s ease;
-      color:#6B7280; font-size:10px; font-weight:500; gap:2px;
-      box-shadow:0 2px 12px rgba(0,0,0,0.15);
-    }
-    .ftth-identify-btn .icon { font-size:18px; line-height:1; transition:transform 0.2s ease; }
-    .ftth-identify-btn .label { font-size:9px; line-height:1; white-space:nowrap; }
-    .ftth-identify-btn:hover { background:#F3F4F6; color:#374151; }
-    .ftth-identify-btn.active { background:#E31837; color:#FFFFFF; box-shadow:0 1px 4px rgba(227,24,55,0.3); }
-    .ftth-identify-btn.active:hover { background:#C4142F; }
-    .ftth-identify-btn.active .icon { transform:scale(1.1); }
+      /* ── Identify / highlight tool ─────────────────────────────────── */
+      .ftth-identify-btn {
+        position: absolute;
+        top: 64px;
+        right: 12px;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 52px;
+        padding: 6px 0 4px;
+        border: none;
+        background: #ffffff;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 500;
+        gap: 2px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+      }
+      .ftth-identify-btn .icon {
+        font-size: 18px;
+        line-height: 1;
+        transition: transform 0.2s ease;
+      }
+      .ftth-identify-btn .label {
+        font-size: 9px;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .ftth-identify-btn:hover {
+        background: #f3f4f6;
+        color: #374151;
+      }
+      .ftth-identify-btn.active {
+        background: #e31837;
+        color: #ffffff;
+        box-shadow: 0 1px 4px rgba(227, 24, 55, 0.3);
+      }
+      .ftth-identify-btn.active:hover {
+        background: #c4142f;
+      }
+      .ftth-identify-btn.active .icon {
+        transform: scale(1.1);
+      }
 
-    .ftth-inspector {
-      position:absolute; top:122px; right:12px; z-index:9;
-      width:330px; max-width:calc(100% - 24px); max-height:calc(100% - 150px);
-      display:flex; flex-direction:column;
-      background:#FFFFFF; border-radius:12px;
-      box-shadow:0 4px 24px rgba(0,0,0,0.18); overflow:hidden;
-    }
-    .ftth-inspector-header {
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-      padding:10px 14px; background:#1F2937; color:#FFFFFF; flex-shrink:0;
-    }
-    .ftth-inspector-title { min-width:0; }
-    .ftth-inspector-layer { font-size:13px; font-weight:700; display:block; }
-    .ftth-inspector-fid { font-size:10px; color:#9CA3AF; font-family:'SF Mono','Menlo',monospace; }
-    .ftth-inspector-close {
-      border:none; background:transparent; color:#9CA3AF;
-      font-size:20px; line-height:1; cursor:pointer; padding:0 4px; flex-shrink:0;
-    }
-    .ftth-inspector-close:hover { color:#FFFFFF; }
-    .ftth-inspector-body { overflow-y:auto; }
-    .ftth-inspector-empty { padding:20px; text-align:center; color:#6B7280; font-size:13px; }
-    .ftth-inspector-table { width:100%; border-collapse:collapse; font-size:12px; }
-    .ftth-inspector-table tr { border-bottom:1px solid #F3F4F6; }
-    .ftth-inspector-table tr:nth-child(even) { background:#F9FAFB; }
-    .ftth-inspector-table td { padding:6px 10px; vertical-align:top; word-break:break-word; }
-    .ftth-inspector-table td.k { color:#6B7280; font-weight:600; white-space:nowrap; width:38%; }
-    .ftth-inspector-table td.v { color:#1F2937; font-family:'SF Mono','Menlo','Consolas',monospace; }
-    .ftth-inspector-footer { padding:8px 10px; border-top:1px solid #E5E7EB; flex-shrink:0; }
-    .ftth-inspector-footer button {
-      width:100%; padding:8px 12px; border:1px solid #D1D5DB; border-radius:8px;
-      background:#F9FAFB; color:#374151; font-size:12px; font-weight:600; cursor:pointer;
-    }
-    .ftth-inspector-footer button:hover { background:#F3F4F6; }
+      .ftth-inspector {
+        position: absolute;
+        top: 122px;
+        right: 12px;
+        z-index: 9;
+        width: 330px;
+        max-width: calc(100% - 24px);
+        max-height: calc(100% - 150px);
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+        overflow: hidden;
+      }
+      .ftth-inspector-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 14px;
+        background: #1f2937;
+        color: #ffffff;
+        flex-shrink: 0;
+      }
+      .ftth-inspector-title {
+        min-width: 0;
+      }
+      .ftth-inspector-layer {
+        font-size: 13px;
+        font-weight: 700;
+        display: block;
+      }
+      .ftth-inspector-fid {
+        font-size: 10px;
+        color: #9ca3af;
+        font-family: 'SF Mono', 'Menlo', monospace;
+      }
+      .ftth-inspector-close {
+        border: none;
+        background: transparent;
+        color: #9ca3af;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 4px;
+        flex-shrink: 0;
+      }
+      .ftth-inspector-close:hover {
+        color: #ffffff;
+      }
+      .ftth-inspector-body {
+        overflow-y: auto;
+      }
+      .ftth-inspector-empty {
+        padding: 20px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 13px;
+      }
+      .ftth-inspector-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      .ftth-inspector-table tr {
+        border-bottom: 1px solid #f3f4f6;
+      }
+      .ftth-inspector-table tr:nth-child(even) {
+        background: #f9fafb;
+      }
+      .ftth-inspector-table td {
+        padding: 6px 10px;
+        vertical-align: top;
+        word-break: break-word;
+      }
+      .ftth-inspector-table td.k {
+        color: #6b7280;
+        font-weight: 600;
+        white-space: nowrap;
+        width: 38%;
+      }
+      .ftth-inspector-table td.v {
+        color: #1f2937;
+        font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+      }
+      .ftth-inspector-footer {
+        padding: 8px 10px;
+        border-top: 1px solid #e5e7eb;
+        flex-shrink: 0;
+      }
+      .ftth-inspector-footer button {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #f9fafb;
+        color: #374151;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ftth-inspector-footer button:hover {
+        background: #f3f4f6;
+      }
 
-    .ftth-attr-modal { position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; background:rgba(17,24,39,.55); padding:24px; }
-    .ftth-attr-dialog { width:min(1200px,96vw); height:min(760px,90vh); background:#FFFFFF; border-radius:12px; box-shadow:0 12px 48px rgba(0,0,0,.3); display:flex; flex-direction:column; overflow:hidden; }
-    .ftth-attr-header { display:flex; align-items:center; gap:12px; padding:14px 18px; background:#1F2937; color:#FFFFFF; flex-shrink:0; }
-    .ftth-attr-header strong { font-size:15px; }
-    .ftth-attr-count { color:#D1D5DB; font-size:11px; margin-right:auto; }
-    .ftth-attr-search { width:220px; padding:7px 10px; border:1px solid #6B7280; border-radius:6px; background:#374151; color:#FFFFFF; font-size:12px; }
-    .ftth-attr-search::placeholder { color:#D1D5DB; }
-    .ftth-attr-close { border:0; background:transparent; color:#D1D5DB; font-size:22px; cursor:pointer; }
-    .ftth-attr-body { overflow:auto; flex:1; }
-    .ftth-attr-table { border-collapse:collapse; min-width:100%; font-size:11px; white-space:nowrap; }
-    .ftth-attr-table th { position:sticky; top:0; z-index:1; background:#F3F4F6; color:#374151; text-align:left; padding:8px 10px; border-bottom:2px solid #D1D5DB; cursor:pointer; }
-    .ftth-attr-table td { padding:7px 10px; border-bottom:1px solid #E5E7EB; color:#1F2937; max-width:320px; overflow:hidden; text-overflow:ellipsis; }
-    .ftth-attr-table tr:nth-child(even) { background:#F9FAFB; }
-    .ftth-attr-table tr:hover { background:#FEF3C7; }
-    .ftth-table-btn { margin-left:auto; border:1px solid #D1D5DB; background:#FFFFFF; color:#374151; border-radius:6px; padding:4px 7px; font-size:11px; cursor:pointer; }
-    .ftth-table-btn:hover { background:#F3F4F6; border-color:#9CA3AF; }
+      .ftth-attr-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(17, 24, 39, 0.55);
+        padding: 24px;
+      }
+      .ftth-attr-dialog {
+        width: min(1200px, 96vw);
+        height: min(760px, 90vh);
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .ftth-attr-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        background: #1f2937;
+        color: #ffffff;
+        flex-shrink: 0;
+      }
+      .ftth-attr-header strong {
+        font-size: 15px;
+      }
+      .ftth-attr-count {
+        color: #d1d5db;
+        font-size: 11px;
+        margin-right: auto;
+      }
+      .ftth-attr-search {
+        width: 220px;
+        padding: 7px 10px;
+        border: 1px solid #6b7280;
+        border-radius: 6px;
+        background: #374151;
+        color: #ffffff;
+        font-size: 12px;
+      }
+      .ftth-attr-search::placeholder {
+        color: #d1d5db;
+      }
+      .ftth-attr-close {
+        border: 0;
+        background: transparent;
+        color: #d1d5db;
+        font-size: 22px;
+        cursor: pointer;
+      }
+      .ftth-attr-body {
+        overflow: auto;
+        flex: 1;
+      }
+      .ftth-attr-table {
+        border-collapse: collapse;
+        min-width: 100%;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .ftth-attr-table th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #f3f4f6;
+        color: #374151;
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 2px solid #d1d5db;
+        cursor: pointer;
+      }
+      .ftth-attr-table td {
+        padding: 7px 10px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        max-width: 320px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ftth-attr-table tr:nth-child(even) {
+        background: #f9fafb;
+      }
+      .ftth-attr-table tr:hover {
+        background: #fef3c7;
+      }
+      .ftth-table-btn {
+        margin-left: auto;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        color: #374151;
+        border-radius: 6px;
+        padding: 4px 7px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .ftth-table-btn:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+      }
 
-    .ftth-surface-ai-list { display:flex; flex-direction:column; gap:10px; }
-    .ftth-surface-ai-card { padding:10px 12px; border:1px solid #E5E7EB; border-radius:8px; background:#F9FAFB; font-size:12px; color:#374151; }
-    .ftth-surface-ai-card strong { color:#1F2937; }
-    .ftth-surface-ai-meta { margin-top:4px; color:#6B7280; font-size:11px; }
-    .ftth-surface-ai-note { color:#6B7280; font-size:12px; line-height:1.5; }
-    .ftth-surface-ai-pick { margin-top:10px; width:100%; padding:8px 10px; border:1px solid #D1D5DB; border-radius:8px; background:#FFFFFF; color:#1F2937; font-size:12px; font-weight:600; cursor:pointer; }
-    .ftth-surface-ai-pick.active { border-color:#2563EB; color:#1D4ED8; background:#EFF6FF; }
-    .ftth-surface-ai-pick[disabled] { opacity:.6; cursor:progress; }
-    .ftth-surface-ai-actions { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-    .ftth-surface-ai-btn { padding:5px 9px; border:1px solid #D1D5DB; border-radius:6px; background:#FFFFFF; color:#1F2937; font-size:11px; font-weight:600; cursor:pointer; }
-    .ftth-surface-ai-btn.primary { border-color:#2563EB; color:#1D4ED8; background:#EFF6FF; }
-    .ftth-surface-ai-btn[disabled] { opacity:.6; cursor:progress; }
-    .ftth-surface-ai-patch { display:block; width:100%; margin-top:8px; border:1px solid #D1D5DB; border-radius:6px; background:#E5E7EB; }
-    .ftth-surface-ai-patch-note { margin-top:4px; color:#6B7280; font-size:11px; }
-    .ftth-surface-ai-group { margin-top:10px; }
-    .ftth-surface-ai-group > summary { cursor:pointer; font-size:12px; font-weight:600; color:#1F2937; padding:4px 0; }
-    .ftth-surface-ai-count { display:inline-block; margin-left:6px; padding:1px 7px; border-radius:999px; background:#E5E7EB; color:#374151; font-size:11px; font-weight:600; }
-    .ftth-surface-ai-card.is-detected { border-color:#BFDBFE; background:#F0F7FF; }
-    .ftth-surface-ai-more { margin-top:8px; width:100%; padding:6px 10px; border:1px dashed #D1D5DB; border-radius:8px; background:#FFFFFF; color:#374151; font-size:11px; font-weight:600; cursor:pointer; }
-    .ftth-surface-ai-card { cursor:pointer; transition:border-color .12s, box-shadow .12s; }
-    .ftth-surface-ai-card:hover { border-color:#93C5FD; box-shadow:0 0 0 2px rgba(37,99,235,.10); }
-    .ftth-surface-ai-card.is-located { border-color:#2563EB; box-shadow:0 0 0 2px rgba(37,99,235,.20); }
-    .ftth-surface-ai-locate { border-color:#BFDBFE; color:#1D4ED8; background:#EFF6FF; }
+      .ftth-surface-ai-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ftth-surface-ai-card {
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        background: #f9fafb;
+        font-size: 12px;
+        color: #374151;
+      }
+      .ftth-surface-ai-card strong {
+        color: #1f2937;
+      }
+      .ftth-surface-ai-meta {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 11px;
+      }
+      .ftth-surface-ai-note {
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .ftth-surface-ai-pick {
+        margin-top: 10px;
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #1f2937;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ftth-surface-ai-pick.active {
+        border-color: #2563eb;
+        color: #1d4ed8;
+        background: #eff6ff;
+      }
+      .ftth-surface-ai-pick[disabled] {
+        opacity: 0.6;
+        cursor: progress;
+      }
+      .ftth-surface-ai-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .ftth-surface-ai-btn {
+        padding: 5px 9px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #1f2937;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ftth-surface-ai-btn.primary {
+        border-color: #2563eb;
+        color: #1d4ed8;
+        background: #eff6ff;
+      }
+      .ftth-surface-ai-btn[disabled] {
+        opacity: 0.6;
+        cursor: progress;
+      }
+      .ftth-surface-ai-patch {
+        display: block;
+        width: 100%;
+        margin-top: 8px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: #e5e7eb;
+      }
+      .ftth-surface-ai-patch-note {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 11px;
+      }
+      .ftth-surface-ai-group {
+        margin-top: 10px;
+      }
+      .ftth-surface-ai-group > summary {
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        color: #1f2937;
+        padding: 4px 0;
+      }
+      .ftth-surface-ai-count {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .ftth-surface-ai-card.is-detected {
+        border-color: #bfdbfe;
+        background: #f0f7ff;
+      }
+      .ftth-surface-ai-more {
+        margin-top: 8px;
+        width: 100%;
+        padding: 6px 10px;
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #374151;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ftth-surface-ai-card {
+        cursor: pointer;
+        transition:
+          border-color 0.12s,
+          box-shadow 0.12s;
+      }
+      .ftth-surface-ai-card:hover {
+        border-color: #93c5fd;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
+      .ftth-surface-ai-card.is-located {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+      }
+      .ftth-surface-ai-locate {
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+        background: #eff6ff;
+      }
 
-    .ftth-survey-btn {
-      display:flex; align-items:center; gap:10px; width:100%;
-      padding:12px 14px; margin-top:12px;
-      background:linear-gradient(135deg,#059669,#047857);
-      border:none; border-radius:10px;
-      text-decoration:none; color:#FFFFFF;
-      font-size:14px; font-weight:700;
-      cursor:pointer; transition:all 0.2s ease;
-      box-shadow:0 2px 8px rgba(5,150,105,0.3);
-    }
-    .ftth-survey-btn:hover { background:linear-gradient(135deg,#047857,#065F46); transform:translateY(-1px); box-shadow:0 4px 12px rgba(5,150,105,0.4); }
-    .ftth-survey-btn:active { transform:translateY(0); }
-    .ftth-survey-btn .icon { font-size:22px; }
-    .ftth-survey-btn .sub { font-size:11px; font-weight:400; opacity:0.8; }
+      .ftth-survey-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 12px 14px;
+        margin-top: 12px;
+        background: linear-gradient(135deg, #059669, #047857);
+        border: none;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+      }
+      .ftth-survey-btn:hover {
+        background: linear-gradient(135deg, #047857, #065f46);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+      }
+      .ftth-survey-btn:active {
+        transform: translateY(0);
+      }
+      .ftth-survey-btn .icon {
+        font-size: 22px;
+      }
+      .ftth-survey-btn .sub {
+        font-size: 11px;
+        font-weight: 400;
+        opacity: 0.8;
+      }
 
-    .ftth-design-btn {
-      display:flex; align-items:center; gap:10px; width:100%;
-      padding:12px 14px; margin-top:10px;
-      background:linear-gradient(135deg,#4F46E5,#4338CA);
-      border:none; border-radius:10px;
-      text-decoration:none; color:#FFFFFF;
-      font-size:14px; font-weight:700;
-      cursor:pointer; transition:all 0.2s ease;
-      box-shadow:0 2px 8px rgba(79,70,229,0.3);
-    }
-    .ftth-design-btn:hover { background:linear-gradient(135deg,#4338CA,#3730A3); transform:translateY(-1px); box-shadow:0 4px 12px rgba(79,70,229,0.4); }
-    .ftth-design-btn:active { transform:translateY(0); }
-    .ftth-design-btn .icon { font-size:22px; }
-    .ftth-design-btn .sub { font-size:11px; font-weight:400; opacity:0.8; }
+      .ftth-design-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 12px 14px;
+        margin-top: 10px;
+        background: linear-gradient(135deg, #4f46e5, #4338ca);
+        border: none;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+      }
+      .ftth-design-btn:hover {
+        background: linear-gradient(135deg, #4338ca, #3730a3);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      }
+      .ftth-design-btn:active {
+        transform: translateY(0);
+      }
+      .ftth-design-btn .icon {
+        font-size: 22px;
+      }
+      .ftth-design-btn .sub {
+        font-size: 11px;
+        font-weight: 400;
+        opacity: 0.8;
+      }
 
-    @media (max-width:768px) {
-      .ftth-results-layout { flex-direction:column-reverse; }
-      .ftth-side-pane { width:100%; max-height:40vh; border-left:none; border-top:1px solid #E5E7EB; }
-      .ftth-map-pane #map { height:60vh; position:relative; }
-    }
-  </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
+      @media (max-width: 768px) {
+        .ftth-results-layout {
+          flex-direction: column-reverse;
+        }
+        .ftth-side-pane {
+          width: 100%;
+          max-height: 40vh;
+          border-left: none;
+          border-top: 1px solid #e5e7eb;
+        }
+        .ftth-map-pane #map {
+          height: 60vh;
+          position: relative;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
 
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-<link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/ftth.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div id="sidebarContainer" style="display: none"></div>
 
-</head>
-<body>
+    <div class="layout" style="padding: 0">
+      <div class="ftth-results-layout">
+        <div class="ftth-map-pane">
+          <div id="map"></div>
 
-<div id="sidebarContainer" style="display:none;"></div>
-
-<div class="layout" style="padding:0;">
-  <div class="ftth-results-layout">
-
-    <div class="ftth-map-pane">
-      <div id="map"></div>
-
-      <div class="ftth-basemap-switcher" id="basemapSwitcher">
-        <button class="ftth-basemap-btn active" data-basemap="streets"><span class="icon">&#x1F5FA;&#xFE0F;</span><span class="label">Streets</span></button>
-        <button class="ftth-basemap-btn" data-basemap="light"><span class="icon">&#x1F319;</span><span class="label">Light</span></button>
-        <button class="ftth-basemap-btn" data-basemap="satellite"><span class="icon">&#x1F4F0;</span><span class="label">Satellite</span></button>
-        <button class="ftth-basemap-btn" data-basemap="dark"><span class="icon">&#x1F311;</span><span class="label">Dark</span></button>
-      </div>
-
-      <button class="ftth-identify-btn" id="identifyBtn" type="button" title="Turn on to click a cable, trench or any component and view its full attributes">
-        <span class="icon">&#x1F3AF;</span><span class="label">Inspect</span>
-      </button>
-
-      <div class="ftth-inspector" id="inspectorPanel" style="display:none;">
-        <div class="ftth-inspector-header">
-          <div class="ftth-inspector-title">
-            <span class="ftth-inspector-layer" id="inspectorLayer">—</span>
-            <span class="ftth-inspector-fid" id="inspectorFid">—</span>
-          </div>
-          <button class="ftth-inspector-close" id="inspectorClose" type="button" title="Close">&times;</button>
-        </div>
-        <div class="ftth-inspector-body" id="inspectorBody"></div>
-        <div class="ftth-inspector-footer">
-          <button id="inspectorClear" type="button">Clear selection</button>
-        </div>
-      </div>
-
-      <div class="ftth-attr-modal" id="attributeModal" role="dialog" aria-modal="true" aria-label="Layer attribute table">
-        <div class="ftth-attr-dialog">
-          <div class="ftth-attr-header">
-            <strong id="attributeTitle">Layer attributes</strong>
-            <span class="ftth-attr-count" id="attributeCount"></span>
-            <input class="ftth-attr-search" id="attributeSearch" type="search" placeholder="Filter rows…" aria-label="Filter attribute rows">
-            <button class="ftth-attr-close" id="attributeClose" type="button" title="Close">&times;</button>
-          </div>
-          <div class="ftth-attr-body" id="attributeBody"></div>
-        </div>
-      </div>
-
-      <div id="mapLoading" class="ftth-map-loading">
-        <div><div class="spinner" style="margin:0 auto 12px;"></div><div style="font-size:14px;color:#6B7280;">Loading map data&#x2026;</div></div>
-      </div>
-    </div>
-
-    <div class="ftth-side-pane">
-      <div class="ftth-side-pane-header">
-        <h2>Design Results <a class="back-link" href="ftth-hld-status.html">&#x2190; Back</a></h2>
-        <div class="project-id" id="projectIdDisplay">&#x2014;</div>
-      </div>
-
-      <div class="ftth-side-pane-section">
-        <h3>Summary</h3>
-        <div class="ftth-summary-grid">
-          <div class="ftth-summary-item"><div class="value" id="layerCount">0</div><div class="label">Layers</div></div>
-          <div class="ftth-summary-item"><div class="value" id="totalFeatures">0</div><div class="label">Total Features</div></div>
-        </div>
-      </div>
-
-      <div class="ftth-side-pane-section collapsed">
-        <h3><span class="chev">&#x25BE;</span>Legend</h3>
-        <div class="ftth-legend" id="mapLegend"></div>
-      </div>
-
-      <div class="ftth-side-pane-section">
-        <h3>Layers <span class="badge" id="layerBadge">0</span></h3>
-        <div class="ftth-layer-controls" id="layerControls"><div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>Loading layers&#x2026;</p></div></div>
-      </div>
-
-      <div class="ftth-side-pane-section">
-        <h3>Permits <span class="badge" id="permitBadge">0</span></h3>
-        <div class="ftth-permit-legend" id="permitLegend"></div>
-      </div>
-
-      <div class="ftth-side-pane-section" id="surfaceAIReviewSection">
-        <h3>Surface AI Review <span class="badge" id="surfaceAIReviewBadge">—</span></h3>
-        <div id="surfaceAIReviewBody" class="ftth-surface-ai-note">Checking for a separate AI review report…</div>
-        <button id="surfaceAIPickBtn" class="ftth-surface-ai-pick" type="button" style="display:none;">Classify a point on the map&#8230;</button>
-        <div id="surfaceAIPickResult" class="ftth-surface-ai-list" style="margin-top:10px;"></div>
-      </div>
-
-      <div class="ftth-side-pane-section">
-        <h3>Packages</h3>
-        <div id="surveyPackageContainer" style="display:none;">
-          <button id="surveyPackageBtn" class="ftth-survey-btn" type="button">
-            <span class="icon">&#x1F9F0;</span>
-            <span><div>Survey Package</div><div class="sub">Field subset: Polygons, PDPs, Cables, Chambers, Trenches, Ducts, Brownfield (ZIP)</div></span>
-          </button>
-        </div>
-        <div id="designPackageContainer" style="display:none;">
-          <button id="designPackageBtn" class="ftth-design-btn" type="button">
-            <span class="icon">&#x1F4E6;</span>
-            <span><div>Design Package</div><div class="sub">All layers + BOQ/BOM + documents (ZIP)</div></span>
-          </button>
-        </div>
-        <div id="boqContainer" style="display:none;margin-top:12px;">
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <button id="boqToggleBtn" class="ftth-design-btn" type="button">
-              <span class="icon">&#x1F4CA;</span>
-              <span><div>BOQ / BOM</div><div class="sub">Quantities computed from the design layers</div></span>
+          <div class="ftth-basemap-switcher" id="basemapSwitcher">
+            <button class="ftth-basemap-btn active" data-basemap="streets">
+              <span class="icon">&#x1F5FA;&#xFE0F;</span><span class="label">Streets</span>
             </button>
-            <button id="boqDownloadBtn" class="ftth-survey-btn" type="button" style="flex:0 0 auto;padding:8px 12px;font-size:12px;">&#x1F4E5; XLSX</button>
-            <button id="boqRegenBtn" class="ftth-survey-btn" type="button" style="flex:0 0 auto;padding:8px 12px;font-size:12px;background:linear-gradient(135deg,#F59E0B,#D97706);">&#x21BB; Recompute</button>
+            <button class="ftth-basemap-btn" data-basemap="light">
+              <span class="icon">&#x1F319;</span><span class="label">Light</span>
+            </button>
+            <button class="ftth-basemap-btn" data-basemap="satellite">
+              <span class="icon">&#x1F4F0;</span><span class="label">Satellite</span>
+            </button>
+            <button class="ftth-basemap-btn" data-basemap="dark">
+              <span class="icon">&#x1F311;</span><span class="label">Dark</span>
+            </button>
           </div>
-          <div id="boqBody" style="display:none;margin-top:10px;max-height:320px;overflow:auto;border:1px solid #E5E7EB;border-radius:8px;"></div>
+
+          <button
+            class="ftth-identify-btn"
+            id="identifyBtn"
+            type="button"
+            title="Turn on to click a cable, trench or any component and view its full attributes"
+          >
+            <span class="icon">&#x1F3AF;</span><span class="label">Inspect</span>
+          </button>
+
+          <div class="ftth-inspector" id="inspectorPanel" style="display: none">
+            <div class="ftth-inspector-header">
+              <div class="ftth-inspector-title">
+                <span class="ftth-inspector-layer" id="inspectorLayer">—</span>
+                <span class="ftth-inspector-fid" id="inspectorFid">—</span>
+              </div>
+              <button class="ftth-inspector-close" id="inspectorClose" type="button" title="Close">&times;</button>
+            </div>
+            <div class="ftth-inspector-body" id="inspectorBody"></div>
+            <div class="ftth-inspector-footer">
+              <button id="inspectorClear" type="button">Clear selection</button>
+            </div>
+          </div>
+
+          <div
+            class="ftth-attr-modal"
+            id="attributeModal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Layer attribute table"
+          >
+            <div class="ftth-attr-dialog">
+              <div class="ftth-attr-header">
+                <strong id="attributeTitle">Layer attributes</strong>
+                <span class="ftth-attr-count" id="attributeCount"></span>
+                <input
+                  class="ftth-attr-search"
+                  id="attributeSearch"
+                  type="search"
+                  placeholder="Filter rows…"
+                  aria-label="Filter attribute rows"
+                />
+                <button class="ftth-attr-close" id="attributeClose" type="button" title="Close">&times;</button>
+              </div>
+              <div class="ftth-attr-body" id="attributeBody"></div>
+            </div>
+          </div>
+
+          <div id="mapLoading" class="ftth-map-loading">
+            <div>
+              <div class="spinner" style="margin: 0 auto 12px"></div>
+              <div style="font-size: 14px; color: #6b7280">Loading map data&#x2026;</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ftth-side-pane">
+          <div class="ftth-side-pane-header">
+            <h2>Design Results <a class="back-link" href="ftth-hld-status.html">&#x2190; Back</a></h2>
+            <div class="project-id" id="projectIdDisplay">&#x2014;</div>
+          </div>
+
+          <div class="ftth-side-pane-section">
+            <h3>Summary</h3>
+            <div class="ftth-summary-grid">
+              <div class="ftth-summary-item">
+                <div class="value" id="layerCount">0</div>
+                <div class="label">Layers</div>
+              </div>
+              <div class="ftth-summary-item">
+                <div class="value" id="totalFeatures">0</div>
+                <div class="label">Total Features</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ftth-side-pane-section collapsed">
+            <h3><span class="chev">&#x25BE;</span>Legend</h3>
+            <div class="ftth-legend" id="mapLegend"></div>
+          </div>
+
+          <div class="ftth-side-pane-section">
+            <h3>Layers <span class="badge" id="layerBadge">0</span></h3>
+            <div class="ftth-layer-controls" id="layerControls">
+              <div class="ftth-empty-state">
+                <div class="icon">&#x1F5FA;&#xFE0F;</div>
+                <p>Loading layers&#x2026;</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="ftth-side-pane-section">
+            <h3>Permits <span class="badge" id="permitBadge">0</span></h3>
+            <div class="ftth-permit-legend" id="permitLegend"></div>
+          </div>
+
+          <div class="ftth-side-pane-section" id="surfaceAIReviewSection">
+            <h3>Surface AI Review <span class="badge" id="surfaceAIReviewBadge">—</span></h3>
+            <div id="surfaceAIReviewBody" class="ftth-surface-ai-note">Checking for a separate AI review report…</div>
+            <button id="surfaceAIPickBtn" class="ftth-surface-ai-pick" type="button" style="display: none">
+              Classify a point on the map&#8230;
+            </button>
+            <div id="surfaceAIPickResult" class="ftth-surface-ai-list" style="margin-top: 10px"></div>
+          </div>
+
+          <div class="ftth-side-pane-section">
+            <h3>Packages</h3>
+            <div id="surveyPackageContainer" style="display: none">
+              <button id="surveyPackageBtn" class="ftth-survey-btn" type="button">
+                <span class="icon">&#x1F9F0;</span>
+                <span
+                  ><div>Survey Package</div>
+                  <div class="sub">
+                    Field subset: Polygons, PDPs, Cables, Chambers, Trenches, Ducts, Brownfield (ZIP)
+                  </div></span
+                >
+              </button>
+            </div>
+            <div id="designPackageContainer" style="display: none">
+              <button id="designPackageBtn" class="ftth-design-btn" type="button">
+                <span class="icon">&#x1F4E6;</span>
+                <span
+                  ><div>Design Package</div>
+                  <div class="sub">All layers + BOQ/BOM + documents (ZIP)</div></span
+                >
+              </button>
+            </div>
+            <div id="boqContainer" style="display: none; margin-top: 12px">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+                <button id="boqToggleBtn" class="ftth-design-btn" type="button">
+                  <span class="icon">&#x1F4CA;</span>
+                  <span
+                    ><div>BOQ / BOM</div>
+                    <div class="sub">Quantities computed from the design layers</div></span
+                  >
+                </button>
+                <button
+                  id="boqDownloadBtn"
+                  class="ftth-survey-btn"
+                  type="button"
+                  style="flex: 0 0 auto; padding: 8px 12px; font-size: 12px"
+                >
+                  &#x1F4E5; XLSX
+                </button>
+                <button
+                  id="boqRegenBtn"
+                  class="ftth-survey-btn"
+                  type="button"
+                  style="
+                    flex: 0 0 auto;
+                    padding: 8px 12px;
+                    font-size: 12px;
+                    background: linear-gradient(135deg, #f59e0b, #d97706);
+                  "
+                >
+                  &#x21BB; Recompute
+                </button>
+              </div>
+              <div
+                id="boqBody"
+                style="
+                  display: none;
+                  margin-top: 10px;
+                  max-height: 320px;
+                  overflow: auto;
+                  border: 1px solid #e5e7eb;
+                  border-radius: 8px;
+                "
+              ></div>
+            </div>
+          </div>
+
+          <div class="ftth-side-pane-section ftth-collapsible collapsed" id="surveyAssignmentSection">
+            <h3>Survey Assignment <span class="badge" id="surveyAssignBadge">—</span></h3>
+            <div id="surveyAssignStatus" style="font-size: 12px; color: #6b7280; margin-bottom: 10px">
+              Checking assignment state…
+            </div>
+            <div id="surveyAssignEngineers" style="font-size: 12px; margin-bottom: 10px"></div>
+            <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px"
+              >Assign engineer(s) for field survey</label
+            >
+            <select
+              id="surveyAssignSelect"
+              multiple
+              style="
+                width: 100%;
+                min-height: 88px;
+                padding: 8px;
+                border-radius: 6px;
+                border: 1px solid #d1d5db;
+                font-size: 13px;
+                margin-bottom: 10px;
+              "
+            >
+              <option value="">Loading engineers…</option>
+            </select>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <button
+                id="surveyAssignBtn"
+                type="button"
+                style="
+                  flex: 1;
+                  padding: 10px 14px;
+                  background: linear-gradient(135deg, #059669, #047857);
+                  border: none;
+                  border-radius: 8px;
+                  color: #fff;
+                  font-size: 13px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: all 0.15s ease;
+                "
+              >
+                Create Survey Copy &amp; Assign
+              </button>
+            </div>
+            <p id="surveyAssignMsg" style="margin: 10px 0 0; font-size: 12px; color: #6b7280"></p>
+          </div>
         </div>
       </div>
-
-    <div class="ftth-side-pane-section ftth-collapsible collapsed" id="surveyAssignmentSection">
-      <h3>Survey Assignment <span class="badge" id="surveyAssignBadge">—</span></h3>
-      <div id="surveyAssignStatus" style="font-size:12px;color:#6B7280;margin-bottom:10px;">Checking assignment state…</div>
-      <div id="surveyAssignEngineers" style="font-size:12px;margin-bottom:10px;"></div>
-      <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Assign engineer(s) for field survey</label>
-      <select id="surveyAssignSelect" multiple style="width:100%;min-height:88px;padding:8px;border-radius:6px;border:1px solid #D1D5DB;font-size:13px;margin-bottom:10px;">
-        <option value="">Loading engineers…</option>
-      </select>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button id="surveyAssignBtn" type="button" style="flex:1;padding:10px 14px;background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s ease;">
-          Create Survey Copy &amp; Assign
-        </button>
-      </div>
-      <p id="surveyAssignMsg" style="margin:10px 0 0;font-size:12px;color:#6B7280;"></p>
-    </div>
     </div>
 
-  </div>
-</div>
+    <script src="partials/sidebar-loader.js" data-sidebar-base="../"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script>
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="js/ftth-api.js"></script>
+    <script src="js/ftth-state.js"></script>
+    <script src="js/ftth-map.js?v=20261006a"></script>
+    <script src="js/ftth-components.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-<script src="partials/sidebar-loader.js" data-sidebar-base="../"></script>
-<script src="js/ftth-config.js"></script>
-<script>
-  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="fiber-api.js"></script>
-<script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
-<script src="js/ftth-api.js"></script>
-<script src="js/ftth-state.js"></script>
-<script src="js/ftth-map.js?v=20261006a"></script>
-<script src="js/ftth-components.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
-
-  var params = new URLSearchParams(window.location.search);
-  var projectId = params.get('project_id') || window.FtthState.getProjectId();
-  if (!projectId) {
-    var cached = window.FtthState.getResults();
-    if (cached && cached.project_id) { projectId = cached.project_id; }
-  }
-
-  if (!projectId) {
-    document.getElementById('projectIdDisplay').textContent = 'No project selected';
-    document.querySelector('.ftth-map-loading').innerHTML = '<p style="color:#6B7280;font-size:16px;">No project selected. <a href="ftth-hld.html" style="color:#E31837;">Run a design</a></p>';
-  } else {
-    document.getElementById('projectIdDisplay').textContent = 'Project: ' + projectId;
-  }
-
-  var map = null, allLayers = [];
-  // Complete GeoJSON responses kept for the in-page attribute-table viewer.
-  var layerGeoJSON = {};
-  // For grouped layers (cables/ducts), sublayerRegistry maps group name ->
-  // sublayer names (e.g. cables -> [Feeder_Cable, Distribution_Cable]) and
-  // sublayerCounts maps group -> sublayer -> feature count. The layers pane
-  // renders one toggle per sublayer so feeder/distribution can be switched
-  // independently.
-  var sublayerRegistry = {}, sublayerCounts = {};
-  var permitByLayer = {};
-  // Permit-status colouring: worst (most blocking) status wins per feature.
-  var PERMIT_STATUS_COLORS = {
-    approved: '#10B981',
-    ready: '#10B981',
-    submitted: '#3B82F6',
-    under_review: '#3B82F6',
-    evidence_required: '#F59E0B',
-    identified: '#F59E0B',
-    rejected: '#EF4444',
-    closed: '#9CA3AF',
-    not_required: '#9CA3AF',
-  };
-  var PERMIT_STATUS_PRIORITY = {
-    rejected: 0, under_review: 1, submitted: 2, evidence_required: 3, identified: 4,
-    ready: 5, approved: 6, closed: 7, not_required: 8,
-  };
-  var layerControlsEl = document.getElementById('layerControls');
-  var mapLoadingEl = document.getElementById('mapLoading');
-  var layerCountEl = document.getElementById('layerCount');
-  var totalFeaturesEl = document.getElementById('totalFeatures');
-  var layerBadgeEl = document.getElementById('layerBadge');
-  var surveyPkgContainer = document.getElementById('surveyPackageContainer');
-  var surveyPkgBtn = document.getElementById('surveyPackageBtn');
-  var designPkgContainer = document.getElementById('designPackageContainer');
-  var designPkgBtn = document.getElementById('designPackageBtn');
-
-  function initResultsMap() {
-    try {
-      var initCenter = [13.405, 52.52], initZoom = 11;
-      var c = params.get('center');
-      var z = params.get('zoom');
-      if (c) {
-        var parts = c.split(',').map(parseFloat);
-        if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) { initCenter = [parts[0], parts[1]]; }
+      var params = new URLSearchParams(window.location.search);
+      var projectId = params.get('project_id') || window.FtthState.getProjectId();
+      if (!projectId) {
+        var cached = window.FtthState.getResults();
+        if (cached && cached.project_id) {
+          projectId = cached.project_id;
+        }
       }
-      if (z) {
-        var zv = parseFloat(z);
-        if (!isNaN(zv) && zv >= 1 && zv <= 20) { initZoom = zv; }
+
+      if (!projectId) {
+        document.getElementById('projectIdDisplay').textContent = 'No project selected';
+        document.querySelector('.ftth-map-loading').innerHTML =
+          '<p style="color:#6B7280;font-size:16px;">No project selected. <a href="ftth-hld.html" style="color:#E31837;">Run a design</a></p>';
+      } else {
+        document.getElementById('projectIdDisplay').textContent = 'Project: ' + projectId;
       }
-      map = window.FtthMap.initMap('map', { id:'results', center:initCenter, zoom:initZoom, basemap:'streets', onLoad:function(){ loadPipelineData(); } });
-      // Live pointer position. The results map is the one that sends a clicked
-      // point to the AI surface review, so the reader needs to see the exact
-      // coordinate they are about to classify — and while the pick is armed the
-      // readout hands that same coordinate to the click (see
-      // initSurfaceAIPointPicker), so the number on screen is the number sent.
-      if (window.FtthMap.mountCoordinateReadout) {
-        surfaceReadout = window.FtthMap.mountCoordinateReadout(map, {
-          crs: params.get('crs') || 'EPSG:25833',
-          onMove: function (lngLat) { if (surfaceAIPickOn) { surfacePickPoint = lngLat; } },
+
+      var map = null,
+        allLayers = [];
+      // Complete GeoJSON responses kept for the in-page attribute-table viewer.
+      var layerGeoJSON = {};
+      // For grouped layers (cables/ducts), sublayerRegistry maps group name ->
+      // sublayer names (e.g. cables -> [Feeder_Cable, Distribution_Cable]) and
+      // sublayerCounts maps group -> sublayer -> feature count. The layers pane
+      // renders one toggle per sublayer so feeder/distribution can be switched
+      // independently.
+      var sublayerRegistry = {},
+        sublayerCounts = {};
+      var permitByLayer = {};
+      // Permit-status colouring: worst (most blocking) status wins per feature.
+      var PERMIT_STATUS_COLORS = {
+        approved: '#10B981',
+        ready: '#10B981',
+        submitted: '#3B82F6',
+        under_review: '#3B82F6',
+        evidence_required: '#F59E0B',
+        identified: '#F59E0B',
+        rejected: '#EF4444',
+        closed: '#9CA3AF',
+        not_required: '#9CA3AF',
+      };
+      var PERMIT_STATUS_PRIORITY = {
+        rejected: 0,
+        under_review: 1,
+        submitted: 2,
+        evidence_required: 3,
+        identified: 4,
+        ready: 5,
+        approved: 6,
+        closed: 7,
+        not_required: 8,
+      };
+      var layerControlsEl = document.getElementById('layerControls');
+      var mapLoadingEl = document.getElementById('mapLoading');
+      var layerCountEl = document.getElementById('layerCount');
+      var totalFeaturesEl = document.getElementById('totalFeatures');
+      var layerBadgeEl = document.getElementById('layerBadge');
+      var surveyPkgContainer = document.getElementById('surveyPackageContainer');
+      var surveyPkgBtn = document.getElementById('surveyPackageBtn');
+      var designPkgContainer = document.getElementById('designPackageContainer');
+      var designPkgBtn = document.getElementById('designPackageBtn');
+
+      function initResultsMap() {
+        try {
+          var initCenter = [13.405, 52.52],
+            initZoom = 11;
+          var c = params.get('center');
+          var z = params.get('zoom');
+          if (c) {
+            var parts = c.split(',').map(parseFloat);
+            if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+              initCenter = [parts[0], parts[1]];
+            }
+          }
+          if (z) {
+            var zv = parseFloat(z);
+            if (!isNaN(zv) && zv >= 1 && zv <= 20) {
+              initZoom = zv;
+            }
+          }
+          map = window.FtthMap.initMap('map', {
+            id: 'results',
+            center: initCenter,
+            zoom: initZoom,
+            basemap: 'streets',
+            onLoad: function () {
+              loadPipelineData();
+            },
+          });
+          // Live pointer position. The results map is the one that sends a clicked
+          // point to the AI surface review, so the reader needs to see the exact
+          // coordinate they are about to classify — and while the pick is armed the
+          // readout hands that same coordinate to the click (see
+          // initSurfaceAIPointPicker), so the number on screen is the number sent.
+          if (window.FtthMap.mountCoordinateReadout) {
+            surfaceReadout = window.FtthMap.mountCoordinateReadout(map, {
+              crs: params.get('crs') || 'EPSG:25833',
+              onMove: function (lngLat) {
+                if (surfaceAIPickOn) {
+                  surfacePickPoint = lngLat;
+                }
+              },
+            });
+          }
+          renderMapLegend();
+          if (map.loaded()) {
+            loadPipelineData();
+          }
+        } catch (err) {
+          console.error('Map init failed:', err);
+          mapLoadingEl.innerHTML =
+            '<p style="color:#DC2626;">Failed to initialize map: ' + FtthUI.humanize(err) + '</p>';
+        }
+      }
+
+      // The legend is generated from the map module's own symbol/line tables, so
+      // what the reader sees here is exactly what the renderer draws.
+      function renderMapLegend() {
+        var el = document.getElementById('mapLegend');
+        if (!el || !window.FtthMap || !window.FtthMap.legendHTML) return;
+        try {
+          el.innerHTML = window.FtthMap.legendHTML();
+        } catch (_e) {}
+      }
+
+      async function loadPipelineData() {
+        try {
+          var statusData = await window.FtthApi.getPipelineStatus(projectId);
+          if (!statusData) {
+            showEmpty('Pipeline data not found');
+            return;
+          }
+          window.FtthState.setResults(statusData);
+          renderSurveyAssignment(statusData.survey);
+          loadSurfaceAIReview();
+          initSurfaceAIPointPicker();
+          if (boqContainer) {
+            boqContainer.style.display =
+              statusData.status === 'completed' || statusData.status === 'Completed' ? 'block' : 'none';
+          }
+          allLayers = statusData.layers || [];
+          layerCountEl.textContent = allLayers.length;
+          layerBadgeEl.textContent = allLayers.length;
+          var totalFeat = 0;
+          allLayers.forEach(function (l) {
+            totalFeat += l.count || 0;
+          });
+          totalFeaturesEl.textContent = totalFeat;
+          renderLayerControls(allLayers);
+          renderPackages(statusData.downloads || []);
+
+          // Fetch permits for this project and index them by layer + feature id
+          // so trench segments can be coloured by their worst permit status.
+          permitByLayer = {};
+          var permitCounts = {
+            total: 0,
+            rejected: 0,
+            under_review: 0,
+            submitted: 0,
+            evidence_required: 0,
+            identified: 0,
+            ready: 0,
+            approved: 0,
+            closed: 0,
+            not_required: 0,
+          };
+          try {
+            var permitData = await window.FtthApi.getProjectPermits(projectId);
+            ((permitData && permitData.permits) || []).forEach(function (p) {
+              permitCounts.total++;
+              var st = p.status || 'identified';
+              if (permitCounts[st] !== undefined) permitCounts[st]++;
+              // HLD permits key off the gis table name (trench_layer); the map
+              // layer is the public name (trenches). Normalise both sides.
+              var layerKey =
+                p.layer === 'trench_layer'
+                  ? 'trenches'
+                  : p.layer === 'duct_layer'
+                    ? 'ducts'
+                    : p.layer === 'cable_layer'
+                      ? 'cables'
+                      : p.layer === 'object_layer'
+                        ? 'objects'
+                        : p.layer === 'polygon_layer'
+                          ? 'polygons'
+                          : p.layer;
+              var cur = permitByLayer[layerKey] || (permitByLayer[layerKey] = {});
+              // Section-keyed rows are "<gis_id>#<SECTION_ID>"; the map feature is
+              // the parent trench, so match on the part before the '#'.
+              var rs = String(p.route_section != null ? p.route_section : '').split('#')[0];
+              if (!rs) return;
+              var prev = cur[rs];
+              if (
+                !prev ||
+                (PERMIT_STATUS_PRIORITY[st] !== undefined && PERMIT_STATUS_PRIORITY[st] < PERMIT_STATUS_PRIORITY[prev])
+              ) {
+                cur[rs] = st;
+              }
+            });
+          } catch (permitErr) {
+            console.warn('Failed to load permits for colouring:', permitErr);
+          }
+          renderPermitLegend(permitCounts);
+
+          if (allLayers.length > 0) {
+            mapLoadingEl.style.display = 'flex';
+            mapLoadingEl.querySelector('.spinner').style.display = 'block';
+            mapLoadingEl.querySelector('div > div').textContent = 'Loading GIS layers\u2026';
+            await Promise.all(
+              allLayers.map(function (layer, index) {
+                return loadLayerGeoJSON(layer, index);
+              })
+            );
+            // Draw order must not depend on which HTTP response landed first.
+            try {
+              window.FtthMap.applyZOrder(map);
+            } catch (_e) {}
+            setTimeout(function () {
+              try {
+                if (!params.get('center') && !params.get('zoom') && !surfaceLocated) {
+                  window.FtthMap.fitToLayers(map, 50);
+                }
+              } catch (_) {}
+            }, 500);
+          } else {
+            showEmpty('No layers generated.');
+          }
+          mapLoadingEl.style.display = 'none';
+        } catch (err) {
+          console.error('Failed to load pipeline data:', err);
+          mapLoadingEl.innerHTML =
+            '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;margin-bottom:12px;">Failed to load results: ' +
+            escapeHtml(FtthUI.humanize(err)) +
+            '</p><a href="ftth-hld-status.html?project_id=' +
+            encodeURIComponent(projectId) +
+            '" style="color:#E31837;font-size:14px;">\u2190 Back</a></div>';
+        }
+      }
+
+      async function loadLayerGeoJSON(layerMeta, index) {
+        var layerName = layerMeta.name || layerMeta.layer_name || 'layer_' + index;
+        try {
+          var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
+          if (!geojson || !geojson.features || !geojson.features.length) {
+            console.warn('Empty GeoJSON:', layerName);
+            return;
+          }
+          layerGeoJSON[layerName] = geojson;
+          var isPolygon =
+            geojson.features[0] &&
+            geojson.features[0].geometry &&
+            geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
+          // Inject the worst permit status per feature so trench segments are
+          // coloured by their permit state (permits key off the feature fid).
+          var layerPermits = permitByLayer[layerName];
+          if (layerPermits) {
+            geojson.features.forEach(function (f) {
+              var props = f.properties || (f.properties = {});
+              var fid =
+                props.feature_id != null
+                  ? String(props.feature_id)
+                  : f.id != null
+                    ? String(f.id)
+                    : props.id != null
+                      ? String(props.id)
+                      : null;
+              if (fid && layerPermits[fid]) props.permit_status = layerPermits[fid];
+            });
+          }
+          // Grouped layers (cables/ducts) carry a per-feature `sublayer` property
+          // (Feeder_Cable / Distribution_Cable / Feeder_Ducts / Distribution_Ducts /
+          // Drop_Ducts). Split them into one map layer per sublayer so the layers
+          // pane can toggle feeder vs distribution independently.
+          var SUBLAYER_COLORS = window.FtthMap.SUBLAYER_COLORS || {};
+          // Runs ingested before the tier tag was persisted can lack `sublayer`.
+          // The cable tier is authoritative in the served attributes (CABLE_TYPE
+          // is exactly "Feeder" / "Distribution"), so derive it instead of
+          // collapsing every cable into one toggle. Ducts carry no tier marker of
+          // their own — those rely on the tag written at ingest.
+          if (layerName === 'cables') {
+            // Drop cables are the distribution layer's one-per-premise garden legs
+            // (CABLE_TYPE = "Drop"), so they share the Distribution_Cable toggle.
+            var CABLE_SUB = { Feeder: 'Feeder_Cable', Distribution: 'Distribution_Cable', Drop: 'Distribution_Cable' };
+            (geojson.features || []).forEach(function (f) {
+              var p = f.properties || (f.properties = {});
+              if (p.sublayer) return;
+              var sub = CABLE_SUB[p.CABLE_TYPE];
+              if (sub) p.sublayer = sub;
+            });
+          }
+          var subByFeat = {};
+          (geojson.features || []).forEach(function (f) {
+            var s = f.properties && f.properties.sublayer;
+            if (s && SUBLAYER_COLORS[s]) subByFeat[s] = (subByFeat[s] || 0) + 1;
+          });
+          var subNames = Object.keys(subByFeat);
+          if (subNames.length > 0) {
+            sublayerRegistry[layerName] = subNames;
+            sublayerCounts[layerName] = subByFeat;
+            subNames.forEach(function (sub) {
+              var subGeo = { type: 'FeatureCollection', features: [] };
+              (geojson.features || []).forEach(function (f) {
+                if (f.properties && f.properties.sublayer === sub) subGeo.features.push(f);
+              });
+              window.FtthMap.addGeoJSONLayer(map, layerName + '::' + sub, subGeo, {
+                fillColor: SUBLAYER_COLORS[sub],
+                visible: true,
+                permitField: 'permit_status',
+                permitColors: PERMIT_STATUS_COLORS,
+              });
+            });
+            expandLayerControls(layerName);
+            return;
+          }
+          // Only the brownfield layer shades by ASSET_TYPE (all existing infra
+          // under one toggle, in shades of one colour). Other layers keep their
+          // sublayer colour coding (Feeder/Distribution/Drop etc.).
+          var assetTypeField = layerName === 'brownfield' ? 'ASSET_TYPE' : undefined;
+          window.FtthMap.addGeoJSONLayer(map, layerName, geojson, {
+            flagField: isPolygon ? 'REVIEW' : undefined,
+            flagValue: isPolygon ? 1 : undefined,
+            visible: true,
+            sublayerField: 'sublayer',
+            assetTypeField: assetTypeField,
+            permitField: 'permit_status',
+            permitColors: PERMIT_STATUS_COLORS,
+          });
+          updateToggleStatus(layerName, geojson.features.length);
+        } catch (err) {
+          console.warn('Failed to load layer ' + layerName + ':', err);
+        }
+      }
+
+      // ---------------------------------------------------------------
+      // Click-to-classify: pick a point on the map and ask the engine what
+      // surface is there. Advisory only; it never edits the design.
+      // ---------------------------------------------------------------
+      var surfaceAIPickOn = false;
+      var surfaceAIPickWired = false;
+      var surfaceReadout = null;
+      // The coordinate the readout showed when the pointer last moved while the
+      // pick was armed.  Sending this instead of the raw click position keeps the
+      // request identical to what the reader just read off the map.
+      var surfacePickPoint = null;
+      // Set once the reader frames a span, so the initial fit-to-layers (which can
+      // still be pending while layers stream in) does not yank the map back off the
+      // span they just asked to see.
+      var surfaceLocated = false;
+
+      function setSurfaceAIPickActive(active) {
+        surfaceAIPickOn = !!active;
+        surfacePickPoint = null;
+        if (surfaceReadout) {
+          surfaceReadout.setActive(surfaceAIPickOn);
+        }
+        var pickBtn = document.getElementById('surfaceAIPickBtn');
+        if (pickBtn) {
+          pickBtn.classList.toggle('active', surfaceAIPickOn);
+          pickBtn.textContent = surfaceAIPickOn
+            ? 'Click the map to classify that point...'
+            : 'Classify a point on the map...';
+        }
+        if (map) {
+          map.getCanvas().style.cursor = surfaceAIPickOn ? 'crosshair' : '';
+        }
+      }
+
+      function renderSurfaceAIPoint(item) {
+        var box = document.getElementById('surfaceAIPickResult');
+        if (!box) return;
+        item = item || {};
+        var label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
+        var confidence = item.confidence == null || item.confidence === '' ? NaN : Number(item.confidence);
+        var point =
+          Array.isArray(item.point) && item.point.length >= 2
+            ? Number(item.point[1]).toFixed(5) + ', ' + Number(item.point[0]).toFixed(5)
+            : '';
+        var meta = [
+          point ? 'At ' + point : '',
+          Number.isFinite(confidence) ? Math.round(confidence * 100) + '% confidence' : 'Confidence unavailable',
+          String(item.review_status || 'pending').replace(/_/g, ' '),
+          item.imagery_source ? 'Source: ' + item.imagery_source : '',
+          item.imagery_date ? 'Date: ' + item.imagery_date : '',
+          item.imagery_route_overlaid === false ? 'No route marker' : '',
+        ]
+          .filter(Boolean)
+          .join(' \u00b7 ');
+        box.innerHTML =
+          '<article class="ftth-surface-ai-card"><strong>' +
+          escapeHtml(label) +
+          '</strong>' +
+          '<div class="ftth-surface-ai-meta">' +
+          escapeHtml(meta) +
+          '</div>' +
+          (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '') +
+          surfacePatchHtml(item) +
+          '</article>';
+      }
+
+      async function classifySurfaceAtClick(lngLat) {
+        var pickBtn = document.getElementById('surfaceAIPickBtn');
+        var box = document.getElementById('surfaceAIPickResult');
+        setSurfaceAIPickActive(false);
+        if (!window.FtthApi || !window.FtthApi.classifySurfaceAt || !lngLat) return;
+        if (box) box.innerHTML = '<div class="ftth-surface-ai-note">Fetching imagery and asking the model...</div>';
+        if (pickBtn) pickBtn.disabled = true;
+        try {
+          // Ask for the patch too, so the card shows the imagery the answer came from.
+          var item = await window.FtthApi.classifySurfaceAt(
+            projectId,
+            { lng: lngLat.lng, lat: lngLat.lat },
+            { include_imagery: true }
+          );
+          renderSurfaceAIPoint(item);
+        } catch (err) {
+          if (box) {
+            box.innerHTML =
+              '<div class="ftth-surface-ai-note">Could not classify that point: ' +
+              escapeHtml(FtthUI.humanize(err)) +
+              '</div>';
+          }
+        } finally {
+          if (pickBtn) pickBtn.disabled = false;
+        }
+      }
+
+      function initSurfaceAIPointPicker() {
+        var pickBtn = document.getElementById('surfaceAIPickBtn');
+        if (!pickBtn || !window.FtthApi || !window.FtthApi.classifySurfaceAt) return;
+        pickBtn.style.display = 'block';
+        if (surfaceAIPickWired) return;
+        surfaceAIPickWired = true;
+        pickBtn.addEventListener('click', function () {
+          var next = !surfaceAIPickOn;
+          // Only one click mode at a time, so a pick does not also select a feature.
+          if (next && identifyBtn && identifyBtn.classList.contains('active')) identifyBtn.click();
+          setSurfaceAIPickActive(next);
         });
+        if (map) {
+          map.on('click', function (e) {
+            if (!surfaceAIPickOn) return;
+            // Prefer the hovered coordinate the readout was displaying, so a click
+            // on a point framed with the readout sends exactly that point.
+            classifySurfaceAtClick(surfacePickPoint || e.lngLat);
+          });
+        }
+        // One listener on the panel, which survives every innerHTML re-render, so
+        // the per-span "show imagery" and "detect with AI" buttons keep working on
+        // cards built later.
+        var section = document.getElementById('surfaceAIReviewSection');
+        if (section && !section.dataset.surfaceWired) {
+          section.dataset.surfaceWired = '1';
+          section.addEventListener('click', onSurfaceReviewClick);
+        }
       }
-      renderMapLegend();
-      if (map.loaded()) { loadPipelineData(); }
-    } catch(err) {
-      console.error('Map init failed:', err);
-      mapLoadingEl.innerHTML = '<p style="color:#DC2626;">Failed to initialize map: ' + FtthUI.humanize(err) + '</p>';
-    }
-  }
 
-  // The legend is generated from the map module's own symbol/line tables, so
-  // what the reader sees here is exactly what the renderer draws.
-  function renderMapLegend() {
-    var el = document.getElementById('mapLegend');
-    if (!el || !window.FtthMap || !window.FtthMap.legendHTML) return;
-    try { el.innerHTML = window.FtthMap.legendHTML(); } catch (_e) {}
-  }
+      // ---------------------------------------------------------------
+      // Undetected surfaces: spans no source layer could name. Each row can
+      // show the imagery the model would use, or spend ONE AI call on that
+      // span. Nothing is sent until the reader asks, so a batch is never
+      // fired at a credit budget it did not agree to.
+      // ---------------------------------------------------------------
+      var surfaceReviewItems = [];
+      var surfaceReport = null;
+      var SURFACE_UNDETECTED_PAGE = 20;
+      var SURFACE_DETECTED_PAGE = 10;
+      var surfaceUndetectedShown = SURFACE_UNDETECTED_PAGE;
+      var surfaceDetectedShown = SURFACE_DETECTED_PAGE;
 
-  async function loadPipelineData() {
-    try {
-      var statusData = await window.FtthApi.getPipelineStatus(projectId);
-      if (!statusData) { showEmpty('Pipeline data not found'); return; }
-      window.FtthState.setResults(statusData);
-      renderSurveyAssignment(statusData.survey);
-      loadSurfaceAIReview();
-      initSurfaceAIPointPicker();
-      if (boqContainer) {
-        boqContainer.style.display =
-          (statusData.status === 'completed' || statusData.status === 'Completed') ? 'block' : 'none';
+      function surfaceStatusText(item) {
+        return String((item && item.review_status) || 'pending').replace(/_/g, ' ');
       }
-      allLayers = statusData.layers || [];
-      layerCountEl.textContent = allLayers.length;
-      layerBadgeEl.textContent = allLayers.length;
-      var totalFeat = 0;
-      allLayers.forEach(function(l){ totalFeat += (l.count || 0); });
-      totalFeaturesEl.textContent = totalFeat;
-      renderLayerControls(allLayers);
-      renderPackages(statusData.downloads || []);
 
-      // Fetch permits for this project and index them by layer + feature id
-      // so trench segments can be coloured by their worst permit status.
-      permitByLayer = {};
-      var permitCounts = { total: 0, rejected: 0, under_review: 0, submitted: 0, evidence_required: 0, identified: 0, ready: 0, approved: 0, closed: 0, not_required: 0 };
-      try {
-        var permitData = await window.FtthApi.getProjectPermits(projectId);
-        (permitData && permitData.permits || []).forEach(function (p) {
-          permitCounts.total++;
-          var st = p.status || 'identified';
-          if (permitCounts[st] !== undefined) permitCounts[st]++;
-          // HLD permits key off the gis table name (trench_layer); the map
-          // layer is the public name (trenches). Normalise both sides.
-          var layerKey = p.layer === 'trench_layer' ? 'trenches'
-            : p.layer === 'duct_layer' ? 'ducts'
-            : p.layer === 'cable_layer' ? 'cables'
-            : p.layer === 'object_layer' ? 'objects'
-            : p.layer === 'polygon_layer' ? 'polygons' : p.layer;
-          var cur = permitByLayer[layerKey] || (permitByLayer[layerKey] = {});
-          // Section-keyed rows are "<gis_id>#<SECTION_ID>"; the map feature is
-          // the parent trench, so match on the part before the '#'.
-          var rs = String(p.route_section != null ? p.route_section : '').split('#')[0];
-          if (!rs) return;
-          var prev = cur[rs];
-          if (!prev || (PERMIT_STATUS_PRIORITY[st] !== undefined && PERMIT_STATUS_PRIORITY[st] < PERMIT_STATUS_PRIORITY[prev])) {
-            cur[rs] = st;
+      // 'pending' is the only status that carries an AI answer; everything else
+      // (no_imagery, error, not_processed_limit, deferred_rate_limit, awaiting_*)
+      // is still an unanswered span, i.e. undetected.
+      function surfaceAnswered(item) {
+        return surfaceStatusText(item) === 'pending';
+      }
+
+      function surfacePercent(value) {
+        var n = Number(value);
+        return Number.isFinite(n) ? Math.round(n * 100) + '%' : '';
+      }
+
+      /**
+       * The imagery patch, inline, with its attribution.
+       *
+       * `image_base64` is only present when a classify asked for it or a preview
+       * fetched it: the batch artifact stores no image bytes, so an undetected row
+       * shows nothing until one of those two actions runs.
+       */
+      function surfacePatchHtml(item) {
+        if (!item) return '';
+        if (!item.image_base64) {
+          var why = surfaceStatusText(item);
+          if (why === 'disabled' || why === 'awaiting imagery source') return '';
+          return (
+            '<div class="ftth-surface-ai-patch-note">No patch to show' +
+            (why === 'no imagery' ? ' \u2014 no imagery source covers this location.' : '.') +
+            '</div>'
+          );
+        }
+        var src = 'data:' + (item.image_mime_type || 'image/jpeg') + ';base64,' + item.image_base64;
+        var caption = [
+          item.imagery_source || '',
+          item.imagery_date ? 'captured ' + item.imagery_date : '',
+          item.imagery_route_overlaid === true
+            ? 'planned route drawn'
+            : item.imagery_route_overlaid === false
+              ? 'no route marker'
+              : '',
+        ]
+          .filter(Boolean)
+          .join(' \u00b7 ');
+        return (
+          '<img class="ftth-surface-ai-patch" alt="Imagery patch sent to the model" src="' +
+          src +
+          '">' +
+          (caption ? '<div class="ftth-surface-ai-patch-note">' + escapeHtml(caption) + '</div>' : '')
+        );
+      }
+
+      function surfaceCardHtml(item, index) {
+        var answered = surfaceAnswered(item);
+        var label;
+        var meta;
+        if (answered) {
+          label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
+          meta = [
+            item.span_id ? 'Span ' + item.span_id : '',
+            surfacePercent(item.confidence)
+              ? surfacePercent(item.confidence) + ' confidence'
+              : 'Confidence unavailable',
+            'detected by AI',
+            item.imagery_source ? 'Source: ' + item.imagery_source : '',
+            item.imagery_date ? 'Date: ' + item.imagery_date : '',
+          ]
+            .filter(Boolean)
+            .join(' \u00b7 ');
+        } else {
+          label = item.span_id ? 'Span ' + item.span_id : 'Span';
+          meta = [
+            'Not detected by our sources',
+            item.claimed_surface ? 'marked ' + item.claimed_surface : 'no source claim',
+            item.geometry_reason ? String(item.geometry_reason).replace(/_/g, ' ') : '',
+            surfacePercent(item.geometry_confidence) ? 'geometry ' + surfacePercent(item.geometry_confidence) : '',
+            surfacePercent(item.known_share) ? 'source cover ' + surfacePercent(item.known_share) : '',
+          ]
+            .filter(Boolean)
+            .join(' \u00b7 ');
+        }
+        // Every card carries its span route, so "locate" works on both lists; only
+        // the undetected cards additionally offer the imagery preview and the AI call.
+        var actions =
+          '<div class="ftth-surface-ai-actions">' +
+          '<button class="ftth-surface-ai-btn ftth-surface-ai-locate" type="button" data-surface-action="locate">Locate on map</button>' +
+          (answered
+            ? ''
+            : '<button class="ftth-surface-ai-btn" type="button" data-surface-action="preview">Show imagery</button>' +
+              '<button class="ftth-surface-ai-btn primary" type="button" data-surface-action="detect">Detect with AI (1 call)</button>') +
+          '</div>';
+        return (
+          '<article class="ftth-surface-ai-card' +
+          (answered ? ' is-detected' : '') +
+          '"' +
+          ' data-surface-index="' +
+          index +
+          '"' +
+          ' title="Click to show this span on the map">' +
+          '<strong>' +
+          escapeHtml(label) +
+          '</strong>' +
+          '<div class="ftth-surface-ai-meta">' +
+          escapeHtml(meta) +
+          '</div>' +
+          (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '') +
+          (item.error_detail
+            ? '<div class="ftth-surface-ai-meta">Model reply: ' + escapeHtml(item.error_detail) + '</div>'
+            : '') +
+          actions +
+          surfacePatchHtml(item) +
+          '<div class="ftth-surface-ai-detail"></div>' +
+          '</article>'
+        );
+      }
+
+      function surfaceSetCardBusy(card, busy, message) {
+        if (!card) return;
+        var buttons = card.querySelectorAll('[data-surface-action]');
+        for (var i = 0; i < buttons.length; i++) {
+          buttons[i].disabled = !!busy;
+        }
+        var detail = card.querySelector('.ftth-surface-ai-detail');
+        if (message && detail) {
+          detail.innerHTML = '<div class="ftth-surface-ai-patch-note">' + escapeHtml(message) + '</div>';
+        }
+      }
+
+      async function showSurfaceSpanImagery(item, card) {
+        if (!window.FtthApi || !window.FtthApi.previewSurfaceImagery) return;
+        surfaceSetCardBusy(card, true, 'Fetching the imagery patch \u2014 no AI call...');
+        var detail = card ? card.querySelector('.ftth-surface-ai-detail') : null;
+        try {
+          var patch = await window.FtthApi.previewSurfaceImagery(projectId, {
+            coordinates: item.coordinates,
+            coordinates_crs: item.coordinates_crs,
+            span_id: item.span_id,
+          });
+          if (detail) {
+            detail.innerHTML = surfacePatchHtml(patch);
+          }
+        } catch (err) {
+          if (detail) {
+            detail.innerHTML =
+              '<div class="ftth-surface-ai-patch-note">Could not fetch imagery: ' +
+              escapeHtml(FtthUI.humanize(err)) +
+              '</div>';
+          }
+        } finally {
+          surfaceSetCardBusy(card, false);
+        }
+      }
+
+      async function detectSurfaceSpan(item, card) {
+        if (!window.FtthApi || !window.FtthApi.classifySurfaceSpan) return;
+        surfaceSetCardBusy(card, true, 'Fetching imagery and asking the model \u2014 one AI call...');
+        try {
+          var updated = await window.FtthApi.classifySurfaceSpan(projectId, item);
+          // Keep the one artifact-item object in sync so a later panel re-render
+          // shows the same answer, then swap just this card in place so the reader
+          // keeps the patch in front of them instead of it jumping sections.
+          Object.assign(item, updated);
+          if (card) {
+            var index = Number(card.getAttribute('data-surface-index'));
+            card.outerHTML = surfaceCardHtml(item, Number.isInteger(index) ? index : 0);
+          }
+          surfaceRefreshCounts();
+        } catch (err) {
+          var detail = card && card.querySelector('.ftth-surface-ai-detail');
+          if (detail) {
+            detail.innerHTML =
+              '<div class="ftth-surface-ai-patch-note">Could not classify this span: ' +
+              escapeHtml(FtthUI.humanize(err)) +
+              '</div>';
+          }
+          surfaceSetCardBusy(card, false);
+        }
+      }
+
+      function surfaceCounts() {
+        var undetected = 0;
+        var answered = 0;
+        surfaceReviewItems.forEach(function (item) {
+          if (surfaceAnswered(item)) {
+            answered += 1;
+          } else {
+            undetected += 1;
           }
         });
-      } catch (permitErr) {
-        console.warn('Failed to load permits for colouring:', permitErr);
+        return { undetected: undetected, answered: answered };
       }
-      renderPermitLegend(permitCounts);
 
-      if (allLayers.length > 0) {
-        mapLoadingEl.style.display = 'flex';
-        mapLoadingEl.querySelector('.spinner').style.display = 'block';
-        mapLoadingEl.querySelector('div > div').textContent = 'Loading GIS layers\u2026';
-        await Promise.all(allLayers.map(function(layer, index){ return loadLayerGeoJSON(layer, index); }));
-        // Draw order must not depend on which HTTP response landed first.
-        try { window.FtthMap.applyZOrder(map); } catch (_e) {}
-        setTimeout(function(){ try{ if (!params.get('center') && !params.get('zoom') && !surfaceLocated) { window.FtthMap.fitToLayers(map, 50); } }catch(_){} }, 500);
-      } else {
-        showEmpty('No layers generated.');
-      }
-      mapLoadingEl.style.display = 'none';
-    } catch(err) {
-      console.error('Failed to load pipeline data:', err);
-      mapLoadingEl.innerHTML = '<div style="text-align:center;"><p style="color:#DC2626;font-size:14px;margin-bottom:12px;">Failed to load results: ' + escapeHtml(FtthUI.humanize(err)) + '</p><a href="ftth-hld-status.html?project_id=' + encodeURIComponent(projectId) + '" style="color:#E31837;font-size:14px;">\u2190 Back</a></div>';
-    }
-  }
-
-  async function loadLayerGeoJSON(layerMeta, index) {
-    var layerName = layerMeta.name || layerMeta.layer_name || 'layer_' + index;
-    try {
-      var geojson = await window.FtthApi.getPipelineLayer(projectId, layerName);
-      if (!geojson || !geojson.features || !geojson.features.length) { console.warn('Empty GeoJSON:', layerName); return; }
-      layerGeoJSON[layerName] = geojson;
-      var isPolygon = geojson.features[0] && geojson.features[0].geometry && geojson.features[0].geometry.type.toLowerCase().indexOf('polygon') !== -1;
-      // Inject the worst permit status per feature so trench segments are
-      // coloured by their permit state (permits key off the feature fid).
-      var layerPermits = permitByLayer[layerName];
-      if (layerPermits) {
-        geojson.features.forEach(function (f) {
-          var props = f.properties || (f.properties = {});
-          var fid = props.feature_id != null ? String(props.feature_id)
-            : (f.id != null ? String(f.id)
-              : (props.id != null ? String(props.id) : null));
-          if (fid && layerPermits[fid]) props.permit_status = layerPermits[fid];
-        });
-      }
-      // Grouped layers (cables/ducts) carry a per-feature `sublayer` property
-      // (Feeder_Cable / Distribution_Cable / Feeder_Ducts / Distribution_Ducts /
-      // Drop_Ducts). Split them into one map layer per sublayer so the layers
-      // pane can toggle feeder vs distribution independently.
-      var SUBLAYER_COLORS = window.FtthMap.SUBLAYER_COLORS || {};
-      // Runs ingested before the tier tag was persisted can lack `sublayer`.
-      // The cable tier is authoritative in the served attributes (CABLE_TYPE
-      // is exactly "Feeder" / "Distribution"), so derive it instead of
-      // collapsing every cable into one toggle. Ducts carry no tier marker of
-      // their own — those rely on the tag written at ingest.
-      if (layerName === 'cables') {
-        // Drop cables are the distribution layer's one-per-premise garden legs
-        // (CABLE_TYPE = "Drop"), so they share the Distribution_Cable toggle.
-        var CABLE_SUB = { 'Feeder': 'Feeder_Cable', 'Distribution': 'Distribution_Cable', 'Drop': 'Distribution_Cable' };
-        (geojson.features || []).forEach(function (f) {
-          var p = f.properties || (f.properties = {});
-          if (p.sublayer) return;
-          var sub = CABLE_SUB[p.CABLE_TYPE];
-          if (sub) p.sublayer = sub;
-        });
-      }
-      var subByFeat = {};
-      (geojson.features || []).forEach(function (f) {
-        var s = f.properties && f.properties.sublayer;
-        if (s && SUBLAYER_COLORS[s]) subByFeat[s] = (subByFeat[s] || 0) + 1;
-      });
-      var subNames = Object.keys(subByFeat);
-      if (subNames.length > 0) {
-        sublayerRegistry[layerName] = subNames;
-        sublayerCounts[layerName] = subByFeat;
-        subNames.forEach(function (sub) {
-          var subGeo = { type: 'FeatureCollection', features: [] };
-          (geojson.features || []).forEach(function (f) {
-            if (f.properties && f.properties.sublayer === sub) subGeo.features.push(f);
-          });
-          window.FtthMap.addGeoJSONLayer(map, layerName + '::' + sub, subGeo, {
-            fillColor: SUBLAYER_COLORS[sub], visible: true,
-            permitField: 'permit_status', permitColors: PERMIT_STATUS_COLORS,
-          });
-        });
-        expandLayerControls(layerName);
-        return;
-      }
-      // Only the brownfield layer shades by ASSET_TYPE (all existing infra
-      // under one toggle, in shades of one colour). Other layers keep their
-      // sublayer colour coding (Feeder/Distribution/Drop etc.).
-      var assetTypeField = layerName === 'brownfield' ? 'ASSET_TYPE' : undefined;
-      window.FtthMap.addGeoJSONLayer(map, layerName, geojson, { flagField: isPolygon ? 'REVIEW' : undefined, flagValue: isPolygon ? 1 : undefined, visible: true, sublayerField: 'sublayer', assetTypeField: assetTypeField, permitField: 'permit_status', permitColors: PERMIT_STATUS_COLORS });
-      updateToggleStatus(layerName, geojson.features.length);
-    } catch(err) { console.warn('Failed to load layer ' + layerName + ':', err); }
-  }
-
-  // ---------------------------------------------------------------
-  // Click-to-classify: pick a point on the map and ask the engine what
-  // surface is there. Advisory only; it never edits the design.
-  // ---------------------------------------------------------------
-  var surfaceAIPickOn = false;
-  var surfaceAIPickWired = false;
-  var surfaceReadout = null;
-  // The coordinate the readout showed when the pointer last moved while the
-  // pick was armed.  Sending this instead of the raw click position keeps the
-  // request identical to what the reader just read off the map.
-  var surfacePickPoint = null;
-  // Set once the reader frames a span, so the initial fit-to-layers (which can
-  // still be pending while layers stream in) does not yank the map back off the
-  // span they just asked to see.
-  var surfaceLocated = false;
-
-  function setSurfaceAIPickActive(active) {
-    surfaceAIPickOn = !!active;
-    surfacePickPoint = null;
-    if (surfaceReadout) { surfaceReadout.setActive(surfaceAIPickOn); }
-    var pickBtn = document.getElementById('surfaceAIPickBtn');
-    if (pickBtn) {
-      pickBtn.classList.toggle('active', surfaceAIPickOn);
-      pickBtn.textContent = surfaceAIPickOn
-        ? 'Click the map to classify that point...'
-        : 'Classify a point on the map...';
-    }
-    if (map) { map.getCanvas().style.cursor = surfaceAIPickOn ? 'crosshair' : ''; }
-  }
-
-  function renderSurfaceAIPoint(item) {
-    var box = document.getElementById('surfaceAIPickResult');
-    if (!box) return;
-    item = item || {};
-    var label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
-    var confidence = item.confidence == null || item.confidence === '' ? NaN : Number(item.confidence);
-    var point = Array.isArray(item.point) && item.point.length >= 2
-      ? Number(item.point[1]).toFixed(5) + ', ' + Number(item.point[0]).toFixed(5) : '';
-    var meta = [
-      point ? 'At ' + point : '',
-      Number.isFinite(confidence) ? Math.round(confidence * 100) + '% confidence' : 'Confidence unavailable',
-      String(item.review_status || 'pending').replace(/_/g, ' '),
-      item.imagery_source ? 'Source: ' + item.imagery_source : '',
-      item.imagery_date ? 'Date: ' + item.imagery_date : '',
-      item.imagery_route_overlaid === false ? 'No route marker' : '',
-    ].filter(Boolean).join(' \u00b7 ');
-    box.innerHTML = '<article class="ftth-surface-ai-card"><strong>' + escapeHtml(label) + '</strong>'
-      + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
-      + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
-      + surfacePatchHtml(item)
-      + '</article>';
-  }
-
-  async function classifySurfaceAtClick(lngLat) {
-    var pickBtn = document.getElementById('surfaceAIPickBtn');
-    var box = document.getElementById('surfaceAIPickResult');
-    setSurfaceAIPickActive(false);
-    if (!window.FtthApi || !window.FtthApi.classifySurfaceAt || !lngLat) return;
-    if (box) box.innerHTML = '<div class="ftth-surface-ai-note">Fetching imagery and asking the model...</div>';
-    if (pickBtn) pickBtn.disabled = true;
-    try {
-      // Ask for the patch too, so the card shows the imagery the answer came from.
-      var item = await window.FtthApi.classifySurfaceAt(
-        projectId, { lng: lngLat.lng, lat: lngLat.lat }, { include_imagery: true });
-      renderSurfaceAIPoint(item);
-    } catch (err) {
-      if (box) {
-        box.innerHTML = '<div class="ftth-surface-ai-note">Could not classify that point: '
-          + escapeHtml(FtthUI.humanize(err)) + '</div>';
-      }
-    } finally {
-      if (pickBtn) pickBtn.disabled = false;
-    }
-  }
-
-  function initSurfaceAIPointPicker() {
-    var pickBtn = document.getElementById('surfaceAIPickBtn');
-    if (!pickBtn || !window.FtthApi || !window.FtthApi.classifySurfaceAt) return;
-    pickBtn.style.display = 'block';
-    if (surfaceAIPickWired) return;
-    surfaceAIPickWired = true;
-    pickBtn.addEventListener('click', function () {
-      var next = !surfaceAIPickOn;
-      // Only one click mode at a time, so a pick does not also select a feature.
-      if (next && identifyBtn && identifyBtn.classList.contains('active')) identifyBtn.click();
-      setSurfaceAIPickActive(next);
-    });
-    if (map) {
-      map.on('click', function (e) {
-        if (!surfaceAIPickOn) return;
-        // Prefer the hovered coordinate the readout was displaying, so a click
-        // on a point framed with the readout sends exactly that point.
-        classifySurfaceAtClick(surfacePickPoint || e.lngLat);
-      });
-    }
-    // One listener on the panel, which survives every innerHTML re-render, so
-    // the per-span "show imagery" and "detect with AI" buttons keep working on
-    // cards built later.
-    var section = document.getElementById('surfaceAIReviewSection');
-    if (section && !section.dataset.surfaceWired) {
-      section.dataset.surfaceWired = '1';
-      section.addEventListener('click', onSurfaceReviewClick);
-    }
-  }
-
-  // ---------------------------------------------------------------
-  // Undetected surfaces: spans no source layer could name. Each row can
-  // show the imagery the model would use, or spend ONE AI call on that
-  // span. Nothing is sent until the reader asks, so a batch is never
-  // fired at a credit budget it did not agree to.
-  // ---------------------------------------------------------------
-  var surfaceReviewItems = [];
-  var surfaceReport = null;
-  var SURFACE_UNDETECTED_PAGE = 20;
-  var SURFACE_DETECTED_PAGE = 10;
-  var surfaceUndetectedShown = SURFACE_UNDETECTED_PAGE;
-  var surfaceDetectedShown = SURFACE_DETECTED_PAGE;
-
-  function surfaceStatusText(item) {
-    return String((item && item.review_status) || 'pending').replace(/_/g, ' ');
-  }
-
-  // 'pending' is the only status that carries an AI answer; everything else
-  // (no_imagery, error, not_processed_limit, deferred_rate_limit, awaiting_*)
-  // is still an unanswered span, i.e. undetected.
-  function surfaceAnswered(item) {
-    return surfaceStatusText(item) === 'pending';
-  }
-
-  function surfacePercent(value) {
-    var n = Number(value);
-    return Number.isFinite(n) ? Math.round(n * 100) + '%' : '';
-  }
-
-  /**
-   * The imagery patch, inline, with its attribution.
-   *
-   * `image_base64` is only present when a classify asked for it or a preview
-   * fetched it: the batch artifact stores no image bytes, so an undetected row
-   * shows nothing until one of those two actions runs.
-   */
-  function surfacePatchHtml(item) {
-    if (!item) return '';
-    if (!item.image_base64) {
-      var why = surfaceStatusText(item);
-      if (why === 'disabled' || why === 'awaiting imagery source') return '';
-      return '<div class="ftth-surface-ai-patch-note">No patch to show'
-        + (why === 'no imagery' ? ' \u2014 no imagery source covers this location.' : '.') + '</div>';
-    }
-    var src = 'data:' + (item.image_mime_type || 'image/jpeg') + ';base64,' + item.image_base64;
-    var caption = [
-      item.imagery_source || '',
-      item.imagery_date ? 'captured ' + item.imagery_date : '',
-      item.imagery_route_overlaid === true ? 'planned route drawn'
-        : item.imagery_route_overlaid === false ? 'no route marker' : '',
-    ].filter(Boolean).join(' \u00b7 ');
-    return '<img class="ftth-surface-ai-patch" alt="Imagery patch sent to the model" src="' + src + '">'
-      + (caption ? '<div class="ftth-surface-ai-patch-note">' + escapeHtml(caption) + '</div>' : '');
-  }
-
-  function surfaceCardHtml(item, index) {
-    var answered = surfaceAnswered(item);
-    var label;
-    var meta;
-    if (answered) {
-      label = item.AI_SURFACE ? String(item.AI_SURFACE).replace(/_/g, ' ') : 'No AI suggestion';
-      meta = [
-        item.span_id ? 'Span ' + item.span_id : '',
-        surfacePercent(item.confidence) ? surfacePercent(item.confidence) + ' confidence' : 'Confidence unavailable',
-        'detected by AI',
-        item.imagery_source ? 'Source: ' + item.imagery_source : '',
-        item.imagery_date ? 'Date: ' + item.imagery_date : '',
-      ].filter(Boolean).join(' \u00b7 ');
-    } else {
-      label = item.span_id ? 'Span ' + item.span_id : 'Span';
-      meta = [
-        'Not detected by our sources',
-        item.claimed_surface ? 'marked ' + item.claimed_surface : 'no source claim',
-        item.geometry_reason ? String(item.geometry_reason).replace(/_/g, ' ') : '',
-        surfacePercent(item.geometry_confidence) ? 'geometry ' + surfacePercent(item.geometry_confidence) : '',
-        surfacePercent(item.known_share) ? 'source cover ' + surfacePercent(item.known_share) : '',
-      ].filter(Boolean).join(' \u00b7 ');
-    }
-    // Every card carries its span route, so "locate" works on both lists; only
-    // the undetected cards additionally offer the imagery preview and the AI call.
-    var actions = '<div class="ftth-surface-ai-actions">'
-      + '<button class="ftth-surface-ai-btn ftth-surface-ai-locate" type="button" data-surface-action="locate">Locate on map</button>'
-      + (answered ? ''
-        : '<button class="ftth-surface-ai-btn" type="button" data-surface-action="preview">Show imagery</button>'
-          + '<button class="ftth-surface-ai-btn primary" type="button" data-surface-action="detect">Detect with AI (1 call)</button>')
-      + '</div>';
-    return '<article class="ftth-surface-ai-card' + (answered ? ' is-detected' : '') + '"'
-      + ' data-surface-index="' + index + '"'
-      + ' title="Click to show this span on the map">'
-      + '<strong>' + escapeHtml(label) + '</strong>'
-      + '<div class="ftth-surface-ai-meta">' + escapeHtml(meta) + '</div>'
-      + (item.reason ? '<div class="ftth-surface-ai-meta">' + escapeHtml(item.reason) + '</div>' : '')
-      + (item.error_detail ? '<div class="ftth-surface-ai-meta">Model reply: ' + escapeHtml(item.error_detail) + '</div>' : '')
-      + actions
-      + surfacePatchHtml(item)
-      + '<div class="ftth-surface-ai-detail"></div>'
-      + '</article>';
-  }
-
-  function surfaceSetCardBusy(card, busy, message) {
-    if (!card) return;
-    var buttons = card.querySelectorAll('[data-surface-action]');
-    for (var i = 0; i < buttons.length; i++) { buttons[i].disabled = !!busy; }
-    var detail = card.querySelector('.ftth-surface-ai-detail');
-    if (message && detail) {
-      detail.innerHTML = '<div class="ftth-surface-ai-patch-note">' + escapeHtml(message) + '</div>';
-    }
-  }
-
-  async function showSurfaceSpanImagery(item, card) {
-    if (!window.FtthApi || !window.FtthApi.previewSurfaceImagery) return;
-    surfaceSetCardBusy(card, true, 'Fetching the imagery patch \u2014 no AI call...');
-    var detail = card ? card.querySelector('.ftth-surface-ai-detail') : null;
-    try {
-      var patch = await window.FtthApi.previewSurfaceImagery(projectId, {
-        coordinates: item.coordinates,
-        coordinates_crs: item.coordinates_crs,
-        span_id: item.span_id,
-      });
-      if (detail) { detail.innerHTML = surfacePatchHtml(patch); }
-    } catch (err) {
-      if (detail) {
-        detail.innerHTML = '<div class="ftth-surface-ai-patch-note">Could not fetch imagery: '
-          + escapeHtml(FtthUI.humanize(err)) + '</div>';
-      }
-    } finally {
-      surfaceSetCardBusy(card, false);
-    }
-  }
-
-  async function detectSurfaceSpan(item, card) {
-    if (!window.FtthApi || !window.FtthApi.classifySurfaceSpan) return;
-    surfaceSetCardBusy(card, true, 'Fetching imagery and asking the model \u2014 one AI call...');
-    try {
-      var updated = await window.FtthApi.classifySurfaceSpan(projectId, item);
-      // Keep the one artifact-item object in sync so a later panel re-render
-      // shows the same answer, then swap just this card in place so the reader
-      // keeps the patch in front of them instead of it jumping sections.
-      Object.assign(item, updated);
-      if (card) {
-        var index = Number(card.getAttribute('data-surface-index'));
-        card.outerHTML = surfaceCardHtml(item, Number.isInteger(index) ? index : 0);
-      }
-      surfaceRefreshCounts();
-    } catch (err) {
-      var detail = card && card.querySelector('.ftth-surface-ai-detail');
-      if (detail) {
-        detail.innerHTML = '<div class="ftth-surface-ai-patch-note">Could not classify this span: '
-          + escapeHtml(FtthUI.humanize(err)) + '</div>';
-      }
-      surfaceSetCardBusy(card, false);
-    }
-  }
-
-  function surfaceCounts() {
-    var undetected = 0;
-    var answered = 0;
-    surfaceReviewItems.forEach(function (item) {
-      if (surfaceAnswered(item)) { answered += 1; } else { undetected += 1; }
-    });
-    return { undetected: undetected, answered: answered };
-  }
-
-  function surfaceRefreshCounts() {
-    var counts = surfaceCounts();
-    var badge = document.getElementById('surfaceAIReviewBadge');
-    if (badge) {
-      badge.textContent = counts.answered
-        ? counts.answered + ' detected \u00b7 ' + counts.undetected + ' open'
-        : 'No suggestions';
-    }
-    var summary = document.getElementById('surfaceAISummary');
-    if (summary) {
-      summary.textContent = counts.undetected + ' span(s) have no surface from OpenStreetMap or any '
-        + 'source layer; ' + counts.answered + ' already answered by AI.';
-    }
-    var undetectedEl = document.getElementById('surfaceAIUndetectedCount');
-    if (undetectedEl) { undetectedEl.textContent = counts.undetected; }
-    var answeredEl = document.getElementById('surfaceAIDetectedCount');
-    if (answeredEl) { answeredEl.textContent = counts.answered; }
-  }
-
-  // ---------------------------------------------------------------
-  // Locate on map: a review span stores its own route in the design's
-  // projected CRS, so convert it to lng/lat, frame it and paint it on
-  // the highlight layer. This is the "click a span and see where it is"
-  // half of the review — the model's answer is about a place, and the
-  // reader needs to look at that place before trusting it.
-  // ---------------------------------------------------------------
-  function surfaceSpanLngLatFeature(item) {
-    if (!item || !Array.isArray(item.coordinates) || !item.coordinates.length) return null;
-    if (!window.FtthMap || !window.FtthMap.toLngLat) return null;
-    var crs = item.coordinates_crs || params.get('crs') || 'EPSG:25833';
-    var points = [];
-    item.coordinates.forEach(function (pt) {
-      if (!Array.isArray(pt) || pt.length < 2) return;
-      var ll = window.FtthMap.toLngLat(pt[0], pt[1], crs);
-      if (ll && isFinite(ll.lng) && isFinite(ll.lat)) points.push([ll.lng, ll.lat]);
-    });
-    if (!points.length) return null;
-    return {
-      type: 'Feature',
-      properties: { span_id: item.span_id || '' },
-      geometry: points.length === 1
-        ? { type: 'Point', coordinates: points[0] }
-        : { type: 'LineString', coordinates: points },
-    };
-  }
-
-  function locateSurfaceSpan(item, card) {
-    if (!map) return;
-    var feature = surfaceSpanLngLatFeature(item);
-    if (!feature) return;
-    surfaceLocated = true;
-    try {
-      window.FtthMap.fitToLngLatGeometry(map, feature, { padding: 80, maxZoom: 18 });
-    } catch (_e) { /* framing is best-effort; never block the review */ }
-    // Mark the card the reader clicked so the list shows which span the map frames.
-    var located = document.querySelectorAll('#surfaceAIReviewBody .ftth-surface-ai-card.is-located');
-    for (var i = 0; i < located.length; i++) { located[i].classList.remove('is-located'); }
-    if (card) card.classList.add('is-located');
-  }
-
-  async function onSurfaceReviewClick(event) {
-    var target = event.target;
-    if (!target || !target.getAttribute) return;
-    if (target.id === 'surfaceAIMoreUndetected' || target.id === 'surfaceAIMoreDetected') {
-      if (target.id === 'surfaceAIMoreUndetected') {
-        surfaceUndetectedShown += SURFACE_UNDETECTED_PAGE;
-      } else {
-        surfaceDetectedShown += SURFACE_DETECTED_PAGE;
-      }
-      if (surfaceReport) {
-        renderSurfaceAIReview(surfaceReport,
-          document.getElementById('surfaceAIReviewBody'),
-          document.getElementById('surfaceAIReviewBadge'));
-      }
-      return;
-    }
-    var card = target.closest ? target.closest('[data-surface-index]') : null;
-    if (!card) return;
-    var index = Number(card.getAttribute('data-surface-index'));
-    if (!Number.isInteger(index) || index < 0 || index >= surfaceReviewItems.length) return;
-    var item = surfaceReviewItems[index];
-    var action = target.getAttribute('data-surface-action');
-    if (action === 'preview') {
-      await showSurfaceSpanImagery(item, card);
-    } else if (action === 'detect') {
-      await detectSurfaceSpan(item, card);
-    } else {
-      // Anywhere else on the card — the meta text, the patch, or the "Locate on
-      // map" button — frames that span, leaving the action buttons above intact.
-      locateSurfaceSpan(item, card);
-    }
-  }
-
-  async function loadSurfaceAIReview() {
-    var body = document.getElementById('surfaceAIReviewBody');
-    var badge = document.getElementById('surfaceAIReviewBadge');
-    if (!body || !badge || !window.FtthApi || !window.FtthApi.getSurfaceAIReview) return;
-    try {
-      var report = await window.FtthApi.getSurfaceAIReview(projectId);
-      if (!report) {
-        body.textContent = 'No AI review report for this run. Surface geometry results remain unchanged.';
-        badge.textContent = 'None';
-        return;
-      }
-      surfaceReport = report;
-      surfaceUndetectedShown = SURFACE_UNDETECTED_PAGE;
-      surfaceDetectedShown = SURFACE_DETECTED_PAGE;
-      renderSurfaceAIReview(report, body, badge);
-    } catch (err) {
-      body.textContent = 'Could not load the review report: ' + FtthUI.humanize(err);
-      badge.textContent = 'Unavailable';
-    }
-  }
-
-  function renderSurfaceAIReview(report, body, badge) {
-    var suggestions = Array.isArray(report.suggestions) ? report.suggestions : [];
-    surfaceReviewItems = suggestions;
-    var note = report.reason || (report.status === 'ready'
-      ? 'AI suggestions are advisory only; review each before use.'
-      : 'No AI suggestion was generated. Existing geometry results are unchanged.');
-    var undetected = [];
-    var answered = [];
-    suggestions.forEach(function (item, index) {
-      if (surfaceAnswered(item)) { answered.push(index); } else { undetected.push(index); }
-    });
-    if (badge) {
-      badge.textContent = answered.length
-        ? answered.length + ' detected \u00b7 ' + undetected.length + ' open'
-        : (report.status || 'No suggestions').replace(/_/g, ' ');
-    }
-    var html = '<div class="ftth-surface-ai-note">' + escapeHtml(note) + '</div>';
-    html += '<div class="ftth-surface-ai-meta" id="surfaceAISummary">' + escapeHtml(String(undetected.length))
-      + ' span(s) have no surface from OpenStreetMap or any source layer; '
-      + escapeHtml(String(answered.length)) + ' already answered by AI.</div>';
-
-    // The undetected list is the request: name exactly what our sources could not
-    // determine, and let the reader opt each span into one AI call or look at the
-    // imagery first. Nothing here fires a call on its own.
-    html += '<details class="ftth-surface-ai-group" open>'
-      + '<summary>Undetected surfaces <span class="ftth-surface-ai-count" id="surfaceAIUndetectedCount">'
-      + undetected.length + '</span></summary>'
-      + '<div class="ftth-surface-ai-note">Each span here has no surface from OpenStreetMap or any source '
-      + 'layer. Show the imagery patch the model would use, or run a single AI detect on that one span \u2014 '
-      + 'nothing is sent until you ask, so no credits are spent on spans you do not choose.</div>'
-      + '<div class="ftth-surface-ai-list">';
-    if (!undetected.length) {
-      html += '<div class="ftth-surface-ai-note">Nothing left undetected.</div>';
-    } else {
-      undetected.slice(0, surfaceUndetectedShown).forEach(function (index) {
-        html += surfaceCardHtml(suggestions[index], index);
-      });
-      if (undetected.length > surfaceUndetectedShown) {
-        html += '<button class="ftth-surface-ai-more" type="button" id="surfaceAIMoreUndetected">Show '
-          + Math.min(SURFACE_UNDETECTED_PAGE, undetected.length - surfaceUndetectedShown)
-          + ' more of ' + (undetected.length - surfaceUndetectedShown) + '</button>';
-      }
-    }
-    html += '</div></details>';
-
-    html += '<details class="ftth-surface-ai-group">'
-      + '<summary>Answered by AI <span class="ftth-surface-ai-count" id="surfaceAIDetectedCount">'
-      + answered.length + '</span></summary>'
-      + '<div class="ftth-surface-ai-list">';
-    if (!answered.length) {
-      html += '<div class="ftth-surface-ai-note">No span has an AI answer yet.</div>';
-    } else {
-      answered.slice(0, surfaceDetectedShown).forEach(function (index) {
-        html += surfaceCardHtml(suggestions[index], index);
-      });
-      if (answered.length > surfaceDetectedShown) {
-        html += '<button class="ftth-surface-ai-more" type="button" id="surfaceAIMoreDetected">Show '
-          + Math.min(SURFACE_DETECTED_PAGE, answered.length - surfaceDetectedShown)
-          + ' more of ' + (answered.length - surfaceDetectedShown) + '</button>';
-      }
-    }
-    html += '</div></details>';
-    // A resumed or rate-limited run only makes sense next to how much of the
-    // batch it actually touched, so report the counts together.
-    var progress = [];
-    if (Number(report.processed_count) > 0) {
-      progress.push(Number(report.processed_count) + ' processed this run');
-    }
-    if (Number(report.resumed_count) > 0) {
-      progress.push(Number(report.resumed_count) + ' resumed from a previous run');
-    }
-    if (Number(report.deferred_count) > 0) {
-      progress.push(Number(report.deferred_count) + ' deferred at the rate limit — rerun to continue');
-    }
-    if (progress.length) {
-      html += '<div class="ftth-surface-ai-meta" style="margin-top:8px;">'
-        + escapeHtml(progress.join(' · ')) + '</div>';
-    }
-    if (Number(report.skipped_count) > 0) {
-      html += '<div class="ftth-surface-ai-meta" style="margin-top:8px;">'
-        + escapeHtml(String(report.skipped_count)) + ' candidate(s) not processed due to the review limit.</div>';
-    }
-    body.innerHTML = html;
-  }
-
-  function renderPermitLegend(counts) {
-    var badge = document.getElementById('permitBadge');
-    var el = document.getElementById('permitLegend');
-    if (!el) return;
-    if (!counts.total) {
-      if (badge) badge.textContent = '0';
-      el.innerHTML = '<div class="ftth-empty-state" style="padding:10px;"><p style="font-size:12px;">No permits — run analysis from the project overview.</p></div>';
-      return;
-    }
-    if (badge) badge.textContent = counts.total;
-    var rows = [
-      ['#EF4444', 'Rejected', counts.rejected],
-      ['#3B82F6', 'Submitted / Under Review', counts.under_review + counts.submitted],
-      ['#F59E0B', 'Identified / Evidence', counts.evidence_required + counts.identified],
-      ['#10B981', 'Ready / Approved', counts.ready + counts.approved],
-      ['#9CA3AF', 'Closed / Not Required', counts.closed + counts.not_required],
-    ].filter(function (r) { return r[2] > 0; });
-    if (!rows.length) rows = [['#F59E0B', 'Identified', counts.identified || 0]];
-    el.innerHTML = rows.map(function (r) {
-      return '<div class="permit-row"><span class="permit-dot" style="background:' + r[0] + ';"></span><span>' + r[1] + '</span><span class="permit-count">' + r[2] + '</span></div>';
-    }).join('');
-  }
-
-  function renderLayerControls(layers) {
-    if (!layers.length) { layerControlsEl.innerHTML = '<div class="ftth-empty-state"><div class="icon">\uD83D\uDDFA\uFE0F</div><p>No layers available</p></div>'; return; }
-    layerControlsEl.innerHTML = '';
-    layers.forEach(function(layer){
-      var name = layer.name || layer.layer_name || 'Layer';
-      var count = layer.count || layer.feature_count || 0;
-      var label = document.createElement('label');
-      label.className = 'ftth-layer-toggle';
-      label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;border-bottom:1px solid #E5E7EB;';
-      var cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.checked = true;
-      cb.style.cssText = 'width:16px;height:16px;accent-color:#E31837;cursor:pointer;';
-      cb.dataset.layerName = name;
-      cb.addEventListener('change', function(){ toggleLayerVisibility(name, cb.checked); });
-      var dot = document.createElement('span');
-      dot.className = 'ftth-layer-color-dot';
-      dot.style.background = getLayerColor(name);
-      var ns = document.createElement('span');
-      ns.className = 'layer-name'; ns.textContent = name;
-      var cs = document.createElement('span');
-      cs.className = 'layer-count';
-      cs.id = 'layer-count-' + name.replace(/\s+/g,'-');
-      cs.textContent = count + ' features';
-      var tableBtn = document.createElement('button');
-      tableBtn.type = 'button'; tableBtn.className = 'ftth-table-btn'; tableBtn.textContent = 'Table';
-      tableBtn.title = 'View attributes for this layer';
-      tableBtn.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); openAttributeTable(name); });
-      label.appendChild(cb); label.appendChild(dot); label.appendChild(ns); label.appendChild(cs); label.appendChild(tableBtn);
-      layerControlsEl.appendChild(label);
-      // Grouped layers (cables/ducts) get their group row replaced by one
-      // toggle per sublayer once the GeoJSON has loaded and the sublayer
-      // breakdown is known. Add an empty placeholder container now so the
-      // expansion has a stable anchor.
-      var groupAnchor = document.createElement('div');
-      groupAnchor.id = 'layer-group-' + name.replace(/\s+/g,'-');
-      groupAnchor.style.display = 'none';
-      layerControlsEl.appendChild(groupAnchor);
-    });
-  }
-
-  // Replace a grouped layer's single row with one toggle per sublayer
-  // (e.g. cables -> Feeder_Cable + Distribution_Cable).
-  function expandLayerControls(groupName) {
-    var anchor = document.getElementById('layer-group-' + groupName.replace(/\s+/g,'-'));
-    if (!anchor) return;
-    var subs = sublayerRegistry[groupName] || [];
-    var counts = sublayerCounts[groupName] || {};
-    var total = 0;
-    subs.forEach(function(s){ total += (counts[s] || 0); });
-    var html = '';
-    // Group header row (keeps the group name visible, shows the total count)
-    html += '<button type="button" class="ftth-table-btn" data-table-group="' + escapeHtml(groupName) + '" style="margin:6px 0;">View attribute table</button>';
-    html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 2px;font-size:13px;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB;">';
-    html += '<span>' + escapeHtml(groupName) + '</span>';
-    html += '<span class="layer-count" style="font-weight:500;color:#6B7280;font-size:12px;">' + total + ' features</span>';
-    html += '</div>';
-    subs.forEach(function(sub){
-      var subKey = groupName + '::' + sub;
-      var subColor = (window.FtthMap.SUBLAYER_COLORS || {})[sub] || getLayerColor(groupName);
-      html += '<label class="ftth-layer-toggle" style="display:flex;align-items:center;gap:10px;padding:8px 0 8px 14px;cursor:pointer;border-bottom:1px solid #F3F4F6;">';
-      html += '<input type="checkbox" checked style="width:16px;height:16px;accent-color:#E31837;cursor:pointer;" data-layer-name="' + escapeHtml(subKey) + '">';
-      html += '<span class="ftth-layer-color-dot" style="background:' + subColor + ';"></span>';
-      html += '<span class="layer-name">' + escapeHtml(sub) + '</span>';
-      html += '<span class="layer-count" id="layer-count-' + subKey.replace(/\s+/g,'-') + '">' + (counts[sub] || 0) + ' features</span>';
-      html += '</label>';
-    });
-    anchor.innerHTML = html;
-    anchor.style.display = 'block';
-    var groupTableBtn = anchor.querySelector('[data-table-group]');
-    if (groupTableBtn) groupTableBtn.addEventListener('click', function(ev){ ev.preventDefault(); ev.stopPropagation(); openAttributeTable(groupName); });
-    // Hide the original single group row (it sits right before the anchor).
-    var prev = anchor.previousElementSibling;
-    if (prev && prev.tagName === 'LABEL') prev.style.display = 'none';
-    // Wire the sublayer checkboxes
-    anchor.querySelectorAll('input[data-layer-name]').forEach(function(cb2){
-      cb2.addEventListener('change', function(){ toggleLayerVisibility(cb2.dataset.layerName, cb2.checked); });
-    });
-  }
-
-  // Sublayer layer names look like 'cables::Feeder_Cable'; the map module
-  // registers them with the same id, so the standard visibility toggle works.
-  function toggleLayerVisibility(layerName, visible) { window.FtthMap.setLayerVisible(map, layerName, visible); }
-
-  function updateToggleStatus(layerName, count) {
-    var el = document.getElementById('layer-count-' + layerName.replace(/\s+/g,'-'));
-    if (el) el.textContent = count + ' features';
-  }
-
-  function getLayerColor(name) {
-    var colors = {
-      polygons: '#00aa88', trenches: '#3B82F6',
-      objects: '#8B5CF6', pdps: '#06B6D4', mfg: '#10B981',
-      mfg_service_areas: '#65A30D',
-      feeder_cable: '#EF4444', distribution_cable: '#F97316',
-      feeder_ducts: '#F59E0B', distribution_ducts: '#EAB308', drop_ducts: '#EC4899',
-      coupleurs: '#14B8A6',
-      chambers: '#92400E', poles: '#475569', brownfield: '#64748B',
-      buildings: '#8B5CF6'
-    };
-    return colors[name] || '#6B7280';
-  }
-
-  // Show the package downloads only when the engine has produced output files.
-  // Individual per-layer outputs are intentionally not listed here.
-  function renderPackages(downloads) {
-    var hasOutputs = !!(downloads && downloads.length);
-    surveyPkgContainer.style.display = hasOutputs ? 'block' : 'none';
-    designPkgContainer.style.display = hasOutputs ? 'block' : 'none';
-  }
-
-  if (surveyPkgBtn) {
-    surveyPkgBtn.addEventListener('click', function(){
-      window.FtthApi.downloadSurveyPackage(projectId);
-    });
-  }
-
-  if (designPkgBtn) {
-    designPkgBtn.addEventListener('click', function(){
-      window.FtthApi.downloadDesignPackage(projectId);
-    });
-  }
-
-  // ------------------------------------------------------------------
-  // BOQ / BOM — computed from the design layers, priced by rate card
-  // ------------------------------------------------------------------
-  var boqContainer = document.getElementById('boqContainer');
-  var boqToggleBtn = document.getElementById('boqToggleBtn');
-  var boqDownloadBtn = document.getElementById('boqDownloadBtn');
-  var boqRegenBtn = document.getElementById('boqRegenBtn');
-  var boqBody = document.getElementById('boqBody');
-  var boqLoaded = false;
-
-  function renderBoqBody(data) {
-    if (!boqBody) return;
-    var rows = (data && data.boq_rows) || [];
-    var totals = (data && data.boq_totals) || {};
-    var perSection = (totals.per_section) || {};
-    var grand = totals.grand_total || 0;
-    if (!rows.length) {
-      boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;font-size:13px;">No BOQ rows computed yet.</div>';
-      return;
-    }
-    var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-    html += '<thead><tr style="background:#F3F4F6;text-align:left;">';
-    ['Section','Code','Item','Unit','Qty','Material €','Labour €','Rent €','Total €'].forEach(function(h){
-      html += '<th style="padding:6px 8px;border-bottom:1px solid #E5E7EB;">' + h + '</th>';
-    });
-    html += '</tr></thead><tbody>';
-    rows.forEach(function(r){
-      html += '<tr>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.section || '') + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.item_code || '') + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.item_name || '') + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.unit || '') + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number(r.quantity || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number(r.material_total || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number(r.labour_total || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' + Number((r.rent_rate||0)*(r.quantity||0)).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
-      html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;font-weight:600;">' + Number(r.amount || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td>';
-      html += '</tr>';
-    });
-    html += '<tr style="background:#F9FAFB;font-weight:700;"><td colspan="8" style="padding:6px 8px;">Grand Total</td><td style="padding:6px 8px;text-align:right;">' + Number(grand).toLocaleString(undefined, {maximumFractionDigits: 2}) + '</td></tr>';
-    html += '</tbody></table>';
-    if (Object.keys(perSection).length) {
-      html += '<div style="padding:8px;font-size:11px;color:#6B7280;">';
-      Object.keys(perSection).forEach(function(s){
-        html += '<div>' + escapeHtml(s) + ': ' + Number(perSection[s] || 0).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' €</div>';
-      });
-      html += '</div>';
-    }
-    // Reuse summary — metres riding existing infrastructure, NOT billed.
-    var reuse = totals.reuse || {};
-    if (Object.keys(reuse).length) {
-      var reuseParts = [];
-      ['2.1','2.3','2.5','2.6','3.1','3.7','3.11','cable'].forEach(function(k){
-        if (reuse[k]) {
-          reuseParts.push(escapeHtml(k) + ': ' + Number(reuse[k]).toLocaleString(undefined, {maximumFractionDigits: 2}) + ' m');
+      function surfaceRefreshCounts() {
+        var counts = surfaceCounts();
+        var badge = document.getElementById('surfaceAIReviewBadge');
+        if (badge) {
+          badge.textContent = counts.answered
+            ? counts.answered + ' detected \u00b7 ' + counts.undetected + ' open'
+            : 'No suggestions';
         }
-      });
-      if (reuseParts.length) {
-        html += '<div style="margin-top:8px;padding:8px 10px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;font-size:11.5px;color:#047857;">'
-          + '♻️ Reused existing infrastructure (excluded from new-material quantities): '
-          + reuseParts.join(' &middot; ')
-          + '</div>';
+        var summary = document.getElementById('surfaceAISummary');
+        if (summary) {
+          summary.textContent =
+            counts.undetected +
+            ' span(s) have no surface from OpenStreetMap or any ' +
+            'source layer; ' +
+            counts.answered +
+            ' already answered by AI.';
+        }
+        var undetectedEl = document.getElementById('surfaceAIUndetectedCount');
+        if (undetectedEl) {
+          undetectedEl.textContent = counts.undetected;
+        }
+        var answeredEl = document.getElementById('surfaceAIDetectedCount');
+        if (answeredEl) {
+          answeredEl.textContent = counts.answered;
+        }
       }
-    }
-    // Tier-1 A4 — anomaly screening (deterministic rules; AI note is advisory only).
-    html += renderAnomalies(data && data.anomalies);
-    boqBody.innerHTML = html;
-  }
 
-  function renderAnomalies(anom) {
-    if (!anom) return '';
-    var list = anom.anomalies || [];
-    if (!list.length) {
-      return '<div style="margin-top:8px;padding:8px 10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;font-size:11.5px;color:#166534;">'
-        + '✅ No BOQ anomalies detected across ' + Number(anom.checked || 0) + ' line items.</div>';
-    }
-    var colors = {
-      high:   {bg: '#FEF2F2', bd: '#FECACA', fg: '#991B1B', icon: '🚨'},
-      medium: {bg: '#FFFBEB', bd: '#FDE68A', fg: '#92400E', icon: '⚠️'},
-      low:    {bg: '#EFF6FF', bd: '#BFDBFE', fg: '#1E40AF', icon: 'ℹ️'}
-    };
-    var html = '<div style="margin-top:8px;font-size:11.5px;">'
-      + '<div style="font-weight:600;color:#374151;margin-bottom:4px;">⚠️ '
-      + list.length + ' BOQ anomal' + (list.length === 1 ? 'y' : 'ies') + ' flagged</div>';
-    list.forEach(function(a) {
-      var c = colors[a.severity] || colors.low;
-      html += '<div style="padding:6px 10px;margin-bottom:4px;background:' + c.bg + ';border:1px solid ' + c.bd + ';border-radius:6px;color:' + c.fg + ';">'
-        + '<b>' + c.icon + ' ' + escapeHtml((a.severity || '').toUpperCase()) + '</b>'
-        + (a.item_name ? ' · ' + escapeHtml(a.item_name) : '')
-        + '<div style="margin-top:2px;">' + escapeHtml(a.message || '') + '</div>'
-        + '</div>';
-    });
-    if (anom.ai_summary) {
-      html += '<div style="margin-top:4px;padding:6px 10px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;color:#5B21B6;">'
-        + '🤖 ' + escapeHtml(anom.ai_summary)
-        + '<div style="margin-top:3px;font-size:10.5px;color:#7C3AED;">' + escapeHtml(anom.ai_disclaimer || 'AI-generated draft — verify before acting.') + '</div>'
-        + '</div>';
-    }
-    return html + '</div>';
-  }
-
-  function loadBoq() {
-    if (!window.FtthApi || !window.FtthApi.getBoq) return;
-    if (boqBody) boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;font-size:13px;">Loading BOQ…</div>';
-    window.FtthApi.getBoq(projectId).then(function(data){
-      boqLoaded = true;
-      renderBoqBody(data);
-      if (boqBody) boqBody.style.display = 'block';
-    }).catch(function(err){
-      if (boqBody) boqBody.innerHTML = '<div style="padding:16px;color:#DC2626;font-size:13px;">Failed to load BOQ: ' + escapeHtml(FtthUI.humanize(err)) + '</div>';
-    });
-  }
-
-  if (boqToggleBtn) {
-    boqToggleBtn.addEventListener('click', function(){
-      if (!boqLoaded) { loadBoq(); }
-      else if (boqBody) { boqBody.style.display = (boqBody.style.display === 'none') ? 'block' : 'none'; }
-    });
-  }
-  if (boqDownloadBtn) {
-    boqDownloadBtn.addEventListener('click', function(){
-      window.FtthApi.downloadBoq(projectId);
-    });
-  }
-  if (boqRegenBtn) {
-    boqRegenBtn.addEventListener('click', function(){
-      if (boqRegenBtn) boqRegenBtn.disabled = true;
-      window.FtthApi.regenerateBoq(projectId).then(function(data){
-        boqLoaded = true;
-        renderBoqBody(data);
-        if (boqBody) boqBody.style.display = 'block';
-      }).catch(function(err){
-        alert('Failed to recompute BOQ: ' + (FtthUI.humanize(err)));
-      }).finally(function(){
-        if (boqRegenBtn) boqRegenBtn.disabled = false;
-      });
-    });
-  }
-
-  var attributeModal = document.getElementById('attributeModal');
-  var attributeTitle = document.getElementById('attributeTitle');
-  var attributeCount = document.getElementById('attributeCount');
-  var attributeSearch = document.getElementById('attributeSearch');
-  var attributeBody = document.getElementById('attributeBody');
-  var attributeRows = [];
-  var attributeColumns = [];
-  var attributeSort = { key: null, direction: 1 };
-
-  async function openAttributeTable(layerName) {
-    var data = layerGeoJSON[layerName];
-    if (!data || !data.features || !data.features.length) {
-      await FtthUI.alert({
-        title: 'Nothing to show',
-        message: 'This layer has no loaded features yet.'
-      });
-      return;
-    }
-    attributeRows = data.features.map(function(f){ return f.properties || {}; });
-    var seen = {};
-    attributeColumns = [];
-    attributeRows.forEach(function(row){ Object.keys(row).forEach(function(k){ if (!seen[k]) { seen[k] = true; attributeColumns.push(k); } }); });
-    attributeColumns = orderAttributeColumns(layerName, attributeColumns);
-    attributeSort = { key: null, direction: 1 };
-    attributeTitle.textContent = layerName + ' attributes';
-    attributeSearch.value = '';
-    renderAttributeTable();
-    attributeModal.style.display = 'flex';
-    attributeSearch.focus();
-  }
-
-  var ATTRIBUTE_PRIORITY = {
-    trenches: ['feature_id','TRENCH_ID','RUN_ID','trench_type','TRENCH_TIER','START_CHAMBER','END_CHAMBER','length_m','SURFACE','PDP_ID','POLYGON_ID','MFG_ID'],
-    cables: ['feature_id','CABLE_TYPE','cable_id','FIBER_COUNT','SPLIT_MODULES','UTIL_PCT','SPARE_PCT','length_m','PDP_IDS','PDP_ID','POLYGON_ID','MFG_ID'],
-    ducts: ['feature_id','DUCT_ID','DUCT_TYPE','capacity_total','capacity_used','capacity_spare','OCCUPANCY_PCT','length_m','PDP_ID','POLYGON_ID','START_CHAMBER','END_CHAMBER','PARENT_TRENCH'],
-    chambers: ['feature_id','CHAMBER_ID','CHAMBER_TYPE','SUBTYPE','REASON','PDP_ID','HDD','START_CHAMBER','END_CHAMBER'],
-    pdps: ['feature_id','PDP_ID','POLYGON_ID','households','SPLIT_CNT','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
-    objects: ['feature_id','ADDR_ID','PDP_ID','POLYGON_ID','households','household_method','premises','address','SURFACE'],
-    polygons: ['feature_id','POLYGON_ID','PDP_ID','households','SPL_4','SPL_8','SPL_16','SPL_32','SPL_64'],
-    mfg: ['feature_id','MFG_ID','PDP_COUNT','PDP_IDS'],
-    mfg_service_areas: ['feature_id','MFG_ID','HH_COUNT','MIN_HH','MAX_HH','RANGE_M','CAPACITY_STATUS','REVIEW'],
-  };
-  function orderAttributeColumns(layerName, columns) {
-    var key = String(layerName || '').toLowerCase().split('::')[0];
-    var priority = ATTRIBUTE_PRIORITY[key] || [];
-    var rank = {}; priority.forEach(function(k, i){ rank[k.toLowerCase()] = i; });
-    return columns.slice().sort(function(a,b){
-      var ra = rank[a.toLowerCase()]; var rb = rank[b.toLowerCase()];
-      if (ra === undefined && rb === undefined) return a.localeCompare(b);
-      if (ra === undefined) return 1; if (rb === undefined) return -1;
-      return ra - rb;
-    });
-  }
-
-  function formatAttributeValue(key, value) {
-    if (value === null || value === undefined || value === '') return '—';
-    var n = Number(value); var upper = String(key).toUpperCase();
-    if (Number.isFinite(n) && (upper.indexOf('PCT') >= 0 || upper.indexOf('UTIL') >= 0 || upper.indexOf('SPARE') >= 0 || upper.indexOf('OCCUPANCY') >= 0)) return n.toFixed(1) + '%';
-    if (Number.isFinite(n) && (upper.indexOf('LENGTH') >= 0 || upper.endsWith('_M') || upper === 'LENGTH')) return n.toLocaleString(undefined, {maximumFractionDigits:1}) + ' m';
-    if (Number.isFinite(n) && (upper.indexOf('COUNT') >= 0 || upper.indexOf('FIBER') >= 0 || upper.indexOf('CAPACITY') >= 0 || upper.indexOf('WAYS') >= 0 || upper.indexOf('SPLIT') >= 0)) return n.toLocaleString();
-    if (typeof value === 'object') return JSON.stringify(value);
-    return String(value);
-  }
-
-  function renderAttributeTable() {
-    var query = String(attributeSearch.value || '').toLowerCase();
-    var rows = attributeRows.filter(function(row){
-      if (!query) return true;
-      return attributeColumns.some(function(k){ return String(row[k] == null ? '' : row[k]).toLowerCase().indexOf(query) !== -1; });
-    });
-    if (attributeSort.key) {
-      var key = attributeSort.key, dir = attributeSort.direction;
-      rows.sort(function(a,b){ var av = a[key] == null ? '' : a[key], bv = b[key] == null ? '' : b[key]; return String(av).localeCompare(String(bv), undefined, {numeric:true, sensitivity:'base'}) * dir; });
-    }
-    attributeCount.textContent = rows.length + ' of ' + attributeRows.length + ' features';
-    if (!attributeColumns.length) { attributeBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this layer.</div>'; return; }
-    var html = '<table class="ftth-attr-table"><thead><tr>';
-    attributeColumns.forEach(function(k){ html += '<th data-attr-key="' + escapeHtml(k) + '">' + escapeHtml(k) + (attributeSort.key === k ? (attributeSort.direction > 0 ? ' ▲' : ' ▼') : '') + '</th>'; });
-    html += '</tr></thead><tbody>';    rows.forEach(function(row){
-      html += '<tr>'; attributeColumns.forEach(function(k){ var value = row[k]; var raw = value === null || value === undefined ? '' : (typeof value === 'object' ? JSON.stringify(value) : String(value)); var text = formatAttributeValue(k, value); html += '<td title="' + escapeHtml(raw) + '">' + escapeHtml(text) + '</td>'; }); html += '</tr>';
-    });
-    html += '</tbody></table>';
-    attributeBody.innerHTML = html;
-    attributeBody.querySelectorAll('th[data-attr-key]').forEach(function(th){ th.addEventListener('click', function(){ var key = th.getAttribute('data-attr-key'); if (attributeSort.key === key) attributeSort.direction *= -1; else { attributeSort.key = key; attributeSort.direction = 1; } renderAttributeTable(); }); });
-  }
-
-  function closeAttributeTable() { if (attributeModal) attributeModal.style.display = 'none'; }
-  if (attributeSearch) attributeSearch.addEventListener('input', renderAttributeTable);
-  var attributeClose = document.getElementById('attributeClose');
-  if (attributeClose) attributeClose.addEventListener('click', closeAttributeTable);
-  if (attributeModal) attributeModal.addEventListener('click', function(e){ if (e.target === attributeModal) closeAttributeTable(); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeAttributeTable(); });
-
-  function showEmpty(msg) { mapLoadingEl.style.display = 'flex'; mapLoadingEl.innerHTML = '<p style="color:#6B7280;font-size:16px;">' + escapeHtml(msg) + '</p>'; }
-
-  function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
-
-  // ─────────────────────────────────────────────────────────────────────
-  // Identify / highlight tool: click any design component (cable, trench,
-  // duct, PDP, object, polygon...) to highlight it and view the COMPLETE
-  // attribute table. Uses the shared FtthMap identify mode.
-  // ─────────────────────────────────────────────────────────────────────
-  var identifyBtn = document.getElementById('identifyBtn');
-  var inspectorPanel = document.getElementById('inspectorPanel');
-  var inspectorLayer = document.getElementById('inspectorLayer');
-  var inspectorFid = document.getElementById('inspectorFid');
-  var inspectorBody = document.getElementById('inspectorBody');
-  var inspectorClose = document.getElementById('inspectorClose');
-  var inspectorClear = document.getElementById('inspectorClear');
-  var identifyOn = false;
-
-  function showInspector(feature, layerName, coords) {
-    var props = feature.properties || {};
-    var fid = props.feature_id != null ? props.feature_id
-      : (feature.id != null ? feature.id
-        : (props.id != null ? props.id : '—'));
-    inspectorLayer.textContent = layerName || 'Layer';
-    inspectorFid.textContent = 'ID: ' + String(fid);
-    var keys = Object.keys(props).sort();
-    if (!keys.length) {
-      inspectorBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
-    } else {
-      var html = '<table class="ftth-inspector-table">';
-      keys.forEach(function (k) {
-        var v = props[k];
-        if (v === null || v === undefined || v === '') return;
-        var disp = (typeof v === 'object') ? JSON.stringify(v) : String(v);
-        if (disp.length > 400) disp = disp.slice(0, 397) + '\u2026';
-        html += '<tr><td class="k">' + escapeHtml(k) + '</td><td class="v">' + escapeHtml(disp) + '</td></tr>';
-      });
-      html += '</table>';
-      inspectorBody.innerHTML = html;
-    }
-    inspectorPanel.style.display = 'flex';
-  }
-
-  function clearInspector() {
-    if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
-    inspectorPanel.style.display = 'none';
-  }
-
-  if (identifyBtn) {
-    identifyBtn.addEventListener('click', function () {
-      identifyOn = !identifyOn;
-      identifyBtn.classList.toggle('active', identifyOn);
-      identifyBtn.title = identifyOn
-        ? 'Click any component on the map to view its full attributes'
-        : 'Turn on to click a cable, trench or any component and view its full attributes';
-      window.FtthMap.setIdentifyActive(map, identifyOn, showInspector);
-      if (!identifyOn) clearInspector();
-    });
-  }
-  if (inspectorClose) { inspectorClose.addEventListener('click', clearInspector); }
-  if (inspectorClear) { inspectorClear.addEventListener('click', clearInspector); }
-
-  function initBaseMapSwitcher() {
-    var switcher = document.getElementById('basemapSwitcher');
-    if (!switcher) return;
-    var buttons = switcher.querySelectorAll('.ftth-basemap-btn');
-    buttons.forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var styleName = btn.getAttribute('data-basemap');
-        if (!styleName) return;
-        buttons.forEach(function(b){ b.classList.remove('active'); });
-        btn.classList.add('active');
-        window.FtthMap.setBaseStyle(map, styleName);
-      });
-    });
-  }
-
-  // ─────────────────────────────────────────────────────────────────────
-  // Survey Assignment (admin/subadmin): pick one or more field engineers,
-  // the backend creates the Survey copy (flagged 'survey') + jobs, and the
-  // engineer sees it under My Projects on the mobile app.
-  // ─────────────────────────────────────────────────────────────────────
-  var engineersList = [];
-  var surveyAssignBadge = document.getElementById('surveyAssignBadge');
-  var surveyAssignStatus = document.getElementById('surveyAssignStatus');
-  var surveyAssignEngineers = document.getElementById('surveyAssignEngineers');
-  var surveyAssignSelect = document.getElementById('surveyAssignSelect');
-  var surveyAssignBtn = document.getElementById('surveyAssignBtn');
-  var surveyAssignMsg = document.getElementById('surveyAssignMsg');
-
-  function renderSurveyAssignment(survey) {
-    if (!surveyAssignBadge) return;
-    if (!survey || !survey.status) {
-      surveyAssignBadge.textContent = 'Not assigned';
-      surveyAssignStatus.textContent = 'This run has no survey copy yet. Assign one or more engineers below to create it.';
-      surveyAssignEngineers.innerHTML = '';
-      return;
-    }
-    var cap = String(survey.status).replace(/_/g, ' ').replace(/\b\w/g, function(m){ return m.toUpperCase(); });
-    surveyAssignBadge.textContent = cap;
-    var engs = (survey.assigned_engineers || []).map(function(e){
-      return '<span style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#ECFDF5;color:#047857;">'
-        + escapeHtml(e.full_name || e.email) + '</span>';
-    }).join('');
-    surveyAssignEngineers.innerHTML = engs
-      ? '<div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Assigned:</div>' + engs
-      : '';
-    surveyAssignStatus.innerHTML = survey.copy_name
-      ? 'Survey copy: <strong>' + escapeHtml(survey.copy_name) + '</strong> (status: ' + cap + ')'
-      : 'Survey copy exists (status: ' + cap + ')';
-  }
-
-  async function loadEngineersForAssign() {
-    try {
-      var data = await window.FiberApi.listEngineers();
-      var list = Array.isArray(data) ? data : ((data && data.results) || []);
-      engineersList = list;
-      surveyAssignSelect.innerHTML = '';
-      if (!list.length) {
-        var opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = 'No engineers found';
-        surveyAssignSelect.appendChild(opt);
-        return;
+      // ---------------------------------------------------------------
+      // Locate on map: a review span stores its own route in the design's
+      // projected CRS, so convert it to lng/lat, frame it and paint it on
+      // the highlight layer. This is the "click a span and see where it is"
+      // half of the review — the model's answer is about a place, and the
+      // reader needs to look at that place before trusting it.
+      // ---------------------------------------------------------------
+      function surfaceSpanLngLatFeature(item) {
+        if (!item || !Array.isArray(item.coordinates) || !item.coordinates.length) return null;
+        if (!window.FtthMap || !window.FtthMap.toLngLat) return null;
+        var crs = item.coordinates_crs || params.get('crs') || 'EPSG:25833';
+        var points = [];
+        item.coordinates.forEach(function (pt) {
+          if (!Array.isArray(pt) || pt.length < 2) return;
+          var ll = window.FtthMap.toLngLat(pt[0], pt[1], crs);
+          if (ll && isFinite(ll.lng) && isFinite(ll.lat)) points.push([ll.lng, ll.lat]);
+        });
+        if (!points.length) return null;
+        return {
+          type: 'Feature',
+          properties: { span_id: item.span_id || '' },
+          geometry:
+            points.length === 1
+              ? { type: 'Point', coordinates: points[0] }
+              : { type: 'LineString', coordinates: points },
+        };
       }
-      list.forEach(function(e){
-        var o = document.createElement('option');
-        o.value = e.id;
-        o.textContent = (e.full_name || e.name || e.email || 'Engineer');
-        surveyAssignSelect.appendChild(o);
-      });
-    } catch (err) {
-      surveyAssignMsg.textContent = 'Could not load engineers: ' + (FtthUI.humanize(err));
-    }
-  }
 
-  if (surveyAssignBtn) {
-    surveyAssignBtn.addEventListener('click', async function(){
-      var ids = Array.prototype.slice.call(surveyAssignSelect.selectedOptions || []).map(function(o){ return o.value; });
-      if (!ids.length) { surveyAssignMsg.textContent = 'Select at least one engineer.'; return; }
-      surveyAssignBtn.disabled = true;
-      surveyAssignMsg.textContent = 'Creating survey copy and assigning… this may take a minute.';
-      try {
-        var res = await window.FiberApi.assignHldProject(projectId, ids);
-        surveyAssignMsg.style.color = '#047857';
-        surveyAssignMsg.innerHTML = 'Survey copy created: <strong>' + escapeHtml(res.survey_project_name || '') + '</strong> for '
-          + (res.engineers || []).map(function(e){ return escapeHtml(e.full_name || e.email); }).join(', ')
-          + '. It will appear in the projects panel and on the engineer’s app.';
-        var data = await window.FtthApi.getPipelineStatus(projectId);
-        if (data && data.survey) renderSurveyAssignment(data.survey);
-      } catch (err) {
-        surveyAssignMsg.style.color = '#B91C1C';
-        surveyAssignMsg.textContent = 'Assignment failed: ' + (FtthUI.humanize(err));
-      } finally {
-        surveyAssignBtn.disabled = false;
+      function locateSurfaceSpan(item, card) {
+        if (!map) return;
+        var feature = surfaceSpanLngLatFeature(item);
+        if (!feature) return;
+        surfaceLocated = true;
+        try {
+          window.FtthMap.fitToLngLatGeometry(map, feature, { padding: 80, maxZoom: 18 });
+        } catch (_e) {
+          /* framing is best-effort; never block the review */
+        }
+        // Mark the card the reader clicked so the list shows which span the map frames.
+        var located = document.querySelectorAll('#surfaceAIReviewBody .ftth-surface-ai-card.is-located');
+        for (var i = 0; i < located.length; i++) {
+          located[i].classList.remove('is-located');
+        }
+        if (card) card.classList.add('is-located');
       }
-    });
-  }
 
-  function initCollapsibleSections() {
-    var sections = document.querySelectorAll('.ftth-side-pane-section');
-    sections.forEach(function(sec){
-      var h3 = sec.querySelector('h3');
-      if (!h3) return;
-      var chev = document.createElement('span');
-      chev.className = 'chev';
-      chev.textContent = '\u25BE';
-      h3.insertBefore(chev, h3.firstChild);
-      h3.addEventListener('click', function(){ sec.classList.toggle('collapsed'); });
-    });
-  }
+      async function onSurfaceReviewClick(event) {
+        var target = event.target;
+        if (!target || !target.getAttribute) return;
+        if (target.id === 'surfaceAIMoreUndetected' || target.id === 'surfaceAIMoreDetected') {
+          if (target.id === 'surfaceAIMoreUndetected') {
+            surfaceUndetectedShown += SURFACE_UNDETECTED_PAGE;
+          } else {
+            surfaceDetectedShown += SURFACE_DETECTED_PAGE;
+          }
+          if (surfaceReport) {
+            renderSurfaceAIReview(
+              surfaceReport,
+              document.getElementById('surfaceAIReviewBody'),
+              document.getElementById('surfaceAIReviewBadge')
+            );
+          }
+          return;
+        }
+        var card = target.closest ? target.closest('[data-surface-index]') : null;
+        if (!card) return;
+        var index = Number(card.getAttribute('data-surface-index'));
+        if (!Number.isInteger(index) || index < 0 || index >= surfaceReviewItems.length) return;
+        var item = surfaceReviewItems[index];
+        var action = target.getAttribute('data-surface-action');
+        if (action === 'preview') {
+          await showSurfaceSpanImagery(item, card);
+        } else if (action === 'detect') {
+          await detectSurfaceSpan(item, card);
+        } else {
+          // Anywhere else on the card — the meta text, the patch, or the "Locate on
+          // map" button — frames that span, leaving the action buttons above intact.
+          locateSurfaceSpan(item, card);
+        }
+      }
 
-  (function boot(){
-    initCollapsibleSections();
-    if (projectId) {
-      initResultsMap();
-      initBaseMapSwitcher();
-      loadEngineersForAssign();
-    }
-  })();
-</script>
-</body>
+      async function loadSurfaceAIReview() {
+        var body = document.getElementById('surfaceAIReviewBody');
+        var badge = document.getElementById('surfaceAIReviewBadge');
+        if (!body || !badge || !window.FtthApi || !window.FtthApi.getSurfaceAIReview) return;
+        try {
+          var report = await window.FtthApi.getSurfaceAIReview(projectId);
+          if (!report) {
+            body.textContent = 'No AI review report for this run. Surface geometry results remain unchanged.';
+            badge.textContent = 'None';
+            return;
+          }
+          surfaceReport = report;
+          surfaceUndetectedShown = SURFACE_UNDETECTED_PAGE;
+          surfaceDetectedShown = SURFACE_DETECTED_PAGE;
+          renderSurfaceAIReview(report, body, badge);
+        } catch (err) {
+          body.textContent = 'Could not load the review report: ' + FtthUI.humanize(err);
+          badge.textContent = 'Unavailable';
+        }
+      }
+
+      function renderSurfaceAIReview(report, body, badge) {
+        var suggestions = Array.isArray(report.suggestions) ? report.suggestions : [];
+        surfaceReviewItems = suggestions;
+        var note =
+          report.reason ||
+          (report.status === 'ready'
+            ? 'AI suggestions are advisory only; review each before use.'
+            : 'No AI suggestion was generated. Existing geometry results are unchanged.');
+        var undetected = [];
+        var answered = [];
+        suggestions.forEach(function (item, index) {
+          if (surfaceAnswered(item)) {
+            answered.push(index);
+          } else {
+            undetected.push(index);
+          }
+        });
+        if (badge) {
+          badge.textContent = answered.length
+            ? answered.length + ' detected \u00b7 ' + undetected.length + ' open'
+            : (report.status || 'No suggestions').replace(/_/g, ' ');
+        }
+        var html = '<div class="ftth-surface-ai-note">' + escapeHtml(note) + '</div>';
+        html +=
+          '<div class="ftth-surface-ai-meta" id="surfaceAISummary">' +
+          escapeHtml(String(undetected.length)) +
+          ' span(s) have no surface from OpenStreetMap or any source layer; ' +
+          escapeHtml(String(answered.length)) +
+          ' already answered by AI.</div>';
+
+        // The undetected list is the request: name exactly what our sources could not
+        // determine, and let the reader opt each span into one AI call or look at the
+        // imagery first. Nothing here fires a call on its own.
+        html +=
+          '<details class="ftth-surface-ai-group" open>' +
+          '<summary>Undetected surfaces <span class="ftth-surface-ai-count" id="surfaceAIUndetectedCount">' +
+          undetected.length +
+          '</span></summary>' +
+          '<div class="ftth-surface-ai-note">Each span here has no surface from OpenStreetMap or any source ' +
+          'layer. Show the imagery patch the model would use, or run a single AI detect on that one span \u2014 ' +
+          'nothing is sent until you ask, so no credits are spent on spans you do not choose.</div>' +
+          '<div class="ftth-surface-ai-list">';
+        if (!undetected.length) {
+          html += '<div class="ftth-surface-ai-note">Nothing left undetected.</div>';
+        } else {
+          undetected.slice(0, surfaceUndetectedShown).forEach(function (index) {
+            html += surfaceCardHtml(suggestions[index], index);
+          });
+          if (undetected.length > surfaceUndetectedShown) {
+            html +=
+              '<button class="ftth-surface-ai-more" type="button" id="surfaceAIMoreUndetected">Show ' +
+              Math.min(SURFACE_UNDETECTED_PAGE, undetected.length - surfaceUndetectedShown) +
+              ' more of ' +
+              (undetected.length - surfaceUndetectedShown) +
+              '</button>';
+          }
+        }
+        html += '</div></details>';
+
+        html +=
+          '<details class="ftth-surface-ai-group">' +
+          '<summary>Answered by AI <span class="ftth-surface-ai-count" id="surfaceAIDetectedCount">' +
+          answered.length +
+          '</span></summary>' +
+          '<div class="ftth-surface-ai-list">';
+        if (!answered.length) {
+          html += '<div class="ftth-surface-ai-note">No span has an AI answer yet.</div>';
+        } else {
+          answered.slice(0, surfaceDetectedShown).forEach(function (index) {
+            html += surfaceCardHtml(suggestions[index], index);
+          });
+          if (answered.length > surfaceDetectedShown) {
+            html +=
+              '<button class="ftth-surface-ai-more" type="button" id="surfaceAIMoreDetected">Show ' +
+              Math.min(SURFACE_DETECTED_PAGE, answered.length - surfaceDetectedShown) +
+              ' more of ' +
+              (answered.length - surfaceDetectedShown) +
+              '</button>';
+          }
+        }
+        html += '</div></details>';
+        // A resumed or rate-limited run only makes sense next to how much of the
+        // batch it actually touched, so report the counts together.
+        var progress = [];
+        if (Number(report.processed_count) > 0) {
+          progress.push(Number(report.processed_count) + ' processed this run');
+        }
+        if (Number(report.resumed_count) > 0) {
+          progress.push(Number(report.resumed_count) + ' resumed from a previous run');
+        }
+        if (Number(report.deferred_count) > 0) {
+          progress.push(Number(report.deferred_count) + ' deferred at the rate limit — rerun to continue');
+        }
+        if (progress.length) {
+          html +=
+            '<div class="ftth-surface-ai-meta" style="margin-top:8px;">' + escapeHtml(progress.join(' · ')) + '</div>';
+        }
+        if (Number(report.skipped_count) > 0) {
+          html +=
+            '<div class="ftth-surface-ai-meta" style="margin-top:8px;">' +
+            escapeHtml(String(report.skipped_count)) +
+            ' candidate(s) not processed due to the review limit.</div>';
+        }
+        body.innerHTML = html;
+      }
+
+      function renderPermitLegend(counts) {
+        var badge = document.getElementById('permitBadge');
+        var el = document.getElementById('permitLegend');
+        if (!el) return;
+        if (!counts.total) {
+          if (badge) badge.textContent = '0';
+          el.innerHTML =
+            '<div class="ftth-empty-state" style="padding:10px;"><p style="font-size:12px;">No permits — run analysis from the project overview.</p></div>';
+          return;
+        }
+        if (badge) badge.textContent = counts.total;
+        var rows = [
+          ['#EF4444', 'Rejected', counts.rejected],
+          ['#3B82F6', 'Submitted / Under Review', counts.under_review + counts.submitted],
+          ['#F59E0B', 'Identified / Evidence', counts.evidence_required + counts.identified],
+          ['#10B981', 'Ready / Approved', counts.ready + counts.approved],
+          ['#9CA3AF', 'Closed / Not Required', counts.closed + counts.not_required],
+        ].filter(function (r) {
+          return r[2] > 0;
+        });
+        if (!rows.length) rows = [['#F59E0B', 'Identified', counts.identified || 0]];
+        el.innerHTML = rows
+          .map(function (r) {
+            return (
+              '<div class="permit-row"><span class="permit-dot" style="background:' +
+              r[0] +
+              ';"></span><span>' +
+              r[1] +
+              '</span><span class="permit-count">' +
+              r[2] +
+              '</span></div>'
+            );
+          })
+          .join('');
+      }
+
+      function renderLayerControls(layers) {
+        if (!layers.length) {
+          layerControlsEl.innerHTML =
+            '<div class="ftth-empty-state"><div class="icon">\uD83D\uDDFA\uFE0F</div><p>No layers available</p></div>';
+          return;
+        }
+        layerControlsEl.innerHTML = '';
+        layers.forEach(function (layer) {
+          var name = layer.name || layer.layer_name || 'Layer';
+          var count = layer.count || layer.feature_count || 0;
+          var label = document.createElement('label');
+          label.className = 'ftth-layer-toggle';
+          label.style.cssText =
+            'display:flex;align-items:center;gap:10px;padding:10px 0;cursor:pointer;border-bottom:1px solid #E5E7EB;';
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = true;
+          cb.style.cssText = 'width:16px;height:16px;accent-color:#E31837;cursor:pointer;';
+          cb.dataset.layerName = name;
+          cb.addEventListener('change', function () {
+            toggleLayerVisibility(name, cb.checked);
+          });
+          var dot = document.createElement('span');
+          dot.className = 'ftth-layer-color-dot';
+          dot.style.background = getLayerColor(name);
+          var ns = document.createElement('span');
+          ns.className = 'layer-name';
+          ns.textContent = name;
+          var cs = document.createElement('span');
+          cs.className = 'layer-count';
+          cs.id = 'layer-count-' + name.replace(/\s+/g, '-');
+          cs.textContent = count + ' features';
+          var tableBtn = document.createElement('button');
+          tableBtn.type = 'button';
+          tableBtn.className = 'ftth-table-btn';
+          tableBtn.textContent = 'Table';
+          tableBtn.title = 'View attributes for this layer';
+          tableBtn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            openAttributeTable(name);
+          });
+          label.appendChild(cb);
+          label.appendChild(dot);
+          label.appendChild(ns);
+          label.appendChild(cs);
+          label.appendChild(tableBtn);
+          layerControlsEl.appendChild(label);
+          // Grouped layers (cables/ducts) get their group row replaced by one
+          // toggle per sublayer once the GeoJSON has loaded and the sublayer
+          // breakdown is known. Add an empty placeholder container now so the
+          // expansion has a stable anchor.
+          var groupAnchor = document.createElement('div');
+          groupAnchor.id = 'layer-group-' + name.replace(/\s+/g, '-');
+          groupAnchor.style.display = 'none';
+          layerControlsEl.appendChild(groupAnchor);
+        });
+      }
+
+      // Replace a grouped layer's single row with one toggle per sublayer
+      // (e.g. cables -> Feeder_Cable + Distribution_Cable).
+      function expandLayerControls(groupName) {
+        var anchor = document.getElementById('layer-group-' + groupName.replace(/\s+/g, '-'));
+        if (!anchor) return;
+        var subs = sublayerRegistry[groupName] || [];
+        var counts = sublayerCounts[groupName] || {};
+        var total = 0;
+        subs.forEach(function (s) {
+          total += counts[s] || 0;
+        });
+        var html = '';
+        // Group header row (keeps the group name visible, shows the total count)
+        html +=
+          '<button type="button" class="ftth-table-btn" data-table-group="' +
+          escapeHtml(groupName) +
+          '" style="margin:6px 0;">View attribute table</button>';
+        html +=
+          '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 2px;font-size:13px;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB;">';
+        html += '<span>' + escapeHtml(groupName) + '</span>';
+        html +=
+          '<span class="layer-count" style="font-weight:500;color:#6B7280;font-size:12px;">' +
+          total +
+          ' features</span>';
+        html += '</div>';
+        subs.forEach(function (sub) {
+          var subKey = groupName + '::' + sub;
+          var subColor = (window.FtthMap.SUBLAYER_COLORS || {})[sub] || getLayerColor(groupName);
+          html +=
+            '<label class="ftth-layer-toggle" style="display:flex;align-items:center;gap:10px;padding:8px 0 8px 14px;cursor:pointer;border-bottom:1px solid #F3F4F6;">';
+          html +=
+            '<input type="checkbox" checked style="width:16px;height:16px;accent-color:#E31837;cursor:pointer;" data-layer-name="' +
+            escapeHtml(subKey) +
+            '">';
+          html += '<span class="ftth-layer-color-dot" style="background:' + subColor + ';"></span>';
+          html += '<span class="layer-name">' + escapeHtml(sub) + '</span>';
+          html +=
+            '<span class="layer-count" id="layer-count-' +
+            subKey.replace(/\s+/g, '-') +
+            '">' +
+            (counts[sub] || 0) +
+            ' features</span>';
+          html += '</label>';
+        });
+        anchor.innerHTML = html;
+        anchor.style.display = 'block';
+        var groupTableBtn = anchor.querySelector('[data-table-group]');
+        if (groupTableBtn)
+          groupTableBtn.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            openAttributeTable(groupName);
+          });
+        // Hide the original single group row (it sits right before the anchor).
+        var prev = anchor.previousElementSibling;
+        if (prev && prev.tagName === 'LABEL') prev.style.display = 'none';
+        // Wire the sublayer checkboxes
+        anchor.querySelectorAll('input[data-layer-name]').forEach(function (cb2) {
+          cb2.addEventListener('change', function () {
+            toggleLayerVisibility(cb2.dataset.layerName, cb2.checked);
+          });
+        });
+      }
+
+      // Sublayer layer names look like 'cables::Feeder_Cable'; the map module
+      // registers them with the same id, so the standard visibility toggle works.
+      function toggleLayerVisibility(layerName, visible) {
+        window.FtthMap.setLayerVisible(map, layerName, visible);
+      }
+
+      function updateToggleStatus(layerName, count) {
+        var el = document.getElementById('layer-count-' + layerName.replace(/\s+/g, '-'));
+        if (el) el.textContent = count + ' features';
+      }
+
+      function getLayerColor(name) {
+        var colors = {
+          polygons: '#00aa88',
+          trenches: '#3B82F6',
+          objects: '#8B5CF6',
+          pdps: '#06B6D4',
+          mfg: '#10B981',
+          mfg_service_areas: '#65A30D',
+          feeder_cable: '#EF4444',
+          distribution_cable: '#F97316',
+          feeder_ducts: '#F59E0B',
+          distribution_ducts: '#EAB308',
+          drop_ducts: '#EC4899',
+          coupleurs: '#14B8A6',
+          chambers: '#92400E',
+          poles: '#475569',
+          brownfield: '#64748B',
+          buildings: '#8B5CF6',
+        };
+        return colors[name] || '#6B7280';
+      }
+
+      // Show the package downloads only when the engine has produced output files.
+      // Individual per-layer outputs are intentionally not listed here.
+      function renderPackages(downloads) {
+        var hasOutputs = !!(downloads && downloads.length);
+        surveyPkgContainer.style.display = hasOutputs ? 'block' : 'none';
+        designPkgContainer.style.display = hasOutputs ? 'block' : 'none';
+      }
+
+      if (surveyPkgBtn) {
+        surveyPkgBtn.addEventListener('click', function () {
+          window.FtthApi.downloadSurveyPackage(projectId);
+        });
+      }
+
+      if (designPkgBtn) {
+        designPkgBtn.addEventListener('click', function () {
+          window.FtthApi.downloadDesignPackage(projectId);
+        });
+      }
+
+      // ------------------------------------------------------------------
+      // BOQ / BOM — computed from the design layers, priced by rate card
+      // ------------------------------------------------------------------
+      var boqContainer = document.getElementById('boqContainer');
+      var boqToggleBtn = document.getElementById('boqToggleBtn');
+      var boqDownloadBtn = document.getElementById('boqDownloadBtn');
+      var boqRegenBtn = document.getElementById('boqRegenBtn');
+      var boqBody = document.getElementById('boqBody');
+      var boqLoaded = false;
+
+      function renderBoqBody(data) {
+        if (!boqBody) return;
+        var rows = (data && data.boq_rows) || [];
+        var totals = (data && data.boq_totals) || {};
+        var perSection = totals.per_section || {};
+        var grand = totals.grand_total || 0;
+        if (!rows.length) {
+          boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;font-size:13px;">No BOQ rows computed yet.</div>';
+          return;
+        }
+        var html = '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+        html += '<thead><tr style="background:#F3F4F6;text-align:left;">';
+        ['Section', 'Code', 'Item', 'Unit', 'Qty', 'Material €', 'Labour €', 'Rent €', 'Total €'].forEach(function (h) {
+          html += '<th style="padding:6px 8px;border-bottom:1px solid #E5E7EB;">' + h + '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        rows.forEach(function (r) {
+          html += '<tr>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.section || '') + '</td>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.item_code || '') + '</td>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.item_name || '') + '</td>';
+          html += '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;">' + escapeHtml(r.unit || '') + '</td>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' +
+            Number(r.quantity || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+            '</td>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' +
+            Number(r.material_total || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+            '</td>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' +
+            Number(r.labour_total || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+            '</td>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;">' +
+            Number((r.rent_rate || 0) * (r.quantity || 0)).toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+            '</td>';
+          html +=
+            '<td style="padding:5px 8px;border-bottom:1px solid #F3F4F6;text-align:right;font-weight:600;">' +
+            Number(r.amount || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+            '</td>';
+          html += '</tr>';
+        });
+        html +=
+          '<tr style="background:#F9FAFB;font-weight:700;"><td colspan="8" style="padding:6px 8px;">Grand Total</td><td style="padding:6px 8px;text-align:right;">' +
+          Number(grand).toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+          '</td></tr>';
+        html += '</tbody></table>';
+        if (Object.keys(perSection).length) {
+          html += '<div style="padding:8px;font-size:11px;color:#6B7280;">';
+          Object.keys(perSection).forEach(function (s) {
+            html +=
+              '<div>' +
+              escapeHtml(s) +
+              ': ' +
+              Number(perSection[s] || 0).toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+              ' €</div>';
+          });
+          html += '</div>';
+        }
+        // Reuse summary — metres riding existing infrastructure, NOT billed.
+        var reuse = totals.reuse || {};
+        if (Object.keys(reuse).length) {
+          var reuseParts = [];
+          ['2.1', '2.3', '2.5', '2.6', '3.1', '3.7', '3.11', 'cable'].forEach(function (k) {
+            if (reuse[k]) {
+              reuseParts.push(
+                escapeHtml(k) + ': ' + Number(reuse[k]).toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' m'
+              );
+            }
+          });
+          if (reuseParts.length) {
+            html +=
+              '<div style="margin-top:8px;padding:8px 10px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:6px;font-size:11.5px;color:#047857;">' +
+              '♻️ Reused existing infrastructure (excluded from new-material quantities): ' +
+              reuseParts.join(' &middot; ') +
+              '</div>';
+          }
+        }
+        // Tier-1 A4 — anomaly screening (deterministic rules; AI note is advisory only).
+        html += renderAnomalies(data && data.anomalies);
+        boqBody.innerHTML = html;
+      }
+
+      function renderAnomalies(anom) {
+        if (!anom) return '';
+        var list = anom.anomalies || [];
+        if (!list.length) {
+          return (
+            '<div style="margin-top:8px;padding:8px 10px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:6px;font-size:11.5px;color:#166534;">' +
+            '✅ No BOQ anomalies detected across ' +
+            Number(anom.checked || 0) +
+            ' line items.</div>'
+          );
+        }
+        var colors = {
+          high: { bg: '#FEF2F2', bd: '#FECACA', fg: '#991B1B', icon: '🚨' },
+          medium: { bg: '#FFFBEB', bd: '#FDE68A', fg: '#92400E', icon: '⚠️' },
+          low: { bg: '#EFF6FF', bd: '#BFDBFE', fg: '#1E40AF', icon: 'ℹ️' },
+        };
+        var html =
+          '<div style="margin-top:8px;font-size:11.5px;">' +
+          '<div style="font-weight:600;color:#374151;margin-bottom:4px;">⚠️ ' +
+          list.length +
+          ' BOQ anomal' +
+          (list.length === 1 ? 'y' : 'ies') +
+          ' flagged</div>';
+        list.forEach(function (a) {
+          var c = colors[a.severity] || colors.low;
+          html +=
+            '<div style="padding:6px 10px;margin-bottom:4px;background:' +
+            c.bg +
+            ';border:1px solid ' +
+            c.bd +
+            ';border-radius:6px;color:' +
+            c.fg +
+            ';">' +
+            '<b>' +
+            c.icon +
+            ' ' +
+            escapeHtml((a.severity || '').toUpperCase()) +
+            '</b>' +
+            (a.item_name ? ' · ' + escapeHtml(a.item_name) : '') +
+            '<div style="margin-top:2px;">' +
+            escapeHtml(a.message || '') +
+            '</div>' +
+            '</div>';
+        });
+        if (anom.ai_summary) {
+          html +=
+            '<div style="margin-top:4px;padding:6px 10px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:6px;color:#5B21B6;">' +
+            '🤖 ' +
+            escapeHtml(anom.ai_summary) +
+            '<div style="margin-top:3px;font-size:10.5px;color:#7C3AED;">' +
+            escapeHtml(anom.ai_disclaimer || 'AI-generated draft — verify before acting.') +
+            '</div>' +
+            '</div>';
+        }
+        return html + '</div>';
+      }
+
+      function loadBoq() {
+        if (!window.FtthApi || !window.FtthApi.getBoq) return;
+        if (boqBody) boqBody.innerHTML = '<div style="padding:16px;color:#6B7280;font-size:13px;">Loading BOQ…</div>';
+        window.FtthApi.getBoq(projectId)
+          .then(function (data) {
+            boqLoaded = true;
+            renderBoqBody(data);
+            if (boqBody) boqBody.style.display = 'block';
+          })
+          .catch(function (err) {
+            if (boqBody)
+              boqBody.innerHTML =
+                '<div style="padding:16px;color:#DC2626;font-size:13px;">Failed to load BOQ: ' +
+                escapeHtml(FtthUI.humanize(err)) +
+                '</div>';
+          });
+      }
+
+      if (boqToggleBtn) {
+        boqToggleBtn.addEventListener('click', function () {
+          if (!boqLoaded) {
+            loadBoq();
+          } else if (boqBody) {
+            boqBody.style.display = boqBody.style.display === 'none' ? 'block' : 'none';
+          }
+        });
+      }
+      if (boqDownloadBtn) {
+        boqDownloadBtn.addEventListener('click', function () {
+          window.FtthApi.downloadBoq(projectId);
+        });
+      }
+      if (boqRegenBtn) {
+        boqRegenBtn.addEventListener('click', function () {
+          if (boqRegenBtn) boqRegenBtn.disabled = true;
+          window.FtthApi.regenerateBoq(projectId)
+            .then(function (data) {
+              boqLoaded = true;
+              renderBoqBody(data);
+              if (boqBody) boqBody.style.display = 'block';
+            })
+            .catch(function (err) {
+              alert('Failed to recompute BOQ: ' + FtthUI.humanize(err));
+            })
+            .finally(function () {
+              if (boqRegenBtn) boqRegenBtn.disabled = false;
+            });
+        });
+      }
+
+      var attributeModal = document.getElementById('attributeModal');
+      var attributeTitle = document.getElementById('attributeTitle');
+      var attributeCount = document.getElementById('attributeCount');
+      var attributeSearch = document.getElementById('attributeSearch');
+      var attributeBody = document.getElementById('attributeBody');
+      var attributeRows = [];
+      var attributeColumns = [];
+      var attributeSort = { key: null, direction: 1 };
+
+      async function openAttributeTable(layerName) {
+        var data = layerGeoJSON[layerName];
+        if (!data || !data.features || !data.features.length) {
+          await FtthUI.alert({
+            title: 'Nothing to show',
+            message: 'This layer has no loaded features yet.',
+          });
+          return;
+        }
+        attributeRows = data.features.map(function (f) {
+          return f.properties || {};
+        });
+        var seen = {};
+        attributeColumns = [];
+        attributeRows.forEach(function (row) {
+          Object.keys(row).forEach(function (k) {
+            if (!seen[k]) {
+              seen[k] = true;
+              attributeColumns.push(k);
+            }
+          });
+        });
+        attributeColumns = orderAttributeColumns(layerName, attributeColumns);
+        attributeSort = { key: null, direction: 1 };
+        attributeTitle.textContent = layerName + ' attributes';
+        attributeSearch.value = '';
+        renderAttributeTable();
+        attributeModal.style.display = 'flex';
+        attributeSearch.focus();
+      }
+
+      var ATTRIBUTE_PRIORITY = {
+        trenches: [
+          'feature_id',
+          'TRENCH_ID',
+          'RUN_ID',
+          'trench_type',
+          'TRENCH_TIER',
+          'START_CHAMBER',
+          'END_CHAMBER',
+          'length_m',
+          'SURFACE',
+          'PDP_ID',
+          'POLYGON_ID',
+          'MFG_ID',
+        ],
+        cables: [
+          'feature_id',
+          'CABLE_TYPE',
+          'cable_id',
+          'FIBER_COUNT',
+          'SPLIT_MODULES',
+          'UTIL_PCT',
+          'SPARE_PCT',
+          'length_m',
+          'PDP_IDS',
+          'PDP_ID',
+          'POLYGON_ID',
+          'MFG_ID',
+        ],
+        ducts: [
+          'feature_id',
+          'DUCT_ID',
+          'DUCT_TYPE',
+          'capacity_total',
+          'capacity_used',
+          'capacity_spare',
+          'OCCUPANCY_PCT',
+          'length_m',
+          'PDP_ID',
+          'POLYGON_ID',
+          'START_CHAMBER',
+          'END_CHAMBER',
+          'PARENT_TRENCH',
+        ],
+        chambers: [
+          'feature_id',
+          'CHAMBER_ID',
+          'CHAMBER_TYPE',
+          'SUBTYPE',
+          'REASON',
+          'PDP_ID',
+          'HDD',
+          'START_CHAMBER',
+          'END_CHAMBER',
+        ],
+        pdps: [
+          'feature_id',
+          'PDP_ID',
+          'POLYGON_ID',
+          'households',
+          'SPLIT_CNT',
+          'SPL_4',
+          'SPL_8',
+          'SPL_16',
+          'SPL_32',
+          'SPL_64',
+        ],
+        objects: [
+          'feature_id',
+          'ADDR_ID',
+          'PDP_ID',
+          'POLYGON_ID',
+          'households',
+          'household_method',
+          'premises',
+          'address',
+          'SURFACE',
+        ],
+        polygons: ['feature_id', 'POLYGON_ID', 'PDP_ID', 'households', 'SPL_4', 'SPL_8', 'SPL_16', 'SPL_32', 'SPL_64'],
+        mfg: ['feature_id', 'MFG_ID', 'PDP_COUNT', 'PDP_IDS'],
+        mfg_service_areas: [
+          'feature_id',
+          'MFG_ID',
+          'HH_COUNT',
+          'MIN_HH',
+          'MAX_HH',
+          'RANGE_M',
+          'CAPACITY_STATUS',
+          'REVIEW',
+        ],
+      };
+      function orderAttributeColumns(layerName, columns) {
+        var key = String(layerName || '')
+          .toLowerCase()
+          .split('::')[0];
+        var priority = ATTRIBUTE_PRIORITY[key] || [];
+        var rank = {};
+        priority.forEach(function (k, i) {
+          rank[k.toLowerCase()] = i;
+        });
+        return columns.slice().sort(function (a, b) {
+          var ra = rank[a.toLowerCase()];
+          var rb = rank[b.toLowerCase()];
+          if (ra === undefined && rb === undefined) return a.localeCompare(b);
+          if (ra === undefined) return 1;
+          if (rb === undefined) return -1;
+          return ra - rb;
+        });
+      }
+
+      function formatAttributeValue(key, value) {
+        if (value === null || value === undefined || value === '') return '—';
+        var n = Number(value);
+        var upper = String(key).toUpperCase();
+        if (
+          Number.isFinite(n) &&
+          (upper.indexOf('PCT') >= 0 ||
+            upper.indexOf('UTIL') >= 0 ||
+            upper.indexOf('SPARE') >= 0 ||
+            upper.indexOf('OCCUPANCY') >= 0)
+        )
+          return n.toFixed(1) + '%';
+        if (Number.isFinite(n) && (upper.indexOf('LENGTH') >= 0 || upper.endsWith('_M') || upper === 'LENGTH'))
+          return n.toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' m';
+        if (
+          Number.isFinite(n) &&
+          (upper.indexOf('COUNT') >= 0 ||
+            upper.indexOf('FIBER') >= 0 ||
+            upper.indexOf('CAPACITY') >= 0 ||
+            upper.indexOf('WAYS') >= 0 ||
+            upper.indexOf('SPLIT') >= 0)
+        )
+          return n.toLocaleString();
+        if (typeof value === 'object') return JSON.stringify(value);
+        return String(value);
+      }
+
+      function renderAttributeTable() {
+        var query = String(attributeSearch.value || '').toLowerCase();
+        var rows = attributeRows.filter(function (row) {
+          if (!query) return true;
+          return attributeColumns.some(function (k) {
+            return (
+              String(row[k] == null ? '' : row[k])
+                .toLowerCase()
+                .indexOf(query) !== -1
+            );
+          });
+        });
+        if (attributeSort.key) {
+          var key = attributeSort.key,
+            dir = attributeSort.direction;
+          rows.sort(function (a, b) {
+            var av = a[key] == null ? '' : a[key],
+              bv = b[key] == null ? '' : b[key];
+            return String(av).localeCompare(String(bv), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+          });
+        }
+        attributeCount.textContent = rows.length + ' of ' + attributeRows.length + ' features';
+        if (!attributeColumns.length) {
+          attributeBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this layer.</div>';
+          return;
+        }
+        var html = '<table class="ftth-attr-table"><thead><tr>';
+        attributeColumns.forEach(function (k) {
+          html +=
+            '<th data-attr-key="' +
+            escapeHtml(k) +
+            '">' +
+            escapeHtml(k) +
+            (attributeSort.key === k ? (attributeSort.direction > 0 ? ' ▲' : ' ▼') : '') +
+            '</th>';
+        });
+        html += '</tr></thead><tbody>';
+        rows.forEach(function (row) {
+          html += '<tr>';
+          attributeColumns.forEach(function (k) {
+            var value = row[k];
+            var raw =
+              value === null || value === undefined
+                ? ''
+                : typeof value === 'object'
+                  ? JSON.stringify(value)
+                  : String(value);
+            var text = formatAttributeValue(k, value);
+            html += '<td title="' + escapeHtml(raw) + '">' + escapeHtml(text) + '</td>';
+          });
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        attributeBody.innerHTML = html;
+        attributeBody.querySelectorAll('th[data-attr-key]').forEach(function (th) {
+          th.addEventListener('click', function () {
+            var key = th.getAttribute('data-attr-key');
+            if (attributeSort.key === key) attributeSort.direction *= -1;
+            else {
+              attributeSort.key = key;
+              attributeSort.direction = 1;
+            }
+            renderAttributeTable();
+          });
+        });
+      }
+
+      function closeAttributeTable() {
+        if (attributeModal) attributeModal.style.display = 'none';
+      }
+      if (attributeSearch) attributeSearch.addEventListener('input', renderAttributeTable);
+      var attributeClose = document.getElementById('attributeClose');
+      if (attributeClose) attributeClose.addEventListener('click', closeAttributeTable);
+      if (attributeModal)
+        attributeModal.addEventListener('click', function (e) {
+          if (e.target === attributeModal) closeAttributeTable();
+        });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAttributeTable();
+      });
+
+      function showEmpty(msg) {
+        mapLoadingEl.style.display = 'flex';
+        mapLoadingEl.innerHTML = '<p style="color:#6B7280;font-size:16px;">' + escapeHtml(msg) + '</p>';
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // ─────────────────────────────────────────────────────────────────────
+      // Identify / highlight tool: click any design component (cable, trench,
+      // duct, PDP, object, polygon...) to highlight it and view the COMPLETE
+      // attribute table. Uses the shared FtthMap identify mode.
+      // ─────────────────────────────────────────────────────────────────────
+      var identifyBtn = document.getElementById('identifyBtn');
+      var inspectorPanel = document.getElementById('inspectorPanel');
+      var inspectorLayer = document.getElementById('inspectorLayer');
+      var inspectorFid = document.getElementById('inspectorFid');
+      var inspectorBody = document.getElementById('inspectorBody');
+      var inspectorClose = document.getElementById('inspectorClose');
+      var inspectorClear = document.getElementById('inspectorClear');
+      var identifyOn = false;
+
+      function showInspector(feature, layerName, coords) {
+        var props = feature.properties || {};
+        var fid =
+          props.feature_id != null
+            ? props.feature_id
+            : feature.id != null
+              ? feature.id
+              : props.id != null
+                ? props.id
+                : '—';
+        inspectorLayer.textContent = layerName || 'Layer';
+        inspectorFid.textContent = 'ID: ' + String(fid);
+        var keys = Object.keys(props).sort();
+        if (!keys.length) {
+          inspectorBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
+        } else {
+          var html = '<table class="ftth-inspector-table">';
+          keys.forEach(function (k) {
+            var v = props[k];
+            if (v === null || v === undefined || v === '') return;
+            var disp = typeof v === 'object' ? JSON.stringify(v) : String(v);
+            if (disp.length > 400) disp = disp.slice(0, 397) + '\u2026';
+            html += '<tr><td class="k">' + escapeHtml(k) + '</td><td class="v">' + escapeHtml(disp) + '</td></tr>';
+          });
+          html += '</table>';
+          inspectorBody.innerHTML = html;
+        }
+        inspectorPanel.style.display = 'flex';
+      }
+
+      function clearInspector() {
+        if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
+        inspectorPanel.style.display = 'none';
+      }
+
+      if (identifyBtn) {
+        identifyBtn.addEventListener('click', function () {
+          identifyOn = !identifyOn;
+          identifyBtn.classList.toggle('active', identifyOn);
+          identifyBtn.title = identifyOn
+            ? 'Click any component on the map to view its full attributes'
+            : 'Turn on to click a cable, trench or any component and view its full attributes';
+          window.FtthMap.setIdentifyActive(map, identifyOn, showInspector);
+          if (!identifyOn) clearInspector();
+        });
+      }
+      if (inspectorClose) {
+        inspectorClose.addEventListener('click', clearInspector);
+      }
+      if (inspectorClear) {
+        inspectorClear.addEventListener('click', clearInspector);
+      }
+
+      function initBaseMapSwitcher() {
+        var switcher = document.getElementById('basemapSwitcher');
+        if (!switcher) return;
+        var buttons = switcher.querySelectorAll('.ftth-basemap-btn');
+        buttons.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var styleName = btn.getAttribute('data-basemap');
+            if (!styleName) return;
+            buttons.forEach(function (b) {
+              b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            window.FtthMap.setBaseStyle(map, styleName);
+          });
+        });
+      }
+
+      // ─────────────────────────────────────────────────────────────────────
+      // Survey Assignment (admin/subadmin): pick one or more field engineers,
+      // the backend creates the Survey copy (flagged 'survey') + jobs, and the
+      // engineer sees it under My Projects on the mobile app.
+      // ─────────────────────────────────────────────────────────────────────
+      var engineersList = [];
+      var surveyAssignBadge = document.getElementById('surveyAssignBadge');
+      var surveyAssignStatus = document.getElementById('surveyAssignStatus');
+      var surveyAssignEngineers = document.getElementById('surveyAssignEngineers');
+      var surveyAssignSelect = document.getElementById('surveyAssignSelect');
+      var surveyAssignBtn = document.getElementById('surveyAssignBtn');
+      var surveyAssignMsg = document.getElementById('surveyAssignMsg');
+
+      function renderSurveyAssignment(survey) {
+        if (!surveyAssignBadge) return;
+        if (!survey || !survey.status) {
+          surveyAssignBadge.textContent = 'Not assigned';
+          surveyAssignStatus.textContent =
+            'This run has no survey copy yet. Assign one or more engineers below to create it.';
+          surveyAssignEngineers.innerHTML = '';
+          return;
+        }
+        var cap = String(survey.status)
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, function (m) {
+            return m.toUpperCase();
+          });
+        surveyAssignBadge.textContent = cap;
+        var engs = (survey.assigned_engineers || [])
+          .map(function (e) {
+            return (
+              '<span style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#ECFDF5;color:#047857;">' +
+              escapeHtml(e.full_name || e.email) +
+              '</span>'
+            );
+          })
+          .join('');
+        surveyAssignEngineers.innerHTML = engs
+          ? '<div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Assigned:</div>' + engs
+          : '';
+        surveyAssignStatus.innerHTML = survey.copy_name
+          ? 'Survey copy: <strong>' + escapeHtml(survey.copy_name) + '</strong> (status: ' + cap + ')'
+          : 'Survey copy exists (status: ' + cap + ')';
+      }
+
+      async function loadEngineersForAssign() {
+        try {
+          var data = await window.FiberApi.listEngineers();
+          var list = Array.isArray(data) ? data : (data && data.results) || [];
+          engineersList = list;
+          surveyAssignSelect.innerHTML = '';
+          if (!list.length) {
+            var opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'No engineers found';
+            surveyAssignSelect.appendChild(opt);
+            return;
+          }
+          list.forEach(function (e) {
+            var o = document.createElement('option');
+            o.value = e.id;
+            o.textContent = e.full_name || e.name || e.email || 'Engineer';
+            surveyAssignSelect.appendChild(o);
+          });
+        } catch (err) {
+          surveyAssignMsg.textContent = 'Could not load engineers: ' + FtthUI.humanize(err);
+        }
+      }
+
+      if (surveyAssignBtn) {
+        surveyAssignBtn.addEventListener('click', async function () {
+          var ids = Array.prototype.slice.call(surveyAssignSelect.selectedOptions || []).map(function (o) {
+            return o.value;
+          });
+          if (!ids.length) {
+            surveyAssignMsg.textContent = 'Select at least one engineer.';
+            return;
+          }
+          surveyAssignBtn.disabled = true;
+          surveyAssignMsg.textContent = 'Creating survey copy and assigning… this may take a minute.';
+          try {
+            var res = await window.FiberApi.assignHldProject(projectId, ids);
+            surveyAssignMsg.style.color = '#047857';
+            surveyAssignMsg.innerHTML =
+              'Survey copy created: <strong>' +
+              escapeHtml(res.survey_project_name || '') +
+              '</strong> for ' +
+              (res.engineers || [])
+                .map(function (e) {
+                  return escapeHtml(e.full_name || e.email);
+                })
+                .join(', ') +
+              '. It will appear in the projects panel and on the engineer’s app.';
+            var data = await window.FtthApi.getPipelineStatus(projectId);
+            if (data && data.survey) renderSurveyAssignment(data.survey);
+          } catch (err) {
+            surveyAssignMsg.style.color = '#B91C1C';
+            surveyAssignMsg.textContent = 'Assignment failed: ' + FtthUI.humanize(err);
+          } finally {
+            surveyAssignBtn.disabled = false;
+          }
+        });
+      }
+
+      function initCollapsibleSections() {
+        var sections = document.querySelectorAll('.ftth-side-pane-section');
+        sections.forEach(function (sec) {
+          var h3 = sec.querySelector('h3');
+          if (!h3) return;
+          var chev = document.createElement('span');
+          chev.className = 'chev';
+          chev.textContent = '\u25BE';
+          h3.insertBefore(chev, h3.firstChild);
+          h3.addEventListener('click', function () {
+            sec.classList.toggle('collapsed');
+          });
+        });
+      }
+
+      (function boot() {
+        initCollapsibleSections();
+        if (projectId) {
+          initResultsMap();
+          initBaseMapSwitcher();
+          loadEngineersForAssign();
+        }
+      })();
+    </script>
+  </body>
 </html>

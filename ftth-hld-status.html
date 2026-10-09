@@ -1,536 +1,595 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Pipeline Status | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    .ftth-status-content {
-      max-width: 800px;
-      margin: 0 auto;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pipeline Status | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .ftth-status-content {
+        max-width: 800px;
+        margin: 0 auto;
+      }
 
-    .ftth-status-content .card {
-      background: #FFFFFF;
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      border: 1px solid #E5E7EB;
-    }
+      .ftth-status-content .card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+      }
 
-    .ftth-status-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 4px;
-    }
+      .ftth-status-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 4px;
+      }
 
-    .ftth-status-header h1 {
-      margin: 0;
-      font-size: 20px;
-    }
+      .ftth-status-header h1 {
+        margin: 0;
+        font-size: 20px;
+      }
 
-    .ftth-project-id {
-      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
-      font-size: 12px;
-      color: #6B7280;
-      background: #F3F4F6;
-      padding: 4px 10px;
-      border-radius: 4px;
-      word-break: break-all;
-    }
+      .ftth-project-id {
+        font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+        font-size: 12px;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 4px 10px;
+        border-radius: 4px;
+        word-break: break-all;
+      }
 
-    .ftth-meta-row {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-      margin: 12px 0 0;
-      font-size: 13px;
-      color: #6B7280;
-    }
+      .ftth-meta-row {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        margin: 12px 0 0;
+        font-size: 13px;
+        color: #6b7280;
+      }
 
-    .ftth-meta-row strong {
-      color: #1F2937;
-    }
+      .ftth-meta-row strong {
+        color: #1f2937;
+      }
 
-    .ftth-stop-btn {
-      padding: 8px 16px;
-      background: #6B7280;
-      color: #FFFFFF;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
+      .ftth-stop-btn {
+        padding: 8px 16px;
+        background: #6b7280;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
 
-    .ftth-stop-btn:hover {
-      background: #4B5563;
-    }
+      .ftth-stop-btn:hover {
+        background: #4b5563;
+      }
 
-    .ftth-log-section {
-      margin-top: 4px;
-    }
+      .ftth-log-section {
+        margin-top: 4px;
+      }
 
-    .ftth-log-section-label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
+      .ftth-log-section-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
 
-    .ftth-log-section-label h3 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 600;
-    }
+      .ftth-log-section-label h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
 
-    .ftth-log-count {
-      font-size: 12px;
-      color: #6B7280;
-    }
+      .ftth-log-count {
+        font-size: 12px;
+        color: #6b7280;
+      }
 
-    .ftth-completed-banner {
-      display: none;
-      background: #ECFDF5;
-      border: 1px solid #A7F3D0;
-      border-radius: 10px;
-      padding: 20px 24px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
+      .ftth-completed-banner {
+        display: none;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+        text-align: center;
+      }
 
-    .ftth-completed-banner.show {
-      display: block;
-    }
+      .ftth-completed-banner.show {
+        display: block;
+      }
 
-    .ftth-completed-banner h2 {
-      margin: 0 0 6px;
-      color: #065F46;
-      font-size: 18px;
-    }
+      .ftth-completed-banner h2 {
+        margin: 0 0 6px;
+        color: #065f46;
+        font-size: 18px;
+      }
 
-    .ftth-completed-banner p {
-      margin: 0 0 16px;
-      color: #047857;
-      font-size: 14px;
-    }
+      .ftth-completed-banner p {
+        margin: 0 0 16px;
+        color: #047857;
+        font-size: 14px;
+      }
 
-    .ftth-view-results-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 24px;
-      background: #059669;
-      color: #FFF;
-      border: none;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 700;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
+      .ftth-view-results-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: #059669;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.15s ease;
+      }
 
-    .ftth-view-results-btn:hover {
-      background: #047857;
-    }
+      .ftth-view-results-btn:hover {
+        background: #047857;
+      }
 
-    .ftth-failed-banner {
-      display: none;
-      background: #FEF2F2;
-      border: 1px solid #FECACA;
-      border-radius: 10px;
-      padding: 20px 24px;
-      margin-bottom: 16px;
-      text-align: center;
-    }
+      .ftth-failed-banner {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 10px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+        text-align: center;
+      }
 
-    .ftth-failed-banner.show {
-      display: block;
-    }
+      .ftth-failed-banner.show {
+        display: block;
+      }
 
-    .ftth-failed-banner h2 {
-      margin: 0 0 6px;
-      color: #991B1B;
-      font-size: 18px;
-    }
+      .ftth-failed-banner h2 {
+        margin: 0 0 6px;
+        color: #991b1b;
+        font-size: 18px;
+      }
 
-    .ftth-failed-banner p {
-      margin: 0 0 16px;
-      color: #DC2626;
-      font-size: 14px;
-    }
+      .ftth-failed-banner p {
+        margin: 0 0 16px;
+        color: #dc2626;
+        font-size: 14px;
+      }
 
-    .ftth-retry-btn {
-      padding: 10px 20px;
-      background: #DC2626;
-      color: #FFF;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
+      .ftth-retry-btn {
+        padding: 10px 20px;
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+      }
 
-    @keyframes ftth-pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+      @keyframes ftth-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/ftth.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-  </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-<link rel="stylesheet" href="css/components.css">
-</head>
-<body>
+      <main class="content">
+        <div class="container">
+          <div class="ftth-status-content">
+            <!-- Header -->
+            <div class="card">
+              <div class="ftth-status-header">
+                <h1>Pipeline Status</h1>
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                  <span id="statusBadgeContainer"></span>
+                  <button id="stopPollBtn" class="ftth-stop-btn" type="button" style="display: none">
+                    Stop Polling
+                  </button>
+                </div>
+              </div>
+              <div class="ftth-project-id" id="projectIdDisplay">—</div>
+              <div class="ftth-meta-row">
+                <span>Progress: <strong id="progressPct">0%</strong></span>
+                <span>Elapsed: <strong id="elapsedTime">0s</strong></span>
+                <span>Messages: <strong id="messageCount">0</strong></span>
+              </div>
+            </div>
 
-<div class="layout">
-  <div id="sidebarContainer"></div>
+            <!-- Completed banner -->
+            <div id="completedBanner" class="ftth-completed-banner">
+              <h2>✅ Pipeline Complete!</h2>
+              <p>The design pipeline has finished. View your results on the map or download output files.</p>
+              <a id="viewResultsBtn" class="ftth-view-results-btn" href="#"> View Results → </a>
+            </div>
 
-  <main class="content">
-    <div class="container">
+            <!-- Failed banner -->
+            <div id="failedBanner" class="ftth-failed-banner">
+              <h2>❌ Pipeline Failed</h2>
+              <p id="failedMessage">The pipeline encountered an error.</p>
+              <a class="ftth-retry-btn" href="ftth-hld.html">Back to Upload</a>
+            </div>
 
-      <div class="ftth-status-content">
+            <!-- Survey Assignment (shown when the run is completed) -->
+            <div id="surveyAssignCard" class="card" style="display: none">
+              <div class="ftth-log-section-label">
+                <h3>Survey Assignment</h3>
+                <span class="ftth-log-count" id="surveyAssignBadge">—</span>
+              </div>
+              <p id="surveyAssignStatus" style="margin: 0 0 10px; font-size: 13px; color: #6b7280">
+                Checking assignment state…
+              </p>
+              <div id="surveyAssignEngineers" style="font-size: 12px; margin-bottom: 10px"></div>
+              <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px"
+                >Assign engineer(s) for field survey</label
+              >
+              <select
+                id="surveyAssignSelect"
+                multiple
+                style="
+                  width: 100%;
+                  min-height: 88px;
+                  padding: 8px;
+                  border-radius: 6px;
+                  border: 1px solid #d1d5db;
+                  font-size: 13px;
+                  margin-bottom: 10px;
+                "
+              >
+                <option value="">Loading engineers…</option>
+              </select>
+              <button
+                id="surveyAssignBtn"
+                type="button"
+                style="
+                  width: 100%;
+                  padding: 10px 14px;
+                  background: linear-gradient(135deg, #059669, #047857);
+                  border: none;
+                  border-radius: 8px;
+                  color: #fff;
+                  font-size: 13px;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition: all 0.15s ease;
+                "
+              >
+                Create Survey Copy &amp; Assign
+              </button>
+              <p id="surveyAssignMsg" style="margin: 10px 0 0; font-size: 12px; color: #6b7280"></p>
+            </div>
 
-        <!-- Header -->
-        <div class="card">
-          <div class="ftth-status-header">
-            <h1>Pipeline Status</h1>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <span id="statusBadgeContainer"></span>
-              <button id="stopPollBtn" class="ftth-stop-btn" type="button" style="display:none;">Stop Polling</button>
+            <!-- Progress bar -->
+            <div class="card">
+              <h3 style="margin: 0 0 10px; font-size: 14px; font-weight: 600">Progress</h3>
+              <div class="ftth-progress-container">
+                <div class="ftth-progress-label">
+                  <span id="progressLabel">Initializing…</span>
+                  <span id="progressValue">0%</span>
+                </div>
+                <div id="progressBarContainer"></div>
+              </div>
+            </div>
+
+            <!-- Live log -->
+            <!-- Live log -->
+            <div class="card ftth-log-section">
+              <div class="ftth-log-section-label">
+                <h3>Pipeline Log</h3>
+                <span class="ftth-log-count" id="logLineCount">0 lines</span>
+              </div>
+              <div id="logContainer"></div>
             </div>
           </div>
-          <div class="ftth-project-id" id="projectIdDisplay">—</div>
-          <div class="ftth-meta-row">
-            <span>Progress: <strong id="progressPct">0%</strong></span>
-            <span>Elapsed: <strong id="elapsedTime">0s</strong></span>
-            <span>Messages: <strong id="messageCount">0</strong></span>
-          </div>
         </div>
-
-        <!-- Completed banner -->
-        <div id="completedBanner" class="ftth-completed-banner">
-          <h2>✅ Pipeline Complete!</h2>
-          <p>The design pipeline has finished. View your results on the map or download output files.</p>
-          <a id="viewResultsBtn" class="ftth-view-results-btn" href="#">
-            View Results →
-          </a>
-        </div>
-
-        <!-- Failed banner -->
-        <div id="failedBanner" class="ftth-failed-banner">
-          <h2>❌ Pipeline Failed</h2>
-          <p id="failedMessage">The pipeline encountered an error.</p>
-          <a class="ftth-retry-btn" href="ftth-hld.html">Back to Upload</a>
-        </div>
-
-        <!-- Survey Assignment (shown when the run is completed) -->
-        <div id="surveyAssignCard" class="card" style="display:none;">
-          <div class="ftth-log-section-label">
-            <h3>Survey Assignment</h3>
-            <span class="ftth-log-count" id="surveyAssignBadge">—</span>
-          </div>
-          <p id="surveyAssignStatus" style="margin:0 0 10px;font-size:13px;color:#6B7280;">Checking assignment state…</p>
-          <div id="surveyAssignEngineers" style="font-size:12px;margin-bottom:10px;"></div>
-          <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Assign engineer(s) for field survey</label>
-          <select id="surveyAssignSelect" multiple style="width:100%;min-height:88px;padding:8px;border-radius:6px;border:1px solid #D1D5DB;font-size:13px;margin-bottom:10px;">
-            <option value="">Loading engineers…</option>
-          </select>
-          <button id="surveyAssignBtn" type="button" style="width:100%;padding:10px 14px;background:linear-gradient(135deg,#059669,#047857);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s ease;">
-            Create Survey Copy &amp; Assign
-          </button>
-          <p id="surveyAssignMsg" style="margin:10px 0 0;font-size:12px;color:#6B7280;"></p>
-        </div>
-
-        <!-- Progress bar -->
-        <div class="card">
-          <h3 style="margin:0 0 10px;font-size:14px;font-weight:600;">Progress</h3>
-          <div class="ftth-progress-container">
-            <div class="ftth-progress-label">
-              <span id="progressLabel">Initializing…</span>
-              <span id="progressValue">0%</span>
-            </div>
-            <div id="progressBarContainer"></div>
-          </div>
-        </div>
-
-        <!-- Live log -->        <!-- Live log -->
-        <div class="card ftth-log-section">
-          <div class="ftth-log-section-label">
-            <h3>Pipeline Log</h3>
-            <span class="ftth-log-count" id="logLineCount">0 lines</span>
-          </div>
-          <div id="logContainer"></div>
-        </div>
-
-      </div>
+      </main>
     </div>
-  </main>
-</div>
 
-<script src="js/ftth-ui.js"></script>
-<script src="partials/sidebar-loader.js"></script>
-<script src="js/ftth-config.js"></script>
-<script>
-  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="fiber-api.js"></script>
-<script>
-  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="js/ftth-api.js"></script>
-<script src="js/ftth-state.js"></script>
-<script src="js/ftth-components.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
+    <script src="js/ftth-ui.js"></script>
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script>
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="js/ftth-api.js"></script>
+    <script src="js/ftth-state.js"></script>
+    <script src="js/ftth-components.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-  // ----------------------------------------------------------------
-  // Get project_id from URL or shared state
-  // ----------------------------------------------------------------
-  const params = new URLSearchParams(window.location.search);
-  let projectId = params.get('project_id') || window.FtthState.getProjectId();
+      // ----------------------------------------------------------------
+      // Get project_id from URL or shared state
+      // ----------------------------------------------------------------
+      const params = new URLSearchParams(window.location.search);
+      let projectId = params.get('project_id') || window.FtthState.getProjectId();
 
-  if (!projectId) {
-    // No project ID — redirect back to upload
-    window.location.href = 'ftth-hld.html';
-  }
+      if (!projectId) {
+        // No project ID — redirect back to upload
+        window.location.href = 'ftth-hld.html';
+      }
 
-  // ----------------------------------------------------------------
-  // DOM refs
-  // ----------------------------------------------------------------
-  const statusBadgeContainer = document.getElementById('statusBadgeContainer');
-  const projectIdDisplay = document.getElementById('projectIdDisplay');
-  const progressPct = document.getElementById('progressPct');
-  const progressLabel = document.getElementById('progressLabel');
-  const progressValue = document.getElementById('progressValue');
-  const progressBarContainer = document.getElementById('progressBarContainer');
-  const logContainer = document.getElementById('logContainer');
-  const logLineCount = document.getElementById('logLineCount');
-  const elapsedTime = document.getElementById('elapsedTime');
-  const messageCount = document.getElementById('messageCount');
-  const completedBanner = document.getElementById('completedBanner');
-  const failedBanner = document.getElementById('failedBanner');
-  const failedMessage = document.getElementById('failedMessage');
-  const viewResultsBtn = document.getElementById('viewResultsBtn');
-  const stopPollBtn = document.getElementById('stopPollBtn');
-  const surveyAssignCard = document.getElementById('surveyAssignCard');
-  const surveyAssignBadge = document.getElementById('surveyAssignBadge');
-  const surveyAssignStatus = document.getElementById('surveyAssignStatus');
-  const surveyAssignEngineers = document.getElementById('surveyAssignEngineers');
-  const surveyAssignSelect = document.getElementById('surveyAssignSelect');
-  const surveyAssignBtn = document.getElementById('surveyAssignBtn');
-  const surveyAssignMsg = document.getElementById('surveyAssignMsg');
+      // ----------------------------------------------------------------
+      // DOM refs
+      // ----------------------------------------------------------------
+      const statusBadgeContainer = document.getElementById('statusBadgeContainer');
+      const projectIdDisplay = document.getElementById('projectIdDisplay');
+      const progressPct = document.getElementById('progressPct');
+      const progressLabel = document.getElementById('progressLabel');
+      const progressValue = document.getElementById('progressValue');
+      const progressBarContainer = document.getElementById('progressBarContainer');
+      const logContainer = document.getElementById('logContainer');
+      const logLineCount = document.getElementById('logLineCount');
+      const elapsedTime = document.getElementById('elapsedTime');
+      const messageCount = document.getElementById('messageCount');
+      const completedBanner = document.getElementById('completedBanner');
+      const failedBanner = document.getElementById('failedBanner');
+      const failedMessage = document.getElementById('failedMessage');
+      const viewResultsBtn = document.getElementById('viewResultsBtn');
+      const stopPollBtn = document.getElementById('stopPollBtn');
+      const surveyAssignCard = document.getElementById('surveyAssignCard');
+      const surveyAssignBadge = document.getElementById('surveyAssignBadge');
+      const surveyAssignStatus = document.getElementById('surveyAssignStatus');
+      const surveyAssignEngineers = document.getElementById('surveyAssignEngineers');
+      const surveyAssignSelect = document.getElementById('surveyAssignSelect');
+      const surveyAssignBtn = document.getElementById('surveyAssignBtn');
+      const surveyAssignMsg = document.getElementById('surveyAssignMsg');
 
-  // ----------------------------------------------------------------
-  // Setup
-  // ----------------------------------------------------------------
-  projectIdDisplay.textContent = 'Project: ' + projectId;
+      // ----------------------------------------------------------------
+      // Setup
+      // ----------------------------------------------------------------
+      projectIdDisplay.textContent = 'Project: ' + projectId;
 
-  const logViewer = window.FtthComponents.createLogViewer({ maxLines: 10000 });
-  logContainer.appendChild(logViewer);
+      const logViewer = window.FtthComponents.createLogViewer({ maxLines: 10000 });
+      logContainer.appendChild(logViewer);
 
-  const progressBar = window.FtthComponents.createProgressBar(0);
-  progressBarContainer.appendChild(progressBar);
+      const progressBar = window.FtthComponents.createProgressBar(0);
+      progressBarContainer.appendChild(progressBar);
 
-  const badge = window.FtthComponents.createStatusBadge('pending');
-  statusBadgeContainer.appendChild(badge);
+      const badge = window.FtthComponents.createStatusBadge('pending');
+      statusBadgeContainer.appendChild(badge);
 
-  let startTime = Date.now();
-  let prevMessageCount = 0;
-  let seenMessageIds = new Set();
-  let terminalStateHandled = false;
+      let startTime = Date.now();
+      let prevMessageCount = 0;
+      let seenMessageIds = new Set();
+      let terminalStateHandled = false;
 
-  // ----------------------------------------------------------------
-  // Polling callbacks
-  // ----------------------------------------------------------------
-  function onMessage(data) {
-    // Update status badge
-    renderSurveyAssignment(data.survey);
-    const newBadge = window.FtthComponents.createStatusBadge(data.status);
-    statusBadgeContainer.innerHTML = '';
-    statusBadgeContainer.appendChild(newBadge);
+      // ----------------------------------------------------------------
+      // Polling callbacks
+      // ----------------------------------------------------------------
+      function onMessage(data) {
+        // Update status badge
+        renderSurveyAssignment(data.survey);
+        const newBadge = window.FtthComponents.createStatusBadge(data.status);
+        statusBadgeContainer.innerHTML = '';
+        statusBadgeContainer.appendChild(newBadge);
 
-    // Update progress. A run is only ever 100% when it is actually
-    // completed — anything else is capped at 99% so the bar can never
-    // fill prematurely even if a backend reports a bad value.
-    const rawPct = data.progress !== undefined ? Number(data.progress) : 0;
-    const pct = data.status === 'completed' ? 100 : Math.min(99, Math.max(0, rawPct));
-    window.FtthComponents.updateProgressBar(progressBar, pct);
-    progressPct.textContent = Math.round(pct) + '%';
-    progressValue.textContent = Math.round(pct) + '%';
-    progressLabel.textContent = data.status_label || (data.status === 'running' ? 'Processing…' : data.status);
+        // Update progress. A run is only ever 100% when it is actually
+        // completed — anything else is capped at 99% so the bar can never
+        // fill prematurely even if a backend reports a bad value.
+        const rawPct = data.progress !== undefined ? Number(data.progress) : 0;
+        const pct = data.status === 'completed' ? 100 : Math.min(99, Math.max(0, rawPct));
+        window.FtthComponents.updateProgressBar(progressBar, pct);
+        progressPct.textContent = Math.round(pct) + '%';
+        progressValue.textContent = Math.round(pct) + '%';
+        progressLabel.textContent = data.status_label || (data.status === 'running' ? 'Processing…' : data.status);
 
-    // Append new messages — all messages shown verbatim for verbose logging
-    if (data.messages && Array.isArray(data.messages)) {
-      data.messages.forEach(function (m, index) {
-        const text = m && (m.text || m.message) || String(m);
-        const key = String((m && (m.id || m.timestamp || m.created_at)) || index) + '|' + text;
-        if (seenMessageIds.has(key)) return;
-        seenMessageIds.add(key);
-        logViewer._append(text, m && m.level || 'info');
+        // Append new messages — all messages shown verbatim for verbose logging
+        if (data.messages && Array.isArray(data.messages)) {
+          data.messages.forEach(function (m, index) {
+            const text = (m && (m.text || m.message)) || String(m);
+            const key = String((m && (m.id || m.timestamp || m.created_at)) || index) + '|' + text;
+            if (seenMessageIds.has(key)) return;
+            seenMessageIds.add(key);
+            logViewer._append(text, (m && m.level) || 'info');
+          });
+          prevMessageCount = seenMessageIds.size;
+        }
+
+        logLineCount.textContent = prevMessageCount + ' lines';
+        messageCount.textContent = prevMessageCount;
+
+        // Elapsed time
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        elapsedTime.textContent = mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
+      }
+
+      function onComplete(data) {
+        if (terminalStateHandled) return;
+        terminalStateHandled = true;
+        stopPollBtn.style.display = 'none';
+
+        if (data.status === 'completed') {
+          // Show completed banner
+          completedBanner.classList.add('show');
+          // Store results
+          window.FtthState.setResults(data);
+          // Link to results page
+          viewResultsBtn.href = 'ftth-hld-results.html?project_id=' + encodeURIComponent(projectId);
+
+          // Log completion summary
+          if (data.layers && data.layers.length) {
+            logViewer._append(
+              'Layers generated: ' +
+                data.layers
+                  .map(function (l) {
+                    return l.name + ' (' + l.count + ' ' + l.type + ')';
+                  })
+                  .join(', '),
+              'success'
+            );
+          }
+          if (data.downloads && data.downloads.length) {
+            logViewer._append('Files available for download: ' + data.downloads.length, 'success');
+          }
+          logViewer._append('Pipeline completed successfully ✓', 'success');
+        } else {
+          // Failed
+          failedBanner.classList.add('show');
+          failedMessage.textContent = data.error || data.message || 'Pipeline failed unexpectedly';
+          logViewer._append('Pipeline failed: ' + (data.error || data.message || 'Unknown error'), 'error');
+        }
+      }
+
+      function onError(err) {
+        // Network error — keep polling (connection may recover)
+        logViewer._append('Poll error: ' + (err.message || 'Connection issue'), 'warn');
+      }
+
+      // Stop polling handler
+      stopPollBtn.addEventListener('click', function () {
+        window.FtthState.stopPolling();
+        stopPollBtn.style.display = 'none';
+        logViewer._append('Polling stopped by user', 'warn');
       });
-      prevMessageCount = seenMessageIds.size;
-    }
 
-    logLineCount.textContent = prevMessageCount + ' lines';
-    messageCount.textContent = prevMessageCount;
+      // ----------------------------------------------------------------
+      // Start polling
+      // ----------------------------------------------------------------
+      // Explicitly stop any previous page-level poll before starting this one.
+      // This protects against browser back/forward cache restoring an old status
+      // page with a stale timer still alive.
+      window.FtthState.stopPolling();
+      var stopFn = window.FtthState.startPolling(projectId, onMessage, onComplete, onError, 3000);
+      stopPollBtn.style.display = 'inline-block';
 
-    // Elapsed time
-    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    const mins = Math.floor(elapsed / 60);
-    const secs = elapsed % 60;
-    elapsedTime.textContent = mins > 0 ? (mins + 'm ' + secs + 's') : (secs + 's');
-  }
+      // Show the first running message
+      // Show the first running message
+      logViewer._append('Polling pipeline status for project ' + projectId + '...', 'info');
+      logViewer._append('Waiting for pipeline to start...', 'info');
 
-  function onComplete(data) {
-    if (terminalStateHandled) return;
-    terminalStateHandled = true;
-    stopPollBtn.style.display = 'none';
+      // ----------------------------------------------------------------
+      // Survey Assignment (admin/subadmin) — visible when run is completed
+      // ----------------------------------------------------------------
+      let engineersList = [];
 
-    if (data.status === 'completed') {
-      // Show completed banner
-      completedBanner.classList.add('show');
-      // Store results
-      window.FtthState.setResults(data);
-      // Link to results page
-      viewResultsBtn.href = 'ftth-hld-results.html?project_id=' + encodeURIComponent(projectId);
-
-      // Log completion summary
-      if (data.layers && data.layers.length) {
-        logViewer._append('Layers generated: ' + data.layers.map(function (l) {
-          return l.name + ' (' + l.count + ' ' + l.type + ')';
-        }).join(', '), 'success');
+      function renderSurveyAssignment(survey) {
+        if (!surveyAssignCard) return;
+        surveyAssignCard.style.display = 'block';
+        if (!survey || !survey.status) {
+          surveyAssignBadge.textContent = 'Not assigned';
+          surveyAssignStatus.textContent =
+            'This run has no survey copy yet. Assign one or more engineers below to create it.';
+          surveyAssignEngineers.innerHTML = '';
+          return;
+        }
+        const cap = String(survey.status)
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, function (m) {
+            return m.toUpperCase();
+          });
+        surveyAssignBadge.textContent = cap;
+        const engs = (survey.assigned_engineers || [])
+          .map(function (e) {
+            return (
+              '<span style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#ECFDF5;color:#047857;">' +
+              escapeHtml(e.full_name || e.email) +
+              '</span>'
+            );
+          })
+          .join('');
+        surveyAssignEngineers.innerHTML = engs
+          ? '<div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Assigned:</div>' + engs
+          : '';
+        surveyAssignStatus.textContent = survey.copy_name
+          ? 'Survey copy: ' + survey.copy_name + ' (status: ' + cap + ')'
+          : 'Survey copy exists (status: ' + cap + ')';
       }
-      if (data.downloads && data.downloads.length) {
-        logViewer._append('Files available for download: ' + data.downloads.length, 'success');
+
+      async function loadEngineersForStatusAssign() {
+        try {
+          const data = await window.FiberApi.listEngineers();
+          const list = Array.isArray(data) ? data : (data && data.results) || [];
+          engineersList = list;
+          surveyAssignSelect.innerHTML = '';
+          if (!list.length) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'No engineers found';
+            surveyAssignSelect.appendChild(opt);
+            return;
+          }
+          list.forEach(function (e) {
+            const o = document.createElement('option');
+            o.value = e.id;
+            o.textContent = e.full_name || e.name || e.email || 'Engineer';
+            surveyAssignSelect.appendChild(o);
+          });
+        } catch (err) {
+          surveyAssignMsg.textContent = 'Could not load engineers: ' + FtthUI.humanize(err);
+        }
       }
-      logViewer._append('Pipeline completed successfully ✓', 'success');
-    } else {
-      // Failed
-      failedBanner.classList.add('show');
-      failedMessage.textContent = data.error || data.message || 'Pipeline failed unexpectedly';
-      logViewer._append('Pipeline failed: ' + (data.error || data.message || 'Unknown error'), 'error');
-    }
-  }
 
-  function onError(err) {
-    // Network error — keep polling (connection may recover)
-    logViewer._append('Poll error: ' + (err.message || 'Connection issue'), 'warn');
-  }
-
-  // Stop polling handler
-  stopPollBtn.addEventListener('click', function () {
-    window.FtthState.stopPolling();
-    stopPollBtn.style.display = 'none';
-    logViewer._append('Polling stopped by user', 'warn');
-  });
-
-  // ----------------------------------------------------------------
-  // Start polling
-  // ----------------------------------------------------------------
-  // Explicitly stop any previous page-level poll before starting this one.
-  // This protects against browser back/forward cache restoring an old status
-  // page with a stale timer still alive.
-  window.FtthState.stopPolling();
-  var stopFn = window.FtthState.startPolling(projectId, onMessage, onComplete, onError, 3000);
-  stopPollBtn.style.display = 'inline-block';
-
-  // Show the first running message
-  // Show the first running message
-  logViewer._append('Polling pipeline status for project ' + projectId + '...', 'info');
-  logViewer._append('Waiting for pipeline to start...', 'info');
-
-  // ----------------------------------------------------------------
-  // Survey Assignment (admin/subadmin) — visible when run is completed
-  // ----------------------------------------------------------------
-  let engineersList = [];
-
-  function renderSurveyAssignment(survey) {
-    if (!surveyAssignCard) return;
-    surveyAssignCard.style.display = 'block';
-    if (!survey || !survey.status) {
-      surveyAssignBadge.textContent = 'Not assigned';
-      surveyAssignStatus.textContent = 'This run has no survey copy yet. Assign one or more engineers below to create it.';
-      surveyAssignEngineers.innerHTML = '';
-      return;
-    }
-    const cap = String(survey.status).replace(/_/g, ' ').replace(/\b\w/g, function(m){ return m.toUpperCase(); });
-    surveyAssignBadge.textContent = cap;
-    const engs = (survey.assigned_engineers || []).map(function(e){
-      return '<span style="display:inline-block;margin:0 6px 6px 0;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#ECFDF5;color:#047857;">'
-        + escapeHtml(e.full_name || e.email) + '</span>';
-    }).join('');
-    surveyAssignEngineers.innerHTML = engs
-      ? '<div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Assigned:</div>' + engs
-      : '';
-    surveyAssignStatus.textContent = survey.copy_name
-      ? 'Survey copy: ' + survey.copy_name + ' (status: ' + cap + ')'
-      : 'Survey copy exists (status: ' + cap + ')';
-  }
-
-  async function loadEngineersForStatusAssign() {
-    try {
-      const data = await window.FiberApi.listEngineers();
-      const list = Array.isArray(data) ? data : ((data && data.results) || []);
-      engineersList = list;
-      surveyAssignSelect.innerHTML = '';
-      if (!list.length) {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.textContent = 'No engineers found';
-        surveyAssignSelect.appendChild(opt);
-        return;
-      }
-      list.forEach(function(e){
-        const o = document.createElement('option');
-        o.value = e.id;
-        o.textContent = (e.full_name || e.name || e.email || 'Engineer');
-        surveyAssignSelect.appendChild(o);
-      });
-    } catch (err) {
-      surveyAssignMsg.textContent = 'Could not load engineers: ' + (FtthUI.humanize(err));
-    }
-  }
-
-  if (surveyAssignBtn) {
-    surveyAssignBtn.addEventListener('click', async function(){
-      const ids = Array.prototype.slice.call(surveyAssignSelect.selectedOptions || []).map(function(o){ return o.value; });
-      if (!ids.length) { surveyAssignMsg.textContent = 'Select at least one engineer.'; return; }
-      surveyAssignBtn.disabled = true;
-      surveyAssignMsg.textContent = 'Creating survey copy and assigning… this may take a minute.';
-      try {
-        const res = await window.FiberApi.assignHldProject(projectId, ids);
-        surveyAssignMsg.style.color = '#047857';
-        surveyAssignMsg.innerHTML = 'Survey copy created: <strong>' + escapeHtml(res.survey_project_name || '') + '</strong> for '
-          + (res.engineers || []).map(function(e){ return escapeHtml(e.full_name || e.email); }).join(', ')
-          + '. It will appear in the projects panel and on the engineer’s app.';
-        renderSurveyAssignment({
-          copy_project_id: res.survey_project_id,
-          copy_name: res.survey_project_name,
-          status: res.survey_status,
-          assigned_engineers: res.engineers,
+      if (surveyAssignBtn) {
+        surveyAssignBtn.addEventListener('click', async function () {
+          const ids = Array.prototype.slice.call(surveyAssignSelect.selectedOptions || []).map(function (o) {
+            return o.value;
+          });
+          if (!ids.length) {
+            surveyAssignMsg.textContent = 'Select at least one engineer.';
+            return;
+          }
+          surveyAssignBtn.disabled = true;
+          surveyAssignMsg.textContent = 'Creating survey copy and assigning… this may take a minute.';
+          try {
+            const res = await window.FiberApi.assignHldProject(projectId, ids);
+            surveyAssignMsg.style.color = '#047857';
+            surveyAssignMsg.innerHTML =
+              'Survey copy created: <strong>' +
+              escapeHtml(res.survey_project_name || '') +
+              '</strong> for ' +
+              (res.engineers || [])
+                .map(function (e) {
+                  return escapeHtml(e.full_name || e.email);
+                })
+                .join(', ') +
+              '. It will appear in the projects panel and on the engineer’s app.';
+            renderSurveyAssignment({
+              copy_project_id: res.survey_project_id,
+              copy_name: res.survey_project_name,
+              status: res.survey_status,
+              assigned_engineers: res.engineers,
+            });
+          } catch (err) {
+            surveyAssignMsg.style.color = '#B91C1C';
+            surveyAssignMsg.textContent = 'Assignment failed: ' + FtthUI.humanize(err);
+          } finally {
+            surveyAssignBtn.disabled = false;
+          }
         });
-      } catch (err) {
-        surveyAssignMsg.style.color = '#B91C1C';
-        surveyAssignMsg.textContent = 'Assignment failed: ' + (FtthUI.humanize(err));
-      } finally {
-        surveyAssignBtn.disabled = false;
       }
-    });
-  }
 
-  loadEngineersForStatusAssign();
-</script>
-
-</body>
+      loadEngineersForStatusAssign();
+    </script>
+  </body>
 </html>

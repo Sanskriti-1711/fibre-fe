@@ -10,9 +10,9 @@ removed and every former Leaflet page now uses MapLibre GL.
 
 ## Contents
 
-| Library | Version | Files | Source |
-|---|---|---|---|
-| MapLibre GL JS | 4.7.1 | `maplibre/maplibre-gl.js`, `maplibre/maplibre-gl.css` | https://unpkg.com/maplibre-gl@4.7.1/dist/ |
+| Library        | Version | Files                                                 | Source                                    |
+| -------------- | ------- | ----------------------------------------------------- | ----------------------------------------- |
+| MapLibre GL JS | 4.7.1   | `maplibre/maplibre-gl.js`, `maplibre/maplibre-gl.css` | https://unpkg.com/maplibre-gl@4.7.1/dist/ |
 
 Files are byte-for-byte copies of the published dist artifacts (including
 their license headers). `maplibre-gl.css` is fully self-contained (data URIs).

@@ -1,10 +1,10 @@
 :root {
   --tm-red: var(--brand);
-  --tm-dark: #1F2937;
-  --tm-gray: #616A75;
-  --tm-light: #F9FAFB;
-  --tm-white: #FFFFFF;
-  --border: #E5E7EB;
+  --tm-dark: #1f2937;
+  --tm-gray: #616a75;
+  --tm-light: #f9fafb;
+  --tm-white: #fff;
+  --border: #e5e7eb;
   --green: var(--success);
   --amber: var(--warning);
   --blue: var(--info);
@@ -12,7 +12,12 @@
 
 * {
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 body {
@@ -40,11 +45,13 @@ body {
   overflow-y: auto;
   flex-shrink: 0;
 }
+
 .sidebar h2 {
-    margin: 0 0 32px;
-    color: #FF6B81;
-    font-size: 20px;
+  margin: 0 0 32px;
+  color: #ff6b81;
+  font-size: 20px;
 }
+
 .sidebar::-webkit-scrollbar {
   width: 6px;
 }
@@ -54,17 +61,17 @@ body {
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.4);
+  background: rgb(156 163 175 / 40%);
   border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.6);
+  background: rgb(156 163 175 / 60%);
 }
 
 .sidebar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(156, 163, 175, 0.4) transparent;
+  scrollbar-color: rgb(156 163 175 / 40%) transparent;
 }
 
 .nav {
@@ -80,7 +87,7 @@ body {
 }
 
 .nav-label {
-  color: #C3CAD6;
+  color: #c3cad6;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -90,7 +97,7 @@ body {
 
 .nav a {
   display: block;
-  color: #D1D5DB;
+  color: #d1d5db;
   text-decoration: none;
   padding: 6px 0;
   font-size: 14px;
@@ -194,7 +201,8 @@ table {
   font-size: 14px;
 }
 
-th, td {
+th,
+td {
   padding: 14px;
   border-bottom: 1px solid var(--border);
   text-align: left;
@@ -207,7 +215,7 @@ th {
 }
 
 tr:hover {
-  background: #F9FAFB;
+  background: #f9fafb;
 }
 
 .status {
@@ -256,7 +264,7 @@ tr:hover {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 12px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 12px 24px rgb(0 0 0 / 18%);
   z-index: 1100;
 }
 
@@ -265,7 +273,7 @@ tr:hover {
 }
 
 .notif-fab:focus {
-  outline: 3px solid rgba(227, 24, 55, 0.35);
+  outline: 3px solid rgb(227 24 55 / 35%);
   outline-offset: 3px;
 }
 
@@ -291,7 +299,7 @@ tr:hover {
 .notif-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgb(0 0 0 / 35%);
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
@@ -311,7 +319,7 @@ tr:hover {
   width: min(380px, 92vw);
   background: var(--tm-white);
   border-left: 1px solid var(--border);
-  box-shadow: -16px 0 40px rgba(0,0,0,0.12);
+  box-shadow: -16px 0 40px rgb(0 0 0 / 12%);
   transform: translateX(102%);
   transition: transform 220ms ease;
   z-index: 1110;
@@ -327,7 +335,7 @@ tr:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px;
+  padding: 16px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -412,9 +420,20 @@ tr:hover {
   border-bottom: 1px solid var(--border);
 }
 
-.text-completed { color: var(--green); font-weight: 600; }
-.text-pending { color: var(--amber); font-weight: 600; }
-.text-failed { color: var(--tm-red); font-weight: 600; }
+.text-completed {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.text-pending {
+  color: var(--amber);
+  font-weight: 600;
+}
+
+.text-failed {
+  color: var(--tm-red);
+  font-weight: 600;
+}
 
 /* ===== Project Overview Page Specific ===== */
 
@@ -427,6 +446,7 @@ tr:hover {
 
 .kpi-grid.overview {
   display: grid;
+
   /* minmax(0, 1fr), not 1fr. A bare 1fr is minmax(auto, 1fr), so a track
      refuses to shrink below its content's min-content width; on a 390px
      screen the last card is pushed past the viewport edge and half of it
@@ -468,7 +488,7 @@ tr:hover {
   gap: 8px;
   padding: 8px 12px;
   border-radius: 8px;
-  background: #F3F4F6;
+  background: #f3f4f6;
   border: 2px solid transparent;
   cursor: pointer;
   font-size: 13px;
@@ -477,12 +497,12 @@ tr:hover {
 }
 
 .layer-item:hover {
-  background: #E5E7EB;
+  background: #e5e7eb;
 }
 
 .layer-item.active {
   border-color: var(--tm-red);
-  background: #FEF2F2;
+  background: #fef2f2;
 }
 
 .layer-color {
@@ -565,7 +585,7 @@ tr:hover {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
-  background: #F9FAFB;
+  background: #f9fafb;
   font-size: 13px;
 }
 
@@ -602,7 +622,8 @@ tr:hover {
   font-size: 13px;
 }
 
-.layer-table th, .layer-table td {
+.layer-table th,
+.layer-table td {
   text-align: left;
   padding: 8px 6px;
   border-bottom: 1px solid var(--border);
@@ -650,7 +671,7 @@ tr:hover {
 
 .audit-detail .image-box {
   height: 240px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -745,18 +766,19 @@ tr:hover {
 
 .engineer-feature-submit {
   --tm-red: var(--brand);
-  --dark: #0F172A;
-  --gray: #64748B;
-  --light: #F8FAFC;
-  --white: #FFFFFF;
-  --border: #E2E8F0;
+  --dark: #0f172a;
+  --gray: #64748b;
+  --light: #f8fafc;
+  --white: #fff;
+  --border: #e2e8f0;
   --green: var(--success);
   --amber: var(--warning);
-  --ink: #0B1020;
+  --ink: #0b1020;
   --accent: var(--info);
-  --font-head: "Trebuchet MS", "Lucida Sans Unicode", sans-serif;
-  --font-body: "Verdana", "Geneva", sans-serif;
-  background: radial-gradient(1200px 600px at 20% -10%, #E0F2FE 0%, #F8FAFC 45%, #F1F5F9 100%);
+  --font-head: 'Trebuchet MS', 'Lucida Sans Unicode', sans-serif;
+  --font-body: 'Verdana', 'Geneva', sans-serif;
+
+  background: radial-gradient(1200px 600px at 20% -10%, #e0f2fe 0%, #f8fafc 45%, #f1f5f9 100%);
   color: var(--dark);
   font-family: var(--font-body);
 }
@@ -772,25 +794,25 @@ tr:hover {
 }
 
 .engineer-feature-submit .hero {
-  background: linear-gradient(120deg, #0B1020 0%, #111827 55%, #0F172A 100%);
-  color: #E2E8F0;
+  background: linear-gradient(120deg, #0b1020 0%, #111827 55%, #0f172a 100%);
+  color: #e2e8f0;
   padding: 18px;
   border-radius: 14px;
   margin-bottom: 14px;
-  box-shadow: 0 14px 30px rgba(2, 6, 23, 0.25);
+  box-shadow: 0 14px 30px rgb(2 6 23 / 25%);
   position: relative;
   overflow: hidden;
 }
 
-.engineer-feature-submit .hero:after {
-  content: "";
+.engineer-feature-submit .hero::after {
+  content: '';
   position: absolute;
   top: -40px;
   right: -60px;
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(14,165,233,0.45), rgba(14,165,233,0));
+  background: radial-gradient(circle, rgb(14 165 233 / 45%), rgb(14 165 233 / 0%));
 }
 
 .engineer-feature-submit .hero h1 {
@@ -802,7 +824,7 @@ tr:hover {
 
 .engineer-feature-submit .hero p {
   margin: 0;
-  color: #CBD5F5;
+  color: #cbd5f5;
   font-size: 12px;
   line-height: 1.5;
 }
@@ -813,7 +835,7 @@ tr:hover {
   gap: 14px;
 }
 
-@media (min-width: 980px) {
+@media (width >= 980px) {
   .engineer-feature-submit .container {
     max-width: 980px;
     padding: 20px 16px 48px;
@@ -859,9 +881,9 @@ tr:hover {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  color: #0B1020;
-  background: #E0F2FE;
-  border: 1px solid #BAE6FD;
+  color: #0b1020;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
 }
 
 .engineer-feature-submit label {
@@ -895,7 +917,7 @@ tr:hover {
   gap: 10px;
 }
 
-@media (max-width: 520px) {
+@media (width <= 520px) {
   .engineer-feature-submit .row {
     grid-template-columns: 1fr;
   }
@@ -923,9 +945,9 @@ tr:hover {
 }
 
 .engineer-feature-submit .btn-ghost {
-  background: #F1F5F9;
+  background: #f1f5f9;
   color: var(--dark);
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
 }
 
 .engineer-feature-submit .geo-status {
@@ -936,10 +958,10 @@ tr:hover {
 }
 
 .engineer-feature-submit .upload-preview {
-  border: 1px dashed #CBD5F5;
+  border: 1px dashed #cbd5f5;
   border-radius: 10px;
   padding: 10px;
-  background: #F8FAFC;
+  background: #f8fafc;
   margin-bottom: 12px;
 }
 
@@ -961,30 +983,30 @@ tr:hover {
 
 .engineer-feature-submit .map-preview {
   height: 120px;
-  background: linear-gradient(135deg, #ECFEFF, #E0F2FE);
+  background: linear-gradient(135deg, #ecfeff, #e0f2fe);
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--info);
   font-size: 12px;
-  border: 1px dashed #7DD3FC;
+  border: 1px dashed #7dd3fc;
   margin-bottom: 12px;
 }
 
 .engineer-feature-submit .camera-preview {
-  background: #0B1020;
+  background: #0b1020;
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 12px;
-  border: 1px solid #1F2937;
+  border: 1px solid #1f2937;
 }
 
 .engineer-feature-submit .camera-preview video,
 .engineer-feature-submit .camera-preview canvas {
   width: 100%;
   border-radius: 6px;
-  background: #0B1020;
+  background: #0b1020;
   display: block;
 }
 
@@ -1000,9 +1022,9 @@ tr:hover {
   border-radius: 12px;
   font-size: 11px;
   font-weight: 700;
-  background: #F1F5F9;
-  color: #0F172A;
-  border: 1px solid #E2E8F0;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
 }
 
 .engineer-feature-submit .success {
@@ -1032,16 +1054,16 @@ tr:hover {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #38BDF8;
+  background: #38bdf8;
   margin-top: 6px;
 }
 
 .engineer-feature-submit .result-card {
-  background: linear-gradient(135deg, #0B1020, #111827);
-  color: #E2E8F0;
+  background: linear-gradient(135deg, #0b1020, #111827);
+  color: #e2e8f0;
   border-radius: 14px;
   padding: 16px;
-  border: 1px solid #1F2937;
+  border: 1px solid #1f2937;
 }
 
 .engineer-feature-submit .result-card h3 {
@@ -1058,22 +1080,28 @@ tr:hover {
 
 .engineer-feature-submit .result-meta {
   font-size: 12px;
-  color: #94A3B8;
+  color: #94a3b8;
 }
 
 /* ===== Engineer Notifications Page Specific ===== */
 
 .engineer-notifications {
   --tm-red: var(--brand);
-  --dark: #1F2937;
-  --gray: #616A75;
-  --light: #F9FAFB;
-  --white: #FFFFFF;
+  --dark: #1f2937;
+  --gray: #616a75;
+  --light: #f9fafb;
+  --white: #fff;
+
   background: var(--light);
 }
 
 .engineer-notifications * {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 .engineer-notifications .top-bar {
@@ -1093,7 +1121,7 @@ tr:hover {
   letter-spacing: 0.2px;
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .engineer-notifications {
     padding-bottom: 72px;
   }
@@ -1137,7 +1165,7 @@ tr:hover {
   bottom: 0;
   height: 64px;
   background: var(--white);
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -1161,14 +1189,14 @@ tr:hover {
 .engineer-notifications .mobile-nav a svg {
   width: 22px;
   height: 22px;
-  stroke: currentColor;
+  stroke: currentcolor;
 }
 
 .engineer-notifications .mobile-nav a:active {
   opacity: 0.8;
 }
 
-@media (min-width: 601px) {
+@media (width >= 601px) {
   .engineer-notifications .mobile-nav {
     display: none;
   }
@@ -1178,17 +1206,23 @@ tr:hover {
 
 .engineer-profile {
   --tm-red: var(--brand);
-  --dark: #1F2937;
-  --gray: #616A75;
-  --light: #F9FAFB;
-  --white: #FFFFFF;
-  --border: #E5E7EB;
+  --dark: #1f2937;
+  --gray: #616a75;
+  --light: #f9fafb;
+  --white: #fff;
+  --border: #e5e7eb;
+
   background: var(--light);
   color: var(--dark);
 }
 
 .engineer-profile * {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 .engineer-profile .top-bar {
@@ -1208,7 +1242,7 @@ tr:hover {
   letter-spacing: 0.2px;
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .engineer-profile {
     padding-bottom: 72px;
   }
@@ -1272,7 +1306,7 @@ tr:hover {
   bottom: 0;
   height: 64px;
   background: var(--white);
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -1296,14 +1330,14 @@ tr:hover {
 .engineer-profile .mobile-nav a svg {
   width: 22px;
   height: 22px;
-  stroke: currentColor;
+  stroke: currentcolor;
 }
 
 .engineer-profile .mobile-nav a:active {
   opacity: 0.8;
 }
 
-@media (min-width: 601px) {
+@media (width >= 601px) {
   .engineer-profile .mobile-nav {
     display: none;
   }
@@ -1313,19 +1347,25 @@ tr:hover {
 
 .engineer-project-details {
   --tm-red: var(--brand);
-  --dark: #1F2937;
-  --gray: #616A75;
-  --light: #F9FAFB;
-  --white: #FFFFFF;
-  --border: #E5E7EB;
+  --dark: #1f2937;
+  --gray: #616a75;
+  --light: #f9fafb;
+  --white: #fff;
+  --border: #e5e7eb;
   --green: var(--success);
   --amber: var(--warning);
+
   background: var(--light);
   color: var(--dark);
 }
 
 .engineer-project-details * {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 .engineer-project-details .container {
@@ -1366,7 +1406,7 @@ tr:hover {
 
 .engineer-project-details .progress {
   height: 8px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 4px;
   overflow: hidden;
   margin: 8px 0 10px;
@@ -1425,11 +1465,11 @@ tr:hover {
 }
 
 .engineer-project-details .feature-link:hover {
-  background: rgba(227, 24, 55, 0.06);
+  background: rgb(227 24 55 / 6%);
 }
 
 .engineer-project-details .feature-link:focus {
-  outline: 2px solid rgba(227, 24, 55, 0.35);
+  outline: 2px solid rgb(227 24 55 / 35%);
   outline-offset: 4px;
   border-radius: 6px;
 }
@@ -1473,6 +1513,7 @@ tr:hover {
   --tm-red: var(--brand);
   --green: var(--success);
   --amber: var(--warning);
+
   margin: 0;
   height: 100vh;
 }
@@ -1495,7 +1536,7 @@ tr:hover {
   padding: 12px;
   border-radius: 8px;
   font-size: 13px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 16px rgb(0 0 0 / 15%);
 }
 
 .engineer-project-map .legend div {
@@ -1532,15 +1573,21 @@ tr:hover {
 
 .fe-accept-invite {
   --tm-red: var(--brand);
-  --tm-dark: #1F2937;
-  --tm-gray: #616A75;
-  --tm-light: #F9FAFB;
-  --tm-white: #FFFFFF;
+  --tm-dark: #1f2937;
+  --tm-gray: #616a75;
+  --tm-light: #f9fafb;
+  --tm-white: #fff;
+
   background: var(--tm-light);
 }
 
 .fe-accept-invite * {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   box-sizing: border-box;
 }
 
@@ -1596,7 +1643,7 @@ tr:hover {
   padding: 12px;
   font-size: 14px;
   border-radius: 6px;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
 }
 
 .fe-accept-invite input:focus {
@@ -1605,7 +1652,7 @@ tr:hover {
 }
 
 .fe-accept-invite input[readonly] {
-  background: #F3F4F6;
+  background: #f3f4f6;
   cursor: not-allowed;
 }
 
@@ -1637,10 +1684,11 @@ tr:hover {
 
 .engineer-login {
   --tm-red: var(--brand);
-  --tm-dark: #1F2937;
-  --tm-gray: #616A75;
-  --tm-light: #F9FAFB;
-  --tm-white: #FFFFFF;
+  --tm-dark: #1f2937;
+  --tm-gray: #616a75;
+  --tm-light: #f9fafb;
+  --tm-white: #fff;
+
   background: var(--tm-light);
   min-height: 100vh;
   display: flex;
@@ -1649,7 +1697,12 @@ tr:hover {
 
 .engineer-login * {
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 .engineer-login .top-bar {
@@ -1668,7 +1721,7 @@ tr:hover {
 }
 
 .engineer-login .top-links a {
-  color: #D1D5DB;
+  color: #d1d5db;
   text-decoration: none;
   font-size: 14px;
   margin-left: 16px;
@@ -1728,7 +1781,7 @@ tr:hover {
 .engineer-login input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
 }
@@ -1763,7 +1816,9 @@ tr:hover {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ===== All Jobs Page Specific ===== */
@@ -1880,10 +1935,21 @@ tr:hover {
   color: var(--tm-gray);
 }
 
-.all-jobs .stat-card.total .stat-value { color: var(--tm-dark); }
-.all-jobs .stat-card.pending .stat-value { color: var(--amber); }
-.all-jobs .stat-card.inprogress .stat-value { color: var(--blue); }
-.all-jobs .stat-card.completed .stat-value { color: var(--green); }
+.all-jobs .stat-card.total .stat-value {
+  color: var(--tm-dark);
+}
+
+.all-jobs .stat-card.pending .stat-value {
+  color: var(--amber);
+}
+
+.all-jobs .stat-card.inprogress .stat-value {
+  color: var(--blue);
+}
+
+.all-jobs .stat-card.completed .stat-value {
+  color: var(--green);
+}
 
 .all-jobs .table-container {
   background: var(--tm-white);
@@ -1955,7 +2021,7 @@ tr:hover {
 
 .all-jobs .badge-inprogress {
   background: var(--info-soft);
-  color: #1E40AF;
+  color: #1e40af;
 }
 
 .all-jobs .badge-completed {
@@ -2084,7 +2150,7 @@ tr:hover {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.42);
+  background: rgb(0 0 0 / 42%);
   display: none;
   align-items: center;
   justify-content: center;
@@ -2097,7 +2163,7 @@ tr:hover {
   max-width: 480px;
   background: var(--tm-white);
   border-radius: 10px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 18%);
   padding: 24px;
 }
 
@@ -2150,7 +2216,7 @@ tr:hover {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(255,255,255,0.8);
+  background: rgb(255 255 255 / 80%);
   display: none;
   align-items: center;
   justify-content: center;
@@ -2298,11 +2364,25 @@ tr:hover {
   border-radius: 50%;
 }
 
-.engineer-activity-admin .status-dot.pending { background: var(--amber); }
-.engineer-activity-admin .status-dot.assigned { background: var(--blue); }
-.engineer-activity-admin .status-dot.review { background: var(--stage-lld); }
-.engineer-activity-admin .status-dot.approved { background: var(--green); }
-.engineer-activity-admin .status-dot.redo { background: var(--tm-red); }
+.engineer-activity-admin .status-dot.pending {
+  background: var(--amber);
+}
+
+.engineer-activity-admin .status-dot.assigned {
+  background: var(--blue);
+}
+
+.engineer-activity-admin .status-dot.review {
+  background: var(--stage-lld);
+}
+
+.engineer-activity-admin .status-dot.approved {
+  background: var(--green);
+}
+
+.engineer-activity-admin .status-dot.redo {
+  background: var(--tm-red);
+}
 
 .engineer-activity-admin .status-label {
   font-size: 13px;
@@ -2398,7 +2478,7 @@ tr:hover {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 6px;
   border: 1px solid var(--border);
 }
@@ -2459,11 +2539,11 @@ tr:hover {
   font-weight: 600;
   font-size: 12px;
   color: var(--tm-gray);
-  background: #F9FAFB;
+  background: #f9fafb;
 }
 
 .engineer-activity-admin .assignments-table tr:hover {
-  background: #F9FAFB;
+  background: #f9fafb;
 }
 
 .engineer-activity-admin .scope-badge {
@@ -2477,7 +2557,7 @@ tr:hover {
 
 .engineer-activity-admin .scope-badge.project {
   background: var(--info-soft);
-  color: #1E40AF;
+  color: #1e40af;
 }
 
 .engineer-activity-admin .scope-badge.layer {
@@ -2486,8 +2566,8 @@ tr:hover {
 }
 
 .engineer-activity-admin .scope-badge.feature {
-  background: #F3E8FF;
-  color: #6B21A8;
+  background: #f3e8ff;
+  color: #6b21a8;
 }
 
 .engineer-activity-admin .actions-cell {
@@ -2554,7 +2634,7 @@ tr:hover {
   flex-direction: column;
   gap: 4px;
   padding: 12px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 6px;
 }
 
@@ -2595,7 +2675,7 @@ tr:hover {
 .engineer-activity-admin .contribution-bar {
   flex: 1;
   height: 8px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 4px;
   overflow: hidden;
 }
@@ -2622,7 +2702,7 @@ tr:hover {
 
 .engineer-activity-admin .overview-item {
   padding: 16px;
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 6px;
 }
 
@@ -2645,7 +2725,7 @@ tr:hover {
 
 .engineer-activity-admin .progress-bar {
   height: 8px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -2706,7 +2786,7 @@ tr:hover {
 
 .engineer-activity-admin .timeline-time {
   font-size: 11px;
-  color: #6B7280;
+  color: #6b7280;
 }
 
 .engineer-activity-admin .empty-state {
@@ -2720,7 +2800,7 @@ tr:hover {
 .engineer-activity-admin .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgb(0 0 0 / 50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2768,7 +2848,7 @@ tr:hover {
 }
 
 .engineer-activity-admin .modal-close:hover {
-  background: #F3F4F6;
+  background: #f3f4f6;
 }
 
 .engineer-activity-admin .modal-body {
@@ -2808,7 +2888,7 @@ tr:hover {
   justify-content: flex-end;
   padding: 16px 20px;
   border-top: 1px solid var(--border);
-  background: #F9FAFB;
+  background: #f9fafb;
 }
 
 .engineer-activity-admin .btn-success {
@@ -2827,30 +2907,30 @@ tr:hover {
 }
 
 /* Responsive */
-@media (max-width: 1024px) {
+@media (width <= 1024px) {
   .engineer-activity-admin .activity-grid {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 640px) {
+@media (width <= 640px) {
   .engineer-activity-admin .header {
     flex-direction: column;
   }
-  
+
   .engineer-activity-admin .header-controls {
     width: 100%;
   }
-  
+
   .engineer-activity-admin .engineer-select {
     flex: 1;
     min-width: 0;
   }
-  
+
   .engineer-activity-admin .filters {
     flex-direction: column;
   }
-  
+
   .engineer-activity-admin .filters select,
   .engineer-activity-admin .filters input {
     width: 100%;
@@ -3007,49 +3087,49 @@ tr:hover {
 }
 
 .engineer-activity-admin .status-dot.redo {
-  background: #EF4444;
+  background: #ef4444;
 }
 
 /* Responsive adjustments */
-@media (max-width: 900px) {
+@media (width <= 900px) {
   .engineer-activity-admin .activity-overview-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .engineer-activity-admin .overview-metrics {
     width: 100%;
     justify-content: flex-start;
   }
-  
+
   .engineer-activity-admin .status-metrics-row {
     flex-wrap: wrap;
     gap: 16px;
   }
-  
+
   .engineer-activity-admin .status-metric-divider {
     display: none;
   }
-  
+
   .engineer-activity-admin .status-metric-item {
     min-width: calc(33.333% - 16px);
     flex: 0 0 auto;
   }
 }
 
-@media (max-width: 600px) {
+@media (width <= 600px) {
   .engineer-activity-admin .overview-metrics {
     gap: 12px;
   }
-  
+
   .engineer-activity-admin .overview-metric-value {
     font-size: 22px;
   }
-  
+
   .engineer-activity-admin .status-metric-item {
     min-width: calc(50% - 16px);
   }
-  
+
   .engineer-activity-admin .status-metric-value {
     font-size: 24px;
   }
@@ -3071,7 +3151,7 @@ tr:hover {
 
 .ds-progress-track {
   flex: 1;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 4px;
   overflow: hidden;
 }
@@ -3106,7 +3186,7 @@ tr:hover {
 
 .ds-progress-row-label {
   font-size: 11px;
-  color: #616A75;
+  color: #616a75;
   min-width: 55px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -3135,15 +3215,15 @@ tr:hover {
 
 /* ── CompletionCard ──────────────────────────────────────────────────── */
 .ds-completion {
-  background: var(--surface, #FFFFFF);
-  border: 1px solid var(--line, #E5E7EB);
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #e5e7eb);
   border-radius: 12px;
   padding: 24px;
-  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0,0,0,0.1));
+  box-shadow: var(--shadow-sm, 0 1px 3px rgb(0 0 0 / 10%));
 }
 
 .ds-completion--compact {
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
   padding: 12px;
 }
@@ -3151,7 +3231,7 @@ tr:hover {
 .ds-completion-loading {
   padding: 20px;
   text-align: center;
-  color: #616A75;
+  color: #616a75;
   font-size: 14px;
 }
 
@@ -3185,7 +3265,7 @@ tr:hover {
 
 .ds-completion-compact-stats {
   font-size: 11px;
-  color: #616A75;
+  color: #616a75;
   line-height: 1.4;
 }
 
@@ -3199,7 +3279,7 @@ tr:hover {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #E5E7EB;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .ds-completion-title {
@@ -3212,7 +3292,7 @@ tr:hover {
 .ds-completion-weights-btn {
   padding: 6px 12px;
   font-size: 12px;
-  color: #FFFFFF;
+  color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -3231,7 +3311,7 @@ tr:hover {
 }
 
 .ds-completion-metric {
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -3252,12 +3332,12 @@ tr:hover {
 
 .ds-completion-metric-subtitle {
   font-size: 11px;
-  color: #616A75;
+  color: #616a75;
   margin-top: 4px;
 }
 
 .ds-completion-stats {
-  background: #F9FAFB;
+  background: #f9fafb;
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -3271,7 +3351,7 @@ tr:hover {
 
 .ds-completion-stats-label {
   font-size: 12px;
-  color: #616A75;
+  color: #616a75;
   margin-top: 4px;
 }
 
@@ -3280,7 +3360,7 @@ tr:hover {
 }
 
 .ds-completion-breakdown-title {
-  margin: 0 0 12px 0;
+  margin: 0 0 12px;
   font-size: 14px;
   font-weight: 600;
   color: #374151;
@@ -3297,7 +3377,7 @@ tr:hover {
   gap: 12px;
   align-items: center;
   padding: 8px 12px;
-  background: #FFFFFF;
+  background: #fff;
   border-radius: 6px;
   font-size: 12px;
 }
@@ -3308,12 +3388,12 @@ tr:hover {
 }
 
 .ds-completion-breakdown-weight {
-  color: #616A75;
+  color: #616a75;
 }
 
 .ds-completion-breakdown-track {
   height: 6px;
-  background: #E5E7EB;
+  background: #e5e7eb;
   border-radius: 3px;
   overflow: hidden;
 }
@@ -3325,6 +3405,5 @@ tr:hover {
 
 .ds-completion-breakdown-count {
   text-align: right;
-  color: #616A75;
+  color: #616a75;
 }
-

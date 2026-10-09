@@ -1,479 +1,785 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>LLD Approval Queue | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>LLD Approval Queue | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    .survey-changes-content {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .survey-changes-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .survey-changes-header h1 { margin: 0; font-size: 22px; }
-    .survey-changes-header .actions { display: flex; gap: 10px; align-items: center; }
-
-    /* ── Per-project block ─────────────────────────────────────────────── */
-    .project-block {
-      background: #FFFFFF;
-      border: 1px solid #E5E7EB;
-      border-radius: 12px;
-      margin-bottom: 24px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-    }
-
-    .project-block-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      padding: 16px 20px;
-      border-bottom: 1px solid #E5E7EB;
-      background: #F9FAFB;
-    }
-
-    .project-block-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-    .project-block-title .name { font-size: 15px; font-weight: 700; color: #1F2937; }
-    .project-block-title .meta { font-size: 12px; color: #6B7280; }
-
-    .project-readiness {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .project-readiness.ready { background: #ECFDF5; color: #047857; }
-    .project-readiness.not-ready { background: #FFFBEB; color: #B45309; }
-    .project-readiness .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-
-    .project-counts { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #6B7280; }
-    .project-counts b { font-size: 14px; margin-right: 3px; }
-    .count-approved b { color: #059669; }
-    .count-rejected b { color: #DC2626; }
-    .count-correction b { color: #D97706; }
-    .count-pending b { color: #2563EB; }
-
-    .run-lld-btn {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      background: #059669;
-      color: #FFFFFF;
-      transition: all 0.15s ease;
-    }
-    .run-lld-btn:hover:not(:disabled) { background: #047857; }
-    .run-lld-btn:disabled { background: #D1D5DB; color: #9CA3AF; cursor: not-allowed; }
-
-    .project-run-actions { display: flex; gap: 8px; align-items: center; }
-    .project-run-actions .replan-btn {
-      background: #4F46E5;
-      font-size: 12.5px;
-    }
-    .project-run-actions .replan-btn:hover:not(:disabled) { background: #4338CA; }
-    .project-run-actions .replan-btn:disabled { background: #D1D5DB; color: #9CA3AF; cursor: not-allowed; }
-
-    /* ── Table ─────────────────────────────────────────────────────────── */
-    .survey-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .survey-table th {
-      text-align: left;
-      padding: 12px 16px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #6B7280;
-      background: #F9FAFB;
-      border-bottom: 1px solid #E5E7EB;
-      white-space: nowrap;
-    }
-    .survey-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid #F3F4F6;
-      color: #374151;
-      vertical-align: middle;
-    }
-    .survey-table tr:last-child td { border-bottom: none; }
-    .survey-table tr:hover td { background: #F9FAFB; }
-
-    .change-type-badge {
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .type-geometry { background: #F3E8FF; color: #7E22CE; }
-    .type-attribute { background: #FEF3C7; color: #B45309; }
-    .type-new { background: #D1FAE5; color: #047857; }
-    .type-removed { background: #FEE2E2; color: #B91C1C; }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-    .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-    .status-pending { background: #EFF6FF; color: #1D4ED8; }
-    .status-approved { background: #ECFDF5; color: #047857; }
-    .status-rejected { background: #FEF2F2; color: #B91C1C; }
-    .status-correction { background: #FFFBEB; color: #B45309; }
-
-    /* Tier-1 A5 — change risk (deterministic severity × likelihood × LLD impact) */
-    .risk-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      padding: 4px 9px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      cursor: help;
-    }
-    .risk-critical { background: #FEE2E2; color: #991B1B; }
-    .risk-high { background: #FFEDD5; color: #9A3412; }
-    .risk-medium { background: #FEF3C7; color: #92400E; }
-    .risk-low { background: #ECFDF5; color: #047857; }
-    .risk-unknown { background: #F3F4F6; color: #6B7280; }
-    .risk-band-summary { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11.5px; font-weight: 700; }
-    .risk-band-summary .rb-critical { color: #991B1B; }
-    .risk-band-summary .rb-high { color: #9A3412; }
-    .risk-band-summary .rb-medium { color: #92400E; }
-    .risk-band-summary .rb-low { color: #047857; }
-    /* Tier-1 A16 — attribute checks (contradictions block the ASV freeze) */
-    .project-flags { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
-    .anomaly-summary { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11.5px; font-weight: 700; }
-    .anomaly-summary .ab-error { color: #B91C1C; }
-    .anomaly-summary .ab-warn { color: #B45309; }
-
-    .feature-id { font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace; font-size: 12px; color: #6B7280; }
-    .layer-name { font-weight: 600; color: #1F2937; }
-    .change-reason { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    .engineer-info { display: flex; align-items: center; gap: 8px; }
-    .engineer-avatar {
-      width: 26px; height: 26px; border-radius: 50%; background: #E5E7EB;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 600; color: #6B7280;
-    }
-
-    .action-btn {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.15s ease;
-      background: #F3F4F6;
-      color: #374151;
-      border-color: #D1D5DB;
-      text-decoration: none;
-    }
-    .action-btn:hover { background: #E5E7EB; }
-
-    .survey-empty-state { text-align: center; padding: 60px 20px; color: #6B7280; }
-    .survey-empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-    .survey-empty-state h2 { font-size: 18px; color: #1F2937; margin: 0 0 8px; }
-  </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-<link rel="stylesheet" href="css/components.css">
-
-</head>
-<body>
-
-<div class="layout">
-  <div id="sidebarContainer"></div>
-
-  <main class="content">
-    <div class="container">
-      <div class="survey-changes-content">
-
-        <!-- Header -->
-        <div class="survey-changes-header">
-          <div>
-            <h1>LLD Approval Queue</h1>
-            <p style="margin:4px 0 0;font-size:13px;color:#6B7280;">Review survey modifications, grouped by project, before LLD generation</p>
-          </div>
-          <div class="actions">
-            <button id="refreshBtn" class="ftth-refresh-btn" type="button">
-              <span class="spin">&#x21bb;</span> Refresh
-            </button>
-          </div>
-        </div>
-
-        <!-- Projects container (one block per project) -->
-        <div id="projectsContainer">
-          <div style="text-align:center;padding:60px;color:#6B7280;">Loading survey changes...</div>
-        </div>
-
-        <!-- Empty state -->
-        <div id="emptyState" class="survey-empty-state" style="display:none;">
-          <div class="icon">&#x1F50D;</div>
-          <h2>No Survey Changes Found</h2>
-          <p>No projects have survey changes yet.</p>
-        </div>
-
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- Toast notification -->
-<div id="toast" class="ftth-toast"></div>
-
-<script src="js/ftth-ui.js"></script>
-<script src="partials/sidebar-loader.js"></script>
-<script src="js/ftth-config.js"></script>
-<script>
-  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="fiber-api.js"></script>
-<script src="js/ftth-lld-api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
-
-  const refreshBtn = document.getElementById('refreshBtn');
-  const projectsContainer = document.getElementById('projectsContainer');
-  const emptyState = document.getElementById('emptyState');
-  const toast = document.getElementById('toast');
-
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(function() { toast.classList.remove('show'); }, 3000);
-  }
-
-  function escHtml(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function formatDate(iso) {
-    if (!iso) return '—';
-    try {
-      var d = new Date(iso);
-      if (isNaN(d.getTime())) return '—';
-      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    } catch (_) { return iso.substring(0, 10); }
-  }
-
-  const TYPE_LABEL = { geometry: 'Geometry', attribute: 'Attribute', new_feature: 'New', removed_feature: 'Removed' };
-  const TYPE_CLASS = { geometry: 'type-geometry', attribute: 'type-attribute', new_feature: 'type-new', removed_feature: 'type-removed' };
-  const STATUS_LABEL = { pending_review: 'Pending', approved: 'Approved', rejected: 'Rejected', needs_correction: 'Correction' };
-  const STATUS_CLASS = { pending_review: 'status-pending', approved: 'status-approved', rejected: 'status-rejected', needs_correction: 'status-correction' };
-
-  // Load all projects with survey changes, clubbed by project
-  async function loadChanges() {
-    projectsContainer.innerHTML = '<div style="text-align:center;padding:60px;color:#6B7280;">Loading survey changes...</div>';
-    try {
-      const data = await window.FtthLldApi.listProjects();
-      const projects = data.projects || [];
-      if (!projects.length) {
-        projectsContainer.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
+    <style>
+      .survey-changes-content {
+        max-width: 1200px;
+        margin: 0 auto;
       }
-      emptyState.style.display = 'none';
-      renderProjects(projects);
-    } catch (err) {
-      console.error('Failed to load survey changes:', err);
-      projectsContainer.innerHTML = '<div style="text-align:center;padding:60px;color:#DC2626;">Failed to load survey changes: ' + escHtml(FtthUI.humanize(err)) + '</div>';
-    }
-  }
 
-  function renderProjects(projects) {
-    projectsContainer.innerHTML = '';
-    projects.forEach(function(p) {
-      projectsContainer.appendChild(buildProjectBlock(p));
-    });
-  }
+      .survey-changes-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
 
-  function buildProjectBlock(p) {
-    const block = document.createElement('div');
-    block.className = 'project-block';
-    block.dataset.projectId = p.project_id;
+      .survey-changes-header h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .survey-changes-header .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
 
-    const ready = !!p.ready;
+      /* ── Per-project block ─────────────────────────────────────────────── */
+      .project-block {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
 
-    const header = document.createElement('div');
-    header.className = 'project-block-header';
-    header.innerHTML =
-      '<div class="project-block-title">' +
-        '<span class="name">' + escHtml(p.name) + '</span>' +
-        '<span class="meta">HLD ' + escHtml(p.hld_version || '—') + ' · ' + escHtml(p.project_id.substring(0, 16)) + '…</span>' +
-      '</div>' +
-      '<div class="project-readiness ' + (ready ? 'ready' : 'not-ready') + '">' +
-        '<span class="dot"></span>' + (ready ? 'LLD READY' : 'NOT READY') +
-      '</div>' +
-      '<div class="project-counts">' +
-        '<span class="count-approved"><b>' + (p.approved || 0) + '</b>Approved</span>' +
-        '<span class="count-rejected"><b>' + (p.rejected || 0) + '</b>Rejected</span>' +
-        '<span class="count-correction"><b>' + (p.needs_correction || 0) + '</b>Correction</span>' +
-        '<span class="count-pending"><b>' + (p.pending || 0) + '</b>Pending</span>' +
-      '</div>' +
-      '<div class="project-flags">' + renderRiskBands(p.risk_bands) + renderAnomalies(p.anomalies) + '</div>' +
-      '<div class="project-run-actions">' +
-        '<button class="run-lld-btn" data-run="' + escHtml(p.project_id) + '" data-mode="verify" ' + (ready ? '' : 'disabled') + '>' +
+      .project-block-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 16px 20px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #f9fafb;
+      }
+
+      .project-block-title {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .project-block-title .name {
+        font-size: 15px;
+        font-weight: 700;
+        color: #1f2937;
+      }
+      .project-block-title .meta {
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      .project-readiness {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .project-readiness.ready {
+        background: #ecfdf5;
+        color: #047857;
+      }
+      .project-readiness.not-ready {
+        background: #fffbeb;
+        color: #b45309;
+      }
+      .project-readiness .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .project-counts {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .project-counts b {
+        font-size: 14px;
+        margin-right: 3px;
+      }
+      .count-approved b {
+        color: #059669;
+      }
+      .count-rejected b {
+        color: #dc2626;
+      }
+      .count-correction b {
+        color: #d97706;
+      }
+      .count-pending b {
+        color: #2563eb;
+      }
+
+      .run-lld-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        background: #059669;
+        color: #ffffff;
+        transition: all 0.15s ease;
+      }
+      .run-lld-btn:hover:not(:disabled) {
+        background: #047857;
+      }
+      .run-lld-btn:disabled {
+        background: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      .project-run-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .project-run-actions .replan-btn {
+        background: #4f46e5;
+        font-size: 12.5px;
+      }
+      .project-run-actions .replan-btn:hover:not(:disabled) {
+        background: #4338ca;
+      }
+      .project-run-actions .replan-btn:disabled {
+        background: #d1d5db;
+        color: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      /* ── Table ─────────────────────────────────────────────────────────── */
+      .survey-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .survey-table th {
+        text-align: left;
+        padding: 12px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+      }
+      .survey-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: middle;
+      }
+      .survey-table tr:last-child td {
+        border-bottom: none;
+      }
+      .survey-table tr:hover td {
+        background: #f9fafb;
+      }
+
+      .change-type-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .type-geometry {
+        background: #f3e8ff;
+        color: #7e22ce;
+      }
+      .type-attribute {
+        background: #fef3c7;
+        color: #b45309;
+      }
+      .type-new {
+        background: #d1fae5;
+        color: #047857;
+      }
+      .type-removed {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .status-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .status-pending {
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .status-approved {
+        background: #ecfdf5;
+        color: #047857;
+      }
+      .status-rejected {
+        background: #fef2f2;
+        color: #b91c1c;
+      }
+      .status-correction {
+        background: #fffbeb;
+        color: #b45309;
+      }
+
+      /* Tier-1 A5 — change risk (deterministic severity × likelihood × LLD impact) */
+      .risk-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 9px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        cursor: help;
+      }
+      .risk-critical {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .risk-high {
+        background: #ffedd5;
+        color: #9a3412;
+      }
+      .risk-medium {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .risk-low {
+        background: #ecfdf5;
+        color: #047857;
+      }
+      .risk-unknown {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+      .risk-band-summary {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+      .risk-band-summary .rb-critical {
+        color: #991b1b;
+      }
+      .risk-band-summary .rb-high {
+        color: #9a3412;
+      }
+      .risk-band-summary .rb-medium {
+        color: #92400e;
+      }
+      .risk-band-summary .rb-low {
+        color: #047857;
+      }
+      /* Tier-1 A16 — attribute checks (contradictions block the ASV freeze) */
+      .project-flags {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .anomaly-summary {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+      .anomaly-summary .ab-error {
+        color: #b91c1c;
+      }
+      .anomaly-summary .ab-warn {
+        color: #b45309;
+      }
+
+      .feature-id {
+        font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .layer-name {
+        font-weight: 600;
+        color: #1f2937;
+      }
+      .change-reason {
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .engineer-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .engineer-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+        color: #6b7280;
+      }
+
+      .action-btn {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
+        background: #f3f4f6;
+        color: #374151;
+        border-color: #d1d5db;
+        text-decoration: none;
+      }
+      .action-btn:hover {
+        background: #e5e7eb;
+      }
+
+      .survey-empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+      }
+      .survey-empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+      .survey-empty-state h2 {
+        font-size: 18px;
+        color: #1f2937;
+        margin: 0 0 8px;
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/ftth.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+
+      <main class="content">
+        <div class="container">
+          <div class="survey-changes-content">
+            <!-- Header -->
+            <div class="survey-changes-header">
+              <div>
+                <h1>LLD Approval Queue</h1>
+                <p style="margin: 4px 0 0; font-size: 13px; color: #6b7280">
+                  Review survey modifications, grouped by project, before LLD generation
+                </p>
+              </div>
+              <div class="actions">
+                <button id="refreshBtn" class="ftth-refresh-btn" type="button">
+                  <span class="spin">&#x21bb;</span> Refresh
+                </button>
+              </div>
+            </div>
+
+            <!-- Projects container (one block per project) -->
+            <div id="projectsContainer">
+              <div style="text-align: center; padding: 60px; color: #6b7280">Loading survey changes...</div>
+            </div>
+
+            <!-- Empty state -->
+            <div id="emptyState" class="survey-empty-state" style="display: none">
+              <div class="icon">&#x1F50D;</div>
+              <h2>No Survey Changes Found</h2>
+              <p>No projects have survey changes yet.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast" class="ftth-toast"></div>
+
+    <script src="js/ftth-ui.js"></script>
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script src="js/ftth-lld-api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
+
+      const refreshBtn = document.getElementById('refreshBtn');
+      const projectsContainer = document.getElementById('projectsContainer');
+      const emptyState = document.getElementById('emptyState');
+      const toast = document.getElementById('toast');
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(function () {
+          toast.classList.remove('show');
+        }, 3000);
+      }
+
+      function escHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '—';
+        try {
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return '—';
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch (_) {
+          return iso.substring(0, 10);
+        }
+      }
+
+      const TYPE_LABEL = {
+        geometry: 'Geometry',
+        attribute: 'Attribute',
+        new_feature: 'New',
+        removed_feature: 'Removed',
+      };
+      const TYPE_CLASS = {
+        geometry: 'type-geometry',
+        attribute: 'type-attribute',
+        new_feature: 'type-new',
+        removed_feature: 'type-removed',
+      };
+      const STATUS_LABEL = {
+        pending_review: 'Pending',
+        approved: 'Approved',
+        rejected: 'Rejected',
+        needs_correction: 'Correction',
+      };
+      const STATUS_CLASS = {
+        pending_review: 'status-pending',
+        approved: 'status-approved',
+        rejected: 'status-rejected',
+        needs_correction: 'status-correction',
+      };
+
+      // Load all projects with survey changes, clubbed by project
+      async function loadChanges() {
+        projectsContainer.innerHTML =
+          '<div style="text-align:center;padding:60px;color:#6B7280;">Loading survey changes...</div>';
+        try {
+          const data = await window.FtthLldApi.listProjects();
+          const projects = data.projects || [];
+          if (!projects.length) {
+            projectsContainer.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+          }
+          emptyState.style.display = 'none';
+          renderProjects(projects);
+        } catch (err) {
+          console.error('Failed to load survey changes:', err);
+          projectsContainer.innerHTML =
+            '<div style="text-align:center;padding:60px;color:#DC2626;">Failed to load survey changes: ' +
+            escHtml(FtthUI.humanize(err)) +
+            '</div>';
+        }
+      }
+
+      function renderProjects(projects) {
+        projectsContainer.innerHTML = '';
+        projects.forEach(function (p) {
+          projectsContainer.appendChild(buildProjectBlock(p));
+        });
+      }
+
+      function buildProjectBlock(p) {
+        const block = document.createElement('div');
+        block.className = 'project-block';
+        block.dataset.projectId = p.project_id;
+
+        const ready = !!p.ready;
+
+        const header = document.createElement('div');
+        header.className = 'project-block-header';
+        header.innerHTML =
+          '<div class="project-block-title">' +
+          '<span class="name">' +
+          escHtml(p.name) +
+          '</span>' +
+          '<span class="meta">HLD ' +
+          escHtml(p.hld_version || '—') +
+          ' · ' +
+          escHtml(p.project_id.substring(0, 16)) +
+          '…</span>' +
+          '</div>' +
+          '<div class="project-readiness ' +
+          (ready ? 'ready' : 'not-ready') +
+          '">' +
+          '<span class="dot"></span>' +
+          (ready ? 'LLD READY' : 'NOT READY') +
+          '</div>' +
+          '<div class="project-counts">' +
+          '<span class="count-approved"><b>' +
+          (p.approved || 0) +
+          '</b>Approved</span>' +
+          '<span class="count-rejected"><b>' +
+          (p.rejected || 0) +
+          '</b>Rejected</span>' +
+          '<span class="count-correction"><b>' +
+          (p.needs_correction || 0) +
+          '</b>Correction</span>' +
+          '<span class="count-pending"><b>' +
+          (p.pending || 0) +
+          '</b>Pending</span>' +
+          '</div>' +
+          '<div class="project-flags">' +
+          renderRiskBands(p.risk_bands) +
+          renderAnomalies(p.anomalies) +
+          '</div>' +
+          '<div class="project-run-actions">' +
+          '<button class="run-lld-btn" data-run="' +
+          escHtml(p.project_id) +
+          '" data-mode="verify" ' +
+          (ready ? '' : 'disabled') +
+          '>' +
           (ready ? '&#x25B6; Run LLD' : 'Run LLD (review pending)') +
-        '</button>' +
-        '<button class="run-lld-btn replan-btn" data-run="' + escHtml(p.project_id) + '" data-mode="replan" ' + (ready ? '' : 'disabled') + '>' +
+          '</button>' +
+          '<button class="run-lld-btn replan-btn" data-run="' +
+          escHtml(p.project_id) +
+          '" data-mode="replan" ' +
+          (ready ? '' : 'disabled') +
+          '>' +
           '&#x1F504; Full re-plan' +
-        '</button>' +
-      '</div>';
+          '</button>' +
+          '</div>';
 
-    block.appendChild(header);
-    block.appendChild(buildTable(p.changes || [], p.project_id));
-    return block;
-  }
+        block.appendChild(header);
+        block.appendChild(buildTable(p.changes || [], p.project_id));
+        return block;
+      }
 
-  function renderRiskBands(bands) {
-    if (!bands) return '';
-    var order = ['critical', 'high', 'medium', 'low'];
-    var parts = [];
-    order.forEach(function(b) {
-      if (bands[b]) parts.push('<span class="rb-' + b + '">' + bands[b] + ' ' + b + '</span>');
-    });
-    if (!parts.length) return '';
-    return '<div class="risk-band-summary" title="Change risk bands (severity × likelihood × LLD impact)">'
-      + 'Risk: ' + parts.join(' · ') + '</div>';
-  }
+      function renderRiskBands(bands) {
+        if (!bands) return '';
+        var order = ['critical', 'high', 'medium', 'low'];
+        var parts = [];
+        order.forEach(function (b) {
+          if (bands[b]) parts.push('<span class="rb-' + b + '">' + bands[b] + ' ' + b + '</span>');
+        });
+        if (!parts.length) return '';
+        return (
+          '<div class="risk-band-summary" title="Change risk bands (severity × likelihood × LLD impact)">' +
+          'Risk: ' +
+          parts.join(' · ') +
+          '</div>'
+        );
+      }
 
-  // Tier-1 A16 — how many attribute checks fired across the queue. A
-  // contradiction is a record that contradicts itself (e.g. an HDD span
-  // reporting a footway surface) and blocks the Approved Survey Version; a
-  // check is a suspicion for the reviewer to confirm.
-  function renderAnomalies(anomalies) {
-    if (!anomalies || !anomalies.flagged) return '';
-    var parts = [];
-    if (anomalies.error) {
-      parts.push('<span class="ab-error">' + anomalies.error + ' contradiction'
-        + (anomalies.error === 1 ? '' : 's') + '</span>');
-    }
-    if (anomalies.warn) {
-      parts.push('<span class="ab-warn">' + anomalies.warn + ' check'
-        + (anomalies.warn === 1 ? '' : 's') + '</span>');
-    }
-    return '<div class="anomaly-summary" title="Deterministic attribute checks — a contradiction blocks the Approved Survey Version until fixed">'
-      + 'Checks: ' + parts.join(' · ') + '</div>';
-  }
+      // Tier-1 A16 — how many attribute checks fired across the queue. A
+      // contradiction is a record that contradicts itself (e.g. an HDD span
+      // reporting a footway surface) and blocks the Approved Survey Version; a
+      // check is a suspicion for the reviewer to confirm.
+      function renderAnomalies(anomalies) {
+        if (!anomalies || !anomalies.flagged) return '';
+        var parts = [];
+        if (anomalies.error) {
+          parts.push(
+            '<span class="ab-error">' +
+              anomalies.error +
+              ' contradiction' +
+              (anomalies.error === 1 ? '' : 's') +
+              '</span>'
+          );
+        }
+        if (anomalies.warn) {
+          parts.push(
+            '<span class="ab-warn">' + anomalies.warn + ' check' + (anomalies.warn === 1 ? '' : 's') + '</span>'
+          );
+        }
+        return (
+          '<div class="anomaly-summary" title="Deterministic attribute checks — a contradiction blocks the Approved Survey Version until fixed">' +
+          'Checks: ' +
+          parts.join(' · ') +
+          '</div>'
+        );
+      }
 
-  function buildTable(changes, projectId) {
-    const wrap = document.createElement('div');
-    wrap.style.overflowX = 'auto';
+      function buildTable(changes, projectId) {
+        const wrap = document.createElement('div');
+        wrap.style.overflowX = 'auto';
 
-    let html =
-      '<table class="survey-table"><thead><tr>' +
-      '<th>Feature</th><th>Layer</th><th>Type</th><th>Risk</th><th>Reason</th>' +
-      '<th>Engineer</th><th>Status</th><th>Created</th><th>Actions</th>' +
-      '</tr></thead><tbody>';
+        let html =
+          '<table class="survey-table"><thead><tr>' +
+          '<th>Feature</th><th>Layer</th><th>Type</th><th>Risk</th><th>Reason</th>' +
+          '<th>Engineer</th><th>Status</th><th>Created</th><th>Actions</th>' +
+          '</tr></thead><tbody>';
 
-    changes.forEach(function(change) {
-      const typeLabel = TYPE_LABEL[change.change_type] || change.change_type;
-      const typeClass = TYPE_CLASS[change.change_type] || '';
-      const statusLabel = STATUS_LABEL[change.status] || change.status;
-      const statusClass = STATUS_CLASS[change.status] || 'status-pending';
-      const initials = (change.engineer || '?').substring(0, 2).toUpperCase();
-      const reviewUrl = 'ftth-lld-feature-review.html?project_id=' + encodeURIComponent(projectId) +
-                        '&change_id=' + encodeURIComponent(change.change_id);
-      const risk = change.risk || {};
-      const riskBand = risk.band || 'unknown';
-      const riskTitle = (risk.factors && risk.factors.length)
-        ? risk.factors.join(' · ')
-        : 'severity=' + (risk.severity || '?') + ' × likelihood=' + (risk.likelihood || 0) + ' × lld_impact=' + (risk.lld_impact || 0);
-      const riskCell = riskBand === 'unknown' && !risk.score
-        ? '<span class="risk-badge risk-unknown">—</span>'
-        : '<span class="risk-badge risk-' + riskBand + '" title="' + escHtml(riskTitle) + '">' +
-            riskBand + ' · ' + Number(risk.score || 0) + '</span>';
+        changes.forEach(function (change) {
+          const typeLabel = TYPE_LABEL[change.change_type] || change.change_type;
+          const typeClass = TYPE_CLASS[change.change_type] || '';
+          const statusLabel = STATUS_LABEL[change.status] || change.status;
+          const statusClass = STATUS_CLASS[change.status] || 'status-pending';
+          const initials = (change.engineer || '?').substring(0, 2).toUpperCase();
+          const reviewUrl =
+            'ftth-lld-feature-review.html?project_id=' +
+            encodeURIComponent(projectId) +
+            '&change_id=' +
+            encodeURIComponent(change.change_id);
+          const risk = change.risk || {};
+          const riskBand = risk.band || 'unknown';
+          const riskTitle =
+            risk.factors && risk.factors.length
+              ? risk.factors.join(' · ')
+              : 'severity=' +
+                (risk.severity || '?') +
+                ' × likelihood=' +
+                (risk.likelihood || 0) +
+                ' × lld_impact=' +
+                (risk.lld_impact || 0);
+          const riskCell =
+            riskBand === 'unknown' && !risk.score
+              ? '<span class="risk-badge risk-unknown">—</span>'
+              : '<span class="risk-badge risk-' +
+                riskBand +
+                '" title="' +
+                escHtml(riskTitle) +
+                '">' +
+                riskBand +
+                ' · ' +
+                Number(risk.score || 0) +
+                '</span>';
 
-      html += '<tr>' +
-        '<td><span class="feature-id">' + escHtml(change.feature_id) + '</span></td>' +
-        '<td><span class="layer-name">' + escHtml(change.layer) + '</span></td>' +
-        '<td><span class="change-type-badge ' + typeClass + '">' + typeLabel + '</span></td>' +
-        '<td>' + riskCell + '</td>' +
-        '<td><span class="change-reason" title="' + escHtml(change.reason) + '">' + escHtml(change.reason) + '</span></td>' +
-        '<td><div class="engineer-info"><div class="engineer-avatar">' + escHtml(initials) + '</div><span>' + escHtml(change.engineer || 'Unknown') + '</span></div></td>' +
-        '<td><span class="status-badge ' + statusClass + '"><span class="dot"></span>' + statusLabel + '</span></td>' +
-        '<td>' + formatDate(change.timestamp) + '</td>' +
-        '<td><a class="action-btn" href="' + reviewUrl + '">Review</a></td>' +
-      '</tr>';
-    });
+          html +=
+            '<tr>' +
+            '<td><span class="feature-id">' +
+            escHtml(change.feature_id) +
+            '</span></td>' +
+            '<td><span class="layer-name">' +
+            escHtml(change.layer) +
+            '</span></td>' +
+            '<td><span class="change-type-badge ' +
+            typeClass +
+            '">' +
+            typeLabel +
+            '</span></td>' +
+            '<td>' +
+            riskCell +
+            '</td>' +
+            '<td><span class="change-reason" title="' +
+            escHtml(change.reason) +
+            '">' +
+            escHtml(change.reason) +
+            '</span></td>' +
+            '<td><div class="engineer-info"><div class="engineer-avatar">' +
+            escHtml(initials) +
+            '</div><span>' +
+            escHtml(change.engineer || 'Unknown') +
+            '</span></div></td>' +
+            '<td><span class="status-badge ' +
+            statusClass +
+            '"><span class="dot"></span>' +
+            statusLabel +
+            '</span></td>' +
+            '<td>' +
+            formatDate(change.timestamp) +
+            '</td>' +
+            '<td><a class="action-btn" href="' +
+            reviewUrl +
+            '">Review</a></td>' +
+            '</tr>';
+        });
 
-    html += '</tbody></table>';
-    wrap.innerHTML = html;
-    return wrap;
-  }
+        html += '</tbody></table>';
+        wrap.innerHTML = html;
+        return wrap;
+      }
 
-  // Run LLD for a project (creates the Approved Survey Version if needed, then runs)
-  // mode = 'verify' (apply survey changes, fast) | 'replan' (re-run the design
-  // algorithm with the survey as brownfield, 10-40 min).
-  async function runProjectLld(projectId, mode) {
-    const isReplan = mode === 'replan';
-    const confirmMsg = isReplan
-      ? 'Run a FULL RE-PLAN? This re-runs the routing algorithm with the approved survey as brownfield and takes 10–40 minutes. Only needed for structural changes (moved PDP, re-zoning, aerial conversion).'
-      : 'Run LLD for this project? (applies survey changes to the HLD design — fast)';
-      if (!await window.FtthUI.confirm({
-        title: isReplan ? 'Run a full re-plan?' : 'Run LLD for this project?',
-        message: confirmMsg,
-        confirmLabel: isReplan ? 'Re-plan' : 'Run LLD'
-      })) return;
-    const btn = document.querySelector('[data-run="' + projectId + '"][data-mode="' + mode + '"]');
-    const all = document.querySelectorAll('[data-run="' + projectId + '"]');
-    all.forEach(function(b) { b.disabled = true; });
-    if (btn) { btn.textContent = isReplan ? 'Re-planning…' : 'Starting LLD…'; }
-    try {
-      try { await window.FtthLldApi.createApprovedVersion(projectId); } catch (_) { /* may already exist */ }
-      const result = await window.FtthLldApi.runLld(projectId, mode);
-      showToast((isReplan ? 'Full re-plan started: ' : 'LLD started: ') + (result.lld_version || 'ok'));
-      setTimeout(function() {
-        window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId);
-      }, 800);
-    } catch (err) {
-      showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + (FtthUI.humanize(err)));
-      all.forEach(function(b) {
-        b.disabled = false;
-        if (b.dataset.mode === 'verify') b.textContent = '&#x25B6; Run LLD';
-        if (b.dataset.mode === 'replan') b.textContent = '&#x1F504; Full re-plan';
+      // Run LLD for a project (creates the Approved Survey Version if needed, then runs)
+      // mode = 'verify' (apply survey changes, fast) | 'replan' (re-run the design
+      // algorithm with the survey as brownfield, 10-40 min).
+      async function runProjectLld(projectId, mode) {
+        const isReplan = mode === 'replan';
+        const confirmMsg = isReplan
+          ? 'Run a FULL RE-PLAN? This re-runs the routing algorithm with the approved survey as brownfield and takes 10–40 minutes. Only needed for structural changes (moved PDP, re-zoning, aerial conversion).'
+          : 'Run LLD for this project? (applies survey changes to the HLD design — fast)';
+        if (
+          !(await window.FtthUI.confirm({
+            title: isReplan ? 'Run a full re-plan?' : 'Run LLD for this project?',
+            message: confirmMsg,
+            confirmLabel: isReplan ? 'Re-plan' : 'Run LLD',
+          }))
+        )
+          return;
+        const btn = document.querySelector('[data-run="' + projectId + '"][data-mode="' + mode + '"]');
+        const all = document.querySelectorAll('[data-run="' + projectId + '"]');
+        all.forEach(function (b) {
+          b.disabled = true;
+        });
+        if (btn) {
+          btn.textContent = isReplan ? 'Re-planning…' : 'Starting LLD…';
+        }
+        try {
+          try {
+            await window.FtthLldApi.createApprovedVersion(projectId);
+          } catch (_) {
+            /* may already exist */
+          }
+          const result = await window.FtthLldApi.runLld(projectId, mode);
+          showToast((isReplan ? 'Full re-plan started: ' : 'LLD started: ') + (result.lld_version || 'ok'));
+          setTimeout(function () {
+            window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId);
+          }, 800);
+        } catch (err) {
+          showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + FtthUI.humanize(err));
+          all.forEach(function (b) {
+            b.disabled = false;
+            if (b.dataset.mode === 'verify') b.textContent = '&#x25B6; Run LLD';
+            if (b.dataset.mode === 'replan') b.textContent = '&#x1F504; Full re-plan';
+          });
+        }
+      }
+
+      // Delegate clicks for Run LLD / Full re-plan buttons
+      projectsContainer.addEventListener('click', function (e) {
+        const btn = e.target.closest && e.target.closest('.run-lld-btn');
+        if (btn && btn.dataset.run) runProjectLld(btn.dataset.run, btn.dataset.mode || 'verify');
       });
-    }
-  }
 
-  // Delegate clicks for Run LLD / Full re-plan buttons
-  projectsContainer.addEventListener('click', function(e) {
-    const btn = e.target.closest && e.target.closest('.run-lld-btn');
-    if (btn && btn.dataset.run) runProjectLld(btn.dataset.run, btn.dataset.mode || 'verify');
-  });
+      refreshBtn.addEventListener('click', loadChanges);
 
-  refreshBtn.addEventListener('click', loadChanges);
-
-  loadChanges();
-</script>
-</body>
+      loadChanges();
+    </script>
+  </body>
 </html>

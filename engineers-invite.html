@@ -1,216 +1,217 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Invite Engineer | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invite Engineer | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    :root {
-      --tm-red:#E31837;
-      --tm-dark:#1F2937;
-      --tm-gray:#616A75;
-      --tm-light:#F9FAFB;
-      --tm-white:#FFFFFF;
-      --border:#E5E7EB;
-    }
+    <style>
+      :root {
+        --tm-red: #e31837;
+        --tm-dark: #1f2937;
+        --tm-gray: #616a75;
+        --tm-light: #f9fafb;
+        --tm-white: #ffffff;
+        --border: #e5e7eb;
+      }
 
-    * { box-sizing:border-box; font-family:system-ui; }
+      * {
+        box-sizing: border-box;
+        font-family: system-ui;
+      }
 
-    body {
-      margin:0;
-      background:var(--tm-light);
-      color:var(--tm-dark);
-    }
+      body {
+        margin: 0;
+        background: var(--tm-light);
+        color: var(--tm-dark);
+      }
 
-    .layout {
-      display:flex;
-      min-height:100vh;
-    }
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
 
-    .sidebar {
-      width:240px;
-      background:var(--tm-dark);
-      color:var(--tm-white);
-      padding:24px;
-    }
+      .sidebar {
+        width: 240px;
+        background: var(--tm-dark);
+        color: var(--tm-white);
+        padding: 24px;
+      }
 
-    .sidebar h2 {
-      margin:0 0 32px;
-      color:var(--tm-red);
-      font-size:20px;
-    }
+      .sidebar h2 {
+        margin: 0 0 32px;
+        color: var(--tm-red);
+        font-size: 20px;
+      }
 
-    .nav {
-      display:flex;
-      flex-direction:column;
-      gap:24px;
-    }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
 
-    .nav-section {
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
+      .nav-section {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
 
-    .nav-label {
-      color:#6B7280;
-      font-size:12px;
-      font-weight:600;
-      letter-spacing:0.08em;
-      text-transform:uppercase;
-      margin-bottom:4px;
-    }
+      .nav-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
 
-    .nav a {
-      display:block;
-      color:#D1D5DB;
-      text-decoration:none;
-      padding:6px 0;
-      font-size:14px;
-    }
+      .nav a {
+        display: block;
+        color: #d1d5db;
+        text-decoration: none;
+        padding: 6px 0;
+        font-size: 14px;
+      }
 
-    .nav a.active,
-    .nav a:hover {
-      color:var(--tm-white);
-    }
+      .nav a.active,
+      .nav a:hover {
+        color: var(--tm-white);
+      }
 
-    .content {
-      flex:1;
-      padding:32px;
-      display:flex;
-      justify-content:center;
-    }
+      .content {
+        flex: 1;
+        padding: 32px;
+        display: flex;
+        justify-content: center;
+      }
 
-    .container {
-      width:100%;
-      max-width:520px;
-      background:var(--tm-white);
-      padding:32px;
-      border-radius:8px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.05);
-    }
+      .container {
+        width: 100%;
+        max-width: 520px;
+        background: var(--tm-white);
+        padding: 32px;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      }
 
-    h1 {
-      font-size:22px;
-      margin-bottom:8px;
-    }
+      h1 {
+        font-size: 22px;
+        margin-bottom: 8px;
+      }
 
-    p {
-      font-size:14px;
-      color:var(--tm-gray);
-      margin-bottom:24px;
-    }
+      p {
+        font-size: 14px;
+        color: var(--tm-gray);
+        margin-bottom: 24px;
+      }
 
-    label {
-      display:block;
-      font-size:14px;
-      margin-bottom:6px;
-    }
+      label {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
 
-    input, select {
-      width:100%;
-      padding:12px;
-      border-radius:6px;
-      border:1px solid var(--border);
-      font-size:14px;
-      margin-bottom:18px;
-    }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        font-size: 14px;
+        margin-bottom: 18px;
+      }
 
-    /* Scoped to the form. A bare `button { width: 100% }` also matched the
+      /* Scoped to the form. A bare `button { width: 100% }` also matched the
        shared shell's nav toggle, stretching the 44px hamburger to 366px and
        pushing the page 95px past the viewport on a phone. */
-    form button {
-      width:100%;
-      background:var(--tm-red);
-      color:#fff;
-      padding:12px;
-      border:none;
-      border-radius:6px;
-      font-weight:600;
-      cursor:pointer;
-    }
-  </style>
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/components.css">
+      form button {
+        width: 100%;
+        background: var(--tm-red);
+        color: #fff;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/components.css" />
   </head>
-<body>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-<div class="layout">
+      <main class="content">
+        <div class="container">
+          <h1>Invite Field Engineer</h1>
+          <p>An invite email will be sent with an activation link</p>
 
-    <div id="sidebarContainer"></div>
+          <form onsubmit="handleInvite(event)">
+            <label>Full Name</label>
+            <input id="inviteFullName" type="text" placeholder="John Doe" required />
 
-  <main class="content">
-    <div class="container">
-      <h1>Invite Field Engineer</h1>
-      <p>An invite email will be sent with an activation link</p>
+            <label>Email Address</label>
+            <input id="inviteEmail" type="email" placeholder="engineer@company.com" required />
 
-      <form onsubmit="handleInvite(event)">
-        <label>Full Name</label>
-        <input id="inviteFullName" type="text" placeholder="John Doe" required />
+            <label>Temporary Password</label>
+            <input id="invitePassword" type="password" placeholder="Pass@12345" required />
 
-        <label>Email Address</label>
-        <input id="inviteEmail" type="email" placeholder="engineer@company.com" required />
+            <label>Role</label>
+            <select>
+              <option>Field Engineer</option>
+            </select>
 
-        <label>Temporary Password</label>
-        <input id="invitePassword" type="password" placeholder="Pass@12345" required />
+            <button>Send Invite</button>
+          </form>
 
-        <label>Role</label>
-        <select>
-          <option>Field Engineer</option>
-        </select>
-
-        <button>Send Invite</button>
-      </form>
-
-      <div id="inviteMsg" style="display:none;margin-top:12px;font-size:13px;"></div>
+          <div id="inviteMsg" style="display: none; margin-top: 12px; font-size: 13px"></div>
+        </div>
+      </main>
     </div>
-  </main>
+  </body>
+  <script src="fiber-api.js"></script>
+  <script src="partials/sidebar-loader.js"></script>
+  <script src="js/ftth-ui.js"></script>
 
-</div>
+  <script>
+    window.FiberAuth.requireLogin();
 
-</body>
-<script src="fiber-api.js"></script>
-<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
-
-<script>
-  window.FiberAuth.requireLogin();
-
-  function handleLogout(e) {
-    if (e) e.preventDefault();
-    window.FiberAuth.clear();
-    window.location.href = "index.html";
-  }
-
-  function setInviteMsg(text, isError) {
-    const el = document.getElementById("inviteMsg");
-    if (!text) {
-      el.style.display = "none";
-      el.textContent = "";
-      return;
+    function handleLogout(e) {
+      if (e) e.preventDefault();
+      window.FiberAuth.clear();
+      window.location.href = 'index.html';
     }
-    el.style.display = "block";
-    el.style.color = isError ? "#B91C1C" : "#047857";
-    el.textContent = text;
-  }
 
-  async function handleInvite(event) {
-    event.preventDefault();
-    setInviteMsg("", false);
-
-    const fullName = document.getElementById("inviteFullName").value.trim();
-    const email = document.getElementById("inviteEmail").value.trim();
-    const password = document.getElementById("invitePassword").value;
-
-    try {
-      await window.FiberApi.createEngineer(email, password, "ENGINEER", fullName);
-      setInviteMsg("Engineer created successfully", false);
-      document.getElementById("inviteFullName").value = "";
-      document.getElementById("inviteEmail").value = "";
-      document.getElementById("invitePassword").value = "";
-    } catch (e) {
-      setInviteMsg(e && FtthUI.humanize(e) ? FtthUI.humanize(e) : "Failed to create engineer", true);
+    function setInviteMsg(text, isError) {
+      const el = document.getElementById('inviteMsg');
+      if (!text) {
+        el.style.display = 'none';
+        el.textContent = '';
+        return;
+      }
+      el.style.display = 'block';
+      el.style.color = isError ? '#B91C1C' : '#047857';
+      el.textContent = text;
     }
-  }
-</script>
+
+    async function handleInvite(event) {
+      event.preventDefault();
+      setInviteMsg('', false);
+
+      const fullName = document.getElementById('inviteFullName').value.trim();
+      const email = document.getElementById('inviteEmail').value.trim();
+      const password = document.getElementById('invitePassword').value;
+
+      try {
+        await window.FiberApi.createEngineer(email, password, 'ENGINEER', fullName);
+        setInviteMsg('Engineer created successfully', false);
+        document.getElementById('inviteFullName').value = '';
+        document.getElementById('inviteEmail').value = '';
+        document.getElementById('invitePassword').value = '';
+      } catch (e) {
+        setInviteMsg(e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Failed to create engineer', true);
+      }
+    }
+  </script>
 </html>

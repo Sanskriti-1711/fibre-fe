@@ -1,14 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>LLD Versions | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <style>
+  <head>
+    <meta charset="UTF-8" />
+    <title>LLD Versions | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <style>
       .ftth-meta-row {
-
         display: flex;
 
         gap: 20px;
@@ -19,32 +17,30 @@
 
         font-size: 13px;
 
-        color: #616A75;
-
+        color: #616a75;
       }
 
-      .ftth-meta-row strong { color: #1F2937; }
+      .ftth-meta-row strong {
+        color: #1f2937;
+      }
 
       .ftth-project-id {
-
         font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
 
         font-size: 12px;
 
-        color: #616A75;
+        color: #616a75;
 
-        background: #F3F4F6;
+        background: #f3f4f6;
 
         padding: 4px 10px;
 
         border-radius: 4px;
 
         word-break: break-all;
-
       }
 
       .lld-header-row {
-
         display: flex;
 
         align-items: center;
@@ -54,20 +50,21 @@
         flex-wrap: wrap;
 
         gap: 12px;
-
       }
 
-      .lld-header-row h1 { margin: 0; font-size: 20px; }
+      .lld-header-row h1 {
+        margin: 0;
+        font-size: 20px;
+      }
 
       .lld-page-error {
-
         display: none;
 
-        background: #FEF2F2;
+        background: #fef2f2;
 
-        border: 1px solid #FECACA;
+        border: 1px solid #fecaca;
 
-        color: #991B1B;
+        color: #991b1b;
 
         border-radius: 10px;
 
@@ -76,35 +73,33 @@
         font-size: 13px;
 
         margin-bottom: 16px;
-
       }
 
-      .lld-run-table-wrap { overflow-x: auto; }
-
-  
+      .lld-run-table-wrap {
+        overflow-x: auto;
+      }
 
       /* ---- Progress bar ---- */
 
       .lld-progress-card {
-
         display: none;
 
         margin-bottom: 16px;
 
         padding: 16px 18px;
 
-        background: #EEF2FF;
+        background: #eef2ff;
 
-        border: 1px solid #C7D2FE;
+        border: 1px solid #c7d2fe;
 
         border-radius: 10px;
-
       }
 
-      .lld-progress-card.show { display: block; }
+      .lld-progress-card.show {
+        display: block;
+      }
 
       .lld-progress-head {
-
         display: flex;
 
         align-items: center;
@@ -119,56 +114,50 @@
 
         font-size: 13px;
 
-        color: #3730A3;
+        color: #3730a3;
 
         font-weight: 600;
-
       }
 
-      .lld-progress-head .pct { font-size: 20px; font-weight: 800; color: #4338CA; }
+      .lld-progress-head .pct {
+        font-size: 20px;
+        font-weight: 800;
+        color: #4338ca;
+      }
 
       .lld-progress-track {
-
         height: 10px;
 
-        background: #E0E7FF;
+        background: #e0e7ff;
 
         border-radius: 999px;
 
         overflow: hidden;
-
       }
 
       .lld-progress-fill {
-
         height: 100%;
 
         width: 0%;
 
-        background: linear-gradient(90deg, #6366F1, #4F46E5);
+        background: linear-gradient(90deg, #6366f1, #4f46e5);
 
         border-radius: 999px;
 
         transition: width 0.4s ease;
-
       }
 
       .lld-progress-stage {
-
         margin-top: 8px;
 
         font-size: 12px;
 
-        color: #616A75;
-
+        color: #616a75;
       }
-
-  
 
       /* ---- Action buttons ---- */
 
       .lld-action-btn {
-
         display: inline-flex;
 
         align-items: center;
@@ -179,11 +168,11 @@
 
         margin: 2px 4px 2px 0;
 
-        border: 1px solid #D1D5DB;
+        border: 1px solid #d1d5db;
 
-        background: #FFFFFF;
+        background: #ffffff;
 
-        color: #1F2937;
+        color: #1f2937;
 
         border-radius: 7px;
 
@@ -198,163 +187,234 @@
         white-space: nowrap;
 
         transition: all 0.15s ease;
-
       }
 
-      .lld-action-btn:hover { background: #F3F4F6; border-color: #6B7280; }
+      .lld-action-btn:hover {
+        background: #f3f4f6;
+        border-color: #6b7280;
+      }
 
       .lld-action-btn.view {
+        border-color: #a5b4fc;
 
-        border-color: #A5B4FC;
+        color: #4338ca;
 
-        color: #4338CA;
-
-        background: #EEF2FF;
-
+        background: #eef2ff;
       }
 
-      .lld-action-btn.view:hover { background: #E0E7FF; }
+      .lld-action-btn.view:hover {
+        background: #e0e7ff;
+      }
 
       .lld-action-btn:disabled {
-
         opacity: 0.45;
 
         cursor: not-allowed;
 
         pointer-events: none;
-
       }
-
     </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-  <link rel="stylesheet" href="css/components.css">
-  
-</head>
-<body>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/ftth.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-<div class="layout">
-  <div id="sidebarContainer"></div>
-
-  <main class="content">
-    <div class="container">
-      <div class="lld-versions-content">
-
-        <!-- Header -->
-        <div class="card">
-          <div class="lld-header-row">
-            <div>
-              <h1>LLD Versions</h1>
-              <div style="margin-top:6px;font-size:13px;color:#616A75;">
-                <strong id="projectName" style="color:#1F2937;">Loading&#x2026;</strong>
+      <main class="content">
+        <div class="container">
+          <div class="lld-versions-content">
+            <!-- Header -->
+            <div class="card">
+              <div class="lld-header-row">
+                <div>
+                  <h1>LLD Versions</h1>
+                  <div style="margin-top: 6px; font-size: 13px; color: #616a75">
+                    <strong id="projectName" style="color: #1f2937">Loading&#x2026;</strong>
+                  </div>
+                  <div class="ftth-meta-row">
+                    <span>Project: <strong id="projectId">&#x2014;</strong></span>
+                    <span>HLD Version: <strong id="hldVersion">&#x2014;</strong></span>
+                  </div>
+                </div>
               </div>
-              <div class="ftth-meta-row">
-                <span>Project: <strong id="projectId">&#x2014;</strong></span>
-                <span>HLD Version: <strong id="hldVersion">&#x2014;</strong></span>
+            </div>
+
+            <div id="pageError" class="lld-page-error"></div>
+
+            <!-- Live progress -->
+            <div id="progressCard" class="lld-progress-card">
+              <div class="lld-progress-head">
+                <span>&#x2699;&#xFE0F; LLD run <span id="progressVersion" class="mono"></span> in progress</span>
+                <span class="pct"><span id="progressPct">0</span>%</span>
+              </div>
+              <div class="lld-progress-track"><div class="lld-progress-fill" id="progressFill"></div></div>
+              <div class="lld-progress-stage" id="progressStage">Submitting to the LLD engine&#x2026;</div>
+            </div>
+
+            <!-- Version chain -->
+            <div class="card">
+              <h3 style="margin: 0 0 18px; font-size: 14px; font-weight: 700; color: #1f2937">Design Version Chain</h3>
+              <div class="lld-chain" id="versionChain"></div>
+            </div>
+
+            <!-- Immutability note -->
+            <div class="lld-version-immutable-note">
+              <span class="icon">&#x1F512;</span>
+              <span>
+                <strong>Approved Survey Versions and LLD outputs are immutable.</strong>
+                They are never modified in place &mdash; a new review cycle or LLD run creates a new version, so every
+                design can be reproduced from its exact inputs.
+              </span>
+            </div>
+
+            <!-- Run history -->
+            <div class="card">
+              <h3 style="margin: 0 0 14px; font-size: 14px; font-weight: 700; color: #1f2937">
+                LLD Run History
+                <span
+                  class="badge"
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #616a75;
+                    background: #f3f4f6;
+                    padding: 2px 10px;
+                    border-radius: 999px;
+                  "
+                  id="runsCount"
+                  >0</span
+                >
+              </h3>
+              <div class="lld-run-table-wrap">
+                <table class="lld-run-table">
+                  <thead>
+                    <tr>
+                      <th>LLD Version</th>
+                      <th>Mode</th>
+                      <th>Approved Survey</th>
+                      <th>HLD</th>
+                      <th>Run Date</th>
+                      <th>Run By</th>
+                      <th>Status</th>
+                      <th>Outputs</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="runsBody"></tbody>
+                </table>
+                <div id="runsEmpty" class="ftth-empty-state" style="display: none">
+                  <div class="ftth-empty-state-icon">&#x1F5C2;&#xFE0F;</div>
+                  <div class="ftth-empty-state-text">
+                    No LLD runs yet. Resolve all survey changes, create the Approved Survey Version, then run LLD from
+                    the survey changes page.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cross-run diff (Tier-1 A24) -->
+            <div class="card" id="diffCard">
+              <h3 style="margin: 0 0 6px; font-size: 14px; font-weight: 700; color: #1f2937">
+                &#x1F9F9; Version Diff
+                <span
+                  style="
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #616a75;
+                    background: #f3f4f6;
+                    padding: 2px 10px;
+                    border-radius: 999px;
+                  "
+                  >what changed between runs</span
+                >
+              </h3>
+              <div style="margin-bottom: 10px; font-size: 12.5px; color: #616a75">
+                Compare two completed LLD runs — per-layer feature counts, network length and validation, straight from
+                the persisted outputs.
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 12px">
+                <select
+                  id="diffFrom"
+                  style="
+                    padding: 7px 10px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 7px;
+                    font-size: 12.5px;
+                    background: #fff;
+                  "
+                ></select>
+                <span style="color: #616a75; font-size: 13px">&#x2192;</span>
+                <select
+                  id="diffTo"
+                  style="
+                    padding: 7px 10px;
+                    border: 1px solid #d1d5db;
+                    border-radius: 7px;
+                    font-size: 12.5px;
+                    background: #fff;
+                  "
+                ></select>
+                <button id="diffBtn" class="lld-action-btn view" type="button">Compare</button>
+              </div>
+              <div
+                id="diffSummary"
+                style="
+                  display: none;
+                  margin-bottom: 10px;
+                  padding: 10px 12px;
+                  background: #eef2ff;
+                  border: 1px solid #c7d2fe;
+                  border-radius: 8px;
+                  font-size: 12.5px;
+                  color: #3730a3;
+                "
+              ></div>
+              <div
+                id="diffAi"
+                style="
+                  display: none;
+                  margin-bottom: 10px;
+                  padding: 10px 12px;
+                  background: #f5f3ff;
+                  border: 1px solid #ddd6fe;
+                  border-radius: 8px;
+                  font-size: 12.5px;
+                  color: #5b21b6;
+                "
+              ></div>
+              <div class="lld-run-table-wrap" id="diffTableWrap" style="display: none">
+                <table class="lld-run-table">
+                  <thead>
+                    <tr>
+                      <th>Layer</th>
+                      <th>Features (from &#x2192; to)</th>
+                      <th>&#x394;</th>
+                      <th>Length m (from &#x2192; to)</th>
+                      <th>&#x394; m</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="diffBody"></tbody>
+                </table>
+              </div>
+              <div id="diffEmpty" style="font-size: 12.5px; color: #616a75">
+                At least two completed LLD runs are needed for a diff.
               </div>
             </div>
           </div>
         </div>
-
-        <div id="pageError" class="lld-page-error"></div>
-
-        <!-- Live progress -->
-        <div id="progressCard" class="lld-progress-card">
-          <div class="lld-progress-head">
-            <span>&#x2699;&#xFE0F; LLD run <span id="progressVersion" class="mono"></span> in progress</span>
-            <span class="pct"><span id="progressPct">0</span>%</span>
-          </div>
-          <div class="lld-progress-track"><div class="lld-progress-fill" id="progressFill"></div></div>
-          <div class="lld-progress-stage" id="progressStage">Submitting to the LLD engine&#x2026;</div>
-        </div>
-
-        <!-- Version chain -->
-        <div class="card">
-          <h3 style="margin:0 0 18px;font-size:14px;font-weight:700;color:#1F2937;">Design Version Chain</h3>
-          <div class="lld-chain" id="versionChain"></div>
-        </div>
-
-        <!-- Immutability note -->
-        <div class="lld-version-immutable-note">
-          <span class="icon">&#x1F512;</span>
-          <span>
-            <strong>Approved Survey Versions and LLD outputs are immutable.</strong>
-            They are never modified in place &mdash; a new review cycle or LLD run creates a new version, so every design can be reproduced from its exact inputs.
-          </span>
-        </div>
-
-        <!-- Run history -->
-        <div class="card">
-          <h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:#1F2937;">
-            LLD Run History <span class="badge" style="font-size:11px;font-weight:600;color:#616A75;background:#F3F4F6;padding:2px 10px;border-radius:999px;" id="runsCount">0</span>
-          </h3>
-          <div class="lld-run-table-wrap">
-            <table class="lld-run-table">
-              <thead>
-                <tr>
-                  <th>LLD Version</th>
-                  <th>Mode</th>
-                  <th>Approved Survey</th>
-                  <th>HLD</th>
-                  <th>Run Date</th>
-                  <th>Run By</th>
-                  <th>Status</th>
-                  <th>Outputs</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="runsBody"></tbody>
-            </table>
-            <div id="runsEmpty" class="ftth-empty-state" style="display:none;">
-              <div class="ftth-empty-state-icon">&#x1F5C2;&#xFE0F;</div>
-              <div class="ftth-empty-state-text">No LLD runs yet. Resolve all survey changes, create the Approved Survey Version, then run LLD from the survey changes page.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cross-run diff (Tier-1 A24) -->
-        <div class="card" id="diffCard">
-          <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;color:#1F2937;">
-            &#x1F9F9; Version Diff <span style="font-size:11px;font-weight:600;color:#616A75;background:#F3F4F6;padding:2px 10px;border-radius:999px;">what changed between runs</span>
-          </h3>
-          <div style="margin-bottom:10px;font-size:12.5px;color:#616A75;">Compare two completed LLD runs — per-layer feature counts, network length and validation, straight from the persisted outputs.</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
-            <select id="diffFrom" style="padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:12.5px;background:#fff;"></select>
-            <span style="color:#616A75;font-size:13px;">&#x2192;</span>
-            <select id="diffTo" style="padding:7px 10px;border:1px solid #D1D5DB;border-radius:7px;font-size:12.5px;background:#fff;"></select>
-            <button id="diffBtn" class="lld-action-btn view" type="button">Compare</button>
-          </div>
-          <div id="diffSummary" style="display:none;margin-bottom:10px;padding:10px 12px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;font-size:12.5px;color:#3730A3;"></div>
-          <div id="diffAi" style="display:none;margin-bottom:10px;padding:10px 12px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;font-size:12.5px;color:#5B21B6;"></div>
-          <div class="lld-run-table-wrap" id="diffTableWrap" style="display:none;">
-            <table class="lld-run-table">
-              <thead>
-                <tr>
-                  <th>Layer</th>
-                  <th>Features (from &#x2192; to)</th>
-                  <th>&#x394;</th>
-                  <th>Length m (from &#x2192; to)</th>
-                  <th>&#x394; m</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="diffBody"></tbody>
-            </table>
-          </div>
-          <div id="diffEmpty" style="font-size:12.5px;color:#616A75;">At least two completed LLD runs are needed for a diff.</div>
-        </div>
-
-      </div>
+      </main>
     </div>
-  </main>
-</div>
 
-<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
 
-<script src="js/ftth-config.js"></script>
-<script src="fiber-api.js"></script>
-<script src="js/ftth-lld-api.js"></script>
-<script src="js/ftth-lld-versions.js"></script>
-</body>
+    <script src="js/ftth-config.js"></script>
+    <script src="fiber-api.js"></script>
+    <script src="js/ftth-lld-api.js"></script>
+    <script src="js/ftth-lld-versions.js"></script>
+  </body>
 </html>

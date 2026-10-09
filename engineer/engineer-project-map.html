@@ -1,202 +1,211 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Map</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Map</title>
 
-  <!-- MapLibre GL -->
-  <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css" />
-<script src="../js/ftth-ui.js"></script>
-  <script src="../vendor/maplibre/maplibre-gl.js"></script>
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="../css/components.css">
-</head>
-<body class="engineer-project-map">
+    <!-- MapLibre GL -->
+    <link rel="stylesheet" href="../css/tokens.css" />
+    <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css" />
+    <script src="../js/ftth-ui.js"></script>
+    <script src="../vendor/maplibre/maplibre-gl.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+  </head>
+  <body class="engineer-project-map">
+    <div class="layout">
+      <main class="content">
+        <div class="container">
+          <h1>Project Map</h1>
+          <div class="subtitle">View your assigned features on the map</div>
+        </div>
 
-<div class="layout">
+        <div id="map"></div>
 
-  <main class="content">
-    <div class="container">
-      <h1>Project Map</h1>
-      <div class="subtitle">View your assigned features on the map</div>
+        <div class="legend">
+          <div><span class="dot pending"></span> Pending</div>
+          <div><span class="dot completed"></span> Completed</div>
+          <div><span class="dot rejected"></span> Rejected</div>
+        </div>
+      </main>
     </div>
 
-    <div id="map"></div>
+    <script src="js/fiber-api.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-    <div class="legend">
-      <div><span class="dot pending"></span> Pending</div>
-      <div><span class="dot completed"></span> Completed</div>
-      <div><span class="dot rejected"></span> Rejected</div>
-    </div>
-  </main>
-</div>
+      var map = new maplibregl.Map({
+        container: 'map',
+        style: {
+          version: 8,
+          sources: {
+            'osm-raster': {
+              type: 'raster',
+              tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+              tileSize: 256,
+              attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            },
+          },
+          layers: [{ id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 }],
+        },
+        center: [-0.1278, 51.5074],
+        zoom: 13,
+      });
+      map.addControl(new maplibregl.NavigationControl(), 'top-left');
+      map.addControl(new maplibregl.AttributionControl({ compact: true }));
 
-<script src="js/fiber-api.js"></script>
-<script src="js/api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
-
-  var map = new maplibregl.Map({
-    container: 'map',
-    style: {
-      version: 8,
-      sources: {
-        'osm-raster': {
-          type: 'raster',
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-          tileSize: 256,
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }
-      },
-      layers: [
-        { id: 'basemap-raster', type: 'raster', source: 'osm-raster', minzoom: 0, maxzoom: 19 }
-      ]
-    },
-    center: [-0.1278, 51.5074],
-    zoom: 13
-  });
-  map.addControl(new maplibregl.NavigationControl(), 'top-left');
-  map.addControl(new maplibregl.AttributionControl({ compact: true }));
-
-  var statusColors = {
-    'PENDING': '#92400E',
-    'SUBMITTED': '#92400E',
-    'COMPLETED': '#047857',
-    'APPROVED': '#047857',
-    'REJECTED': '#B91C1C',
-    'FAILED': '#B91C1C'
-  };
-
-  function esc(str) {
-    return String(str === undefined || str === null ? '' : str)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  function goToTask(projectName, featureName, featureType, status) {
-    var params = new URLSearchParams();
-    params.set('project', projectName);
-    params.set('feature', featureName);
-    params.set('type', featureType);
-    params.set('status', status);
-    window.location.href = 'engineer-feature-submit.html?' + params.toString();
-  }
-
-  async function loadFeaturesOnMap() {
-    try {
-      var user = window.FiberAuth.getUser();
-      var engineerId = user && user.id ? user.id : null;
-
-      if (!engineerId) {
-        console.error('User not authenticated');
-        return;
-      }
-
-      var assignments = await window.FiberApi.listAssignments({ engineer: engineerId });
-
-      if (!assignments || !assignments.results || assignments.results.length === 0) {
-        console.log('No assignments found');
-        return;
-      }
-
-      var featuresWithCoords = [];
-
-      for (var i = 0; i < assignments.results.length; i++) {
-        var assignment = assignments.results[i];
-        var project = assignment.project || {};
-        var projectName = project.name || 'Unnamed Project';
-        var features = assignment.features || [];
-
-        for (var j = 0; j < features.length; j++) {
-          var feature = features[j];
-          var lat = feature.latitude || feature.lat;
-          var lng = feature.longitude || feature.lng || feature.lon;
-
-          if (lat && lng) {
-            featuresWithCoords.push({
-              lat: parseFloat(lat),
-              lng: parseFloat(lng),
-              name: feature.name || feature.feature_name || 'Feature',
-              type: feature.type || feature.feature_type || 'Pole',
-              status: feature.status || 'PENDING',
-              projectName: projectName
-            });
-          }
-        }
-      }
-
-      if (featuresWithCoords.length === 0) {
-        console.log('No features with coordinates found');
-        return;
-      }
-
-      // Build a GeoJSON point collection with per-status colors
-      var geojson = {
-        type: 'FeatureCollection',
-        features: featuresWithCoords.map(function (f) {
-          var color = statusColors[String(f.status).toUpperCase()] || '#616A75';
-          return {
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [f.lng, f.lat] },
-            properties: {
-              name: f.name,
-              projectName: f.projectName,
-              type: f.type,
-              status: f.status,
-              color: color
-            }
-          };
-        })
+      var statusColors = {
+        PENDING: '#92400E',
+        SUBMITTED: '#92400E',
+        COMPLETED: '#047857',
+        APPROVED: '#047857',
+        REJECTED: '#B91C1C',
+        FAILED: '#B91C1C',
       };
 
-      var bounds = new maplibregl.LngLatBounds();
-      featuresWithCoords.forEach(function (f) { bounds.extend([f.lng, f.lat]); });
+      function esc(str) {
+        return String(str === undefined || str === null ? '' : str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
 
-      map.on('load', function () {
-        if (map.getSource('engineer-points')) {
-          map.removeLayer('engineer-points-layer');
-          map.removeSource('engineer-points');
-        }
-        map.addSource('engineer-points', { type: 'geojson', data: geojson });
-        map.addLayer({
-          id: 'engineer-points-layer',
-          type: 'circle',
-          source: 'engineer-points',
-          paint: {
-            'circle-radius': 8,
-            'circle-color': ['get', 'color'],
-            'circle-opacity': 0.85,
-            'circle-stroke-color': '#FFFFFF',
-            'circle-stroke-width': 1.5
+      function goToTask(projectName, featureName, featureType, status) {
+        var params = new URLSearchParams();
+        params.set('project', projectName);
+        params.set('feature', featureName);
+        params.set('type', featureType);
+        params.set('status', status);
+        window.location.href = 'engineer-feature-submit.html?' + params.toString();
+      }
+
+      async function loadFeaturesOnMap() {
+        try {
+          var user = window.FiberAuth.getUser();
+          var engineerId = user && user.id ? user.id : null;
+
+          if (!engineerId) {
+            console.error('User not authenticated');
+            return;
           }
-        });
 
-        map.on('click', 'engineer-points-layer', function (e) {
-          if (!e.features || !e.features[0]) return;
-          var props = e.features[0].properties;
-          new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
-            .setLngLat(e.lngLat)
-            .setHTML('<strong>' + esc(props.name) + '</strong><br/>' + esc(props.projectName) + '<br/>Status: ' + esc(props.status))
-            .addTo(map);
-          goToTask(props.projectName, props.name, props.type, props.status);
-        });
-        map.on('mouseenter', 'engineer-points-layer', function () { map.getCanvas().style.cursor = 'pointer'; });
-        map.on('mouseleave', 'engineer-points-layer', function () { map.getCanvas().style.cursor = ''; });
+          var assignments = await window.FiberApi.listAssignments({ engineer: engineerId });
 
-        if (featuresWithCoords.length > 0) {
-          map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+          if (!assignments || !assignments.results || assignments.results.length === 0) {
+            console.log('No assignments found');
+            return;
+          }
+
+          var featuresWithCoords = [];
+
+          for (var i = 0; i < assignments.results.length; i++) {
+            var assignment = assignments.results[i];
+            var project = assignment.project || {};
+            var projectName = project.name || 'Unnamed Project';
+            var features = assignment.features || [];
+
+            for (var j = 0; j < features.length; j++) {
+              var feature = features[j];
+              var lat = feature.latitude || feature.lat;
+              var lng = feature.longitude || feature.lng || feature.lon;
+
+              if (lat && lng) {
+                featuresWithCoords.push({
+                  lat: parseFloat(lat),
+                  lng: parseFloat(lng),
+                  name: feature.name || feature.feature_name || 'Feature',
+                  type: feature.type || feature.feature_type || 'Pole',
+                  status: feature.status || 'PENDING',
+                  projectName: projectName,
+                });
+              }
+            }
+          }
+
+          if (featuresWithCoords.length === 0) {
+            console.log('No features with coordinates found');
+            return;
+          }
+
+          // Build a GeoJSON point collection with per-status colors
+          var geojson = {
+            type: 'FeatureCollection',
+            features: featuresWithCoords.map(function (f) {
+              var color = statusColors[String(f.status).toUpperCase()] || '#616A75';
+              return {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [f.lng, f.lat] },
+                properties: {
+                  name: f.name,
+                  projectName: f.projectName,
+                  type: f.type,
+                  status: f.status,
+                  color: color,
+                },
+              };
+            }),
+          };
+
+          var bounds = new maplibregl.LngLatBounds();
+          featuresWithCoords.forEach(function (f) {
+            bounds.extend([f.lng, f.lat]);
+          });
+
+          map.on('load', function () {
+            if (map.getSource('engineer-points')) {
+              map.removeLayer('engineer-points-layer');
+              map.removeSource('engineer-points');
+            }
+            map.addSource('engineer-points', { type: 'geojson', data: geojson });
+            map.addLayer({
+              id: 'engineer-points-layer',
+              type: 'circle',
+              source: 'engineer-points',
+              paint: {
+                'circle-radius': 8,
+                'circle-color': ['get', 'color'],
+                'circle-opacity': 0.85,
+                'circle-stroke-color': '#FFFFFF',
+                'circle-stroke-width': 1.5,
+              },
+            });
+
+            map.on('click', 'engineer-points-layer', function (e) {
+              if (!e.features || !e.features[0]) return;
+              var props = e.features[0].properties;
+              new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
+                .setLngLat(e.lngLat)
+                .setHTML(
+                  '<strong>' +
+                    esc(props.name) +
+                    '</strong><br/>' +
+                    esc(props.projectName) +
+                    '<br/>Status: ' +
+                    esc(props.status)
+                )
+                .addTo(map);
+              goToTask(props.projectName, props.name, props.type, props.status);
+            });
+            map.on('mouseenter', 'engineer-points-layer', function () {
+              map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'engineer-points-layer', function () {
+              map.getCanvas().style.cursor = '';
+            });
+
+            if (featuresWithCoords.length > 0) {
+              map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+            }
+          });
+        } catch (error) {
+          console.error('Error loading features:', error);
         }
-      });
+      }
 
-    } catch (error) {
-      console.error('Error loading features:', error);
-    }
-  }
-
-  loadFeaturesOnMap();
-</script>
-
-</body>
+      loadFeaturesOnMap();
+    </script>
+  </body>
 </html>
-

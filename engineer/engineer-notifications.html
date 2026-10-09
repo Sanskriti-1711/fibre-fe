@@ -1,144 +1,140 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notifications</title>
-  <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="../css/components.css">
-</head>
-<body class="engineer-notifications">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notifications</title>
+    <link rel="stylesheet" href="../css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+  </head>
+  <body class="engineer-notifications">
+    <div class="layout">
+      <main class="content">
+        <header class="top-bar" role="banner">
+          <h2 class="brand">Tech Mahindra</h2>
+        </header>
 
-<div class="layout">
+        <div class="container">
+          <h1>Notifications</h1>
 
-  <main class="content">
-    <header class="top-bar" role="banner">
-      <h2 class="brand">Tech Mahindra</h2>
-    </header>
+          <div id="notifications-container">
+            <div class="geo-status">Loading notifications...</div>
+          </div>
+        </div>
 
-    <div class="container">
-      <h1>Notifications</h1>
-
-      <div id="notifications-container">
-        <div class="geo-status">Loading notifications...</div>
-      </div>
+        <nav class="mobile-nav" aria-label="Engineer navigation">
+          <a href="engineer-dashboard.html" aria-label="Dashboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7" />
+              <path d="M9 22V12h6v10" />
+              <path d="M21 22H3" />
+            </svg>
+            Dashboard
+          </a>
+          <a href="engineer-notifications.html" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            Notifications
+          </a>
+          <a href="engineer-profile.html" aria-label="Profile">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Profile
+          </a>
+          <a href="#" onclick="handleLogout(event)" aria-label="Logout">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="M16 17l5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
+            Logout
+          </a>
+        </nav>
+      </main>
     </div>
 
-    <nav class="mobile-nav" aria-label="Engineer navigation">
-      <a href="engineer-dashboard.html" aria-label="Dashboard">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7" />
-          <path d="M9 22V12h6v10" />
-          <path d="M21 22H3" />
-        </svg>
-        Dashboard
-      </a>
-      <a href="engineer-notifications.html" aria-label="Notifications">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
-        Notifications
-      </a>
-      <a href="engineer-profile.html" aria-label="Profile">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 21a8 8 0 0 0-16 0" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
-        Profile
-      </a>
-      <a href="#" onclick="handleLogout(event)" aria-label="Logout">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <path d="M16 17l5-5-5-5" />
-          <path d="M21 12H9" />
-        </svg>
-        Logout
-      </a>
-    </nav>
-  </main>
-</div>
+    <script src="../js/ftth-ui.js"></script>
+    <script src="js/fiber-api.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-<script src="../js/ftth-ui.js"></script>
-<script src="js/fiber-api.js"></script>
-<script src="js/api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
+      async function loadNotifications() {
+        var container = document.getElementById('notifications-container');
+        try {
+          var user = window.FiberAuth.getUser();
+          var engineerId = user && user.id ? user.id : null;
 
-  async function loadNotifications() {
-    var container = document.getElementById('notifications-container');
-    try {
-      var user = window.FiberAuth.getUser();
-      var engineerId = user && user.id ? user.id : null;
+          if (!engineerId) {
+            container.innerHTML = '<div class="geo-status">Please login to view notifications.</div>';
+            return;
+          }
 
-      if (!engineerId) {
-        container.innerHTML = '<div class="geo-status">Please login to view notifications.</div>';
-        return;
+          var activity = await window.FiberApi.getEngineerActivity(engineerId, { limit: 20 });
+
+          if (!activity || !activity.results || activity.results.length === 0) {
+            container.innerHTML = '<div class="geo-status">No notifications yet.</div>';
+            return;
+          }
+
+          var html = '';
+          for (var i = 0; i < activity.results.length; i++) {
+            var item = activity.results[i];
+            var title = item.title || item.action || 'Notification';
+            var message = item.message || item.description || '';
+            var time = item.created_at || item.timestamp || item.time;
+            var timeDisplay = time ? formatTime(time) : 'Recently';
+
+            html += '<div class="notification">';
+            html += '<strong>' + escapeHtml(title) + '</strong><br/>';
+            if (message) html += escapeHtml(message);
+            html += '<div class="time">' + timeDisplay + '</div>';
+            html += '</div>';
+          }
+
+          container.innerHTML = html;
+        } catch (error) {
+          container.innerHTML =
+            '<div class="geo-status">Error loading notifications: ' + FtthUI.humanize(error) + '</div>';
+        }
       }
 
-      var activity = await window.FiberApi.getEngineerActivity(engineerId, { limit: 20 });
-
-      if (!activity || !activity.results || activity.results.length === 0) {
-        container.innerHTML = '<div class="geo-status">No notifications yet.</div>';
-        return;
+      function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
       }
 
-      var html = '';
-      for (var i = 0; i < activity.results.length; i++) {
-        var item = activity.results[i];
-        var title = item.title || item.action || 'Notification';
-        var message = item.message || item.description || '';
-        var time = item.created_at || item.timestamp || item.time;
-        var timeDisplay = time ? formatTime(time) : 'Recently';
+      function formatTime(timestamp) {
+        try {
+          var date = new Date(timestamp);
+          var now = new Date();
+          var diff = Math.floor((now - date) / 1000);
 
-        html += '<div class="notification">';
-        html += '<strong>' + escapeHtml(title) + '</strong><br/>';
-        if (message) html += escapeHtml(message);
-        html += '<div class="time">' + timeDisplay + '</div>';
-        html += '</div>';
+          if (diff < 60) return 'Just now';
+          if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
+          if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+          if (diff < 172800) return 'Yesterday';
+
+          return date.toLocaleDateString();
+        } catch (e) {
+          return timestamp || 'Unknown';
+        }
       }
 
-      container.innerHTML = html;
+      function handleLogout(e) {
+        if (e) e.preventDefault();
+        window.FiberAuth.clear();
+        window.location.href = 'index.html';
+      }
 
-    } catch (error) {
-      container.innerHTML = '<div class="geo-status">Error loading notifications: ' + (FtthUI.humanize(error)) + '</div>';
-    }
-  }
-
-  function escapeHtml(text) {
-    if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  function formatTime(timestamp) {
-    try {
-      var date = new Date(timestamp);
-      var now = new Date();
-      var diff = Math.floor((now - date) / 1000);
-
-      if (diff < 60) return 'Just now';
-      if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
-      if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
-      if (diff < 172800) return 'Yesterday';
-
-      return date.toLocaleDateString();
-    } catch (e) {
-      return timestamp || 'Unknown';
-    }
-  }
-
-  function handleLogout(e) {
-    if (e) e.preventDefault();
-    window.FiberAuth.clear();
-    window.location.href = "index.html";
-  }
-
-  loadNotifications();
-</script>
-
-</body>
+      loadNotifications();
+    </script>
+  </body>
 </html>
-

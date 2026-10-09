@@ -12,15 +12,15 @@ function setText(id, value) {
 
 function escapeHtml(str) {
   return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function formatDate(value) {
-  if (!value) return "--";
+  if (!value) return '--';
   try {
     const d = new Date(value);
     if (!isNaN(d.getTime())) return d.toLocaleString();
@@ -40,16 +40,20 @@ function toDisplayStatus(status) {
   if (!status) return '--';
   return String(status)
     .replace(/_/g, ' ')
-    .replace(/\b\w/g, function (m) { return m.toUpperCase(); });
+    .replace(/\b\w/g, function (m) {
+      return m.toUpperCase();
+    });
 }
 
 function normStatus(status) {
-  return String(status || '').trim().toLowerCase();
+  return String(status || '')
+    .trim()
+    .toLowerCase();
 }
 
 function setElDisplay(el, show, displayValue) {
   if (!el) return;
-  el.style.display = show ? (displayValue || '') : 'none';
+  el.style.display = show ? displayValue || '' : 'none';
 }
 
 function setStatusPill(status) {
@@ -106,10 +110,14 @@ function setStatusPill(status) {
   pill.style.color = color;
   pill.style.border = border;
   pill.innerHTML =
-    '<span aria-hidden="true" style="display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:999px; background:' + dotBg + '; color:#FFFFFF; font-size:12px; line-height:1;">'
-    + escapeHtml(icon)
-    + '</span>'
-    + '<span>' + escapeHtml(label) + '</span>';
+    '<span aria-hidden="true" style="display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:999px; background:' +
+    dotBg +
+    '; color:#FFFFFF; font-size:12px; line-height:1;">' +
+    escapeHtml(icon) +
+    '</span>' +
+    '<span>' +
+    escapeHtml(label) +
+    '</span>';
 }
 
 function ensureAssignmentCard() {
@@ -144,21 +152,33 @@ function renderAssignmentCard(assignment) {
   }
 
   const assignee = assignment.assignee || {};
-  const name = assignee.full_name || assignee.name || (assignee.email ? assignee.email.split('@')[0] : '') || (assignee.id ? ('Engineer ' + assignee.id) : 'Engineer');
+  const name =
+    assignee.full_name ||
+    assignee.name ||
+    (assignee.email ? assignee.email.split('@')[0] : '') ||
+    (assignee.id ? 'Engineer ' + assignee.id : 'Engineer');
   const email = assignee.email || '';
   const scope = assignment.scope || 'layer';
 
   card.innerHTML =
-    '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">'
-      + '<div style="min-width:0;">'
-        + '<div style="font-size:12px; color:#616A75; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;">Job Assigned</div>'
-        + '<div style="font-size:14px; font-weight:800; color:#111827; margin-top:2px;">' + escapeHtml(name) + '</div>'
-        + (email ? ('<div style="font-size:13px; color:#616A75; margin-top:2px;">' + escapeHtml(email) + '</div>') : '')
-      + '</div>'
-      + '<div style="flex-shrink:0; display:flex; align-items:center; gap:8px;">'
-        + '<span style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:#F3F4F6; color:#374151; border:1px solid rgba(55,65,81,0.14); font-size:12px; font-weight:700;">' + escapeHtml(scope) + '</span>'
-      + '</div>'
-    + '</div>';
+    '<div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">' +
+    '<div style="min-width:0;">' +
+    '<div style="font-size:12px; color:#616A75; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;">Job Assigned</div>' +
+    '<div style="font-size:14px; font-weight:800; color:#111827; margin-top:2px;">' +
+    escapeHtml(name) +
+    '</div>' +
+    (email
+      ? '<div style="font-size:13px; color:#616A75; margin-top:2px;">' +
+        escapeHtml(email) +
+        '</div>'
+      : '') +
+    '</div>' +
+    '<div style="flex-shrink:0; display:flex; align-items:center; gap:8px;">' +
+    '<span style="display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; background:#F3F4F6; color:#374151; border:1px solid rgba(55,65,81,0.14); font-size:12px; font-weight:700;">' +
+    escapeHtml(scope) +
+    '</span>' +
+    '</div>' +
+    '</div>';
 
   setElDisplay(card, true, 'block');
 }
@@ -173,10 +193,12 @@ async function getFeatureDetails(projectId, featureId) {
 
 async function loadFeatureAssignment(projectId, featureId) {
   if (!projectId || !featureId || !window.FiberApi || !window.FiberApi.listAssignments) return null;
-  const data = await window.FiberApi.listAssignments({ project: projectId, feature: featureId, scope: 'feature' });
-  const list = Array.isArray(data)
-    ? data
-    : (data && Array.isArray(data.results) ? data.results : []);
+  const data = await window.FiberApi.listAssignments({
+    project: projectId,
+    feature: featureId,
+    scope: 'feature',
+  });
+  const list = Array.isArray(data) ? data : data && Array.isArray(data.results) ? data.results : [];
   return list && list.length ? list[0] : null;
 }
 
@@ -194,7 +216,8 @@ function initMap() {
           type: 'raster',
           tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
           tileSize: 256,
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          attribution:
+            '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         },
       },
       layers: [
@@ -225,7 +248,9 @@ function featureBoundsOf(geojson) {
   }
   if (!points.length) return null;
   const b = new maplibregl.LngLatBounds();
-  points.forEach((p) => { if (p && p.length >= 2) b.extend(p); });
+  points.forEach((p) => {
+    if (p && p.length >= 2) b.extend(p);
+  });
   return b;
 }
 
@@ -237,34 +262,50 @@ function renderGeojsonFeature(map, geojson) {
   const pointLayerId = 'feature-point';
 
   if (map.getSource(sourceId)) {
-    try { map.removeLayer(lineLayerId); } catch (_) {}
-    try { map.removeLayer(pointLayerId); } catch (_) {}
+    try {
+      map.removeLayer(lineLayerId);
+    } catch (_) {}
+    try {
+      map.removeLayer(pointLayerId);
+    } catch (_) {}
     map.removeSource(sourceId);
   }
 
   map.addSource(sourceId, { type: 'geojson', data: geojson });
 
   const gtype = geojson.geometry.type;
-  const isLine = gtype === 'LineString' || gtype === 'MultiLineString' || gtype.toLowerCase().indexOf('line') !== -1;
+  const isLine =
+    gtype === 'LineString' ||
+    gtype === 'MultiLineString' ||
+    gtype.toLowerCase().indexOf('line') !== -1;
   const isPoint = gtype === 'Point' || gtype === 'MultiPoint';
 
   if (isLine) {
     map.addLayer({
-      id: lineLayerId, type: 'line', source: sourceId,
+      id: lineLayerId,
+      type: 'line',
+      source: sourceId,
       paint: { 'line-color': '#E31837', 'line-width': 6, 'line-opacity': 0.95 },
     });
   } else if (isPoint) {
     map.addLayer({
-      id: pointLayerId, type: 'circle', source: sourceId,
+      id: pointLayerId,
+      type: 'circle',
+      source: sourceId,
       paint: {
-        'circle-radius': 7, 'circle-color': '#E31837', 'circle-opacity': 0.9,
-        'circle-stroke-color': '#E31837', 'circle-stroke-width': 3,
+        'circle-radius': 7,
+        'circle-color': '#E31837',
+        'circle-opacity': 0.9,
+        'circle-stroke-color': '#E31837',
+        'circle-stroke-width': 3,
       },
     });
   } else {
     // Polygon / MultiPolygon
     map.addLayer({
-      id: lineLayerId, type: 'line', source: sourceId,
+      id: lineLayerId,
+      type: 'line',
+      source: sourceId,
       paint: { 'line-color': '#E31837', 'line-width': 3, 'line-opacity': 0.95 },
     });
   }
@@ -272,13 +313,21 @@ function renderGeojsonFeature(map, geojson) {
   const bounds = featureBoundsOf(geojson);
   if (bounds) {
     setTimeout(function () {
-      try { map.fitBounds(bounds, { padding: 24, maxZoom: 18 }); } catch (_) {}
+      try {
+        map.fitBounds(bounds, { padding: 24, maxZoom: 18 });
+      } catch (_) {}
     }, 0);
   } else {
-    console.warn('[feature-details] GeoJSON bounds invalid; geometry may be empty/unsupported:', geojson && geojson.geometry);
+    console.warn(
+      '[feature-details] GeoJSON bounds invalid; geometry may be empty/unsupported:',
+      geojson && geojson.geometry
+    );
   }
 
-  return { bounds: bounds, layerId: isLine || isPoint ? (isPoint ? pointLayerId : lineLayerId) : lineLayerId };
+  return {
+    bounds: bounds,
+    layerId: isLine || isPoint ? (isPoint ? pointLayerId : lineLayerId) : lineLayerId,
+  };
 }
 
 function addFeatureZoomControl(map, label, targetLayer) {
@@ -287,18 +336,30 @@ function addFeatureZoomControl(map, label, targetLayer) {
   const text = label ? String(label) : 'Zoom to Feature';
   const el = document.createElement('div');
   el.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-  el.innerHTML = '<button type="button" style="background:#FFFFFF;border:none;padding:8px 10px;font-size:13px;color:#111827;cursor:pointer;">' + escapeHtml(text) + '</button>';
+  el.innerHTML =
+    '<button type="button" style="background:#FFFFFF;border:none;padding:8px 10px;font-size:13px;color:#111827;cursor:pointer;">' +
+    escapeHtml(text) +
+    '</button>';
   el.style.boxShadow = '0 4px 10px rgba(0,0,0,0.08)';
   el.style.borderRadius = '8px';
   el.style.overflow = 'hidden';
   el.addEventListener('click', function () {
-    try { map.fitBounds(targetLayer.bounds, { padding: 24, maxZoom: 18 }); } catch (_) {}
+    try {
+      map.fitBounds(targetLayer.bounds, { padding: 24, maxZoom: 18 });
+    } catch (_) {}
   });
 
-  map.addControl({
-    onAdd: function () { return el; },
-    onRemove: function () { if (el.parentNode) el.parentNode.removeChild(el); },
-  }, 'top-right');
+  map.addControl(
+    {
+      onAdd: function () {
+        return el;
+      },
+      onRemove: function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      },
+    },
+    'top-right'
+  );
 }
 
 async function getFeatureDetails(projectId, featureId) {
@@ -318,7 +379,8 @@ function bindBreadcrumb(params, project, featureDetails) {
   const crumbLayer = qs('crumbLayer');
   const crumbFeature = qs('crumbFeature');
 
-  const projectName = (project && (project.name || project.title || project.project_name)) || 'Project';
+  const projectName =
+    (project && (project.name || project.title || project.project_name)) || 'Project';
 
   if (crumbProject) {
     crumbProject.textContent = projectName;
@@ -329,7 +391,8 @@ function bindBreadcrumb(params, project, featureDetails) {
     }
   }
 
-  const layerName = (featureDetails && (featureDetails.layer_name || featureDetails.layer_source)) || 'Layer';
+  const layerName =
+    (featureDetails && (featureDetails.layer_name || featureDetails.layer_source)) || 'Layer';
 
   if (crumbLayer) {
     crumbLayer.textContent = layerName;
@@ -344,21 +407,28 @@ function bindBreadcrumb(params, project, featureDetails) {
 
   if (crumbFeature) {
     const feature = featureDetails && featureDetails.feature ? featureDetails.feature : null;
-    const plannedId = feature && feature.properties ? (feature.properties.id || feature.properties.ID || '') : '';
-    crumbFeature.textContent = plannedId ? `Feature ${plannedId}` : (featureId ? `Feature ${featureId}` : 'Feature');
+    const plannedId =
+      feature && feature.properties ? feature.properties.id || feature.properties.ID || '' : '';
+    crumbFeature.textContent = plannedId
+      ? `Feature ${plannedId}`
+      : featureId
+        ? `Feature ${featureId}`
+        : 'Feature';
   }
 }
 
 function bindFeatureDetails(params, data) {
   const feature = data && data.feature ? data.feature : null;
 
-  const layerName = (data && (data.layer_name || data.layer_source)) || (feature && feature.layer_name) || '--';
-  const plannedId = (feature && feature.properties) ? (feature.properties.id || feature.properties.ID || '') : '';
+  const layerName =
+    (data && (data.layer_name || data.layer_source)) || (feature && feature.layer_name) || '--';
+  const plannedId =
+    feature && feature.properties ? feature.properties.id || feature.properties.ID || '' : '';
 
   const title = plannedId ? `${layerName} • ${plannedId}` : 'Feature Details';
   setText('featureTitle', title);
 
-  setText('featureUuid', feature && feature.id ? feature.id : (params.featureId || '--'));
+  setText('featureUuid', feature && feature.id ? feature.id : params.featureId || '--');
   setText('featureStatus', toDisplayStatus(feature && feature.status));
   setText('featureCreated', formatDate(feature && feature.created_at));
   setText('featureUpdated', formatDate(feature && feature.updated_at));
@@ -387,49 +457,49 @@ function bindFeatureDetails(params, data) {
 // names here (keyed by the normalized schema key).
 var PROPER_FIELD_LABELS = {
   // SPAN / Conduit layer (Sheet1 headers)
-  name: "Name",
-  altitudemo: "Altitude Mode",
-  subspan: "Sub-Span",
-  span: "Span",
-  sno: "Sr No",
-  remark: "Remark",
-  length: "Length",
-  fieldsurv: "Field survey completed",
-  spanfrom: "Span From (Vault/MH ID)",
-  spanto_v: "Span To (Vault/MH ID)",
-  spanroute: "SPAN Route",
-  trenchloc: "Trench location",
-  conduitdi: "Conduit Distance",
-  ductroute: "Duct Route ID",
-  conduitty: "Conduit Type (HDPE / DI / PVC)",
-  trenchlen: "Trench Length (m)",
-  trenchdep: "Trench Depth (mm)",
-  trenchwid: "Trench Width (mm)",
-  alignment: "Alignment",
-  bottomlev: "Bottom level",
-  noofduc: "No. of Ducts Installed",
-  conduiten: "Conduit encasement",
-  conduitca: "Conduit Capping Done or not",
-  conduitba: "Conduit banding correct or not",
-  backfillin: "Backfilling yes or no",
-  loosesoil: "Loose soil removed",
-  waterint: "Water in trench",
-  existingu: "Existing utilities checked",
-  barricadin: "Barricading & safety",
+  name: 'Name',
+  altitudemo: 'Altitude Mode',
+  subspan: 'Sub-Span',
+  span: 'Span',
+  sno: 'Sr No',
+  remark: 'Remark',
+  length: 'Length',
+  fieldsurv: 'Field survey completed',
+  spanfrom: 'Span From (Vault/MH ID)',
+  spanto_v: 'Span To (Vault/MH ID)',
+  spanroute: 'SPAN Route',
+  trenchloc: 'Trench location',
+  conduitdi: 'Conduit Distance',
+  ductroute: 'Duct Route ID',
+  conduitty: 'Conduit Type (HDPE / DI / PVC)',
+  trenchlen: 'Trench Length (m)',
+  trenchdep: 'Trench Depth (mm)',
+  trenchwid: 'Trench Width (mm)',
+  alignment: 'Alignment',
+  bottomlev: 'Bottom level',
+  noofduc: 'No. of Ducts Installed',
+  conduiten: 'Conduit encasement',
+  conduitca: 'Conduit Capping Done or not',
+  conduitba: 'Conduit banding correct or not',
+  backfillin: 'Backfilling yes or no',
+  loosesoil: 'Loose soil removed',
+  waterint: 'Water in trench',
+  existingu: 'Existing utilities checked',
+  barricadin: 'Barricading & safety',
   // Vault QAQC layer (non-colliding keys)
-  layer: "Layer",
-  vaultid: "Vault ID",
-  location: "Location / Chainage",
-  leveleluv: "Level / Elevation Check",
-  concreteq: "Concrete Quality",
-  cablerack: "Cable Rack / Slack",
-  lidinst: "Lid Type / Count",
-  reinstatem: "Reinstatement",
-  qc_pf: "Overall Status (Pass / Fail)"
+  layer: 'Layer',
+  vaultid: 'Vault ID',
+  location: 'Location / Chainage',
+  leveleluv: 'Level / Elevation Check',
+  concreteq: 'Concrete Quality',
+  cablerack: 'Cable Rack / Slack',
+  lidinst: 'Lid Type / Count',
+  reinstatem: 'Reinstatement',
+  qc_pf: 'Overall Status (Pass / Fail)',
 };
 
 function properLabel(f) {
-  return (f && PROPER_FIELD_LABELS[f.key]) || (f && (f.label || f.key)) || "";
+  return (f && PROPER_FIELD_LABELS[f.key]) || (f && (f.label || f.key)) || '';
 }
 
 function plannedDisplay(val, unit) {
@@ -486,18 +556,24 @@ function renderSchemaMeasurements(editable, properties, fm) {
 function renderLegacyMeasurements(p, fm) {
   const length = p.length !== undefined && p.length !== null ? `${p.length} m` : '--';
   const diameter = p.diameter !== undefined && p.diameter !== null ? `${p.diameter} mm` : '--';
-  const sx = (p.start_x !== undefined && p.start_x !== null) ? p.start_x : null;
-  const sy = (p.start_y !== undefined && p.start_y !== null) ? p.start_y : null;
-  const ex = (p.end_x !== undefined && p.end_x !== null) ? p.end_x : null;
-  const ey = (p.end_y !== undefined && p.end_y !== null) ? p.end_y : null;
+  const sx = p.start_x !== undefined && p.start_x !== null ? p.start_x : null;
+  const sy = p.start_y !== undefined && p.start_y !== null ? p.start_y : null;
+  const ex = p.end_x !== undefined && p.end_x !== null ? p.end_x : null;
+  const ey = p.end_y !== undefined && p.end_y !== null ? p.end_y : null;
 
   setText('plannedLength', length);
   setText('plannedDiameter', diameter);
-  setText('plannedStart', (sx !== null && sy !== null) ? `${sx}, ${sy}` : '--');
-  setText('plannedEnd', (ex !== null && ey !== null) ? `${ex}, ${ey}` : '--');
+  setText('plannedStart', sx !== null && sy !== null ? `${sx}, ${sy}` : '--');
+  setText('plannedEnd', ex !== null && ey !== null ? `${ex}, ${ey}` : '--');
 
-  setText('detectedLength', fm.length ? `${fm.length.value || fm.length} ${fm.length.unit || 'm'}` : '--');
-  setText('detectedDiameter', fm.diameter ? `${fm.diameter.value || fm.diameter} ${fm.diameter.unit || 'mm'}` : '--');
+  setText(
+    'detectedLength',
+    fm.length ? `${fm.length.value || fm.length} ${fm.length.unit || 'm'}` : '--'
+  );
+  setText(
+    'detectedDiameter',
+    fm.diameter ? `${fm.diameter.value || fm.diameter} ${fm.diameter.unit || 'mm'}` : '--'
+  );
   setText('detectedStart', '--');
   setText('detectedEnd', '--');
 }
@@ -537,7 +613,7 @@ function bindAssignJobLink(params) {
   if (layerId) qsParts.push('layer_id=' + encodeURIComponent(layerId));
   if (featureId) qsParts.push('feature_id=' + encodeURIComponent(featureId));
 
-  btn.href = qsParts.length ? ('project-assign.html?' + qsParts.join('&')) : 'project-assign.html';
+  btn.href = qsParts.length ? 'project-assign.html?' + qsParts.join('&') : 'project-assign.html';
 }
 
 async function loadPage() {
@@ -566,7 +642,7 @@ async function loadPage() {
     const results = await Promise.all([
       window.FiberApi.getProject(params.projectId),
       getFeatureDetails(params.projectId, params.featureId),
-      params.featureId ? loadFeatureAssignment(params.projectId, params.featureId) : null
+      params.featureId ? loadFeatureAssignment(params.projectId, params.featureId) : null,
     ]);
 
     const project = results[0];

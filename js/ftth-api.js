@@ -19,18 +19,21 @@
 (function () {
   'use strict';
 
-  var BASE_URL =
-    (window.FTTH_BASE_URL || window.location.origin).replace(/\/+$/, '');
+  var BASE_URL = (window.FTTH_BASE_URL || window.location.origin).replace(/\/+$/, '');
 
   var API_PREFIX = '/api/ftth/hld';
 
   function getAuthToken() {
     try {
-      if (typeof window.FiberAuth !== 'undefined' &&
-          typeof window.FiberAuth.getAccess === 'function') {
+      if (
+        typeof window.FiberAuth !== 'undefined' &&
+        typeof window.FiberAuth.getAccess === 'function'
+      ) {
         return window.FiberAuth.getAccess();
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
     return null;
   }
 
@@ -87,7 +90,9 @@
       if (window.FiberAuth && typeof window.FiberAuth.clear === 'function') {
         window.FiberAuth.clear();
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   async function authFetch(url, options, _retried) {
@@ -128,7 +133,9 @@
       try {
         var errorBody = await response.json();
         detail = errorBody.detail || detail;
-      } catch (_) { /* keep HTTP fallback */ }
+      } catch (_) {
+        /* keep HTTP fallback */
+      }
       throw new Error(detail);
     }
     var disposition = response.headers.get('Content-Disposition') || '';
@@ -152,8 +159,6 @@
   // Public API
   // ------------------------------------------------------------------
 
-
-
   async function runPipeline(excelFile, roadsFile, name, polyMethod, brownfieldFile, osmLayers) {
     var fd = new FormData();
     fd.append('excel', excelFile);
@@ -170,7 +175,7 @@
       ['waterways', osmLayers.waterwaysFile],
       ['water', osmLayers.waterFile],
       ['landuse', osmLayers.landuseFile],
-      ['natural', osmLayers.naturalFile]
+      ['natural', osmLayers.naturalFile],
     ];
     for (var i = 0; i < layerFields.length; i++) {
       if (layerFields[i][1]) fd.append(layerFields[i][0], layerFields[i][1]);
@@ -184,11 +189,12 @@
     var body = await parseBody(response);
 
     if (!response.ok) {
-      var msg = body && typeof body === 'object' && body.detail
-        ? body.detail
-        : body && typeof body === 'object' && body.message
-          ? body.message
-          : response.status + ' ' + response.statusText;
+      var msg =
+        body && typeof body === 'object' && body.detail
+          ? body.detail
+          : body && typeof body === 'object' && body.message
+            ? body.message
+            : response.status + ' ' + response.statusText;
       throw new Error(msg);
     }
     return body;
@@ -451,8 +457,6 @@
     });
   }
 
-
-
   // ------------------------------------------------------------------
   // Delete a project
   // ------------------------------------------------------------------
@@ -527,9 +531,10 @@
    * tells the user the wrong thing.
    */
   function areaError(body, response) {
-    var msg = body && typeof body === 'object' && body.detail
-      ? body.detail
-      : response.status + ' ' + response.statusText;
+    var msg =
+      body && typeof body === 'object' && body.detail
+        ? body.detail
+        : response.status + ' ' + response.statusText;
     var err = new Error(msg);
     err.status = response.status;
     err.body = body;
@@ -574,7 +579,7 @@
     var response = await authFetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
     var body = await parseBody(response);
     if (!response.ok) throw areaError(body, response);
@@ -615,7 +620,7 @@
     var response = await authFetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
     var body = await parseBody(response);
     if (!response.ok) throw areaError(body, response);
@@ -648,7 +653,7 @@
       response = await authFetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
     }
     var body = await parseBody(response);
@@ -697,9 +702,17 @@
   async function parseBody(response) {
     var ct = (response.headers.get('content-type') || '').toLowerCase();
     if (ct.indexOf('application/json') !== -1) {
-      try { return await response.json(); } catch (_) { return null; }
+      try {
+        return await response.json();
+      } catch (_) {
+        return null;
+      }
     }
-    try { return await response.text(); } catch (_) { return null; }
+    try {
+      return await response.text();
+    } catch (_) {
+      return null;
+    }
   }
 
   // ------------------------------------------------------------------

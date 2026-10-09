@@ -1,109 +1,106 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profile</title>
-  <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="../css/components.css">
-  
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile</title>
+    <link rel="stylesheet" href="../css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+  </head>
+  <body>
+    <header class="top-bar" role="banner">
+      <h2 class="brand">Tech Mahindra</h2>
+    </header>
 
-<header class="top-bar" role="banner">
-  <h2 class="brand">Tech Mahindra</h2>
-</header>
+    <div class="container">
+      <h1>My Profile</h1>
 
-<div class="container">
-  <h1>My Profile</h1>
+      <div class="card">
+        <label>Name</label>
+        <input type="text" id="profileName" disabled />
 
-  <div class="card">
-    <label>Name</label>
-    <input type="text" id="profileName" disabled />
+        <label>Email</label>
+        <input type="email" id="profileEmail" disabled />
 
-    <label>Email</label>
-    <input type="email" id="profileEmail" disabled />
+        <label>Role</label>
+        <input type="text" id="profileRole" disabled />
+      </div>
 
-    <label>Role</label>
-    <input type="text" id="profileRole" disabled />
-  </div>
+      <div class="card">
+        <label>New Password</label>
+        <input type="password" placeholder="Enter new password" />
 
-  <div class="card">
-    <label>New Password</label>
-    <input type="password" placeholder="Enter new password" />
+        <label>Confirm Password</label>
+        <input type="password" placeholder="Confirm password" />
 
-    <label>Confirm Password</label>
-    <input type="password" placeholder="Confirm password" />
+        <button>Change Password</button>
+      </div>
 
-    <button>Change Password</button>
-  </div>
+      <div class="card">
+        <strong>Device Info</strong>
+        <div class="meta">Browser: Chrome (Android)</div>
+        <div class="meta">Last Sync: Today</div>
+      </div>
+    </div>
 
-  <div class="card">
-    <strong>Device Info</strong>
-    <div class="meta">Browser: Chrome (Android)</div>
-    <div class="meta">Last Sync: Today</div>
-  </div>
-</div>
+    <nav class="mobile-nav" aria-label="Engineer navigation">
+      <a href="engineer-dashboard.html" aria-label="Dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7" />
+          <path d="M9 22V12h6v10" />
+          <path d="M21 22H3" />
+        </svg>
+        Dashboard
+      </a>
+      <a href="engineer-notifications.html" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        Notifications
+      </a>
+      <a href="engineer-profile.html" aria-label="Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21a8 8 0 0 0-16 0" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        Profile
+      </a>
+      <a href="#" onclick="handleLogout(event)" aria-label="Logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5" />
+          <path d="M21 12H9" />
+        </svg>
+        Logout
+      </a>
+    </nav>
 
-<nav class="mobile-nav" aria-label="Engineer navigation">
-  <a href="engineer-dashboard.html" aria-label="Dashboard">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 9l9-7 9 7" />
-      <path d="M9 22V12h6v10" />
-      <path d="M21 22H3" />
-    </svg>
-    Dashboard
-  </a>
-  <a href="engineer-notifications.html" aria-label="Notifications">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-    Notifications
-  </a>
-  <a href="engineer-profile.html" aria-label="Profile">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M20 21a8 8 0 0 0-16 0" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-    Profile
-  </a>
-  <a href="#" onclick="handleLogout(event)" aria-label="Logout">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <path d="M16 17l5-5-5-5" />
-      <path d="M21 12H9" />
-    </svg>
-    Logout
-  </a>
-</nav>
+    <script src="../js/ftth-ui.js"></script>
+    <script src="js/fiber-api.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-<script src="../js/ftth-ui.js"></script>
-<script src="js/fiber-api.js"></script>
-<script src="js/api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
+      function loadProfile() {
+        var user = window.FiberAuth.getUser();
+        if (user) {
+          document.getElementById('profileName').value = user.full_name || user.name || user.email || 'Unknown';
+          document.getElementById('profileEmail').value = user.email || '';
+          document.getElementById('profileRole').value = user.role || 'Engineer';
+        } else {
+          window.location.href = 'index.html';
+        }
+      }
 
-  function loadProfile() {
-    var user = window.FiberAuth.getUser();
-    if (user) {
-      document.getElementById('profileName').value = user.full_name || user.name || user.email || 'Unknown';
-      document.getElementById('profileEmail').value = user.email || '';
-      document.getElementById('profileRole').value = user.role || 'Engineer';
-    } else {
-      window.location.href = 'index.html';
-    }
-  }
+      function handleLogout(e) {
+        if (e) e.preventDefault();
+        window.FiberAuth.clear();
+        window.location.href = 'index.html';
+      }
 
-  function handleLogout(e) {
-    if (e) e.preventDefault();
-    window.FiberAuth.clear();
-    window.location.href = "index.html";
-  }
-
-  loadProfile();
-</script>
-
-</body>
+      loadProfile();
+    </script>
+  </body>
 </html>

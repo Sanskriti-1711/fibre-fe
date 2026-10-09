@@ -6,13 +6,13 @@
       window.FIBER_BASE_URL = 'http://localhost:8000';
     }
   }
-  const BASE_URL = window.FIBER_BASE_URL || "https://fibre-backend-wml3.onrender.com";
-  const STORAGE_KEY = "fiber_auth";
+  const BASE_URL = window.FIBER_BASE_URL || 'https://fibre-backend-wml3.onrender.com';
+  const STORAGE_KEY = 'fiber_auth';
 
   function buildUrl(path) {
     if (!path) return BASE_URL;
-    if (path.startsWith("http://") || path.startsWith("https://")) return path;
-    if (!path.startsWith("/")) return `${BASE_URL}/${path}`;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (!path.startsWith('/')) return `${BASE_URL}/${path}`;
     return `${BASE_URL}${path}`;
   }
 
@@ -59,8 +59,8 @@
   }
 
   async function parseBody(response) {
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
       try {
         return await response.json();
       } catch (_) {
@@ -76,19 +76,19 @@
   }
 
   function toErrorMessage(response, body) {
-    if (body && typeof body === "object") {
-      if (typeof body.detail === "string") return body.detail;
-      if (typeof body.message === "string") return body.message;
+    if (body && typeof body === 'object') {
+      if (typeof body.detail === 'string') return body.detail;
+      if (typeof body.message === 'string') return body.message;
 
       const firstKey = Object.keys(body)[0];
       if (firstKey) {
         const val = body[firstKey];
-        if (Array.isArray(val) && typeof val[0] === "string") return val[0];
-        if (typeof val === "string") return val;
+        if (Array.isArray(val) && typeof val[0] === 'string') return val[0];
+        if (typeof val === 'string') return val;
       }
     }
 
-    if (typeof body === "string" && body.trim()) return body;
+    if (typeof body === 'string' && body.trim()) return body;
     return `${response.status} ${response.statusText}`;
   }
 
@@ -99,11 +99,11 @@
 
   async function refreshAccessToken() {
     const refresh = getRefresh();
-    if (!refresh) throw new Error("No refresh token available");
+    if (!refresh) throw new Error('No refresh token available');
 
-    const response = await rawFetch("/api/users/token/refresh/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await rawFetch('/api/users/token/refresh/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refresh }),
     });
 
@@ -129,12 +129,12 @@
     const access = getAccess();
 
     if (access) {
-      headers.set("Authorization", `Bearer ${access}`);
+      headers.set('Authorization', `Bearer ${access}`);
     }
 
-    if (!headers.has("Content-Type") && options && options.body) {
+    if (!headers.has('Content-Type') && options && options.body) {
       if (!(options.body instanceof FormData)) {
-        headers.set("Content-Type", "application/json");
+        headers.set('Content-Type', 'application/json');
       }
     }
 
@@ -148,7 +148,7 @@
           return apiFetch(path, options, true);
         } catch (_) {
           clearAuth();
-          throw new Error("Session expired. Please login again.");
+          throw new Error('Session expired. Please login again.');
         }
       }
     }
@@ -165,9 +165,9 @@
   }
 
   async function login(email, password) {
-    const response = await rawFetch("/api/users/login/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await rawFetch('/api/users/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
 
@@ -187,193 +187,201 @@
   }
 
   async function listEngineers() {
-    return apiFetch("/api/users/engineers/", { method: "GET" });
+    return apiFetch('/api/users/engineers/', { method: 'GET' });
   }
 
   async function listProjects() {
-    return apiFetch("/api/projects/", { method: "GET" });
+    return apiFetch('/api/projects/', { method: 'GET' });
   }
 
   async function listProjectLatest(params) {
-    const query = params && typeof params === "object"
-      ? Object.keys(params)
-          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
-          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-          .join("&")
-      : "";
-    const path = query ? `/api/projects/latest/?${query}` : "/api/projects/latest/";
-    return apiFetch(path, { method: "GET" });
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/projects/latest/?${query}` : '/api/projects/latest/';
+    return apiFetch(path, { method: 'GET' });
   }
 
   async function listProjectsFiltered(params) {
-    if (!params || typeof params !== "object") {
+    if (!params || typeof params !== 'object') {
       return listProjects();
     }
     const query = Object.keys(params)
-      .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+      .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
       .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-      .join("&");
-    const path = query ? `/api/projects/?${query}` : "/api/projects/";
-    return apiFetch(path, { method: "GET" });
+      .join('&');
+    const path = query ? `/api/projects/?${query}` : '/api/projects/';
+    return apiFetch(path, { method: 'GET' });
   }
 
   async function getProject(projectId) {
     const id = encodeURIComponent(projectId);
-    return apiFetch(`/api/projects/${id}/`, { method: "GET" });
+    return apiFetch(`/api/projects/${id}/`, { method: 'GET' });
   }
 
   async function createProject(payload) {
-    return apiFetch("/api/projects/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    return apiFetch('/api/projects/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload || {}),
     });
   }
 
   async function deleteProject(projectId) {
     const id = encodeURIComponent(projectId);
-    return apiFetch(`/api/projects/${id}/`, { method: "DELETE" });
+    return apiFetch(`/api/projects/${id}/`, { method: 'DELETE' });
   }
 
   async function createEngineer(email, password, role, fullName) {
-    return apiFetch("/api/users/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, role: role || "ENGINEER", full_name: fullName }),
+    return apiFetch('/api/users/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, role: role || 'ENGINEER', full_name: fullName }),
     });
   }
 
-   async function deleteEngineer(engineerUuid) {
+  async function deleteEngineer(engineerUuid) {
     const id = encodeURIComponent(engineerUuid);
-    return apiFetch(`/api/users/${id}/`, { method: "DELETE" });
-   }
+    return apiFetch(`/api/users/${id}/`, { method: 'DELETE' });
+  }
   async function uploadGpkg(projectId, file) {
     const id = encodeURIComponent(projectId);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append('file', file);
     return apiFetch(`/api/projects/${id}/import/upload/`, {
-      method: "POST",
+      method: 'POST',
       body: formData,
     });
   }
 
   async function listProjectLayers(projectId) {
     const id = encodeURIComponent(projectId);
-    return apiFetch(`/api/projects/${id}/layers/`, { method: "GET" });
+    return apiFetch(`/api/projects/${id}/layers/`, { method: 'GET' });
   }
 
   async function getProjectLayerDetails(projectId, layerId) {
     const id = encodeURIComponent(projectId);
     const lid = encodeURIComponent(layerId);
-    return apiFetch(`/api/projects/${id}/layers/${lid}/`, { method: "GET" });
+    return apiFetch(`/api/projects/${id}/layers/${lid}/`, { method: 'GET' });
   }
 
   async function getFeature(projectId, featureId) {
     const pid = encodeURIComponent(projectId);
     const fid = encodeURIComponent(featureId);
-    return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: "GET" });
+    return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: 'GET' });
   }
 
   async function discoverLayers(projectId) {
     const id = encodeURIComponent(projectId);
-    return apiFetch(`/api/projects/${id}/import/discover/`, { method: "POST" });
+    return apiFetch(`/api/projects/${id}/import/discover/`, { method: 'POST' });
   }
 
   async function importLayers(projectId, selectedLayers) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/import/import/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ selected_layers: selectedLayers }),
     });
   }
 
   async function listJobs(params) {
-    const query = params && typeof params === "object"
-      ? Object.keys(params)
-          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
-          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-          .join("&")
-      : "";
-    const path = query ? `/api/assignments/jobs/?${query}` : "/api/assignments/jobs/";
-    return apiFetch(path, { method: "GET" });
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/assignments/jobs/?${query}` : '/api/assignments/jobs/';
+    return apiFetch(path, { method: 'GET' });
   }
 
   async function listAssignments(params) {
-    const query = params && typeof params === "object"
-      ? Object.keys(params)
-          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
-          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-          .join("&")
-      : "";
-    const path = query ? `/api/assignments/?${query}` : "/api/assignments/";
-    return apiFetch(path, { method: "GET" });
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/assignments/?${query}` : '/api/assignments/';
+    return apiFetch(path, { method: 'GET' });
   }
 
   async function createAssignment(payload) {
-    return apiFetch("/api/assignments/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    return apiFetch('/api/assignments/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload || {}),
     });
   }
 
   async function getAssignment(assignmentId) {
     const id = encodeURIComponent(assignmentId);
-    return apiFetch(`/api/assignments/${id}/`, { method: "GET" });
+    return apiFetch(`/api/assignments/${id}/`, { method: 'GET' });
   }
 
   async function updateAssignment(assignmentId, payload) {
     const id = encodeURIComponent(assignmentId);
     return apiFetch(`/api/assignments/${id}/`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload || {}),
     });
   }
 
   async function deleteAssignment(assignmentId) {
     const id = encodeURIComponent(assignmentId);
-    return apiFetch(`/api/assignments/${id}/`, { method: "DELETE" });
+    return apiFetch(`/api/assignments/${id}/`, { method: 'DELETE' });
   }
 
   async function getAssignmentsSummary(params) {
-    const query = params && typeof params === "object"
-      ? Object.keys(params)
-          .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
-          .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-          .join("&")
-      : "";
-    const path = query ? `/api/assignments/summary/?${query}` : "/api/assignments/summary/";
-    return apiFetch(path, { method: "GET" });
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/assignments/summary/?${query}` : '/api/assignments/summary/';
+    return apiFetch(path, { method: 'GET' });
   }
 
   // Engineer Activity APIs
   async function getEngineerActivity(engineerId, params) {
     const queryParams = { engineer: engineerId, ...params };
     const query = Object.keys(queryParams)
-      .filter((k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== "")
+      .filter(
+        (k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== ''
+      )
       .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
-      .join("&");
+      .join('&');
     const path = query ? `/api/engineer/activity/?${query}` : `/api/engineer/activity/`;
-    return apiFetch(path, { method: "GET" });
+    return apiFetch(path, { method: 'GET' });
   }
 
   async function getEngineerStats(engineerId, params) {
     const queryParams = { engineer: engineerId, ...params };
     const query = Object.keys(queryParams)
-      .filter((k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== "")
+      .filter(
+        (k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== ''
+      )
       .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
-      .join("&");
+      .join('&');
     const path = query ? `/api/engineer/stats/?${query}` : `/api/engineer/stats/`;
-    return apiFetch(path, { method: "GET" });
+    return apiFetch(path, { method: 'GET' });
   }
 
   async function updateFeatureFieldData(featureId, payload) {
     const id = encodeURIComponent(featureId);
     return apiFetch(`/api/features/${id}/field-measurements/`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload || {}),
     });
   }
@@ -381,8 +389,8 @@
   async function submitFeatureForReview(featureId) {
     const id = encodeURIComponent(featureId);
     return apiFetch(`/api/features/${id}/submit/`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
   }
@@ -390,19 +398,19 @@
   // Completion Rate APIs
   async function getProjectCompletion(projectId) {
     const id = encodeURIComponent(projectId);
-    return apiFetch(`/api/projects/${id}/completion/`, { method: "GET" });
+    return apiFetch(`/api/projects/${id}/completion/`, { method: 'GET' });
   }
 
   async function getLayerWeights(projectId) {
     const id = encodeURIComponent(projectId);
-    return apiFetch(`/api/projects/${id}/layers/weights/`, { method: "GET" });
+    return apiFetch(`/api/projects/${id}/layers/weights/`, { method: 'GET' });
   }
 
   async function updateLayerWeights(projectId, weights) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/layers/weights/`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weights }),
     });
   }
@@ -410,25 +418,29 @@
   // Feature Workflow APIs
   async function submitFeatures(featureIds, engineerId) {
     return apiFetch(`/api/features/submit/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feature_ids: featureIds, engineer: engineerId }),
     });
   }
 
   async function approveFeatures(featureIds, reviewerId, notes) {
     return apiFetch(`/api/features/approve/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ feature_ids: featureIds, reviewer: reviewerId, notes }),
     });
   }
 
   async function rejectFeatures(featureIds, reviewerId, rejectionReason) {
     return apiFetch(`/api/features/reject/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ feature_ids: featureIds, reviewer: reviewerId, rejection_reason: rejectionReason }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        feature_ids: featureIds,
+        reviewer: reviewerId,
+        rejection_reason: rejectionReason,
+      }),
     });
   }
 
@@ -443,7 +455,7 @@
     },
     requireLogin: function () {
       if (!FiberAuth.isLoggedIn()) {
-        window.location.href = "index.html";
+        window.location.href = 'index.html';
       }
     },
   };

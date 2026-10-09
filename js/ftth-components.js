@@ -54,11 +54,16 @@
     function render(file) {
       if (file) {
         el.classList.add('has-file');
-        el.innerHTML = ''
-          + '<div class="ftth-dropzone-icon">📄</div>'
-          + '<div class="ftth-dropzone-name">' + escapeHtml(file.name) + '</div>'
-          + '<div class="ftth-dropzone-size">' + formatSize(file.size) + '</div>'
-          + '<button type="button" class="ftth-dropzone-remove" aria-label="Remove file">✕</button>';
+        el.innerHTML =
+          '' +
+          '<div class="ftth-dropzone-icon">📄</div>' +
+          '<div class="ftth-dropzone-name">' +
+          escapeHtml(file.name) +
+          '</div>' +
+          '<div class="ftth-dropzone-size">' +
+          formatSize(file.size) +
+          '</div>' +
+          '<button type="button" class="ftth-dropzone-remove" aria-label="Remove file">✕</button>';
         const rmBtn = el.querySelector('.ftth-dropzone-remove');
         rmBtn.addEventListener('click', function (e) {
           e.stopPropagation();
@@ -68,10 +73,17 @@
         });
       } else {
         el.classList.remove('has-file');
-        el.innerHTML = ''
-          + '<div class="ftth-dropzone-icon">' + (icon || '📂') + '</div>'
-          + '<div class="ftth-dropzone-label">' + escapeHtml(label || 'Choose file') + '</div>'
-          + '<div class="ftth-dropzone-hint">' + escapeHtml(hint || '') + '</div>';
+        el.innerHTML =
+          '' +
+          '<div class="ftth-dropzone-icon">' +
+          (icon || '📂') +
+          '</div>' +
+          '<div class="ftth-dropzone-label">' +
+          escapeHtml(label || 'Choose file') +
+          '</div>' +
+          '<div class="ftth-dropzone-hint">' +
+          escapeHtml(hint || '') +
+          '</div>';
       }
     }
 
@@ -266,13 +278,18 @@
       'border: 1px solid ' + dotColor + '33;',
     ].join(' ');
 
-    el.innerHTML = ''
-      + '<span style="'
-      +   'width: 8px; height: 8px; border-radius: 50%;'
-      +   'background: ' + dotColor + ';'
-      +   (s === 'running' ? 'animation: ftth-pulse 1.5s ease-in-out infinite;' : '')
-      + '"></span>'
-      + '<span>' + escapeHtml(label) + '</span>';
+    el.innerHTML =
+      '' +
+      '<span style="' +
+      'width: 8px; height: 8px; border-radius: 50%;' +
+      'background: ' +
+      dotColor +
+      ';' +
+      (s === 'running' ? 'animation: ftth-pulse 1.5s ease-in-out infinite;' : '') +
+      '"></span>' +
+      '<span>' +
+      escapeHtml(label) +
+      '</span>';
 
     return el;
   }
@@ -293,7 +310,8 @@
 
     const el = document.createElement('div');
     el.className = 'ftth-progress-bar';
-    el.style.cssText = 'width:100%; height:8px; background:#E5E7EB; border-radius:4px; overflow:hidden;';
+    el.style.cssText =
+      'width:100%; height:8px; background:#E5E7EB; border-radius:4px; overflow:hidden;';
 
     const fill = document.createElement('div');
     fill.className = 'ftth-progress-fill';
@@ -359,7 +377,7 @@
 
     const countSpan = document.createElement('span');
     countSpan.style.cssText = 'font-size:11px; color:#616A75; font-weight:500;';
-    countSpan.textContent = count !== undefined ? (count + ' features') : '';
+    countSpan.textContent = count !== undefined ? count + ' features' : '';
 
     el.appendChild(cb);
     el.appendChild(labelSpan);
@@ -377,23 +395,50 @@
    * Each step has a name, display label, dependency, and output names.
    */
   var PIPELINE_STEPS = [
-    { name: 'object',  label: 'Object Layer',    detail: 'Geocode addresses via Nominatim',
-      outputs: ['Objects.gpkg'], dependsOn: null },
-    { name: 'polygon', label: 'Polygon Layer',   detail: 'Generate coverage polygons from objects',
-      outputs: ['Polygons.gpkg'], dependsOn: 'object' },
-    { name: 'network', label: 'Network Layer',   detail: 'Assign PDPs and identify MFG location',
-      outputs: ['PDPs.gpkg', 'MFG.gpkg'], dependsOn: 'polygon' },
-    { name: 'trench',  label: 'Trench Layer',    detail: 'Route the single trench network (Open Cut / HDD / Garden)',
+    {
+      name: 'object',
+      label: 'Object Layer',
+      detail: 'Geocode addresses via Nominatim',
+      outputs: ['Objects.gpkg'],
+      dependsOn: null,
+    },
+    {
+      name: 'polygon',
+      label: 'Polygon Layer',
+      detail: 'Generate coverage polygons from objects',
+      outputs: ['Polygons.gpkg'],
+      dependsOn: 'object',
+    },
+    {
+      name: 'network',
+      label: 'Network Layer',
+      detail: 'Assign PDPs and identify MFG location',
+      outputs: ['PDPs.gpkg', 'MFG.gpkg'],
+      dependsOn: 'polygon',
+    },
+    {
+      name: 'trench',
+      label: 'Trench Layer',
+      detail: 'Route the single trench network (Open Cut / HDD / Garden)',
       outputs: ['Final_Trenches.gpkg'],
-      dependsOn: 'network' },
+      dependsOn: 'network',
+    },
     // Cascade order (TRENCH_DESIGN.md §6.1): trench → chambers → ducts →
     // cables. A cable is only planned where a duct already exists.
-    { name: 'duct',    label: 'Duct Layer',      detail: 'Route feeder and distribution ducts',
+    {
+      name: 'duct',
+      label: 'Duct Layer',
+      detail: 'Route feeder and distribution ducts',
       outputs: ['Feeder_Ducts.gpkg', 'Distribution_Ducts.gpkg'],
-      dependsOn: 'trench' },
-    { name: 'cable',   label: 'Cable Layer',     detail: 'Route feeder and distribution cables',
+      dependsOn: 'trench',
+    },
+    {
+      name: 'cable',
+      label: 'Cable Layer',
+      detail: 'Route feeder and distribution cables',
       outputs: ['Feeder_Cable.gpkg', 'Distribution_Cable.gpkg'],
-      dependsOn: 'duct' },
+      dependsOn: 'duct',
+    },
   ];
 
   /**
@@ -475,7 +520,8 @@
         var detailEl = document.createElement('div');
         detailEl.className = 'ftth-step-detail';
         detailEl.textContent = isCompleted
-          ? 'Outputs: ' + (state.outputs ? Object.keys(state.outputs).join(', ') : stepDef.outputs.join(', '))
+          ? 'Outputs: ' +
+            (state.outputs ? Object.keys(state.outputs).join(', ') : stepDef.outputs.join(', '))
           : stepDef.detail;
         info.appendChild(detailEl);
 
@@ -528,7 +574,9 @@
           var badge = document.createElement('span');
           badge.className = 'ftth-step-badge ftth-step-badge-pending';
           if (depName) {
-            var depLabel = PIPELINE_STEPS.filter(function (s) { return s.name === depName; })[0];
+            var depLabel = PIPELINE_STEPS.filter(function (s) {
+              return s.name === depName;
+            })[0];
             badge.textContent = 'Waiting for ' + (depLabel ? depLabel.label : depName);
           } else {
             badge.textContent = 'Pending';
@@ -594,5 +642,4 @@
     }
     return result;
   }
-
 })();

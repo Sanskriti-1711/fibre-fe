@@ -26,9 +26,10 @@ const ROOT = path.resolve(__dirname, '..');
 
 // ── CLI: optional --bundle <dir> ───────────────────────────────────────
 const bundleIdx = process.argv.indexOf('--bundle');
-const BUNDLE = bundleIdx !== -1 && process.argv[bundleIdx + 1]
-  ? path.resolve(ROOT, process.argv[bundleIdx + 1])
-  : null;
+const BUNDLE =
+  bundleIdx !== -1 && process.argv[bundleIdx + 1]
+    ? path.resolve(ROOT, process.argv[bundleIdx + 1])
+    : null;
 const BASE = BUNDLE || ROOT;
 const MODE = BUNDLE ? `bundle (${path.relative(ROOT, BUNDLE)})` : 'source tree';
 
@@ -36,7 +37,13 @@ const failures = [];
 const warnings = [];
 
 function isSkippedDir(name) {
-  return name.startsWith('.') || name === 'node_modules' || name === 'ci' || name === '.git' || name === 'public';
+  return (
+    name.startsWith('.') ||
+    name === 'node_modules' ||
+    name === 'ci' ||
+    name === '.git' ||
+    name === 'public'
+  );
 }
 
 function allHtmlFiles(dir) {
@@ -131,10 +138,7 @@ if (BUNDLE) {
     // Explicitly assert the self-hosted map library is bundled (the
     // frontend no longer loads maplibre from unpkg CDN, so maps depend on
     // these vendor assets being deployed)
-    const vendorAssets = [
-      'vendor/maplibre/maplibre-gl.js',
-      'vendor/maplibre/maplibre-gl.css',
-    ];
+    const vendorAssets = ['vendor/maplibre/maplibre-gl.js', 'vendor/maplibre/maplibre-gl.css'];
     for (const f of vendorAssets) {
       if (bundled.has(f)) {
         console.log(`  ✅ Vendor asset bundled: ${f}`);
@@ -155,7 +159,10 @@ for (const file of jsFiles) {
     execFileSync(process.execPath, ['--check', file], { stdio: 'pipe' });
     jsOk++;
   } catch (e) {
-    const msg = String(e.stderr || e.message || '').split('\n').slice(0, 4).join('\n');
+    const msg = String(e.stderr || e.message || '')
+      .split('\n')
+      .slice(0, 4)
+      .join('\n');
     failures.push(`JS syntax error in ${rel(file)}:\n${msg}`);
   }
 }
@@ -177,7 +184,10 @@ for (const html of allHtmlFiles(BASE)) {
       execFileSync(process.execPath, ['--check', tmp], { stdio: 'pipe' });
       inlineOk++;
     } catch (e) {
-      const msg = String(e.stderr || e.message || '').split('\n').slice(0, 4).join('\n');
+      const msg = String(e.stderr || e.message || '')
+        .split('\n')
+        .slice(0, 4)
+        .join('\n');
       failures.push(`Inline <script> #${i + 1} in ${rel(html)}:\n${msg}`);
     } finally {
       if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
@@ -194,7 +204,14 @@ const existing = new Set(allFilesIn(BASE).map((p) => relBase(p)));
 function resolveTarget(pageRel, href) {
   // strip query/hash
   const clean = href.split('#')[0].split('?')[0];
-  if (!clean || /^https?:\/\//.test(clean) || clean.startsWith('//') || clean.startsWith('mailto:') || clean.startsWith('tel:') || clean.startsWith('javascript:')) {
+  if (
+    !clean ||
+    /^https?:\/\//.test(clean) ||
+    clean.startsWith('//') ||
+    clean.startsWith('mailto:') ||
+    clean.startsWith('tel:') ||
+    clean.startsWith('javascript:')
+  ) {
     return null; // external or fragment-only — skip
   }
   const pageDir = path.dirname(path.join(BASE, pageRel));
@@ -254,7 +271,9 @@ if (failures.length) {
   for (const f of failures) console.error('  - ' + f.split('\n').join('\n    '));
   process.exit(1);
 }
-console.log(`✅ ${MODE === 'source tree' ? 'Source tree' : 'Deploy bundle'} checks passed (${jsFiles.length} js files, ${inlineCount} inline blocks, ${linkCount} links).`);
+console.log(
+  `✅ ${MODE === 'source tree' ? 'Source tree' : 'Deploy bundle'} checks passed (${jsFiles.length} js files, ${inlineCount} inline blocks, ${linkCount} links).`
+);
 if (warnings.length) {
   for (const w of warnings) console.warn('⚠ ' + w);
 }

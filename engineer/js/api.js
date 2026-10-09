@@ -4,7 +4,7 @@
  * Based on API docs: /docs/apis.md
  */
 
-(function() {
+(function () {
   // Auto-detect local dev — only activates on localhost (production unaffected)
   const DETECTED_BASE_URL = (function () {
     const host = window.location.hostname;
@@ -18,7 +18,7 @@
   // Import auth from parent fiber-api.js
   const FiberAuth = window.FiberAuth || {
     getAccess: () => {
-      const raw = localStorage.getItem("fiber_auth");
+      const raw = localStorage.getItem('fiber_auth');
       if (!raw) return null;
       try {
         const parsed = JSON.parse(raw);
@@ -28,7 +28,7 @@
       }
     },
     getUser: () => {
-      const raw = localStorage.getItem("fiber_auth");
+      const raw = localStorage.getItem('fiber_auth');
       if (!raw) return null;
       try {
         const parsed = JSON.parse(raw);
@@ -40,14 +40,14 @@
     requireLogin: () => {
       const token = FiberAuth.getAccess?.() || FiberAuth.getAccess();
       if (!token) {
-        window.location.href = "index.html";
+        window.location.href = 'index.html';
       }
-    }
+    },
   };
 
   async function parseBody(response) {
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
       try {
         return await response.json();
       } catch (_) {
@@ -62,17 +62,17 @@
   }
 
   function toErrorMessage(response, body) {
-    if (body && typeof body === "object") {
-      if (typeof body.detail === "string") return body.detail;
-      if (typeof body.message === "string") return body.message;
+    if (body && typeof body === 'object') {
+      if (typeof body.detail === 'string') return body.detail;
+      if (typeof body.message === 'string') return body.message;
       const firstKey = Object.keys(body)[0];
       if (firstKey) {
         const val = body[firstKey];
-        if (Array.isArray(val) && typeof val[0] === "string") return val[0];
-        if (typeof val === "string") return val;
+        if (Array.isArray(val) && typeof val[0] === 'string') return val[0];
+        if (typeof val === 'string') return val;
       }
     }
-    if (typeof body === "string" && body.trim()) return body;
+    if (typeof body === 'string' && body.trim()) return body;
     return `${response.status} ${response.statusText}`;
   }
 
@@ -87,7 +87,7 @@
   async function refreshAccessToken() {
     const modules = [window.FiberApi, window.FiberAuth];
     for (const mod of modules) {
-      if (mod && typeof mod.refreshAccessToken === "function") {
+      if (mod && typeof mod.refreshAccessToken === 'function') {
         try {
           return await mod.refreshAccessToken();
         } catch (_) {
@@ -111,16 +111,18 @@
     const access = FiberAuth.getAccess();
 
     if (access) {
-      headers.set("Authorization", `Bearer ${access}`);
+      headers.set('Authorization', `Bearer ${access}`);
     }
 
-    if (!headers.has("Content-Type") && options.body) {
+    if (!headers.has('Content-Type') && options.body) {
       if (!(options.body instanceof FormData)) {
-        headers.set("Content-Type", "application/json");
+        headers.set('Content-Type', 'application/json');
       }
     }
 
-    const url = path.startsWith("http") ? path : `${BASE_URL}${path.startsWith("/") ? path : "/" + path}`;
+    const url = path.startsWith('http')
+      ? path
+      : `${BASE_URL}${path.startsWith('/') ? path : '/' + path}`;
     const response = await fetch(url, { ...options, headers });
 
     if (response.status === 401 && !_retried) {
@@ -128,11 +130,13 @@
       if (renewed) return apiFetch(path, options, true);
       // Unrenewable session — drop it and say so (see fiber-api.js apiFetch).
       try {
-        if (window.FiberAuth && typeof window.FiberAuth.clear === "function") {
+        if (window.FiberAuth && typeof window.FiberAuth.clear === 'function') {
           window.FiberAuth.clear();
         }
-      } catch (_) { /* ignore */ }
-      throw new Error("Session expired. Please login again.");
+      } catch (_) {
+        /* ignore */
+      }
+      throw new Error('Session expired. Please login again.');
     }
 
     if (response.status === 204) return null;
@@ -154,7 +158,7 @@
    */
   async function getProject(projectId) {
     const id = encodeURIComponent(projectId);
-    return apiFetch(`/api/projects/${id}/`, { method: "GET" });
+    return apiFetch(`/api/projects/${id}/`, { method: 'GET' });
   }
 
   // ===== Features API =====
@@ -166,13 +170,13 @@
   async function getFeature(projectId, featureId) {
     const pid = encodeURIComponent(projectId);
     const fid = encodeURIComponent(featureId);
-    return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: "GET" });
+    return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: 'GET' });
   }
 
   /**
    * Update Field Measurements
    * PATCH /api/features/{feature_id}/field-measurements/
-   * 
+   *
    * Body: {
    *   "field_measurements": { "length": 120.5, "width": 50.2 },
    *   "comparison_notes": "Verified measurements on site"
@@ -181,20 +185,20 @@
   async function updateFieldMeasurements(featureId, payload) {
     const id = encodeURIComponent(featureId);
     return apiFetch(`/api/features/${id}/field-measurements/`, {
-      method: "PATCH",
-      body: JSON.stringify(payload)
+      method: 'PATCH',
+      body: JSON.stringify(payload),
     });
   }
 
   /**
    * Submit Features for Review
    * POST /api/features/submit/
-   * 
+   *
    * Body: {
    *   "feature_ids": ["feature_uuid_1", "feature_uuid_2"],
    *   "engineer": "engineer_uuid"
    * }
-   * 
+   *
    * Response: {
    *   "submitted_count": 2,
    *   "feature_ids": [...],
@@ -204,11 +208,11 @@
    */
   async function submitFeatures(featureIds, engineerId) {
     return apiFetch(`/api/features/submit/`, {
-      method: "POST",
+      method: 'POST',
       body: JSON.stringify({
         feature_ids: Array.isArray(featureIds) ? featureIds : [featureIds],
-        engineer: engineerId
-      })
+        engineer: engineerId,
+      }),
     });
   }
 
@@ -217,7 +221,7 @@
   /**
    * List Jobs
    * GET /api/assignments/jobs/
-   * 
+   *
    * Query params:
    * - project={proj_id}
    * - engineer={engineer_uuid}
@@ -227,11 +231,11 @@
    */
   async function listJobs(params = {}) {
     const query = Object.keys(params)
-      .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== "")
+      .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
       .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
-      .join("&");
-    const path = query ? `/api/assignments/jobs/?${query}` : "/api/assignments/jobs/";
-    return apiFetch(path, { method: "GET" });
+      .join('&');
+    const path = query ? `/api/assignments/jobs/?${query}` : '/api/assignments/jobs/';
+    return apiFetch(path, { method: 'GET' });
   }
 
   /**
@@ -240,7 +244,7 @@
    */
   async function getAssignment(jobId) {
     const id = encodeURIComponent(jobId);
-    return apiFetch(`/api/assignments/${id}/`, { method: "GET" });
+    return apiFetch(`/api/assignments/${id}/`, { method: 'GET' });
   }
 
   // ===== Engineer Stats API =====
@@ -248,7 +252,7 @@
   /**
    * Get Engineer Stats
    * GET /api/engineer/stats/
-   * 
+   *
    * Query: engineer={uuid}, days={number}
    */
   async function getEngineerStats(engineerId, params = {}) {
@@ -256,8 +260,8 @@
     const query = Object.keys(queryParams)
       .filter((k) => queryParams[k] !== undefined && queryParams[k] !== null)
       .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
-      .join("&");
-    return apiFetch(`/api/engineer/stats/?${query}`, { method: "GET" });
+      .join('&');
+    return apiFetch(`/api/engineer/stats/?${query}`, { method: 'GET' });
   }
 
   // ===== File Upload API =====
@@ -270,10 +274,10 @@
   async function uploadFeaturePhoto(featureId, file) {
     const id = encodeURIComponent(featureId);
     const formData = new FormData();
-    formData.append("photo", file);  // Backend expects 'photo' field name
+    formData.append('photo', file); // Backend expects 'photo' field name
     return apiFetch(`/api/features/${id}/upload-photo/`, {
-      method: "POST",
-      body: formData
+      method: 'POST',
+      body: formData,
     });
   }
 
@@ -300,6 +304,6 @@
     getEngineerStats,
 
     // Raw fetch for custom calls
-    apiFetch
+    apiFetch,
   };
 })();

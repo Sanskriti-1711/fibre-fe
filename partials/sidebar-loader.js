@@ -1,13 +1,13 @@
-(function() {
+(function () {
   'use strict';
 
   // Global logout handler for sidebar
-  window.handleLogout = function(e) {
+  window.handleLogout = function (e) {
     if (e) e.preventDefault();
     if (window.FiberAuth && window.FiberAuth.clear) {
       window.FiberAuth.clear();
     }
-    window.location.href = "index.html";
+    window.location.href = 'index.html';
   };
 
   function getCurrentPageName() {
@@ -22,7 +22,7 @@
     if (!nav) return;
 
     const links = nav.querySelectorAll('a[data-page]');
-    links.forEach(function(link) {
+    links.forEach(function (link) {
       const pageAttr = link.getAttribute('data-page');
       if (pageAttr === currentPage) {
         link.classList.add('active');
@@ -46,22 +46,24 @@
   function injectSidebar() {
     const sidebarContainer = document.getElementById('sidebarContainer');
     if (!sidebarContainer) {
-      console.warn('Sidebar container not found. Add <div id="sidebarContainer"></div> to your HTML.');
+      console.warn(
+        'Sidebar container not found. Add <div id="sidebarContainer"></div> to your HTML.'
+      );
       return;
     }
 
     var base = getSidebarBase();
     fetch(base + 'partials/sidebar.html')
-      .then(function(response) {
+      .then(function (response) {
         if (!response.ok) throw new Error('Failed to load sidebar: ' + response.status);
         return response.text();
       })
-      .then(function(html) {
+      .then(function (html) {
         sidebarContainer.innerHTML = html;
         setActiveNavItem();
         initDrawer();
       })
-      .catch(function(err) {
+      .catch(function (err) {
         console.error('Error loading sidebar:', err);
       });
   }
@@ -80,7 +82,7 @@
       window.__ftthDrawer = window.FtthUI.Drawer({
         sidebar: sidebar,
         toggle: toggle,
-        scrim: scrim
+        scrim: scrim,
       });
     } catch (err) {
       console.warn('Nav drawer unavailable:', err);

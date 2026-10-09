@@ -21,7 +21,7 @@ const ProgressBar = {
       height = '8px',
       showLabel = false,
       color = this._getColor(value),
-      className = ''
+      className = '',
     } = options;
 
     const container = document.createElement('div');
@@ -110,8 +110,8 @@ const ProgressBar = {
 
   /**
    * Quick render to string for simple use cases
-   * @param {number} percentage 
-   * @param {Object} options 
+   * @param {number} percentage
+   * @param {Object} options
    * @returns {string} HTML string
    */
   render(percentage, options = {}) {
@@ -119,7 +119,7 @@ const ProgressBar = {
     const wrapper = document.createElement('div');
     wrapper.appendChild(el);
     return wrapper.innerHTML;
-  }
+  },
 };
 
 // Export for module systems or attach to window

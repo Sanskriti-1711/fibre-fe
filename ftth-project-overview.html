@@ -1,565 +1,987 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Project Overview | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    .overview-content { max-width: 1000px; margin: 0 auto; }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Project Overview | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .overview-content {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
 
-    .ov-header { margin-bottom: 18px; }
-    .ov-header h1 { margin: 0 0 6px; font-size: 22px; }
-    .ov-fid {
-      font-family: 'SF Mono','Menlo','Monaco','Consolas',monospace;
-      font-size: 12px; color: #6B7280; background: #F3F4F6;
-      padding: 4px 10px; border-radius: 4px; word-break: break-all; display: inline-block;
-    }
+      .ov-header {
+        margin-bottom: 18px;
+      }
+      .ov-header h1 {
+        margin: 0 0 6px;
+        font-size: 22px;
+      }
+      .ov-fid {
+        font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+        font-size: 12px;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 4px 10px;
+        border-radius: 4px;
+        word-break: break-all;
+        display: inline-block;
+      }
 
-    .ov-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
-    }
-    .ov-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-    .b-green { background:#ECFDF5; color:#047857; border:1px solid #A7F3D0; }
-    .b-blue  { background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE; }
-    .b-red   { background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; }
-    .b-gray  { background:#F3F4F6; color:#6B7280; border:1px solid #E5E7EB; }
-    .b-amber { background:#FFFBEB; color:#B45309; border:1px solid #FDE68A; }
+      .ov-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .ov-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .b-green {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+      }
+      .b-blue {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+      }
+      .b-red {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+      }
+      .b-gray {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+      }
+      .b-amber {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fde68a;
+      }
 
-    .ov-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin:16px 0; }
-    .ov-stat { background:#fff; border:1px solid #E5E7EB; border-radius:12px; padding:16px; }
-    .ov-stat .label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; }
-    .ov-stat .value { font-size:24px; font-weight:800; color:#1F2937; margin-top:6px; }
+      .ov-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px;
+        margin: 16px 0;
+      }
+      .ov-stat {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 16px;
+      }
+      .ov-stat .label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #6b7280;
+      }
+      .ov-stat .value {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1f2937;
+        margin-top: 6px;
+      }
 
-    .ov-card { background:#fff; border:1px solid #E5E7EB; border-radius:12px; margin-bottom:16px; overflow:hidden; }
-    .ov-card-head { padding:13px 18px; border-bottom:1px solid #E5E7EB; display:flex; align-items:center; gap:10px; }
-    .ov-card-head h2 { margin:0; font-size:14px; font-weight:700; color:#1F2937; }
-    .ov-card-body { padding:16px 18px; }
+      .ov-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+      .ov-card-head {
+        padding: 13px 18px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .ov-card-head h2 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #1f2937;
+      }
+      .ov-card-body {
+        padding: 16px 18px;
+      }
 
-    .ov-kv { display:grid; grid-template-columns:150px 1fr; gap:6px 12px; font-size:13px; }
-    .ov-kv .k { color:#6B7280; font-weight:600; }
-    .ov-kv .v { color:#1F2937; word-break:break-word; }
+      .ov-kv {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 6px 12px;
+        font-size: 13px;
+      }
+      .ov-kv .k {
+        color: #6b7280;
+        font-weight: 600;
+      }
+      .ov-kv .v {
+        color: #1f2937;
+        word-break: break-word;
+      }
 
-    .ov-table { width:100%; border-collapse:collapse; font-size:13px; }
-    .ov-table th, .ov-table td { padding:9px 12px; border-bottom:1px solid #F3F4F6; text-align:left; }
-    .ov-table th { font-size: 12px; text-transform:uppercase; letter-spacing:0.04em; color:#6B7280; background:#F9FAFB; }
+      .ov-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .ov-table th,
+      .ov-table td {
+        padding: 9px 12px;
+        border-bottom: 1px solid #f3f4f6;
+        text-align: left;
+      }
+      .ov-table th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #6b7280;
+        background: #f9fafb;
+      }
 
-    .ov-team { display:flex; flex-wrap:wrap; gap:10px; }
-    .ov-member {
-      display:inline-flex; align-items:center; gap:8px;
-      border:1px solid #E5E7EB; border-radius:999px; padding:6px 12px; font-size:13px;
-    }
-    .ov-member .role { font-size:10px; font-weight:700; text-transform:uppercase; color:#6B7280; }
-    .ov-member .ov-rm {
-      margin-left:2px; border:none; background:#FEF2F2; color:#B91C1C;
-      width:20px; height:20px; border-radius:50%; cursor:pointer;
-      font-size:12px; line-height:1; display:inline-flex; align-items:center; justify-content:center;
-    }
-    .ov-member .ov-rm:hover { background:#FECACA; }
+      .ov-team {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .ov-member {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+      .ov-member .role {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+      .ov-member .ov-rm {
+        margin-left: 2px;
+        border: none;
+        background: #fef2f2;
+        color: #b91c1c;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 12px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ov-member .ov-rm:hover {
+        background: #fecaca;
+      }
 
-    .ov-addmember { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
-    .ov-addmember select {
-      padding:7px 10px; border:1px solid #D1D5DB; border-radius:8px;
-      font-size:13px; color:#1F2937; background:#fff; min-width:200px;
-    }
-    .ov-addmember .create-btn { padding:7px 14px; font-size:13px; cursor:pointer; }
+      .ov-addmember {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .ov-addmember select {
+        padding: 7px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #1f2937;
+        background: #fff;
+        min-width: 200px;
+      }
+      .ov-addmember .create-btn {
+        padding: 7px 14px;
+        font-size: 13px;
+        cursor: pointer;
+      }
 
-    .ov-timeline { list-style:none; margin:0; padding:0; }
-    .ov-timeline li { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid #F3F4F6; font-size:13px; }
-    .ov-timeline li:last-child { border-bottom:none; }
-    .ov-timeline .stage { width:64px; font-weight:700; text-transform:uppercase; font-size:10px; letter-spacing:0.04em; flex-shrink:0; }
-    .ov-timeline .st-hld { color:#3B82F6; } .ov-timeline .st-survey { color:#F59E0B; } .ov-timeline .st-lld { color:#10B981; }
-    .ov-timeline .meta { color:#6B7280; margin-left:auto; font-size:12px; white-space:nowrap; }
+      .ov-timeline {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .ov-timeline li {
+        display: flex;
+        gap: 12px;
+        padding: 9px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 13px;
+      }
+      .ov-timeline li:last-child {
+        border-bottom: none;
+      }
+      .ov-timeline .stage {
+        width: 64px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        flex-shrink: 0;
+      }
+      .ov-timeline .st-hld {
+        color: #3b82f6;
+      }
+      .ov-timeline .st-survey {
+        color: #f59e0b;
+      }
+      .ov-timeline .st-lld {
+        color: #10b981;
+      }
+      .ov-timeline .meta {
+        color: #6b7280;
+        margin-left: auto;
+        font-size: 12px;
+        white-space: nowrap;
+      }
 
-    .ov-actions { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
-    .ov-actions a { text-decoration:none; }
-    .ov-error { display:none; background:#FEF2F2; border:1px solid #FECACA; color:#991B1B; border-radius:10px; padding:14px 18px; font-size:13px; margin-bottom:16px; }
-  </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-<link rel="stylesheet" href="css/components.css">
-</head>
-<body>
+      .ov-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .ov-actions a {
+        text-decoration: none;
+      }
+      .ov-error {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/ftth.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+      <main class="content">
+        <div class="container">
+          <div class="overview-content">
+            <div class="ov-header">
+              <h1 id="ovName">Project Overview</h1>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px">
+                <span class="ov-fid" id="ovFid">--</span>
+                <span id="ovHldBadge"></span>
+                <span id="ovLldBadge"></span>
+              </div>
+            </div>
 
-<div class="layout">
-  <div id="sidebarContainer"></div>
-  <main class="content">
-    <div class="container">
-      <div class="overview-content">
+            <div id="ovError" class="ov-error"></div>
 
-        <div class="ov-header">
-          <h1 id="ovName">Project Overview</h1>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
-            <span class="ov-fid" id="ovFid">--</span>
-            <span id="ovHldBadge"></span>
-            <span id="ovLldBadge"></span>
+            <div class="ov-actions" id="ovActions"></div>
+
+            <div class="ov-grid" id="ovStats"></div>
+
+            <!-- Team -->
+            <div class="ov-card">
+              <div class="ov-card-head"><h2>&#x1F465; Team</h2></div>
+              <div class="ov-card-body">
+                <div class="ov-team" id="ovTeam"><span style="color: #9ca3af; font-size: 13px">—</span></div>
+                <div id="ovTeamManage" style="margin-top: 14px"></div>
+              </div>
+            </div>
+
+            <!-- Business / Technical -->
+            <div class="ov-card">
+              <div class="ov-card-head"><h2>&#x1F4BC; Business &amp; Technical</h2></div>
+              <div class="ov-card-body" id="ovBizTech"></div>
+            </div>
+
+            <!-- Layers -->
+            <div class="ov-card">
+              <div class="ov-card-head"><h2>&#x1F5C2;&#xFE0F; Layers</h2></div>
+              <div class="ov-card-body">
+                <table class="ov-table">
+                  <thead>
+                    <tr>
+                      <th>Layer</th>
+                      <th>Features</th>
+                      <th>Survey Changes</th>
+                      <th>Approved</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ovLayers"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Approval summary -->
+            <div class="ov-card">
+              <div class="ov-card-head"><h2>&#x2705; Survey Approval Summary</h2></div>
+              <div class="ov-card-body" id="ovApproval"></div>
+            </div>
+
+            <!-- Permits -->
+            <div class="ov-card">
+              <div class="ov-card-head">
+                <h2>&#x1F6E2;&#xFE0F; Permits</h2>
+                <span id="ovPermitBadge"></span>
+                <span style="margin-left: auto; display: flex; gap: 8px; align-items: center">
+                  <button
+                    id="ovPermitPackage"
+                    class="create-btn"
+                    style="padding: 6px 12px; font-size: 12px; background: #065f46; display: none"
+                    type="button"
+                  >
+                    &#x1F4E6; Generate package
+                  </button>
+                  <button
+                    id="ovPermitAnalyze"
+                    class="create-btn"
+                    style="padding: 6px 12px; font-size: 12px; background: #374151"
+                    type="button"
+                  >
+                    &#x21BB; Re-run analysis
+                  </button>
+                </span>
+              </div>
+              <div class="ov-card-body" id="ovPermits"><span style="color: #9ca3af; font-size: 13px">—</span></div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="ov-card">
+              <div class="ov-card-head"><h2>&#x1F4C5; Timeline</h2></div>
+              <div class="ov-card-body"><ul class="ov-timeline" id="ovTimeline"></ul></div>
+            </div>
           </div>
         </div>
-
-        <div id="ovError" class="ov-error"></div>
-
-        <div class="ov-actions" id="ovActions"></div>
-
-        <div class="ov-grid" id="ovStats"></div>
-
-        <!-- Team -->
-        <div class="ov-card">
-          <div class="ov-card-head"><h2>&#x1F465; Team</h2></div>
-          <div class="ov-card-body">
-            <div class="ov-team" id="ovTeam"><span style="color:#9CA3AF;font-size:13px;">—</span></div>
-            <div id="ovTeamManage" style="margin-top:14px;"></div>
-          </div>
-        </div>
-
-        <!-- Business / Technical -->
-        <div class="ov-card">
-          <div class="ov-card-head"><h2>&#x1F4BC; Business &amp; Technical</h2></div>
-          <div class="ov-card-body" id="ovBizTech"></div>
-        </div>
-
-        <!-- Layers -->
-        <div class="ov-card">
-          <div class="ov-card-head"><h2>&#x1F5C2;&#xFE0F; Layers</h2></div>
-          <div class="ov-card-body">
-            <table class="ov-table">
-              <thead><tr><th>Layer</th><th>Features</th><th>Survey Changes</th><th>Approved</th></tr></thead>
-              <tbody id="ovLayers"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Approval summary -->
-        <div class="ov-card">
-          <div class="ov-card-head"><h2>&#x2705; Survey Approval Summary</h2></div>
-          <div class="ov-card-body" id="ovApproval"></div>
-        </div>
-
-        <!-- Permits -->
-        <div class="ov-card">
-          <div class="ov-card-head">
-            <h2>&#x1F6E2;&#xFE0F; Permits</h2>
-            <span id="ovPermitBadge"></span>
-            <span style="margin-left:auto;display:flex;gap:8px;align-items:center;">
-              <button id="ovPermitPackage" class="create-btn" style="padding:6px 12px;font-size:12px;background:#065F46;display:none;" type="button">&#x1F4E6; Generate package</button>
-              <button id="ovPermitAnalyze" class="create-btn" style="padding:6px 12px;font-size:12px;background:#374151;" type="button">&#x21BB; Re-run analysis</button>
-            </span>
-          </div>
-          <div class="ov-card-body" id="ovPermits"><span style="color:#9CA3AF;font-size:13px;">—</span></div>
-        </div>
-
-        <!-- Timeline -->
-        <div class="ov-card">
-          <div class="ov-card-head"><h2>&#x1F4C5; Timeline</h2></div>
-          <div class="ov-card-body"><ul class="ov-timeline" id="ovTimeline"></ul></div>
-        </div>
-
-      </div>
+      </main>
     </div>
-  </main>
-</div>
 
-<script src="js/ftth-ui.js"></script>
-<script src="partials/sidebar-loader.js"></script>
-<script src="js/ftth-config.js"></script>
-<script>
-  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="fiber-api.js"></script>
-<script src="js/ftth-lld-api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
+    <script src="js/ftth-ui.js"></script>
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script src="js/ftth-lld-api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-  var params = new URLSearchParams(window.location.search);
-  var projectId = params.get('project_id');
+      var params = new URLSearchParams(window.location.search);
+      var projectId = params.get('project_id');
 
-  function esc(s) {
-    return String(s === undefined || s === null ? '' : s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-  }
-  function fmtDate(iso) {
-    if (!iso) return '—';
-    try { var d = new Date(iso); if (isNaN(d.getTime())) return '—'; return d.toLocaleString(); } catch(_) { return '—'; }
-  }
-  function badge(text, cls) { return '<span class="ov-badge '+cls+'"><span class="dot"></span>'+esc(text)+'</span>'; }
-
-  function statusBadge(s) {
-    s = (s||'').toLowerCase();
-    if (s === 'completed') return badge('HLD Completed','b-green');
-    if (s === 'running') return badge('HLD Running','b-blue');
-    if (s === 'failed') return badge('HLD Failed','b-red');
-    return badge(s||'—','b-gray');
-  }
-  function lldBadge(lld) {
-    if (!lld) return badge('No LLD run','b-gray');
-    if (lld.status === 'completed') return badge(lld.run+' completed','b-green');
-    if (lld.status === 'running') return badge(lld.run+' running','b-blue');
-    if (lld.status === 'failed') return badge(lld.run+' failed','b-red');
-    return badge(lld.run+' '+lld.status,'b-gray');
-  }
-
-  // ── Team management ────────────────────────────────────────────────
-  var isAdmin = false;
-  var rolesCache = [];
-
-  function currentUserIsAdmin() {
-    try {
-      var u = window.FiberAuth && window.FiberAuth.getUser ? window.FiberAuth.getUser() : null;
-      return Boolean(u && u.role === 'SUBADMIN');
-    } catch (_) { return false; }
-  }
-  function roleLabel(role) {
-    var map = { planner:'Planner', engineer:'Field Engineer', reviewer:'LLD Reviewer', contractor:'Contractor', observer:'Observer' };
-    return map[role] || role;
-  }
-  function memberChip(m) {
-    var name = m.full_name || m.user || '';
-    var rm = (isAdmin && m.managed)
-      ? '<button class="ov-rm" data-member="'+esc(m.member_id)+'" title="Remove" type="button">\u2715</button>'
-      : '';
-    return '<div class="ov-member">'
-      + '<span class="role">'+esc(roleLabel(m.role))+'</span>'
-      + '<span>'+esc(name)+'</span>'
-      + (m.managed ? '' : '<span class="role" style="opacity:.55;">auto</span>')
-      + rm
-      + '</div>';
-  }
-  function renderTeam(members) {
-    var el = document.getElementById('ovTeam');
-    el.innerHTML = members && members.length
-      ? members.map(memberChip).join('')
-      : '<span style="color:#9CA3AF;font-size:13px;">No team members recorded.</span>';
-    Array.prototype.forEach.call(el.querySelectorAll('.ov-rm'), function (btn) {
-      btn.addEventListener('click', function () { removeMember(btn.getAttribute('data-member')); });
-    });
-  }
-  function renderTeamManage(users) {
-    var box = document.getElementById('ovTeamManage');
-    if (!isAdmin) { box.innerHTML = ''; return; }
-    var roles = rolesCache.length
-      ? rolesCache
-      : [{value:'planner',label:'Planner'},{value:'engineer',label:'Field Engineer'},{value:'reviewer',label:'LLD Reviewer'},{value:'contractor',label:'Contractor'},{value:'observer',label:'Observer'}];
-    var roleOpts = roles.map(function (r) { return '<option value="'+esc(r.value)+'">'+esc(r.label)+'</option>'; }).join('');
-    var userOpts = users.map(function (u) {
-      return '<option value="'+esc(u.id)+'">'+esc(u.full_name || u.email)+' ('+esc(u.email)+')</option>';
-    }).join('');
-    box.innerHTML =
-      '<div class="ov-addmember">'
-      + '<select id="ovAddUser">'+userOpts+'</select>'
-      + '<select id="ovAddRole">'+roleOpts+'</select>'
-      + '<button id="ovAddBtn" class="create-btn" type="button">+ Add member</button>'
-      + '</div>'
-      + '<div id="ovTeamMsg" style="font-size:12px;color:#6B7280;margin-top:8px;"></div>';
-    document.getElementById('ovAddBtn').addEventListener('click', addMember);
-  }
-  async function loadTeamManagement() {
-    try {
-      var res = await window.FtthLldApi.listMembers(projectId);
-      renderTeam(res.members || []);
-      if (res.roles) rolesCache = res.roles;
-      if (isAdmin) {
+      function esc(s) {
+        return String(s === undefined || s === null ? '' : s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+      function fmtDate(iso) {
+        if (!iso) return '—';
         try {
-          var users = await window.FtthLldApi.listUsers();
-          renderTeamManage(users || []);
-        } catch (e) {
-          document.getElementById('ovTeamManage').innerHTML =
-            '<span style="color:#B91C1C;font-size:12px;">Could not load users: '+esc(FtthUI.humanize(e))+'</span>';
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return '—';
+          return d.toLocaleString();
+        } catch (_) {
+          return '—';
         }
       }
-    } catch (e) {
-      document.getElementById('ovTeamManage').innerHTML = '';
-    }
-  }
-  async function addMember() {
-    var userId = document.getElementById('ovAddUser').value;
-    var role = document.getElementById('ovAddRole').value;
-    var msg = document.getElementById('ovTeamMsg');
-    if (!userId || !role) { msg.textContent = 'Select a user and role.'; return; }
-    try {
-      await window.FtthLldApi.addMember(projectId, userId, role);
-      msg.textContent = '';
-      await loadTeamManagement();
-    } catch (e) {
-      msg.textContent = 'Failed: ' + (FtthUI.humanize(e));
-    }
-  }
-  async function removeMember(memberId) {
-    if (!await window.FtthUI.confirm({
-      title: 'Remove this team member?',
-      message: 'They lose access to this project immediately.',
-      confirmLabel: 'Remove',
-      danger: true
-    })) return;
-    try {
-      await window.FtthLldApi.removeMember(projectId, memberId);
-      await loadTeamManagement();
-    } catch (e) {
-      await window.FtthUI.alert({
-        title: 'Could not remove member',
-        message: FtthUI.humanize(e)
-      });
-    }
-  }
+      function badge(text, cls) {
+        return '<span class="ov-badge ' + cls + '"><span class="dot"></span>' + esc(text) + '</span>';
+      }
 
-  function render(d) {
-    document.getElementById('ovName').textContent = d.name || d.project_id || 'Project';
-    document.getElementById('ovFid').textContent = d.project_id || '';
-    document.getElementById('ovHldBadge').innerHTML = statusBadge(d.hld && d.hld.status);
-    document.getElementById('ovLldBadge').innerHTML = lldBadge(d.lld);
+      function statusBadge(s) {
+        s = (s || '').toLowerCase();
+        if (s === 'completed') return badge('HLD Completed', 'b-green');
+        if (s === 'running') return badge('HLD Running', 'b-blue');
+        if (s === 'failed') return badge('HLD Failed', 'b-red');
+        return badge(s || '—', 'b-gray');
+      }
+      function lldBadge(lld) {
+        if (!lld) return badge('No LLD run', 'b-gray');
+        if (lld.status === 'completed') return badge(lld.run + ' completed', 'b-green');
+        if (lld.status === 'running') return badge(lld.run + ' running', 'b-blue');
+        if (lld.status === 'failed') return badge(lld.run + ' failed', 'b-red');
+        return badge(lld.run + ' ' + lld.status, 'b-gray');
+      }
 
-    // Actions
-    var actions = document.getElementById('ovActions');
-    actions.innerHTML =
-      '<a class="create-btn" href="ftth-hld-results.html?project_id='+encodeURIComponent(d.project_id)+'">&#x1F5FA;&#xFE0F; HLD Results</a>'
-      + '<a class="create-btn" href="ftth-survey-changes.html?project_id='+encodeURIComponent(d.project_id)+'" style="background:#374151;">LLD Approval Queue</a>'
-      + '<a class="create-btn" href="ftth-lld-outputs.html" style="background:#374151;">LLD Outputs</a>';
+      // ── Team management ────────────────────────────────────────────────
+      var isAdmin = false;
+      var rolesCache = [];
 
-    // Stats
-    var layerCount = (d.layers||[]).length;
-    var totalFeatures = (d.layers||[]).reduce(function(a,l){return a+(l.feature_count||0);},0);
-    var as = d.approval_summary || {};
-    var stats = [
-      {label:'Layers', value: layerCount},
-      {label:'Total Features', value: totalFeatures},
-      {label:'Survey Changes', value: as.total || 0},
-      {label:'Approved', value: as.approved || 0},
-      {label:'Rejected', value: as.rejected || 0},
-      {label:'Needs Correction', value: as.needs_correction || 0},
-    ];
-    document.getElementById('ovStats').innerHTML = stats.map(function(s){
-      return '<div class="ov-stat"><div class="label">'+esc(s.label)+'</div><div class="value">'+s.value+'</div></div>';
-    }).join('');
-
-    // Team (static overview view; the manage UI refreshes it in loadTeamManagement)
-    renderTeam(d.team || []);
-
-    // Business / technical
-    var b = d.business || {};
-    var tech = d.technical || {};
-    var bizRows = '<div class="ov-kv">'
-      + '<div class="k">Client</div><div class="v">'+esc(b.client_name||'—')+'</div>'
-      + '<div class="k">Contract</div><div class="v">'+esc(b.contract_ref||'—')+'</div>'
-      + '<div class="k">Priority</div><div class="v">'+esc(b.priority||'—')+'</div>'
-      + '<div class="k">Region</div><div class="v">'+esc(b.region||'—')+'</div>'
-      + '<div class="k">Business meta</div><div class="v">'+(Object.keys(b.meta||{}).length ? esc(JSON.stringify(b.meta)) : '—')+'</div>'
-      + '<div class="k">Technical meta</div><div class="v">'+(Object.keys(tech||{}).length ? esc(JSON.stringify(tech)) : '—')+'</div>'
-      + '</div>';
-    document.getElementById('ovBizTech').innerHTML = bizRows;
-
-    // Layers
-    var layers = d.layers || [];
-    var layersBody = document.getElementById('ovLayers');
-    if (!layers.length) {
-      layersBody.innerHTML = '<tr><td colspan="4" style="color:#9CA3AF;">No layers.</td></tr>';
-    } else {
-      layersBody.innerHTML = layers.map(function(l){
-        return '<tr><td><strong>'+esc(l.layer_name||l.layer_id)+'</strong></td>'
-          + '<td>'+l.feature_count+'</td>'
-          + '<td>'+(l.survey_changes||0)+'</td>'
-          + '<td>'+(l.approved_changes||0)+'</td></tr>';
-      }).join('');
-    }
-
-    // Approval summary
-    var approved = as.approved||0, rejected = as.rejected||0, corr = as.needs_correction||0, pending = as.pending||0;
-    document.getElementById('ovApproval').innerHTML =
-      '<div class="ov-grid" style="margin:0;">'
-      + '<div class="ov-stat"><div class="label">Total</div><div class="value">'+(as.total||0)+'</div></div>'
-      + '<div class="ov-stat"><div class="label">Approved</div><div class="value" style="color:#047857;">'+approved+'</div></div>'
-      + '<div class="ov-stat"><div class="label">Rejected</div><div class="value" style="color:#B91C1C;">'+rejected+'</div></div>'
-      + '<div class="ov-stat"><div class="label">Needs Correction</div><div class="value" style="color:#B45309;">'+corr+'</div></div>'
-      + '<div class="ov-stat"><div class="label">Pending</div><div class="value" style="color:#1D4ED8;">'+pending+'</div></div>'
-      + '</div>';
-
-    // Timeline
-    var events = d.events || [];
-    var tl = document.getElementById('ovTimeline');
-    if (!events.length) {
-      tl.innerHTML = '<li style="color:#9CA3AF;">No timeline events recorded yet.</li>';
-    } else {
-      tl.innerHTML = events.map(function(e){
-        var stageCls = e.stage==='hld'?'st-hld':e.stage==='lld'?'st-lld':'st-survey';
-        return '<li><span class="stage '+stageCls+'">'+esc(e.stage)+'</span>'
-          + '<span>'+esc(e.event)+'</span>'
-          + (e.entity_id ? '<span style="font-family:monospace;font-size:11px;color:#6B7280;">'+esc(e.entity_id)+'</span>' : '')
-          + '<span class="meta">'+(e.actor?esc(e.actor)+' · ':'')+esc(fmtDate(e.created_at))+'</span></li>';
-      }).join('');
-    }
-  }
-
-  // ── Permits (Phase 1) ───────────────────────────────────────────────────
-  var permitStatus = {
-    approved: { text:'Approved', cls:'b-green' },
-    ready: { text:'Ready', cls:'b-green' },
-    under_review: { text:'Under Review', cls:'b-blue' },
-    submitted: { text:'Submitted', cls:'b-blue' },
-    evidence_required: { text:'Evidence Required', cls:'b-amber' },
-    identified: { text:'Identified', cls:'b-amber' },
-    rejected: { text:'Rejected', cls:'b-red' },
-    closed: { text:'Closed', cls:'b-gray' },
-    not_required: { text:'Not Required', cls:'b-gray' }
-  };
-  var PERMIT_STATUS_RANK = {
-    rejected: 9, under_review: 8, submitted: 7, evidence_required: 6,
-    identified: 5, ready: 4, approved: 3, closed: 2, not_required: 1
-  };
-  function permitStatusChip(s) {
-    var m = permitStatus[s] || permitStatus.identified;
-    return badge(m.text, m.cls);
-  }
-  // Club per-segment rows into one permit per (type, street) — same rule as
-  // the tracker page: worst status + min readiness drive the group.
-  function clubPermits(permits) {
-    var groups = {};
-    (permits || []).forEach(function (p) {
-      var key = p.permit_type + '|' + (p.permit_group || p.route_section);
-      if (!groups[key]) {
-        groups[key] = {
-          permit_type: p.permit_type, group: p.permit_group || '',
-          authority: p.authority, firstSection: p.route_section,
-          status: p.status, readiness_pct: p.readiness_pct, sections: 0
+      function currentUserIsAdmin() {
+        try {
+          var u = window.FiberAuth && window.FiberAuth.getUser ? window.FiberAuth.getUser() : null;
+          return Boolean(u && u.role === 'SUBADMIN');
+        } catch (_) {
+          return false;
+        }
+      }
+      function roleLabel(role) {
+        var map = {
+          planner: 'Planner',
+          engineer: 'Field Engineer',
+          reviewer: 'LLD Reviewer',
+          contractor: 'Contractor',
+          observer: 'Observer',
         };
+        return map[role] || role;
       }
-      var g = groups[key];
-      g.sections++;
-      if ((PERMIT_STATUS_RANK[p.status] || 0) > (PERMIT_STATUS_RANK[g.status] || 0)) g.status = p.status;
-      if (p.readiness_pct < g.readiness_pct) g.readiness_pct = p.readiness_pct;
-    });
-    return Object.keys(groups).map(function (k) { return groups[k]; });
-  }
-
-  async function renderPermits() {
-    var bodyEl = document.getElementById('ovPermits');
-    var badgeEl = document.getElementById('ovPermitBadge');
-    var analyzeBtn = document.getElementById('ovPermitAnalyze');
-    var pkgBtn = document.getElementById('ovPermitPackage');
-    if (!bodyEl) return;
-    bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Loading permits…</span>';
-    if (analyzeBtn) analyzeBtn.disabled = true;
-    try {
-      var d = await window.FtthLldApi.getProjectPermits(projectId);
-      var total = d.total || 0;
-      var totalGroups = d.total_groups || total;
-      var byStatus = d.by_status || {};
-      if (badgeEl) badgeEl.innerHTML = total ? badge(totalGroups + ' identified', 'b-amber') : badge('0', 'b-gray');
-      if (!total) {
-        bodyEl.innerHTML = '<div style="font-size:13px;color:#6B7280;">No permits identified yet. '
-          + '<button id="ovPermitAnalyzeEmpty" class="create-btn" style="padding:6px 12px;font-size:12px;" type="button">&#x21BB; Run permit analysis</button></div>';
-        var emptyBtn = document.getElementById('ovPermitAnalyzeEmpty');
-        if (emptyBtn) emptyBtn.addEventListener('click', runPermitAnalysis);
-        if (pkgBtn) pkgBtn.style.display = 'none';
-        return;
+      function memberChip(m) {
+        var name = m.full_name || m.user || '';
+        var rm =
+          isAdmin && m.managed
+            ? '<button class="ov-rm" data-member="' +
+              esc(m.member_id) +
+              '" title="Remove" type="button">\u2715</button>'
+            : '';
+        return (
+          '<div class="ov-member">' +
+          '<span class="role">' +
+          esc(roleLabel(m.role)) +
+          '</span>' +
+          '<span>' +
+          esc(name) +
+          '</span>' +
+          (m.managed ? '' : '<span class="role" style="opacity:.55;">auto</span>') +
+          rm +
+          '</div>'
+        );
       }
-      var stats = [
-        { label:'Total Permits', value: totalGroups },
-        { label:'Sections', value: total },
-        { label:'Readiness', value: (d.readiness_pct || 0) + '%' },
-        { label:'Ready', value: byStatus.ready || 0 },
-        { label:'Approved', value: byStatus.approved || 0 },
-        { label:'Under Review', value: byStatus.under_review || 0 },
-        { label:'Identified', value: byStatus.identified || 0 }
-      ];
-      // One row per street-level permit group (worst status / min readiness).
-      var groups = clubPermits(d.permits || []);
-      var rows = groups.slice(0, 8).map(function (g) {
-        var route = g.group
-          ? '<strong>' + esc(g.group) + '</strong> <span style="font-family:monospace;font-size:11px;color:#6B7280;">· ' + g.sections + ' sections</span>'
-          : '<span style="font-family:monospace;font-size:11px;color:#6B7280;">' + esc(String(g.firstSection).slice(0, 14)) + '</span>';
-        return '<tr>'
-          + '<td><strong>' + esc(g.permit_type) + '</strong></td>'
-          + '<td>' + route + '</td>'
-          + '<td>' + esc((g.authority && g.authority.name) || '—') + '</td>'
-          + '<td>' + permitStatusChip(g.status) + '</td>'
-          + '<td>' + (g.readiness_pct || 0) + '%</td>'
-          + '</tr>';
-      }).join('');
-      // Permit package (Phase 2): latest version + download, generated docs.
-      var pkgHtml = '';
-      try {
-        var pkg = await window.FtthLldApi.getPermitPackage(projectId);
-        var versions = pkg.versions || [];
-        var latest = versions.length ? Math.max.apply(null, versions) : null;
-        var dl = latest != null
-          ? '<a href="' + window.FtthLldApi.getPermitPackageDownloadUrl(projectId)
-            + '" class="create-btn" style="padding:5px 12px;font-size:12px;text-decoration:none;background:#065F46;display:inline-block;">&#x2B07; Download package v' + latest + '</a>'
-          : '';
-        pkgHtml = '<div style="border-top:1px solid #E5E7EB;margin-top:12px;padding-top:12px;">'
-          + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-          + '<strong style="font-size:13px;">&#x1F4E6; Permit Package</strong>'
-          + (latest != null ? '<span style="font-size:12px;color:#6B7280;">v' + latest + ' · ' + (pkg.total_files || 0) + ' files</span>' : '<span style="font-size:12px;color:#6B7280;">Not generated yet</span>')
-          + '<span style="margin-left:auto;display:flex;gap:8px;">' + dl
-          + '<button id="ovPermitPackageGen" class="create-btn" style="padding:5px 12px;font-size:12px;background:#065F46;" type="button">' + (latest != null ? '&#x21BB; Regenerate' : '&#x1F4E6; Generate') + '</button>'
-          + '</span></div></div>';
-      } catch (pkgErr) {
-        pkgHtml = '';
+      function renderTeam(members) {
+        var el = document.getElementById('ovTeam');
+        el.innerHTML =
+          members && members.length
+            ? members.map(memberChip).join('')
+            : '<span style="color:#9CA3AF;font-size:13px;">No team members recorded.</span>';
+        Array.prototype.forEach.call(el.querySelectorAll('.ov-rm'), function (btn) {
+          btn.addEventListener('click', function () {
+            removeMember(btn.getAttribute('data-member'));
+          });
+        });
       }
-      bodyEl.innerHTML =
-        '<div class="ov-grid" style="margin:0 0 14px;">'
-        + stats.map(function (s) { return '<div class="ov-stat"><div class="label">' + esc(s.label) + '</div><div class="value">' + s.value + '</div></div>'; }).join('')
-        + '</div>'
-        + (rows
-            ? '<table class="ov-table"><thead><tr><th>Permit Type</th><th>Route Section</th><th>Authority</th><th>Status</th><th>Readiness</th></tr></thead><tbody>' + rows + '</tbody></table>'
-              + (groups.length > 8 ? '<div style="font-size:12px;color:#9CA3AF;margin-top:8px;">Showing first 8 of ' + groups.length + ' permit groups (' + total + ' sections)</div>' : '')
-            : '')
-        + pkgHtml;
-      var pkgGen = document.getElementById('ovPermitPackageGen');
-      if (pkgGen) pkgGen.addEventListener('click', generatePermitPackage);
-      if (pkgBtn) pkgBtn.style.display = 'none';  // inline actions are in the card body
-    } catch (err) {
-      bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Permits unavailable: ' + esc(FtthUI.humanize(err)) + '</span>';
-    } finally {
-      if (analyzeBtn) analyzeBtn.disabled = false;
-    }
-  }
+      function renderTeamManage(users) {
+        var box = document.getElementById('ovTeamManage');
+        if (!isAdmin) {
+          box.innerHTML = '';
+          return;
+        }
+        var roles = rolesCache.length
+          ? rolesCache
+          : [
+              { value: 'planner', label: 'Planner' },
+              { value: 'engineer', label: 'Field Engineer' },
+              { value: 'reviewer', label: 'LLD Reviewer' },
+              { value: 'contractor', label: 'Contractor' },
+              { value: 'observer', label: 'Observer' },
+            ];
+        var roleOpts = roles
+          .map(function (r) {
+            return '<option value="' + esc(r.value) + '">' + esc(r.label) + '</option>';
+          })
+          .join('');
+        var userOpts = users
+          .map(function (u) {
+            return (
+              '<option value="' + esc(u.id) + '">' + esc(u.full_name || u.email) + ' (' + esc(u.email) + ')</option>'
+            );
+          })
+          .join('');
+        box.innerHTML =
+          '<div class="ov-addmember">' +
+          '<select id="ovAddUser">' +
+          userOpts +
+          '</select>' +
+          '<select id="ovAddRole">' +
+          roleOpts +
+          '</select>' +
+          '<button id="ovAddBtn" class="create-btn" type="button">+ Add member</button>' +
+          '</div>' +
+          '<div id="ovTeamMsg" style="font-size:12px;color:#6B7280;margin-top:8px;"></div>';
+        document.getElementById('ovAddBtn').addEventListener('click', addMember);
+      }
+      async function loadTeamManagement() {
+        try {
+          var res = await window.FtthLldApi.listMembers(projectId);
+          renderTeam(res.members || []);
+          if (res.roles) rolesCache = res.roles;
+          if (isAdmin) {
+            try {
+              var users = await window.FtthLldApi.listUsers();
+              renderTeamManage(users || []);
+            } catch (e) {
+              document.getElementById('ovTeamManage').innerHTML =
+                '<span style="color:#B91C1C;font-size:12px;">Could not load users: ' +
+                esc(FtthUI.humanize(e)) +
+                '</span>';
+            }
+          }
+        } catch (e) {
+          document.getElementById('ovTeamManage').innerHTML = '';
+        }
+      }
+      async function addMember() {
+        var userId = document.getElementById('ovAddUser').value;
+        var role = document.getElementById('ovAddRole').value;
+        var msg = document.getElementById('ovTeamMsg');
+        if (!userId || !role) {
+          msg.textContent = 'Select a user and role.';
+          return;
+        }
+        try {
+          await window.FtthLldApi.addMember(projectId, userId, role);
+          msg.textContent = '';
+          await loadTeamManagement();
+        } catch (e) {
+          msg.textContent = 'Failed: ' + FtthUI.humanize(e);
+        }
+      }
+      async function removeMember(memberId) {
+        if (
+          !(await window.FtthUI.confirm({
+            title: 'Remove this team member?',
+            message: 'They lose access to this project immediately.',
+            confirmLabel: 'Remove',
+            danger: true,
+          }))
+        )
+          return;
+        try {
+          await window.FtthLldApi.removeMember(projectId, memberId);
+          await loadTeamManagement();
+        } catch (e) {
+          await window.FtthUI.alert({
+            title: 'Could not remove member',
+            message: FtthUI.humanize(e),
+          });
+        }
+      }
 
-  async function generatePermitPackage() {
-    var bodyEl = document.getElementById('ovPermits');
-    var btn = document.getElementById('ovPermitPackageGen');
-    if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
-    try {
-      var summary = await window.FtthLldApi.generatePermitPackage(projectId);
-      await renderPermits();
-    } catch (err) {
-      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Package generation failed: ' + esc(FtthUI.humanize(err)) + '</span>';
-      if (btn) btn.disabled = false;
-    }
-  }
+      function render(d) {
+        document.getElementById('ovName').textContent = d.name || d.project_id || 'Project';
+        document.getElementById('ovFid').textContent = d.project_id || '';
+        document.getElementById('ovHldBadge').innerHTML = statusBadge(d.hld && d.hld.status);
+        document.getElementById('ovLldBadge').innerHTML = lldBadge(d.lld);
 
-  async function runPermitAnalysis() {
-    var bodyEl = document.getElementById('ovPermits');
-    if (bodyEl) bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Running permit analysis…</span>';
-    try {
-      await window.FtthLldApi.runPermitAnalysis(projectId);
-      await renderPermits();
-    } catch (err) {
-      if (bodyEl) bodyEl.innerHTML = '<span style="color:#B91C1C;font-size:13px;">Analysis failed: ' + esc(FtthUI.humanize(err)) + '</span>';
-    }
-  }
+        // Actions
+        var actions = document.getElementById('ovActions');
+        actions.innerHTML =
+          '<a class="create-btn" href="ftth-hld-results.html?project_id=' +
+          encodeURIComponent(d.project_id) +
+          '">&#x1F5FA;&#xFE0F; HLD Results</a>' +
+          '<a class="create-btn" href="ftth-survey-changes.html?project_id=' +
+          encodeURIComponent(d.project_id) +
+          '" style="background:#374151;">LLD Approval Queue</a>' +
+          '<a class="create-btn" href="ftth-lld-outputs.html" style="background:#374151;">LLD Outputs</a>';
 
-  (async function(){
-    var analyzeBtn = document.getElementById('ovPermitAnalyze');
-    if (analyzeBtn) analyzeBtn.addEventListener('click', runPermitAnalysis);
-    if (!projectId && typeof window.FtthLldApi.resolveDefaultProject === 'function') {
-      try { var r = await window.FtthLldApi.resolveDefaultProject(); if (r) projectId = r.project_id; } catch(_){}
-    }
-    if (!projectId) {
-      document.getElementById('ovError').textContent = 'Missing project_id.';
-      document.getElementById('ovError').style.display = 'block';
-      return;
-    }
-    isAdmin = currentUserIsAdmin();
-    try {
-      var d = await window.FtthLldApi.getProjectOverview(projectId);
-      render(d);
-      await loadTeamManagement();
-      await renderPermits();
-    } catch (err) {
-      document.getElementById('ovError').textContent = 'Failed to load overview: ' + (FtthUI.humanize(err));
-      document.getElementById('ovError').style.display = 'block';
-    }
-  })();
-</script>
-</body>
+        // Stats
+        var layerCount = (d.layers || []).length;
+        var totalFeatures = (d.layers || []).reduce(function (a, l) {
+          return a + (l.feature_count || 0);
+        }, 0);
+        var as = d.approval_summary || {};
+        var stats = [
+          { label: 'Layers', value: layerCount },
+          { label: 'Total Features', value: totalFeatures },
+          { label: 'Survey Changes', value: as.total || 0 },
+          { label: 'Approved', value: as.approved || 0 },
+          { label: 'Rejected', value: as.rejected || 0 },
+          { label: 'Needs Correction', value: as.needs_correction || 0 },
+        ];
+        document.getElementById('ovStats').innerHTML = stats
+          .map(function (s) {
+            return (
+              '<div class="ov-stat"><div class="label">' +
+              esc(s.label) +
+              '</div><div class="value">' +
+              s.value +
+              '</div></div>'
+            );
+          })
+          .join('');
+
+        // Team (static overview view; the manage UI refreshes it in loadTeamManagement)
+        renderTeam(d.team || []);
+
+        // Business / technical
+        var b = d.business || {};
+        var tech = d.technical || {};
+        var bizRows =
+          '<div class="ov-kv">' +
+          '<div class="k">Client</div><div class="v">' +
+          esc(b.client_name || '—') +
+          '</div>' +
+          '<div class="k">Contract</div><div class="v">' +
+          esc(b.contract_ref || '—') +
+          '</div>' +
+          '<div class="k">Priority</div><div class="v">' +
+          esc(b.priority || '—') +
+          '</div>' +
+          '<div class="k">Region</div><div class="v">' +
+          esc(b.region || '—') +
+          '</div>' +
+          '<div class="k">Business meta</div><div class="v">' +
+          (Object.keys(b.meta || {}).length ? esc(JSON.stringify(b.meta)) : '—') +
+          '</div>' +
+          '<div class="k">Technical meta</div><div class="v">' +
+          (Object.keys(tech || {}).length ? esc(JSON.stringify(tech)) : '—') +
+          '</div>' +
+          '</div>';
+        document.getElementById('ovBizTech').innerHTML = bizRows;
+
+        // Layers
+        var layers = d.layers || [];
+        var layersBody = document.getElementById('ovLayers');
+        if (!layers.length) {
+          layersBody.innerHTML = '<tr><td colspan="4" style="color:#9CA3AF;">No layers.</td></tr>';
+        } else {
+          layersBody.innerHTML = layers
+            .map(function (l) {
+              return (
+                '<tr><td><strong>' +
+                esc(l.layer_name || l.layer_id) +
+                '</strong></td>' +
+                '<td>' +
+                l.feature_count +
+                '</td>' +
+                '<td>' +
+                (l.survey_changes || 0) +
+                '</td>' +
+                '<td>' +
+                (l.approved_changes || 0) +
+                '</td></tr>'
+              );
+            })
+            .join('');
+        }
+
+        // Approval summary
+        var approved = as.approved || 0,
+          rejected = as.rejected || 0,
+          corr = as.needs_correction || 0,
+          pending = as.pending || 0;
+        document.getElementById('ovApproval').innerHTML =
+          '<div class="ov-grid" style="margin:0;">' +
+          '<div class="ov-stat"><div class="label">Total</div><div class="value">' +
+          (as.total || 0) +
+          '</div></div>' +
+          '<div class="ov-stat"><div class="label">Approved</div><div class="value" style="color:#047857;">' +
+          approved +
+          '</div></div>' +
+          '<div class="ov-stat"><div class="label">Rejected</div><div class="value" style="color:#B91C1C;">' +
+          rejected +
+          '</div></div>' +
+          '<div class="ov-stat"><div class="label">Needs Correction</div><div class="value" style="color:#B45309;">' +
+          corr +
+          '</div></div>' +
+          '<div class="ov-stat"><div class="label">Pending</div><div class="value" style="color:#1D4ED8;">' +
+          pending +
+          '</div></div>' +
+          '</div>';
+
+        // Timeline
+        var events = d.events || [];
+        var tl = document.getElementById('ovTimeline');
+        if (!events.length) {
+          tl.innerHTML = '<li style="color:#9CA3AF;">No timeline events recorded yet.</li>';
+        } else {
+          tl.innerHTML = events
+            .map(function (e) {
+              var stageCls = e.stage === 'hld' ? 'st-hld' : e.stage === 'lld' ? 'st-lld' : 'st-survey';
+              return (
+                '<li><span class="stage ' +
+                stageCls +
+                '">' +
+                esc(e.stage) +
+                '</span>' +
+                '<span>' +
+                esc(e.event) +
+                '</span>' +
+                (e.entity_id
+                  ? '<span style="font-family:monospace;font-size:11px;color:#6B7280;">' + esc(e.entity_id) + '</span>'
+                  : '') +
+                '<span class="meta">' +
+                (e.actor ? esc(e.actor) + ' · ' : '') +
+                esc(fmtDate(e.created_at)) +
+                '</span></li>'
+              );
+            })
+            .join('');
+        }
+      }
+
+      // ── Permits (Phase 1) ───────────────────────────────────────────────────
+      var permitStatus = {
+        approved: { text: 'Approved', cls: 'b-green' },
+        ready: { text: 'Ready', cls: 'b-green' },
+        under_review: { text: 'Under Review', cls: 'b-blue' },
+        submitted: { text: 'Submitted', cls: 'b-blue' },
+        evidence_required: { text: 'Evidence Required', cls: 'b-amber' },
+        identified: { text: 'Identified', cls: 'b-amber' },
+        rejected: { text: 'Rejected', cls: 'b-red' },
+        closed: { text: 'Closed', cls: 'b-gray' },
+        not_required: { text: 'Not Required', cls: 'b-gray' },
+      };
+      var PERMIT_STATUS_RANK = {
+        rejected: 9,
+        under_review: 8,
+        submitted: 7,
+        evidence_required: 6,
+        identified: 5,
+        ready: 4,
+        approved: 3,
+        closed: 2,
+        not_required: 1,
+      };
+      function permitStatusChip(s) {
+        var m = permitStatus[s] || permitStatus.identified;
+        return badge(m.text, m.cls);
+      }
+      // Club per-segment rows into one permit per (type, street) — same rule as
+      // the tracker page: worst status + min readiness drive the group.
+      function clubPermits(permits) {
+        var groups = {};
+        (permits || []).forEach(function (p) {
+          var key = p.permit_type + '|' + (p.permit_group || p.route_section);
+          if (!groups[key]) {
+            groups[key] = {
+              permit_type: p.permit_type,
+              group: p.permit_group || '',
+              authority: p.authority,
+              firstSection: p.route_section,
+              status: p.status,
+              readiness_pct: p.readiness_pct,
+              sections: 0,
+            };
+          }
+          var g = groups[key];
+          g.sections++;
+          if ((PERMIT_STATUS_RANK[p.status] || 0) > (PERMIT_STATUS_RANK[g.status] || 0)) g.status = p.status;
+          if (p.readiness_pct < g.readiness_pct) g.readiness_pct = p.readiness_pct;
+        });
+        return Object.keys(groups).map(function (k) {
+          return groups[k];
+        });
+      }
+
+      async function renderPermits() {
+        var bodyEl = document.getElementById('ovPermits');
+        var badgeEl = document.getElementById('ovPermitBadge');
+        var analyzeBtn = document.getElementById('ovPermitAnalyze');
+        var pkgBtn = document.getElementById('ovPermitPackage');
+        if (!bodyEl) return;
+        bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Loading permits…</span>';
+        if (analyzeBtn) analyzeBtn.disabled = true;
+        try {
+          var d = await window.FtthLldApi.getProjectPermits(projectId);
+          var total = d.total || 0;
+          var totalGroups = d.total_groups || total;
+          var byStatus = d.by_status || {};
+          if (badgeEl) badgeEl.innerHTML = total ? badge(totalGroups + ' identified', 'b-amber') : badge('0', 'b-gray');
+          if (!total) {
+            bodyEl.innerHTML =
+              '<div style="font-size:13px;color:#6B7280;">No permits identified yet. ' +
+              '<button id="ovPermitAnalyzeEmpty" class="create-btn" style="padding:6px 12px;font-size:12px;" type="button">&#x21BB; Run permit analysis</button></div>';
+            var emptyBtn = document.getElementById('ovPermitAnalyzeEmpty');
+            if (emptyBtn) emptyBtn.addEventListener('click', runPermitAnalysis);
+            if (pkgBtn) pkgBtn.style.display = 'none';
+            return;
+          }
+          var stats = [
+            { label: 'Total Permits', value: totalGroups },
+            { label: 'Sections', value: total },
+            { label: 'Readiness', value: (d.readiness_pct || 0) + '%' },
+            { label: 'Ready', value: byStatus.ready || 0 },
+            { label: 'Approved', value: byStatus.approved || 0 },
+            { label: 'Under Review', value: byStatus.under_review || 0 },
+            { label: 'Identified', value: byStatus.identified || 0 },
+          ];
+          // One row per street-level permit group (worst status / min readiness).
+          var groups = clubPermits(d.permits || []);
+          var rows = groups
+            .slice(0, 8)
+            .map(function (g) {
+              var route = g.group
+                ? '<strong>' +
+                  esc(g.group) +
+                  '</strong> <span style="font-family:monospace;font-size:11px;color:#6B7280;">· ' +
+                  g.sections +
+                  ' sections</span>'
+                : '<span style="font-family:monospace;font-size:11px;color:#6B7280;">' +
+                  esc(String(g.firstSection).slice(0, 14)) +
+                  '</span>';
+              return (
+                '<tr>' +
+                '<td><strong>' +
+                esc(g.permit_type) +
+                '</strong></td>' +
+                '<td>' +
+                route +
+                '</td>' +
+                '<td>' +
+                esc((g.authority && g.authority.name) || '—') +
+                '</td>' +
+                '<td>' +
+                permitStatusChip(g.status) +
+                '</td>' +
+                '<td>' +
+                (g.readiness_pct || 0) +
+                '%</td>' +
+                '</tr>'
+              );
+            })
+            .join('');
+          // Permit package (Phase 2): latest version + download, generated docs.
+          var pkgHtml = '';
+          try {
+            var pkg = await window.FtthLldApi.getPermitPackage(projectId);
+            var versions = pkg.versions || [];
+            var latest = versions.length ? Math.max.apply(null, versions) : null;
+            var dl =
+              latest != null
+                ? '<a href="' +
+                  window.FtthLldApi.getPermitPackageDownloadUrl(projectId) +
+                  '" class="create-btn" style="padding:5px 12px;font-size:12px;text-decoration:none;background:#065F46;display:inline-block;">&#x2B07; Download package v' +
+                  latest +
+                  '</a>'
+                : '';
+            pkgHtml =
+              '<div style="border-top:1px solid #E5E7EB;margin-top:12px;padding-top:12px;">' +
+              '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">' +
+              '<strong style="font-size:13px;">&#x1F4E6; Permit Package</strong>' +
+              (latest != null
+                ? '<span style="font-size:12px;color:#6B7280;">v' +
+                  latest +
+                  ' · ' +
+                  (pkg.total_files || 0) +
+                  ' files</span>'
+                : '<span style="font-size:12px;color:#6B7280;">Not generated yet</span>') +
+              '<span style="margin-left:auto;display:flex;gap:8px;">' +
+              dl +
+              '<button id="ovPermitPackageGen" class="create-btn" style="padding:5px 12px;font-size:12px;background:#065F46;" type="button">' +
+              (latest != null ? '&#x21BB; Regenerate' : '&#x1F4E6; Generate') +
+              '</button>' +
+              '</span></div></div>';
+          } catch (pkgErr) {
+            pkgHtml = '';
+          }
+          bodyEl.innerHTML =
+            '<div class="ov-grid" style="margin:0 0 14px;">' +
+            stats
+              .map(function (s) {
+                return (
+                  '<div class="ov-stat"><div class="label">' +
+                  esc(s.label) +
+                  '</div><div class="value">' +
+                  s.value +
+                  '</div></div>'
+                );
+              })
+              .join('') +
+            '</div>' +
+            (rows
+              ? '<table class="ov-table"><thead><tr><th>Permit Type</th><th>Route Section</th><th>Authority</th><th>Status</th><th>Readiness</th></tr></thead><tbody>' +
+                rows +
+                '</tbody></table>' +
+                (groups.length > 8
+                  ? '<div style="font-size:12px;color:#9CA3AF;margin-top:8px;">Showing first 8 of ' +
+                    groups.length +
+                    ' permit groups (' +
+                    total +
+                    ' sections)</div>'
+                  : '')
+              : '') +
+            pkgHtml;
+          var pkgGen = document.getElementById('ovPermitPackageGen');
+          if (pkgGen) pkgGen.addEventListener('click', generatePermitPackage);
+          if (pkgBtn) pkgBtn.style.display = 'none'; // inline actions are in the card body
+        } catch (err) {
+          bodyEl.innerHTML =
+            '<span style="color:#B91C1C;font-size:13px;">Permits unavailable: ' + esc(FtthUI.humanize(err)) + '</span>';
+        } finally {
+          if (analyzeBtn) analyzeBtn.disabled = false;
+        }
+      }
+
+      async function generatePermitPackage() {
+        var bodyEl = document.getElementById('ovPermits');
+        var btn = document.getElementById('ovPermitPackageGen');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Generating…';
+        }
+        try {
+          var summary = await window.FtthLldApi.generatePermitPackage(projectId);
+          await renderPermits();
+        } catch (err) {
+          if (bodyEl)
+            bodyEl.innerHTML =
+              '<span style="color:#B91C1C;font-size:13px;">Package generation failed: ' +
+              esc(FtthUI.humanize(err)) +
+              '</span>';
+          if (btn) btn.disabled = false;
+        }
+      }
+
+      async function runPermitAnalysis() {
+        var bodyEl = document.getElementById('ovPermits');
+        if (bodyEl) bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Running permit analysis…</span>';
+        try {
+          await window.FtthLldApi.runPermitAnalysis(projectId);
+          await renderPermits();
+        } catch (err) {
+          if (bodyEl)
+            bodyEl.innerHTML =
+              '<span style="color:#B91C1C;font-size:13px;">Analysis failed: ' + esc(FtthUI.humanize(err)) + '</span>';
+        }
+      }
+
+      (async function () {
+        var analyzeBtn = document.getElementById('ovPermitAnalyze');
+        if (analyzeBtn) analyzeBtn.addEventListener('click', runPermitAnalysis);
+        if (!projectId && typeof window.FtthLldApi.resolveDefaultProject === 'function') {
+          try {
+            var r = await window.FtthLldApi.resolveDefaultProject();
+            if (r) projectId = r.project_id;
+          } catch (_) {}
+        }
+        if (!projectId) {
+          document.getElementById('ovError').textContent = 'Missing project_id.';
+          document.getElementById('ovError').style.display = 'block';
+          return;
+        }
+        isAdmin = currentUserIsAdmin();
+        try {
+          var d = await window.FtthLldApi.getProjectOverview(projectId);
+          render(d);
+          await loadTeamManagement();
+          await renderPermits();
+        } catch (err) {
+          document.getElementById('ovError').textContent = 'Failed to load overview: ' + FtthUI.humanize(err);
+          document.getElementById('ovError').style.display = 'block';
+        }
+      })();
+    </script>
+  </body>
 </html>

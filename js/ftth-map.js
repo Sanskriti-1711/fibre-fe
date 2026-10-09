@@ -26,7 +26,8 @@
             type: 'raster',
             tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
             tileSize: 256,
-            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution:
+              '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           },
         },
         layers: [
@@ -35,24 +36,67 @@
       },
     },
     light: {
-      name: 'Light', icon: '🌙',
+      name: 'Light',
+      icon: '🌙',
       style: {
-        version: 8, sources: { 'carto-light': { type: 'raster', tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>' } },
-        layers: [{ id: 'basemap-raster', type: 'raster', source: 'carto-light', minzoom: 0, maxzoom: 20 }],
+        version: 8,
+        sources: {
+          'carto-light': {
+            type: 'raster',
+            tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'],
+            tileSize: 256,
+            attribution:
+              '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>',
+          },
+        },
+        layers: [
+          { id: 'basemap-raster', type: 'raster', source: 'carto-light', minzoom: 0, maxzoom: 20 },
+        ],
       },
     },
     satellite: {
-      name: 'Satellite', icon: '🛰️',
+      name: 'Satellite',
+      icon: '🛰️',
       style: {
-        version: 8, sources: { 'esri-satellite': { type: 'raster', tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize: 256, attribution: '© <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics' } },
-        layers: [{ id: 'basemap-raster', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 19 }],
+        version: 8,
+        sources: {
+          'esri-satellite': {
+            type: 'raster',
+            tiles: [
+              'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            ],
+            tileSize: 256,
+            attribution: '© <a href="https://www.esri.com/">Esri</a>, Maxar, Earthstar Geographics',
+          },
+        },
+        layers: [
+          {
+            id: 'basemap-raster',
+            type: 'raster',
+            source: 'esri-satellite',
+            minzoom: 0,
+            maxzoom: 19,
+          },
+        ],
       },
     },
     dark: {
-      name: 'Dark', icon: '🌑',
+      name: 'Dark',
+      icon: '🌑',
       style: {
-        version: 8, sources: { 'carto-dark': { type: 'raster', tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'], tileSize: 256, attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>' } },
-        layers: [{ id: 'basemap-raster', type: 'raster', source: 'carto-dark', minzoom: 0, maxzoom: 20 }],
+        version: 8,
+        sources: {
+          'carto-dark': {
+            type: 'raster',
+            tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],
+            tileSize: 256,
+            attribution:
+              '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>',
+          },
+        },
+        layers: [
+          { id: 'basemap-raster', type: 'raster', source: 'carto-dark', minzoom: 0, maxzoom: 20 },
+        ],
       },
     },
   };
@@ -63,7 +107,11 @@
   // ------------------------------------------------------------------
   const LAYER_COLORS = {
     polygons: {
-      fill: '#00aa88', fillFlagged: '#ff4444', outline: '#006644', opacity: 0.3, label: 'Coverage Areas',
+      fill: '#00aa88',
+      fillFlagged: '#ff4444',
+      outline: '#006644',
+      opacity: 0.3,
+      label: 'Coverage Areas',
     },
     // Weight ladder, so the three tiers read as a hierarchy at any zoom:
     //   trench  (heaviest, what is dug)  >  duct (medium, laid in it)
@@ -73,21 +121,46 @@
     //   branch / distribution violet or orange
     //   drop / last leg       pink or green
     trenches: {
-      fill: '#3B82F6', outline: '#1D4ED8', opacity: 0.6, lineWidth: 6, lineDash: [], label: 'Trench Routes',
+      fill: '#3B82F6',
+      outline: '#1D4ED8',
+      opacity: 0.6,
+      lineWidth: 6,
+      lineDash: [],
+      label: 'Trench Routes',
     },
     feeder_cable: {
-      fill: '#B91C1C', outline: '#7F1D1D', opacity: 0.85, lineWidth: 1.8, lineDash: [], label: 'Feeder Cable',
+      fill: '#B91C1C',
+      outline: '#7F1D1D',
+      opacity: 0.85,
+      lineWidth: 1.8,
+      lineDash: [],
+      label: 'Feeder Cable',
     },
     distribution_cable: {
-      fill: '#F97316', outline: '#C2410C', opacity: 0.85, lineWidth: 1.3, lineDash: [], label: 'Distribution Cable',
+      fill: '#F97316',
+      outline: '#C2410C',
+      opacity: 0.85,
+      lineWidth: 1.3,
+      lineDash: [],
+      label: 'Distribution Cable',
     },
     drop_cable: {
-      fill: '#22C55E', outline: '#15803D', opacity: 0.85, lineWidth: 1, lineDash: [], label: 'Drop Cable',
+      fill: '#22C55E',
+      outline: '#15803D',
+      opacity: 0.85,
+      lineWidth: 1,
+      lineDash: [],
+      label: 'Drop Cable',
     },
     // Aerial spans carry fibre on poles instead of in a duct: same thin
     // weight as a cable, amber so it reads as "not underground".
     aerial_cable: {
-      fill: '#B45309', outline: '#B45309', opacity: 0.85, lineWidth: 1.6, lineDash: [], label: 'Aerial Cable',
+      fill: '#B45309',
+      outline: '#B45309',
+      opacity: 0.85,
+      lineWidth: 1.6,
+      lineDash: [],
+      label: 'Aerial Cable',
     },
     // The overhead SPAN the pole + aerial stage builds for an aerial leg (the
     // cable above is what runs on it). It had no entry at all, so it fell
@@ -95,71 +168,127 @@
     // cable it carries; it now takes the same amber and weight as that cable so
     // the overhead chain reads as one thing.
     aerial_spans: {
-      fill: '#B45309', outline: '#B45309', opacity: 0.85, lineWidth: 1.6, lineDash: [], label: 'Aerial Drop',
+      fill: '#B45309',
+      outline: '#B45309',
+      opacity: 0.85,
+      lineWidth: 1.6,
+      lineDash: [],
+      label: 'Aerial Drop',
     },
     feeder_ducts: {
-      fill: '#B45309', outline: '#B45309', opacity: 0.75, lineWidth: 3.6, lineDash: [], label: 'Feeder Ducts (trunk)',
+      fill: '#B45309',
+      outline: '#B45309',
+      opacity: 0.75,
+      lineWidth: 3.6,
+      lineDash: [],
+      label: 'Feeder Ducts (trunk)',
     },
     distribution_ducts: {
-      fill: '#8B5CF6', outline: '#6D28D9', opacity: 0.75, lineWidth: 3, lineDash: [], label: 'Distribution Ducts (branch)',
+      fill: '#8B5CF6',
+      outline: '#6D28D9',
+      opacity: 0.75,
+      lineWidth: 3,
+      lineDash: [],
+      label: 'Distribution Ducts (branch)',
     },
     drop_ducts: {
-      fill: '#EC4899', outline: '#9D174D', opacity: 0.75, lineWidth: 2.2, lineDash: [], label: 'Drop Ducts',
+      fill: '#EC4899',
+      outline: '#9D174D',
+      opacity: 0.75,
+      lineWidth: 2.2,
+      lineDash: [],
+      label: 'Drop Ducts',
     },
     coupleurs: {
       // Couplers at pseudo → object duct connections: distinct diamond-ish
       // teal point so they never read as a chamber or PDP.
-      fill: '#14B8A6', outline: '#0F766E', opacity: 0.95, lineWidth: 2, lineDash: [], pointRadius: 6, label: 'Couplers',
+      fill: '#14B8A6',
+      outline: '#0F766E',
+      opacity: 0.95,
+      lineWidth: 2,
+      lineDash: [],
+      pointRadius: 6,
+      label: 'Couplers',
     },
     objects: {
-      fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4, label: 'Objects',
+      fill: '#8B5CF6',
+      outline: '#5B21B6',
+      opacity: 0.4,
+      label: 'Objects',
     },
     pdps: {
-      fill: '#06B6D4', outline: '#0891B2', opacity: 0.7, lineWidth: 5, lineDash: [], label: 'PDPs',
+      fill: '#06B6D4',
+      outline: '#0891B2',
+      opacity: 0.7,
+      lineWidth: 5,
+      lineDash: [],
+      label: 'PDPs',
     },
     mfg: {
-      fill: '#047857', outline: '#047857', opacity: 0.7, lineWidth: 5, lineDash: [], label: 'MFG',
+      fill: '#047857',
+      outline: '#047857',
+      opacity: 0.7,
+      lineWidth: 5,
+      lineDash: [],
+      label: 'MFG',
     },
     mfg_service_areas: {
-      fill: '#65A30D', outline: '#3F6212', opacity: 0.18, lineWidth: 2, lineDash: [4, 2], label: 'MFG Service Areas',
+      fill: '#65A30D',
+      outline: '#3F6212',
+      opacity: 0.18,
+      lineWidth: 2,
+      lineDash: [4, 2],
+      label: 'MFG Service Areas',
     },
     buildings: {
-      fill: '#8B5CF6', outline: '#5B21B6', opacity: 0.4, label: 'Buildings',
+      fill: '#8B5CF6',
+      outline: '#5B21B6',
+      opacity: 0.4,
+      label: 'Buildings',
     },
     brownfield: {
-      fill: '#64748B', outline: '#94A3B8', opacity: 0.7, lineWidth: 2.5, lineDash: [], pointRadius: 7, label: 'Existing Infrastructure',
+      fill: '#64748B',
+      outline: '#94A3B8',
+      opacity: 0.7,
+      lineWidth: 2.5,
+      lineDash: [],
+      pointRadius: 7,
+      label: 'Existing Infrastructure',
     },
     default: {
-      fill: '#616A75', outline: '#374151', opacity: 0.4, label: 'Layer',
+      fill: '#616A75',
+      outline: '#374151',
+      opacity: 0.4,
+      label: 'Layer',
     },
     // Sub-layer color map used when a group GeoJSON is tagged per-feature with
     // a `sublayer` property (merged feeder/distribution/drop ducts, etc.)
     SUBLAYER_COLORS: {
-      'Feeder_Ducts': '#B45309',
-      'Distribution_Ducts': '#8B5CF6',
-      'Drop_Ducts': '#EC4899',
-      'Feeder_Cable': '#B91C1C',
-      'Distribution_Cable': '#F97316',
+      Feeder_Ducts: '#B45309',
+      Distribution_Ducts: '#8B5CF6',
+      Drop_Ducts: '#EC4899',
+      Feeder_Cable: '#B91C1C',
+      Distribution_Cable: '#F97316',
     },
     // Shades of the same base colour: used to differentiate asset types
     // inside the merged brownfield layer (all pre-existing infra, one toggle).
     ASSET_TYPE_COLORS: {
-      'duct': '#64748B',
-      'trench': '#94A3B8',
-      'fibre': '#7D8BA6',
-      'feeder_trench': '#9AA7B8',
-      'distribution_trench': '#8A99AD',
-      'chamber': '#475569',
-      'pole': '#A8B4C4',
-      'cabinet': '#5B6B7E',
-      'pdp': '#3F4D61',
-      'mfg': '#334155',
+      duct: '#64748B',
+      trench: '#94A3B8',
+      fibre: '#7D8BA6',
+      feeder_trench: '#9AA7B8',
+      distribution_trench: '#8A99AD',
+      chamber: '#475569',
+      pole: '#A8B4C4',
+      cabinet: '#5B6B7E',
+      pdp: '#3F4D61',
+      mfg: '#334155',
       // Structural node types from the trench designer (uppercase NODE_TYPE).
-      'HDD_PIT': '#B91C1C',
-      'PDP': '#06B6D4',
-      'BEND': '#616A75',
-      'JUNCTION': '#7C3AED',
-      'PULL': '#B45309',
+      HDD_PIT: '#B91C1C',
+      PDP: '#06B6D4',
+      BEND: '#616A75',
+      JUNCTION: '#7C3AED',
+      PULL: '#B45309',
     },
   };
 
@@ -218,7 +347,10 @@
     // a Handhole is a small lid, a Manhole is a walk-in shaft. Same size, so
     // the silhouette — not the scale — says which structure it is.
     chambers: {
-      shape: 'circle', color: '#64748B', size: 0.7, field: 'SUBTYPE',
+      shape: 'circle',
+      color: '#64748B',
+      size: 0.7,
+      field: 'SUBTYPE',
       values: {
         Bore: { shape: 'diamond', color: '#B91C1C' },
         Manhole: { shape: 'square', color: '#1E293B' },
@@ -237,7 +369,10 @@
     objects: { shape: 'dot', color: '#8B5CF6', size: 0.72 },
     premises: { shape: 'dot', color: '#8B5CF6', size: 0.72 },
     brownfield: {
-      shape: 'dot', color: '#64748B', size: 0.85, field: 'ASSET_TYPE',
+      shape: 'dot',
+      color: '#64748B',
+      size: 0.85,
+      field: 'ASSET_TYPE',
       values: {
         pdp: { shape: 'triangle', color: '#0E7490' },
         mfg: { shape: 'hexagon', color: '#047857' },
@@ -256,7 +391,10 @@
     // network changes tier, a splitter location, a direction change or a pull
     // point on a long run.
     trench_nodes: {
-      shape: 'dot', color: '#475569', size: 0.6, field: 'NODE_TYPE',
+      shape: 'dot',
+      color: '#475569',
+      size: 0.6,
+      field: 'NODE_TYPE',
       values: {
         HDD_PIT: { shape: 'diamond', color: '#B91C1C' },
         JUNCTION: { shape: 'square', color: '#334155' },
@@ -295,21 +433,45 @@
         // spans matched no bucket at all and fell through to a plain
         // undashed line, which is why the aerial routes read as ordinary
         // trench on the map.
-        { value: 'Aerial', color: '#B45309', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
-        { value: 'Aerial_Drop', color: '#B45309', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+        {
+          value: 'Aerial',
+          color: '#B45309',
+          width: 3.5,
+          dash: [6, 3, 1.5, 3],
+          aliases: ['aerial'],
+        },
+        {
+          value: 'Aerial_Drop',
+          color: '#B45309',
+          width: 3.5,
+          dash: [6, 3, 1.5, 3],
+          aliases: ['aerial'],
+        },
       ],
     },
     trenches: {
       field: 'trench_type',
       buckets: [
         { value: 'Open Cut', color: '#2563EB', width: 6, dash: null, aliases: ['opencut'] },
-        { value: 'HDD', color: '#7C3AED', width: 5.5, dash: [10, 4], aliases: ['hdd', 'drill', 'bore'] },
+        {
+          value: 'HDD',
+          color: '#7C3AED',
+          width: 5.5,
+          dash: [10, 4],
+          aliases: ['hdd', 'drill', 'bore'],
+        },
         // Garden legs are REAL dug trench (hand-dug from the open cut to one
         // house), so they are drawn solid like the open cut. They were dotted,
         // which read as "not a trench" — only HDD keeps a stroke pattern, and
         // that is because it is drilled rather than dug.
         { value: 'Garden', color: '#16A34A', width: 4, dash: null, aliases: ['garden'] },
-        { value: 'Aerial', color: '#B45309', width: 3.5, dash: [6, 3, 1.5, 3], aliases: ['aerial'] },
+        {
+          value: 'Aerial',
+          color: '#B45309',
+          width: 3.5,
+          dash: [6, 3, 1.5, 3],
+          aliases: ['aerial'],
+        },
       ],
       useBucketColor: true,
     },
@@ -334,7 +496,13 @@
       useBucketColor: true,
       buckets: [
         { value: 'Feeder', color: '#B91C1C', width: 1.8, dash: null, aliases: ['feeder'] },
-        { value: 'Distribution', color: '#F97316', width: 1.3, dash: null, aliases: ['distribution'] },
+        {
+          value: 'Distribution',
+          color: '#F97316',
+          width: 1.3,
+          dash: null,
+          aliases: ['distribution'],
+        },
         { value: 'Drop', color: '#22C55E', width: 1, dash: null, aliases: ['drop'] },
         // `Aerial_Cable` is the span the drop hangs from, not a duct-pulled
         // cable: same amber as the aerial trench, dashed, so it reads as the
@@ -391,7 +559,7 @@
     var order = Object.keys(spec);
     for (var i = 0; i < order.length; i++) {
       var probe = order[i];
-      var stem = probe.replace(/s$/, '');   // pdps -> pdp, cables -> cable
+      var stem = probe.replace(/s$/, ''); // pdps -> pdp, cables -> cable
       if (stripped.indexOf(stem) !== -1) return spec[probe];
     }
     return null;
@@ -417,19 +585,42 @@
     // nothing at all (premises and brownfield points disappeared), so an
     // element body is emitted as-is with the fill/stroke applied to a <g>.
     if (geom.charAt(0) === '<') {
-      return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
-        + '<g fill="' + color + '" stroke="#FFFFFF" stroke-width="2.2">'
-        + geom + '</g></svg>';
+      return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">' +
+        '<g fill="' +
+        color +
+        '" stroke="#FFFFFF" stroke-width="2.2">' +
+        geom +
+        '</g></svg>'
+      );
     }
     if (bare) {
       // Two strokes so the cross keeps a white halo on any basemap.
-      return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
-        + '<path d="' + geom + '" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>'
-        + '<path d="' + geom + '" fill="none" stroke="' + color + '" stroke-width="3.2" stroke-linecap="round"/></svg>';
+      return (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">' +
+        '<path d="' +
+        geom +
+        '" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>' +
+        '<path d="' +
+        geom +
+        '" fill="none" stroke="' +
+        color +
+        '" stroke-width="3.2" stroke-linecap="round"/></svg>'
+      );
     }
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">'
-      + '<path d="' + geom + '" fill="' + (ring ? '#FFFFFF' : color) + '" stroke="' + (ring ? color : '#FFFFFF') + '" stroke-width="' + (ring ? 3.6 : 2.2) + '" stroke-linejoin="round"/>'
-      + '</svg>';
+    return (
+      '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24">' +
+      '<path d="' +
+      geom +
+      '" fill="' +
+      (ring ? '#FFFFFF' : color) +
+      '" stroke="' +
+      (ring ? color : '#FFFFFF') +
+      '" stroke-width="' +
+      (ring ? 3.6 : 2.2) +
+      '" stroke-linejoin="round"/>' +
+      '</svg>'
+    );
   }
 
   /**
@@ -461,11 +652,17 @@
       var img = new Image(44, 44);
       img.onload = function () {
         delete _iconPending[id];
-        try { if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 }); } catch (_e) {}
+        try {
+          if (!map.hasImage(id)) map.addImage(id, img, { pixelRatio: 2 });
+        } catch (_e) {}
       };
-      img.onerror = function () { delete _iconPending[id]; };
+      img.onerror = function () {
+        delete _iconPending[id];
+      };
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(_iconSvg(shape, color));
-    } catch (_e) { delete _iconPending[id]; }
+    } catch (_e) {
+      delete _iconPending[id];
+    }
     return id;
   }
 
@@ -501,18 +698,36 @@
   // Attribute names that carry a stable per-feature identity. Layers written
   // by the pipeline stamp `feature_id`; grouped layers that omit it (the
   // trench layer) fall back to a fingerprint of their attributes below.
-  var _ID_FIELDS = ['feature_id', 'FEATURE_ID', 'id', 'SRC_ID', 'ASSET_ID', 'DUCT_ID', 'CABLE_ID', 'PDP_ID', 'MFG_ID', 'STRUCT_ID',
+  var _ID_FIELDS = [
+    'feature_id',
+    'FEATURE_ID',
+    'id',
+    'SRC_ID',
+    'ASSET_ID',
+    'DUCT_ID',
+    'CABLE_ID',
+    'PDP_ID',
+    'MFG_ID',
+    'STRUCT_ID',
     // Trench-designer outputs (design.trench_design): spans, structural nodes,
     // HDD drills and aerial drops each carry their own stable id.
-    'TRENCH_ID', 'SPAN_ID', 'NODE_ID', 'DRILL_ID', 'DROP_ID'];
+    'TRENCH_ID',
+    'SPAN_ID',
+    'NODE_ID',
+    'DRILL_ID',
+    'DROP_ID',
+  ];
 
   function _featureIdentity(props) {
     if (!props) return null;
     for (var i = 0; i < _ID_FIELDS.length; i++) {
       var f = _ID_FIELDS[i];
-      if (props[f] !== undefined && props[f] !== null && props[f] !== '') { return f + '=' + String(props[f]); }
+      if (props[f] !== undefined && props[f] !== null && props[f] !== '') {
+        return f + '=' + String(props[f]);
+      }
     }
-    var keys = Object.keys(props).sort(), parts = [];
+    var keys = Object.keys(props).sort(),
+      parts = [];
     for (var k = 0; k < keys.length; k++) {
       var v = props[keys[k]];
       if (v === undefined || v === null || v === '') continue;
@@ -538,8 +753,10 @@
   function _firstCoord(feature) {
     var g = feature && feature.geometry;
     var c = g && g.coordinates;
-    while (c && c.length && typeof c[0] !== 'number') { c = c[0]; }
-    return (c && c.length >= 2) ? c : null;
+    while (c && c.length && typeof c[0] !== 'number') {
+      c = c[0];
+    }
+    return c && c.length >= 2 ? c : null;
   }
 
   /** True when any vertex of `feature` sits within `eps` degrees of `pt`. */
@@ -548,10 +765,14 @@
     function walk(c) {
       if (found || !c || !c.length) return;
       if (typeof c[0] === 'number') {
-        if (Math.abs(c[0] - pt[0]) <= eps && Math.abs(c[1] - pt[1]) <= eps) { found = true; }
+        if (Math.abs(c[0] - pt[0]) <= eps && Math.abs(c[1] - pt[1]) <= eps) {
+          found = true;
+        }
         return;
       }
-      for (var i = 0; i < c.length && !found; i++) { walk(c[i]); }
+      for (var i = 0; i < c.length && !found; i++) {
+        walk(c[i]);
+      }
     }
     walk(feature && feature.geometry && feature.geometry.coordinates);
     return found;
@@ -567,14 +788,16 @@
     if (!clicked) return [];
     if (!idx) return [clicked];
     var key = _featureIdentity(clicked.properties);
-    var cands = (key && idx[key]) ? idx[key].slice() : [];
+    var cands = key && idx[key] ? idx[key].slice() : [];
     if (!cands.length) return [clicked];
     // A fingerprint can collide between genuinely separate features; keep only
     // the candidates that actually touch the clicked geometry.
     if (cands.length > 1) {
       var pt = _firstCoord(clicked);
       if (pt) {
-        var local = cands.filter(function (f) { return _hasVertexNear(f, pt, 1e-6); });
+        var local = cands.filter(function (f) {
+          return _hasVertexNear(f, pt, 1e-6);
+        });
         if (local.length) cands = local;
       }
     }
@@ -585,17 +808,57 @@
   function combineFeatureParts(list) {
     if (!list || !list.length) return null;
     if (list.length === 1) return list[0];
-    var lines = [], polys = [], pts = [], fam = null, mixed = false;
+    var lines = [],
+      polys = [],
+      pts = [],
+      fam = null,
+      mixed = false;
     list.forEach(function (f) {
       var g = f && f.geometry;
       if (!g || !g.coordinates) return;
       var t = g.type;
-      if (t === 'LineString') { lines.push(g.coordinates); fam = fam || 'line'; if (fam !== 'line') mixed = true; return; }
-      if (t === 'MultiLineString') { fam = fam || 'line'; if (fam !== 'line') mixed = true; g.coordinates.forEach(function (l) { lines.push(l); }); return; }
-      if (t === 'Polygon') { fam = fam || 'poly'; if (fam !== 'poly') mixed = true; polys.push(g.coordinates); return; }
-      if (t === 'MultiPolygon') { fam = fam || 'poly'; if (fam !== 'poly') mixed = true; g.coordinates.forEach(function (p) { polys.push(p); }); return; }
-      if (t === 'Point') { fam = fam || 'point'; if (fam !== 'point') mixed = true; pts.push(g.coordinates); return; }
-      if (t === 'MultiPoint') { fam = fam || 'point'; if (fam !== 'point') mixed = true; g.coordinates.forEach(function (p) { pts.push(p); }); return; }
+      if (t === 'LineString') {
+        lines.push(g.coordinates);
+        fam = fam || 'line';
+        if (fam !== 'line') mixed = true;
+        return;
+      }
+      if (t === 'MultiLineString') {
+        fam = fam || 'line';
+        if (fam !== 'line') mixed = true;
+        g.coordinates.forEach(function (l) {
+          lines.push(l);
+        });
+        return;
+      }
+      if (t === 'Polygon') {
+        fam = fam || 'poly';
+        if (fam !== 'poly') mixed = true;
+        polys.push(g.coordinates);
+        return;
+      }
+      if (t === 'MultiPolygon') {
+        fam = fam || 'poly';
+        if (fam !== 'poly') mixed = true;
+        g.coordinates.forEach(function (p) {
+          polys.push(p);
+        });
+        return;
+      }
+      if (t === 'Point') {
+        fam = fam || 'point';
+        if (fam !== 'point') mixed = true;
+        pts.push(g.coordinates);
+        return;
+      }
+      if (t === 'MultiPoint') {
+        fam = fam || 'point';
+        if (fam !== 'point') mixed = true;
+        g.coordinates.forEach(function (p) {
+          pts.push(p);
+        });
+        return;
+      }
     });
     var geometry = null;
     if (!mixed && lines.length) geometry = { type: 'MultiLineString', coordinates: lines };
@@ -618,8 +881,20 @@
       var src = bs.style.sources[srcKey];
       var sourceId = 'basemap-src-' + key;
       var layerId = 'basemap-layer-' + key;
-      map.addSource(sourceId, { type: 'raster', tiles: src.tiles, tileSize: src.tileSize || 256, attribution: src.attribution || '' });
-      map.addLayer({ id: layerId, type: 'raster', source: sourceId, minzoom: 0, maxzoom: 22, layout: { visibility: key === active ? 'visible' : 'none' } });
+      map.addSource(sourceId, {
+        type: 'raster',
+        tiles: src.tiles,
+        tileSize: src.tileSize || 256,
+        attribution: src.attribution || '',
+      });
+      map.addLayer({
+        id: layerId,
+        type: 'raster',
+        source: sourceId,
+        minzoom: 0,
+        maxzoom: 22,
+        layout: { visibility: key === active ? 'visible' : 'none' },
+      });
     }
   }
 
@@ -630,12 +905,17 @@
   function getBaseStyles() {
     var result = {};
     var keys = Object.keys(BASE_STYLES);
-    for (var i = 0; i < keys.length; i++) { var key = keys[i]; result[key] = { name: BASE_STYLES[key].name, icon: BASE_STYLES[key].icon }; }
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      result[key] = { name: BASE_STYLES[key].name, icon: BASE_STYLES[key].icon };
+    }
     return result;
   }
 
   function initMap(container, opts) {
-    if (typeof maplibregl === 'undefined') { throw new Error('MapLibre GL JS is not loaded. Include the CDN script.'); }
+    if (typeof maplibregl === 'undefined') {
+      throw new Error('MapLibre GL JS is not loaded. Include the CDN script.');
+    }
     var id = (opts && opts.id) || 'main';
     var center = (opts && opts.center) || [13.405, 52.52];
     var zoom = (opts && opts.zoom) || 11;
@@ -644,22 +924,33 @@
     if (!BASE_STYLES[basemap]) basemap = 'streets';
     var el = typeof container === 'string' ? document.getElementById(container) : container;
     if (!el) throw new Error('Map container element not found: ' + container);
-    var map = new maplibregl.Map({ container: el, style: { version: 8, sources: {}, layers: [] }, center: center, zoom: zoom });
+    var map = new maplibregl.Map({
+      container: el,
+      style: { version: 8, sources: {}, layers: [] },
+      center: center,
+      zoom: zoom,
+    });
     map.addControl(new maplibregl.NavigationControl(), 'top-left');
     map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
     map.addControl(new maplibregl.AttributionControl({ compact: true }));
     function onReady() {
       _addAllBaseLayers(map, basemap);
       _installAllIcons(map);
-      if (typeof onLoad === 'function') { onLoad(map); }
+      if (typeof onLoad === 'function') {
+        onLoad(map);
+      }
     }
     map.on('load', onReady);
-    if (map.loaded()) { onReady(); }
+    if (map.loaded()) {
+      onReady();
+    }
     _maps[id] = map;
     return map;
   }
 
-  function getMap(id) { return _maps[id || 'main']; }
+  function getMap(id) {
+    return _maps[id || 'main'];
+  }
 
   function setBaseStyle(map, styleName) {
     if (!map || !BASE_STYLES[styleName]) return;
@@ -667,7 +958,9 @@
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
       var layerId = 'basemap-layer-' + key;
-      if (map.getLayer(layerId)) { map.setLayoutProperty(layerId, 'visibility', key === styleName ? 'visible' : 'none'); }
+      if (map.getLayer(layerId)) {
+        map.setLayoutProperty(layerId, 'visibility', key === styleName ? 'visible' : 'none');
+      }
     }
   }
 
@@ -684,7 +977,9 @@
     // MapLibre rejects out-of-range paint values and then DROPS the layer
     // (it only fires an error event), so clamp: a line derived opacity of
     // fillOpacity + 0.2 above 1 would silently lose the whole layer.
-    function clamp01(v) { return Math.max(0, Math.min(1, Number(v) || 0)); }
+    function clamp01(v) {
+      return Math.max(0, Math.min(1, Number(v) || 0));
+    }
     var visible = opts.visible !== false;
     var flagField = opts.flagField;
     var flagValue = opts.flagValue;
@@ -711,22 +1006,38 @@
     // geometry mix, which would leave the old layer types behind.
     if (map.getSource(sourceId)) {
       (_layerParts[layerId] || []).forEach(function (lid) {
-        if (map.getLayer(lid)) { try { map.removeLayer(lid); } catch (_) {} }
+        if (map.getLayer(lid)) {
+          try {
+            map.removeLayer(lid);
+          } catch (_) {}
+        }
       });
-      try { map.removeSource(sourceId); } catch (_) {}
+      try {
+        map.removeSource(sourceId);
+      } catch (_) {}
       delete _layerParts[layerId];
     }
 
     // Scan ALL features: a merged group (e.g. brownfield lines + points) can
     // mix geometry types — MapLibre only renders features matching the layer
     // type, so we must add one layer per geometry type present.
-    var hasPolygon = false, hasLine = false, hasPoint = false;
+    var hasPolygon = false,
+      hasLine = false,
+      hasPoint = false;
     (geojson.features || []).forEach(function (feat) {
       var t = feat && feat.geometry && feat.geometry.type;
       if (!t) return;
-      if (t.toLowerCase().indexOf('polygon') !== -1) { hasPolygon = true; return; }
-      if (t === 'LineString' || t === 'MultiLineString' || t.toLowerCase().indexOf('line') !== -1) { hasLine = true; return; }
-      if (t === 'Point' || t === 'MultiPoint') { hasPoint = true; }
+      if (t.toLowerCase().indexOf('polygon') !== -1) {
+        hasPolygon = true;
+        return;
+      }
+      if (t === 'LineString' || t === 'MultiLineString' || t.toLowerCase().indexOf('line') !== -1) {
+        hasLine = true;
+        return;
+      }
+      if (t === 'Point' || t === 'MultiPoint') {
+        hasPoint = true;
+      }
     });
 
     // If features carry an ASSET_TYPE field, build a per-type colour map using
@@ -742,7 +1053,10 @@
         var val = feat.properties && feat.properties[opts.assetTypeField];
         if (!val) return;
         var c = LAYER_COLORS.ASSET_TYPE_COLORS[val] || fillColor;
-        if (!usedTypes[val]) { tm.push(val, c); usedTypes[val] = true; }
+        if (!usedTypes[val]) {
+          tm.push(val, c);
+          usedTypes[val] = true;
+        }
       });
       if (Object.keys(usedTypes).length > 0) {
         tm.push(fillColor);
@@ -761,7 +1075,10 @@
         var val = feat.properties && feat.properties[opts.permitField];
         if (!val) return;
         var c = opts.permitColors[val] || fillColor;
-        if (!usedPermit[val]) { pm.push(val, c); usedPermit[val] = true; }
+        if (!usedPermit[val]) {
+          pm.push(val, c);
+          usedPermit[val] = true;
+        }
       });
       if (Object.keys(usedPermit).length > 0) {
         pm.push(fillColor);
@@ -774,12 +1091,29 @@
 
     if (hasPolygon) {
       var fillPaint = { 'fill-opacity': clamp01(fillOpacity) };
-      if (flagField) { fillPaint['fill-color'] = ['match', ['get', flagField], flagValue, fillFlagged, fillColor]; }
-      else if (permitMatch) { fillPaint['fill-color'] = permitMatch; }
-      else if (typeMatch) { fillPaint['fill-color'] = typeMatch; }
-      else { fillPaint['fill-color'] = fillColor; }
-      map.addLayer({ id: fillLayerId, type: 'fill', source: sourceId, paint: fillPaint, layout: { visibility: visible ? 'visible' : 'none' } });
-      map.addLayer({ id: outlineLayerId, type: 'line', source: sourceId, paint: { 'line-color': outlineColor, 'line-width': 2 }, layout: { visibility: visible ? 'visible' : 'none' } });
+      if (flagField) {
+        fillPaint['fill-color'] = ['match', ['get', flagField], flagValue, fillFlagged, fillColor];
+      } else if (permitMatch) {
+        fillPaint['fill-color'] = permitMatch;
+      } else if (typeMatch) {
+        fillPaint['fill-color'] = typeMatch;
+      } else {
+        fillPaint['fill-color'] = fillColor;
+      }
+      map.addLayer({
+        id: fillLayerId,
+        type: 'fill',
+        source: sourceId,
+        paint: fillPaint,
+        layout: { visibility: visible ? 'visible' : 'none' },
+      });
+      map.addLayer({
+        id: outlineLayerId,
+        type: 'line',
+        source: sourceId,
+        paint: { 'line-color': outlineColor, 'line-width': 2 },
+        layout: { visibility: visible ? 'visible' : 'none' },
+      });
       renderedLayers.push(fillLayerId, outlineLayerId);
     }
 
@@ -811,7 +1145,10 @@
             if (hint) return;
             var aliases = b.aliases || [];
             for (var ai = 0; ai < aliases.length; ai++) {
-              if (lineKey.indexOf(aliases[ai]) !== -1) { hint = b.value; return; }
+              if (lineKey.indexOf(aliases[ai]) !== -1) {
+                hint = b.value;
+                return;
+              }
             }
           });
           if (hint) {
@@ -832,7 +1169,9 @@
           built.push({
             id: fillLayerId + '__b' + bi,
             filter: ['==', ['get', lineSpec.field], match],
-            color: b.color, width: b.width, dash: b.dash || null,
+            color: b.color,
+            width: b.width,
+            dash: b.dash || null,
           });
         });
         if (built.length) lineBuckets = built;
@@ -845,19 +1184,23 @@
         // its own trench palette); the bucket only contributes the pattern, so
         // adding a class distinction never recolours an existing map.
         var bPaint = {
-          'line-color': permitMatch
-            || (lineSpec.useBucketColor ? b.color : (opts.fillColor || b.color)),
+          'line-color':
+            permitMatch || (lineSpec.useBucketColor ? b.color : opts.fillColor || b.color),
           'line-width': b.width,
           'line-opacity': clamp01(fillOpacity + 0.2),
         };
         if (b.dash && b.dash.length) bPaint['line-dasharray'] = b.dash;
         map.addLayer({
-          id: b.id, type: 'line', source: sourceId, filter: b.filter, paint: bPaint,
+          id: b.id,
+          type: 'line',
+          source: sourceId,
+          filter: b.filter,
+          paint: bPaint,
           layout: { visibility: visible ? 'visible' : 'none' },
         });
         renderedLayers.push(b.id);
       });
-      fillLayerId = lineBuckets[0].id;   // the primary id for click handling
+      fillLayerId = lineBuckets[0].id; // the primary id for click handling
     } else if (hasLine) {
       var linePaint = {
         'line-color': fillColor,
@@ -880,7 +1223,10 @@
           var val = feat.properties && feat.properties[opts.sublayerField];
           if (!val) return;
           var subColor = LAYER_COLORS.SUBLAYER_COLORS[val] || fillColor;
-          if (!used[val]) { matchColor.push(val, subColor); used[val] = true; }
+          if (!used[val]) {
+            matchColor.push(val, subColor);
+            used[val] = true;
+          }
         });
         if (Object.keys(used).length > 0) {
           matchColor.push(fillColor);
@@ -890,7 +1236,13 @@
       if (palette.lineDash && palette.lineDash.length > 0) {
         linePaint['line-dasharray'] = palette.lineDash;
       }
-      map.addLayer({ id: fillLayerId, type: 'line', source: sourceId, paint: linePaint, layout: { visibility: visible ? 'visible' : 'none' } });
+      map.addLayer({
+        id: fillLayerId,
+        type: 'line',
+        source: sourceId,
+        paint: linePaint,
+        layout: { visibility: visible ? 'visible' : 'none' },
+      });
       renderedLayers.push(fillLayerId);
     }
 
@@ -922,24 +1274,41 @@
           var usedValues = Object.keys(perValue);
           if (usedValues.length) {
             iconImage = ['match', ['get', symSpec.field]];
-            usedValues.forEach(function (raw) { iconImage.push(raw, perValue[raw]); });
+            usedValues.forEach(function (raw) {
+              iconImage.push(raw, perValue[raw]);
+            });
             iconImage.push(defaultIcon);
           }
         }
         map.addLayer({
-          id: pointsLayerId, type: 'symbol', source: sourceId,
+          id: pointsLayerId,
+          type: 'symbol',
+          source: sourceId,
           layout: {
             'icon-image': iconImage,
             'icon-size': symSpec.size !== undefined ? symSpec.size : 1,
-            'icon-allow-overlap': true, 'icon-ignore-placement': true,
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
             visibility: visible ? 'visible' : 'none',
           },
         });
         renderedLayers.push(pointsLayerId);
       } else {
         var pointRadius = palette.pointRadius !== undefined ? palette.pointRadius : 5;
-        var circlePaint = { 'circle-color': typeMatch || fillColor, 'circle-radius': pointRadius, 'circle-opacity': 0.85, 'circle-stroke-color': outlineColor, 'circle-stroke-width': 1 };
-        map.addLayer({ id: pointsLayerId, type: 'circle', source: sourceId, paint: circlePaint, layout: { visibility: visible ? 'visible' : 'none' } });
+        var circlePaint = {
+          'circle-color': typeMatch || fillColor,
+          'circle-radius': pointRadius,
+          'circle-opacity': 0.85,
+          'circle-stroke-color': outlineColor,
+          'circle-stroke-width': 1,
+        };
+        map.addLayer({
+          id: pointsLayerId,
+          type: 'circle',
+          source: sourceId,
+          paint: circlePaint,
+          layout: { visibility: visible ? 'visible' : 'none' },
+        });
         renderedLayers.push(pointsLayerId);
       }
     }
@@ -956,32 +1325,52 @@
         // layer stacked under the cursor fires its own click listener, which
         // made the selection depend on style order — clicking a trench that
         // carries a duct inside it could select the duct instead.
-        if (_identifyActive) { return; }
+        if (_identifyActive) {
+          return;
+        }
 
         var allKeys = Object.keys(props).filter(function (k) {
           return props[k] !== null && props[k] !== undefined;
         });
         var keys = allKeys.slice(0, popupMaxFields);
-        var html = '<div style="font-size:13px;line-height:1.5;max-width:300px;' +
+        var html =
+          '<div style="font-size:13px;line-height:1.5;max-width:300px;' +
           'max-height:320px;overflow-y:auto;">';
         keys.forEach(function (k) {
-          html += '<div><strong>' + escapeHtmlProp(k) + ':</strong> ' + escapeHtmlProp(String(props[k])) + '</div>';
+          html +=
+            '<div><strong>' +
+            escapeHtmlProp(k) +
+            ':</strong> ' +
+            escapeHtmlProp(String(props[k])) +
+            '</div>';
         });
         if (allKeys.length > keys.length) {
-          html += '<div style="margin-top:6px;color:#616A75;">… and ' +
-            (allKeys.length - keys.length) + ' more attribute(s)</div>';
+          html +=
+            '<div style="margin-top:6px;color:#616A75;">… and ' +
+            (allKeys.length - keys.length) +
+            ' more attribute(s)</div>';
         }
         html += '</div>';
-        new maplibregl.Popup({ closeButton: true, maxWidth: '320px' }).setLngLat(coords).setHTML(html).addTo(map);
+        new maplibregl.Popup({ closeButton: true, maxWidth: '320px' })
+          .setLngLat(coords)
+          .setHTML(html)
+          .addTo(map);
       });
-      map.on('mouseenter', lid, function () { map.getCanvas().style.cursor = _identifyActive ? 'crosshair' : 'pointer'; });
-      map.on('mouseleave', lid, function () { map.getCanvas().style.cursor = ''; });
+      map.on('mouseenter', lid, function () {
+        map.getCanvas().style.cursor = _identifyActive ? 'crosshair' : 'pointer';
+      });
+      map.on('mouseleave', lid, function () {
+        map.getCanvas().style.cursor = '';
+      });
     });
 
     _layerParts[layerId] = renderedLayers.slice();
     return {
-      sourceId: sourceId, fillLayerId: fillLayerId, outlineLayerId: outlineLayerId,
-      pointsLayerId: pointsLayerId, parts: renderedLayers.slice(),
+      sourceId: sourceId,
+      fillLayerId: fillLayerId,
+      outlineLayerId: outlineLayerId,
+      pointsLayerId: pointsLayerId,
+      parts: renderedLayers.slice(),
     };
   }
 
@@ -994,7 +1383,10 @@
    */
   function applyZOrder(map) {
     if (!map || !map.getStyle) return;
-    var layers = ((map.getStyle() || {}).layers || []).map(function (l) { return l.id; })
+    var layers = ((map.getStyle() || {}).layers || [])
+      .map(function (l) {
+        return l.id;
+      })
       .filter(function (id) {
         return id.indexOf('ftth-') === 0 && id.indexOf('ftth-highlight-') !== 0;
       });
@@ -1007,8 +1399,14 @@
       else if (id.indexOf('-points-') !== -1) kind = 5;
       return bottom + kind;
     }
-    layers.sort(function (a, b) { return rank(a) - rank(b); });
-    layers.forEach(function (id) { try { map.moveLayer(id); } catch (_e) {} });
+    layers.sort(function (a, b) {
+      return rank(a) - rank(b);
+    });
+    layers.forEach(function (id) {
+      try {
+        map.moveLayer(id);
+      } catch (_e) {}
+    });
   }
 
   function setLayerVisible(map, layerId, visible) {
@@ -1017,16 +1415,24 @@
     var parts = _layerParts[layerId];
     if (parts && parts.length) {
       parts.forEach(function (lid) {
-        if (map.getLayer(lid)) { map.setLayoutProperty(lid, 'visibility', visibility); }
+        if (map.getLayer(lid)) {
+          map.setLayoutProperty(lid, 'visibility', visibility);
+        }
       });
       return;
     }
     var fillLayer = 'ftth-fill-' + layerId;
     var outlineLayer = 'ftth-outline-' + layerId;
     var pointsLayer = 'ftth-points-' + layerId;
-    if (map.getLayer(fillLayer)) { map.setLayoutProperty(fillLayer, 'visibility', visibility); }
-    if (map.getLayer(outlineLayer)) { map.setLayoutProperty(outlineLayer, 'visibility', visibility); }
-    if (map.getLayer(pointsLayer)) { map.setLayoutProperty(pointsLayer, 'visibility', visibility); }
+    if (map.getLayer(fillLayer)) {
+      map.setLayoutProperty(fillLayer, 'visibility', visibility);
+    }
+    if (map.getLayer(outlineLayer)) {
+      map.setLayoutProperty(outlineLayer, 'visibility', visibility);
+    }
+    if (map.getLayer(pointsLayer)) {
+      map.setLayoutProperty(pointsLayer, 'visibility', visibility);
+    }
   }
 
   /**
@@ -1043,15 +1449,21 @@
         _identifyClickHandler = null;
       }
       if (active) {
-        _identifyClickHandler = function (e) { handleIdentifyClick(map, e); };
+        _identifyClickHandler = function (e) {
+          handleIdentifyClick(map, e);
+        };
         map.on('click', _identifyClickHandler);
       }
       map.getCanvas().style.cursor = active ? 'crosshair' : '';
-      if (!active) { clearHighlightLayer(map); }
+      if (!active) {
+        clearHighlightLayer(map);
+      }
     }
   }
 
-  function isIdentifyActive() { return _identifyActive; }
+  function isIdentifyActive() {
+    return _identifyActive;
+  }
 
   /**
    * One identify click for the whole map: resolve the top-most design feature
@@ -1061,18 +1473,28 @@
   function handleIdentifyClick(map, e) {
     if (!_identifyActive || !map) return null;
     var feats = [];
-    try { feats = map.queryRenderedFeatures(e.point) || []; } catch (_) { return null; }
+    try {
+      feats = map.queryRenderedFeatures(e.point) || [];
+    } catch (_) {
+      return null;
+    }
     var styleLayers = (map.getStyle() && map.getStyle().layers) || [];
     var rank = {};
-    for (var i = 0; i < styleLayers.length; i++) { rank[styleLayers[i].id] = i; }
-    var pick = null, pickRank = -1;
+    for (var i = 0; i < styleLayers.length; i++) {
+      rank[styleLayers[i].id] = i;
+    }
+    var pick = null,
+      pickRank = -1;
     for (var j = 0; j < feats.length; j++) {
       var f = feats[j];
       var lid = f && f.layer && f.layer.id;
       if (!lid || lid.indexOf('ftth-highlight-') === 0) continue;
       if (lid.indexOf('ftth-fill-') !== 0 && lid.indexOf('ftth-points-') !== 0) continue;
       var r = rank[lid] === undefined ? 0 : rank[lid];
-      if (r >= pickRank) { pickRank = r; pick = f; }
+      if (r >= pickRank) {
+        pickRank = r;
+        pick = f;
+      }
     }
     if (!pick) return null;
 
@@ -1096,18 +1518,27 @@
       data: { type: 'FeatureCollection', features: [] },
     });
     map.addLayer({
-      id: 'ftth-highlight-fill', type: 'fill', source: 'ftth-highlight-src',
-      paint: { 'fill-color': '#FDE047', 'fill-opacity': 0.40 },
+      id: 'ftth-highlight-fill',
+      type: 'fill',
+      source: 'ftth-highlight-src',
+      paint: { 'fill-color': '#FDE047', 'fill-opacity': 0.4 },
     });
     map.addLayer({
-      id: 'ftth-highlight-line', type: 'line', source: 'ftth-highlight-src',
+      id: 'ftth-highlight-line',
+      type: 'line',
+      source: 'ftth-highlight-src',
       paint: { 'line-color': '#FFD600', 'line-width': 6, 'line-opacity': 0.95 },
     });
     map.addLayer({
-      id: 'ftth-highlight-points', type: 'circle', source: 'ftth-highlight-src',
+      id: 'ftth-highlight-points',
+      type: 'circle',
+      source: 'ftth-highlight-src',
       paint: {
-        'circle-color': '#FFD600', 'circle-radius': 10, 'circle-opacity': 0.95,
-        'circle-stroke-color': '#000000', 'circle-stroke-width': 1.5,
+        'circle-color': '#FFD600',
+        'circle-radius': 10,
+        'circle-opacity': 0.95,
+        'circle-stroke-color': '#000000',
+        'circle-stroke-width': 1.5,
       },
     });
   }
@@ -1119,7 +1550,9 @@
   function highlightFeatureData(map, feature) {
     if (!map || !feature) return;
     var list = Array.isArray(feature) ? feature : [feature];
-    list = list.filter(function (f) { return f && f.geometry; });
+    list = list.filter(function (f) {
+      return f && f.geometry;
+    });
     if (!list.length) return;
     ensureHighlightLayer(map);
     var src = map.getSource('ftth-highlight-src');
@@ -1147,12 +1580,18 @@
         data.features.forEach(function (f) {
           if (f.geometry && f.geometry.coordinates) {
             var bbox = featureBounds(f);
-            if (bbox) { bounds.extend(bbox.getSouthWest()); bounds.extend(bbox.getNorthEast()); hasBounds = true; }
+            if (bbox) {
+              bounds.extend(bbox.getSouthWest());
+              bounds.extend(bbox.getNorthEast());
+              hasBounds = true;
+            }
           }
         });
       }
     });
-    if (hasBounds) { map.fitBounds(bounds, { padding: padding || 40, maxZoom: 18 }); }
+    if (hasBounds) {
+      map.fitBounds(bounds, { padding: padding || 40, maxZoom: 18 });
+    }
   }
 
   // ------------------------------------------------------------------
@@ -1160,7 +1599,11 @@
   // ------------------------------------------------------------------
 
   function escapeHtmlProp(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   function featureBounds(feature) {
@@ -1169,13 +1612,20 @@
     if (!coords || !coords.length) return null;
     var type = feature.geometry.type;
     var points = [];
-    if (type === 'Point') { points = [coords]; }
-    else if (type === 'MultiPoint' || type === 'LineString') { points = coords; }
-    else if (type === 'MultiLineString' || type === 'Polygon') { points = coords[0] || []; }
-    else if (type === 'MultiPolygon') { points = (coords[0] && coords[0][0]) || []; }
+    if (type === 'Point') {
+      points = [coords];
+    } else if (type === 'MultiPoint' || type === 'LineString') {
+      points = coords;
+    } else if (type === 'MultiLineString' || type === 'Polygon') {
+      points = coords[0] || [];
+    } else if (type === 'MultiPolygon') {
+      points = (coords[0] && coords[0][0]) || [];
+    }
     if (!points.length) return null;
     var fBounds = new maplibregl.LngLatBounds();
-    points.forEach(function (p) { if (p.length >= 2) fBounds.extend(p); });
+    points.forEach(function (p) {
+      if (p.length >= 2) fBounds.extend(p);
+    });
     return fBounds;
   }
 
@@ -1185,48 +1635,100 @@
   // ------------------------------------------------------------------
 
   function _legendGlyph(shape, color, size) {
-    var geom = shape === 'ringSquare' ? SHAPE_PATHS.square : (SHAPE_PATHS[shape] || SHAPE_PATHS.circle);
+    var geom =
+      shape === 'ringSquare' ? SHAPE_PATHS.square : SHAPE_PATHS[shape] || SHAPE_PATHS.circle;
     // Same rule as _iconSvg: `circle` and `dot` are SVG elements, not path
     // data. Without this guard the legend emitted <path d="<circle cx=...">
     // — invalid path data, so those legend swatches rendered as nothing
     // while the map markers themselves were fine.
     if (geom.charAt(0) === '<') {
-      return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">'
-        + '<g fill="' + color + '" stroke="#FFFFFF" stroke-width="2.2">'
-        + geom + '</g></svg>';
+      return (
+        '<svg width="' +
+        size +
+        '" height="' +
+        size +
+        '" viewBox="0 0 24 24">' +
+        '<g fill="' +
+        color +
+        '" stroke="#FFFFFF" stroke-width="2.2">' +
+        geom +
+        '</g></svg>'
+      );
     }
     if (shape === 'cross') {
-      return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">'
-        + '<path d="' + geom + '" fill="none" stroke="' + color + '" stroke-width="4" stroke-linecap="round"/></svg>';
+      return (
+        '<svg width="' +
+        size +
+        '" height="' +
+        size +
+        '" viewBox="0 0 24 24">' +
+        '<path d="' +
+        geom +
+        '" fill="none" stroke="' +
+        color +
+        '" stroke-width="4" stroke-linecap="round"/></svg>'
+      );
     }
     var ring = shape === 'ringSquare';
-    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24">'
-      + '<path d="' + geom + '" fill="' + (ring ? '#FFFFFF' : color) + '" stroke="' + (ring ? color : '#FFFFFF') + '" stroke-width="' + (ring ? 3.6 : 2.4) + '" stroke-linejoin="round"/></svg>';
+    return (
+      '<svg width="' +
+      size +
+      '" height="' +
+      size +
+      '" viewBox="0 0 24 24">' +
+      '<path d="' +
+      geom +
+      '" fill="' +
+      (ring ? '#FFFFFF' : color) +
+      '" stroke="' +
+      (ring ? color : '#FFFFFF') +
+      '" stroke-width="' +
+      (ring ? 3.6 : 2.4) +
+      '" stroke-linejoin="round"/></svg>'
+    );
   }
 
   var LEGEND_LABELS = {
-    mfg: 'MFG (exchange)', pdps: 'PDP (splitter)', chambers: 'Chamber',
-    coupleurs: 'Coupler', poles: 'Pole (aerial)', objects: 'Premise / object',
-    premises: 'Premise / object',    trench_nodes: 'Trench node',
-    'aerial_drops': 'Aerial drop', aerial_spans: 'Aerial drop',
-    brownfield: 'Existing infra', trenches: 'Trench', ducts: 'Duct', cables: 'Cable',
+    mfg: 'MFG (exchange)',
+    pdps: 'PDP (splitter)',
+    chambers: 'Chamber',
+    coupleurs: 'Coupler',
+    poles: 'Pole (aerial)',
+    objects: 'Premise / object',
+    premises: 'Premise / object',
+    trench_nodes: 'Trench node',
+    aerial_drops: 'Aerial drop',
+    aerial_spans: 'Aerial drop',
+    brownfield: 'Existing infra',
+    trenches: 'Trench',
+    ducts: 'Duct',
+    cables: 'Cable',
     // Only meaningful for a layer that is SPLIT per tier upstream; the legend
     // lists one row per bucket so the tier colours are explained.
-    feeder_ducts: 'Duct', distribution_ducts: 'Duct', drop_ducts: 'Duct',
-    feeder_cable: 'Cable', distribution_cable: 'Cable', drop_cable: 'Cable',
+    feeder_ducts: 'Duct',
+    distribution_ducts: 'Duct',
+    drop_ducts: 'Duct',
+    feeder_cable: 'Cable',
+    distribution_cable: 'Cable',
+    drop_cable: 'Cable',
   };
   // Only the trench line rows are worth legend space: ducts and cables keep the
   // colours their layer toggles already show a dot for.
   var LEGEND_LINE_KEYS = ['trenches', 'ducts', 'cables'];
 
   function legendSpec() {
-    var icons = [], lines = [];
+    var icons = [],
+      lines = [];
     var seenLabel = {};
     Object.keys(SYMBOL_SPEC).forEach(function (key) {
       var s = SYMBOL_SPEC[key];
       if (s.values) {
         Object.keys(s.values).forEach(function (v) {
-          icons.push({ label: (LEGEND_LABELS[key] || key) + ' — ' + v, shape: s.values[v].shape, color: s.values[v].color });
+          icons.push({
+            label: (LEGEND_LABELS[key] || key) + ' — ' + v,
+            shape: s.values[v].shape,
+            color: s.values[v].color,
+          });
         });
       }
       // One row per component, not per spec alias: `objects` and `premises`
@@ -1239,7 +1741,12 @@
     LEGEND_LINE_KEYS.forEach(function (key) {
       if (!LINE_SPEC[key]) return;
       LINE_SPEC[key].buckets.forEach(function (b) {
-        lines.push({ label: (LEGEND_LABELS[key] || key) + ' — ' + b.value, color: b.color, width: b.width, dash: b.dash });
+        lines.push({
+          label: (LEGEND_LABELS[key] || key) + ' — ' + b.value,
+          color: b.color,
+          width: b.width,
+          dash: b.dash,
+        });
       });
     });
     return { icons: icons, lines: lines };
@@ -1250,18 +1757,30 @@
     var spec = legendSpec();
     var html = '<div class="ftth-legend-group"><div class="ftth-legend-title">Components</div>';
     spec.icons.forEach(function (it) {
-      html += '<div class="ftth-legend-row"><span class="ftth-legend-swatch">'
-        + _legendGlyph(it.shape, it.color, 18) + '</span><span class="ftth-legend-label">'
-        + escapeHtmlProp(it.label) + '</span></div>';
+      html +=
+        '<div class="ftth-legend-row"><span class="ftth-legend-swatch">' +
+        _legendGlyph(it.shape, it.color, 18) +
+        '</span><span class="ftth-legend-label">' +
+        escapeHtmlProp(it.label) +
+        '</span></div>';
     });
-    html += '</div><div class="ftth-legend-group"><div class="ftth-legend-title">Trench class (stroke pattern)</div>';
+    html +=
+      '</div><div class="ftth-legend-group"><div class="ftth-legend-title">Trench class (stroke pattern)</div>';
     spec.lines.forEach(function (it) {
-      var dash = (it.dash && it.dash.length) ? ' stroke-dasharray="' + it.dash.join(' ') + '"' : '';
+      var dash = it.dash && it.dash.length ? ' stroke-dasharray="' + it.dash.join(' ') + '"' : '';
       var w = Math.max(3, Math.min(7, it.width));
-      html += '<div class="ftth-legend-row"><span class="ftth-legend-swatch">'
-        + '<svg width="26" height="10" viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="'
-        + it.color + '" stroke-width="' + w + '" stroke-linecap="round"' + dash + '/></svg>'
-        + '</span><span class="ftth-legend-label">' + escapeHtmlProp(it.label) + '</span></div>';
+      html +=
+        '<div class="ftth-legend-row"><span class="ftth-legend-swatch">' +
+        '<svg width="26" height="10" viewBox="0 0 26 10"><line x1="1" y1="5" x2="25" y2="5" stroke="' +
+        it.color +
+        '" stroke-width="' +
+        w +
+        '" stroke-linecap="round"' +
+        dash +
+        '/></svg>' +
+        '</span><span class="ftth-legend-label">' +
+        escapeHtmlProp(it.label) +
+        '</span></div>';
     });
     return html + '</div>';
   }
@@ -1296,7 +1815,11 @@
       params.ellipsoid = UTM_ELLIPSOIDS.wgs84;
       params.south = true;
     }
-    if (!(params.zone >= 1 && params.zone <= 60)) { params.zone = 33; params.ellipsoid = UTM_ELLIPSOIDS.etrs89; params.south = false; }
+    if (!(params.zone >= 1 && params.zone <= 60)) {
+      params.zone = 33;
+      params.ellipsoid = UTM_ELLIPSOIDS.etrs89;
+      params.south = false;
+    }
     return params;
   }
 
@@ -1308,30 +1831,47 @@
    */
   function utmForward(lng, lat, crs) {
     var p = _utmParams(crs);
-    var a = p.ellipsoid.a, f = p.ellipsoid.f;
+    var a = p.ellipsoid.a,
+      f = p.ellipsoid.f;
     var e2 = f * (2 - f);
     var ep2 = e2 / (1 - e2);
     var k0 = 0.9996;
     var rad = Math.PI / 180;
     var lon0 = (p.zone * 6 - 183) * rad;
-    var phi = Number(lat) * rad, lam = Number(lng) * rad;
-    var sinPhi = Math.sin(phi), cosPhi = Math.cos(phi), tanPhi = Math.tan(phi);
+    var phi = Number(lat) * rad,
+      lam = Number(lng) * rad;
+    var sinPhi = Math.sin(phi),
+      cosPhi = Math.cos(phi),
+      tanPhi = Math.tan(phi);
     var n = a / Math.sqrt(1 - e2 * sinPhi * sinPhi);
     var t = tanPhi * tanPhi;
     var c = ep2 * cosPhi * cosPhi;
     var A = cosPhi * (lam - lon0);
     var A2 = A * A;
-    var M = a * ((1 - e2 / 4 - (3 * e2 * e2) / 64 - (5 * e2 * e2 * e2) / 256) * phi
-      - ((3 * e2) / 8 + (3 * e2 * e2) / 32 + (45 * e2 * e2 * e2) / 1024) * Math.sin(2 * phi)
-      + ((15 * e2 * e2) / 256 + (45 * e2 * e2 * e2) / 1024) * Math.sin(4 * phi)
-      - ((35 * e2 * e2 * e2) / 3072) * Math.sin(6 * phi));
-    var prefix = p.south ? 32700 : (p.ellipsoid === UTM_ELLIPSOIDS.etrs89 ? 25800 : 32600);
+    var M =
+      a *
+      ((1 - e2 / 4 - (3 * e2 * e2) / 64 - (5 * e2 * e2 * e2) / 256) * phi -
+        ((3 * e2) / 8 + (3 * e2 * e2) / 32 + (45 * e2 * e2 * e2) / 1024) * Math.sin(2 * phi) +
+        ((15 * e2 * e2) / 256 + (45 * e2 * e2 * e2) / 1024) * Math.sin(4 * phi) -
+        ((35 * e2 * e2 * e2) / 3072) * Math.sin(6 * phi));
+    var prefix = p.south ? 32700 : p.ellipsoid === UTM_ELLIPSOIDS.etrs89 ? 25800 : 32600;
     return {
-      easting: 500000 + k0 * n * (A + ((1 - t + c) * A2 * A) / 6
-        + ((5 - 18 * t + t * t + 72 * c - 58 * ep2) * A2 * A2 * A) / 120),
-      northing: (p.south ? 10000000 : 0) + k0 * (M + n * tanPhi * (A2 / 2
-        + ((5 - t + 9 * c + 4 * c * c) * A2 * A2) / 24
-        + ((61 - 58 * t + t * t + 600 * c - 330 * ep2) * A2 * A2 * A2) / 720)),
+      easting:
+        500000 +
+        k0 *
+          n *
+          (A +
+            ((1 - t + c) * A2 * A) / 6 +
+            ((5 - 18 * t + t * t + 72 * c - 58 * ep2) * A2 * A2 * A) / 120),
+      northing:
+        (p.south ? 10000000 : 0) +
+        k0 *
+          (M +
+            n *
+              tanPhi *
+              (A2 / 2 +
+                ((5 - t + 9 * c + 4 * c * c) * A2 * A2) / 24 +
+                ((61 - 58 * t + t * t + 600 * c - 330 * ep2) * A2 * A2 * A2) / 720)),
       crs: 'EPSG:' + (prefix + p.zone),
     };
   }
@@ -1347,7 +1887,8 @@
    */
   function utmInverse(easting, northing, crs) {
     var p = _utmParams(crs);
-    var a = p.ellipsoid.a, f = p.ellipsoid.f;
+    var a = p.ellipsoid.a,
+      f = p.ellipsoid.f;
     var e2 = f * (2 - f);
     var ep2 = e2 / (1 - e2);
     var k0 = 0.9996;
@@ -1356,24 +1897,35 @@
     var M = y / k0;
     var mu = M / (a * (1 - e2 / 4 - (3 * e2 * e2) / 64 - (5 * e2 * e2 * e2) / 256));
     var e1 = (1 - Math.sqrt(1 - e2)) / (1 + Math.sqrt(1 - e2));
-    var phi1 = mu
-      + ((3 * e1) / 2 - (27 * e1 * e1 * e1) / 32) * Math.sin(2 * mu)
-      + ((21 * e1 * e1) / 16 - (55 * e1 * e1 * e1 * e1) / 32) * Math.sin(4 * mu)
-      + ((151 * e1 * e1 * e1) / 96) * Math.sin(6 * mu);
-    var sinPhi1 = Math.sin(phi1), cosPhi1 = Math.cos(phi1), tanPhi1 = Math.tan(phi1);
+    var phi1 =
+      mu +
+      ((3 * e1) / 2 - (27 * e1 * e1 * e1) / 32) * Math.sin(2 * mu) +
+      ((21 * e1 * e1) / 16 - (55 * e1 * e1 * e1 * e1) / 32) * Math.sin(4 * mu) +
+      ((151 * e1 * e1 * e1) / 96) * Math.sin(6 * mu);
+    var sinPhi1 = Math.sin(phi1),
+      cosPhi1 = Math.cos(phi1),
+      tanPhi1 = Math.tan(phi1);
     var n1 = a / Math.sqrt(1 - e2 * sinPhi1 * sinPhi1);
     var t1 = tanPhi1 * tanPhi1;
     var c1 = ep2 * cosPhi1 * cosPhi1;
     var r1 = (a * (1 - e2)) / Math.pow(1 - e2 * sinPhi1 * sinPhi1, 1.5);
     var d = x / (n1 * k0);
-    var d2 = d * d, d3 = d2 * d, d4 = d2 * d2, d5 = d4 * d, d6 = d4 * d2;
-    var lat = phi1 - ((n1 * tanPhi1) / r1)
-      * (d2 / 2
-        - ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * ep2) * d4) / 24
-        + ((61 + 90 * t1 + 298 * c1 + 45 * t1 * t1 - 252 * ep2 - 3 * c1 * c1) * d6) / 720);
-    var lng = (d
-      - ((1 + 2 * t1 + c1) * d3) / 6
-      + ((5 - 2 * c1 + 28 * t1 - 3 * c1 * c1 + 8 * ep2 + 24 * t1 * t1) * d5) / 120) / cosPhi1;
+    var d2 = d * d,
+      d3 = d2 * d,
+      d4 = d2 * d2,
+      d5 = d4 * d,
+      d6 = d4 * d2;
+    var lat =
+      phi1 -
+      ((n1 * tanPhi1) / r1) *
+        (d2 / 2 -
+          ((5 + 3 * t1 + 10 * c1 - 4 * c1 * c1 - 9 * ep2) * d4) / 24 +
+          ((61 + 90 * t1 + 298 * c1 + 45 * t1 * t1 - 252 * ep2 - 3 * c1 * c1) * d6) / 720);
+    var lng =
+      (d -
+        ((1 + 2 * t1 + c1) * d3) / 6 +
+        ((5 - 2 * c1 + 28 * t1 - 3 * c1 * c1 + 8 * ep2 + 24 * t1 * t1) * d5) / 120) /
+      cosPhi1;
     var lon0 = (p.zone * 6 - 183) * (Math.PI / 180);
     return { lng: (lon0 + lng) * (180 / Math.PI), lat: lat * (180 / Math.PI) };
   }
@@ -1388,7 +1940,8 @@
    * frame the map on NaN.
    */
   function toLngLat(x, y, crs) {
-    x = Number(x); y = Number(y);
+    x = Number(x);
+    y = Number(y);
     if (!isFinite(x) || !isFinite(y)) return null;
     var code = String(crs == null ? '' : crs).replace(/[^0-9]/g, '');
     var geographic = code === '' || code === '4326' || code === '4258' || code === '4269';
@@ -1405,11 +1958,17 @@
     var rad = Math.PI / 180;
     for (var i = 0; i < 4; i++) {
       var f = utmForward(ll.lng, ll.lat, crs);
-      var dE = x - f.easting, dN = y - f.northing;
+      var dE = x - f.easting,
+        dN = y - f.northing;
       if (Math.abs(dE) < 1e-4 && Math.abs(dN) < 1e-4) break;
       var phi = ll.lat * rad;
-      var mPerDegLat = 111132.92 - 559.82 * Math.cos(2 * phi) + 1.175 * Math.cos(4 * phi) - 0.0023 * Math.cos(6 * phi);
-      var mPerDegLng = 111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi) + 0.118 * Math.cos(5 * phi);
+      var mPerDegLat =
+        111132.92 -
+        559.82 * Math.cos(2 * phi) +
+        1.175 * Math.cos(4 * phi) -
+        0.0023 * Math.cos(6 * phi);
+      var mPerDegLng =
+        111412.84 * Math.cos(phi) - 93.5 * Math.cos(3 * phi) + 0.118 * Math.cos(5 * phi);
       if (!mPerDegLng) break;
       ll = { lng: ll.lng + dE / mPerDegLng, lat: ll.lat + dN / mPerDegLat };
     }
@@ -1434,7 +1993,8 @@
     highlightFeatureData(map, feature);
     var maxZoom = opts.maxZoom == null ? 18 : opts.maxZoom;
     var duration = opts.duration == null ? 700 : opts.duration;
-    var sw = bounds.getSouthWest(), ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest(),
+      ne = bounds.getNorthEast();
     if (Math.abs(ne.lng - sw.lng) < 1e-9 && Math.abs(ne.lat - sw.lat) < 1e-9) {
       map.easeTo({ center: [sw.lng, sw.lat], zoom: maxZoom, duration: duration });
     } else {
@@ -1468,12 +2028,16 @@
     var decimals = Number(opts.decimals) >= 0 ? Number(opts.decimals) : 5;
     var emptyText = opts.emptyText || 'Hover the map for coordinates';
     var last = null;
-    function fmt(v) { return Number(v).toFixed(decimals); }
+    function fmt(v) {
+      return Number(v).toFixed(decimals);
+    }
     function describe(ll) {
       var lines = [];
-      lines.push(opts.labels === false
-        ? fmt(ll.lng) + ', ' + fmt(ll.lat)
-        : 'x ' + fmt(ll.lng) + '  \u00b7  y ' + fmt(ll.lat));
+      lines.push(
+        opts.labels === false
+          ? fmt(ll.lng) + ', ' + fmt(ll.lat)
+          : 'x ' + fmt(ll.lng) + '  \u00b7  y ' + fmt(ll.lat)
+      );
       if (opts.projected !== false) {
         var p = utmForward(ll.lng, ll.lat, opts.crs);
         lines.push('E ' + p.easting.toFixed(2) + '  \u00b7  N ' + p.northing.toFixed(2));
@@ -1485,18 +2049,26 @@
       if (!ll) return;
       last = { lng: Number(ll.lng), lat: Number(ll.lat) };
       el.textContent = describe(last);
-      if (typeof opts.onMove === 'function') { opts.onMove(last); }
+      if (typeof opts.onMove === 'function') {
+        opts.onMove(last);
+      }
     }
     function onLeave() {
-      if (opts.clearOnLeave !== false) { el.textContent = emptyText; }
+      if (opts.clearOnLeave !== false) {
+        el.textContent = emptyText;
+      }
     }
     map.on('mousemove', onMove);
     map.on('mouseout', onLeave);
     el.textContent = emptyText;
     return {
       el: el,
-      lastLngLat: function () { return last; },
-      setActive: function (active) { el.classList.toggle('ftth-coord-readout-active', !!active); },
+      lastLngLat: function () {
+        return last;
+      },
+      setActive: function (active) {
+        el.classList.toggle('ftth-coord-readout-active', !!active);
+      },
       detach: function () {
         map.off('mousemove', onMove);
         map.off('mouseout', onLeave);
@@ -1518,12 +2090,18 @@
     // A page that rebuilds its map (feature review does) would otherwise stack
     // one pill per rebuild inside the same reused container.
     var stale = host.getElementsByClassName('ftth-coord-readout');
-    while (stale.length) { stale[0].parentNode.removeChild(stale[0]); }
+    while (stale.length) {
+      stale[0].parentNode.removeChild(stale[0]);
+    }
     var el = document.createElement('div');
     el.className = 'ftth-coord-readout';
     el.id = opts.id || 'coordReadout';
-    el.title = opts.title || ('Pointer position \u2014 WGS84 longitude (x) / latitude (y)'
-      + (opts.projected === false ? '' : ' and ' + (opts.crs || 'EPSG:25833') + ' easting (E) / northing (N)'));
+    el.title =
+      opts.title ||
+      'Pointer position \u2014 WGS84 longitude (x) / latitude (y)' +
+        (opts.projected === false
+          ? ''
+          : ' and ' + (opts.crs || 'EPSG:25833') + ' easting (E) / northing (N)');
     host.appendChild(el);
     return attachCoordinateReadout(map, el, opts);
   }
@@ -1533,17 +2111,30 @@
   // ------------------------------------------------------------------
 
   window.FtthMap = {
-    initMap: initMap, getMap: getMap, addGeoJSONLayer: addGeoJSONLayer,
-    attachCoordinateReadout: attachCoordinateReadout, mountCoordinateReadout: mountCoordinateReadout,
-    utmForward: utmForward, utmInverse: utmInverse, toLngLat: toLngLat,
+    initMap: initMap,
+    getMap: getMap,
+    addGeoJSONLayer: addGeoJSONLayer,
+    attachCoordinateReadout: attachCoordinateReadout,
+    mountCoordinateReadout: mountCoordinateReadout,
+    utmForward: utmForward,
+    utmInverse: utmInverse,
+    toLngLat: toLngLat,
     fitToLngLatGeometry: fitToLngLatGeometry,
-    setLayerVisible: setLayerVisible, fitToLayers: fitToLayers,
-    getBaseStyles: getBaseStyles, setBaseStyle: setBaseStyle,
+    setLayerVisible: setLayerVisible,
+    fitToLayers: fitToLayers,
+    getBaseStyles: getBaseStyles,
+    setBaseStyle: setBaseStyle,
     SUBLAYER_COLORS: LAYER_COLORS.SUBLAYER_COLORS,
-    setIdentifyActive: setIdentifyActive, isIdentifyActive: isIdentifyActive,
-    highlightFeature: highlightFeatureData, clearHighlight: clearHighlightLayer,
-    resolveFullFeatures: resolveFullFeatures, identifyClick: handleIdentifyClick,
-    applyZOrder: applyZOrder, legendHTML: legendHTML, legendSpec: legendSpec,
-    SYMBOL_SPEC: SYMBOL_SPEC, LINE_SPEC: LINE_SPEC,
+    setIdentifyActive: setIdentifyActive,
+    isIdentifyActive: isIdentifyActive,
+    highlightFeature: highlightFeatureData,
+    clearHighlight: clearHighlightLayer,
+    resolveFullFeatures: resolveFullFeatures,
+    identifyClick: handleIdentifyClick,
+    applyZOrder: applyZOrder,
+    legendHTML: legendHTML,
+    legendSpec: legendSpec,
+    SYMBOL_SPEC: SYMBOL_SPEC,
+    LINE_SPEC: LINE_SPEC,
   };
 })();

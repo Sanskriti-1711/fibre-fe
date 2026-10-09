@@ -1,0 +1,16 @@
+vendor/
+node_modules/
+package-lock.json
+.git/
+ci/
+*.min.js
+replace_*.js
+temp_queue.js
+check_*.js
+clean_*.js
+fix_*.js
+extract_*.js
+fiber-api.js
+eslint.config.js
+.stylelintrc.json
+engineer-activity.html

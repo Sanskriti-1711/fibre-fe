@@ -1,583 +1,608 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Engineer Feature Submit</title>
-<script src="../js/ftth-ui.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js" defer></script>
-  <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="../css/components.css">
-</head>
-<body class="engineer-feature-submit">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Engineer Feature Submit</title>
+    <script src="../js/ftth-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js" defer></script>
+    <link rel="stylesheet" href="../css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+  </head>
+  <body class="engineer-feature-submit">
+    <div class="layout">
+      <main class="content">
+        <div class="container">
+          <div class="hero">
+            <h1>Capture In The Field</h1>
+            <p>Upload evidence, capture GPS, add measurements, and submit for compliance results.</p>
+            <div class="storyline">
+              <div class="storyline-item">
+                <span class="storyline-dot"></span><span>Feature selected from Project Details</span>
+              </div>
+              <div class="storyline-item">
+                <span class="storyline-dot"></span><span>Upload photo/video and read GPS from image</span>
+              </div>
+              <div class="storyline-item">
+                <span class="storyline-dot"></span
+                ><span>Confirm measurements, submit, and wait for Pass or Review</span>
+              </div>
+            </div>
+          </div>
 
-<div class="layout">
+          <div class="grid">
+            <div>
+              <div class="card">
+                <div class="section-title"><span class="step">1</span>Feature Summary</div>
+                <label>Assigned Project</label>
+                <input id="projectName" type="text" placeholder="--" readonly />
 
-  <main class="content">
-    <div class="container">
-      <div class="hero">
-        <h1>Capture In The Field</h1>
-        <p>Upload evidence, capture GPS, add measurements, and submit for compliance results.</p>
-        <div class="storyline">
-          <div class="storyline-item"><span class="storyline-dot"></span><span>Feature selected from Project Details</span></div>
-          <div class="storyline-item"><span class="storyline-dot"></span><span>Upload photo/video and read GPS from image</span></div>
-          <div class="storyline-item"><span class="storyline-dot"></span><span>Confirm measurements, submit, and wait for Pass or Review</span></div>
+                <label>Selected Feature</label>
+                <input id="featureName" type="text" placeholder="--" readonly />
+
+                <div class="row">
+                  <div>
+                    <label>Feature Type</label>
+                    <input id="featureTypeInput" type="text" placeholder="--" readonly />
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="section-title"><span class="step">2</span>Upload Evidence + Geo Tags</div>
+                <div class="pill">We prioritize GPS from image metadata. Browser location is the fallback.</div>
+                <label>Upload Image</label>
+                <input id="fileUpload" type="file" accept="image/*" onchange="handleMediaUpload(event)" />
+                <div class="geo-status">Only images are accepted. Upload or capture in the field.</div>
+
+                <div class="geo-status">Live camera preview is available below for quick captures.</div>
+                <div class="camera-preview">
+                  <video id="liveVideo" autoplay playsinline muted></video>
+                  <canvas id="snapshotCanvas" style="display: none"></canvas>
+                </div>
+                <div class="geo-actions">
+                  <button class="btn btn-ghost" type="button" onclick="startLiveCamera()">Start Camera</button>
+                  <button class="btn btn-ghost" type="button" onclick="stopLiveCamera()">Stop Camera</button>
+                  <button class="btn btn-ghost" type="button" onclick="captureSnapshot()">Capture Frame</button>
+                </div>
+                <div id="cameraStatus" class="geo-status">Camera is idle.</div>
+                <div id="uploadPreview" class="upload-preview" style="display: none">
+                  <img id="uploadPreviewImg" alt="Uploaded preview" />
+                  <div class="upload-meta">
+                    <span id="uploadMetaText">No file selected.</span>
+                    <button class="btn btn-ghost" type="button" onclick="clearUploadedImage()">Remove</button>
+                  </div>
+                </div>
+
+                <div class="map-preview">Geo tag preview</div>
+
+                <div class="row">
+                  <div>
+                    <label>Latitude</label>
+                    <input id="lat" type="text" placeholder="--" />
+                  </div>
+                  <div>
+                    <label>Longitude</label>
+                    <input id="lng" type="text" placeholder="--" />
+                  </div>
+                </div>
+
+                <div class="geo-actions">
+                  <button class="btn btn-ghost" type="button" onclick="getLocation()">Use Current Location</button>
+                  <button class="btn btn-ghost" type="button" onclick="clearLocation()">Clear</button>
+                </div>
+                <div id="geoStatus" class="geo-status">Waiting for image GPS.</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="card">
+                <div class="section-title"><span class="step">4</span>Measurement</div>
+                <label>Measurement</label>
+                <!-- Manual measurements required until AI is available. -->
+                <div id="measurementModeRow" class="row" style="display: none">
+                  <div>
+                    <label>Measurement Mode</label>
+                    <select id="measurementMode" onchange="handleMeasurementModeChange()"></select>
+                  </div>
+                </div>
+                <div id="engFields"></div>
+                <div class="geo-status">Enter measurements captured on site. Submit to send for review.</div>
+
+                <label>Notes</label>
+                <textarea placeholder="Add any observations or issues"></textarea>
+              </div>
+
+              <div class="card">
+                <div class="section-title"><span class="step">5</span>Submit + Compliance Result</div>
+                <button class="btn btn-primary" type="button" onclick="submitFeature()">Submit Feature</button>
+                <div id="submitStatus" class="geo-status">Status will update after submission.</div>
+                <div class="geo-status">
+                  <span class="success">Tip:</span> Ensure the pole base and tag number are visible.
+                </div>
+
+                <div class="result-card" style="margin-top: 12px">
+                  <h3>Compliance Platform</h3>
+                  <div id="complianceStatus" class="result-status">Awaiting submission.</div>
+                  <div class="result-meta" id="complianceMeta">Upload evidence to receive Pass or Review.</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div class="grid">
-        <div>
-          <div class="card">
-            <div class="section-title"><span class="step">1</span>Feature Summary</div>
-            <label>Assigned Project</label>
-            <input id="projectName" type="text" placeholder="--" readonly />
-
-            <label>Selected Feature</label>
-            <input id="featureName" type="text" placeholder="--" readonly />
-
-            <div class="row">
-              <div>
-                <label>Feature Type</label>
-                <input id="featureTypeInput" type="text" placeholder="--" readonly />
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="section-title"><span class="step">2</span>Upload Evidence + Geo Tags</div>
-            <div class="pill">We prioritize GPS from image metadata. Browser location is the fallback.</div>
-            <label>Upload Image</label>
-            <input id="fileUpload" type="file" accept="image/*" onchange="handleMediaUpload(event)" />
-            <div class="geo-status">Only images are accepted. Upload or capture in the field.</div>
-
-            <div class="geo-status">Live camera preview is available below for quick captures.</div>
-            <div class="camera-preview">
-              <video id="liveVideo" autoplay playsinline muted></video>
-              <canvas id="snapshotCanvas" style="display:none;"></canvas>
-            </div>
-            <div class="geo-actions">
-              <button class="btn btn-ghost" type="button" onclick="startLiveCamera()">Start Camera</button>
-              <button class="btn btn-ghost" type="button" onclick="stopLiveCamera()">Stop Camera</button>
-              <button class="btn btn-ghost" type="button" onclick="captureSnapshot()">Capture Frame</button>
-            </div>
-            <div id="cameraStatus" class="geo-status">Camera is idle.</div>
-            <div id="uploadPreview" class="upload-preview" style="display:none;">
-              <img id="uploadPreviewImg" alt="Uploaded preview" />
-              <div class="upload-meta">
-                <span id="uploadMetaText">No file selected.</span>
-                <button class="btn btn-ghost" type="button" onclick="clearUploadedImage()">Remove</button>
-              </div>
-            </div>
-
-            <div class="map-preview">Geo tag preview</div>
-
-            <div class="row">
-              <div>
-                <label>Latitude</label>
-                <input id="lat" type="text" placeholder="--" />
-              </div>
-              <div>
-                <label>Longitude</label>
-                <input id="lng" type="text" placeholder="--" />
-              </div>
-            </div>
-
-            <div class="geo-actions">
-              <button class="btn btn-ghost" type="button" onclick="getLocation()">Use Current Location</button>
-              <button class="btn btn-ghost" type="button" onclick="clearLocation()">Clear</button>
-            </div>
-            <div id="geoStatus" class="geo-status">Waiting for image GPS.</div>
-          </div>
-        </div>
-
-        <div>
-          <div class="card">
-            <div class="section-title"><span class="step">4</span>Measurement</div>
-            <label>Measurement</label>
-            <!-- Manual measurements required until AI is available. -->
-            <div id="measurementModeRow" class="row" style="display:none;">
-              <div>
-                <label>Measurement Mode</label>
-                <select id="measurementMode" onchange="handleMeasurementModeChange()"></select>
-              </div>
-            </div>
-            <div id="engFields"></div>
-            <div class="geo-status">Enter measurements captured on site. Submit to send for review.</div>
-
-            <label>Notes</label>
-            <textarea placeholder="Add any observations or issues"></textarea>
-          </div>
-
-          <div class="card">
-            <div class="section-title"><span class="step">5</span>Submit + Compliance Result</div>
-            <button class="btn btn-primary" type="button" onclick="submitFeature()">Submit Feature</button>
-            <div id="submitStatus" class="geo-status">Status will update after submission.</div>
-            <div class="geo-status"><span class="success">Tip:</span> Ensure the pole base and tag number are visible.</div>
-
-            <div class="result-card" style="margin-top:12px;">
-              <h3>Compliance Platform</h3>
-              <div id="complianceStatus" class="result-status">Awaiting submission.</div>
-              <div class="result-meta" id="complianceMeta">Upload evidence to receive Pass or Review.</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
-  </main>
-</div>
 
-<script src="js/fiber-api.js"></script>
-<script src="js/api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
+    <script src="js/fiber-api.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-  function setGeoStatus(message) {
-    document.getElementById('geoStatus').textContent = message;
-  }
+      function setGeoStatus(message) {
+        document.getElementById('geoStatus').textContent = message;
+      }
 
-  var hasImageGps = false;
-  var fallbackLocation = null;
-  var currentUpload = null;
+      var hasImageGps = false;
+      var fallbackLocation = null;
+      var currentUpload = null;
 
-  function handleMediaUpload(event, fileOverride) {
-    var file = fileOverride || (event && event.target && event.target.files ? event.target.files[0] : null);
-    if (!file) return;
-    currentUpload = file;
-    renderUploadPreview(file);
-    setGeoStatus('Reading GPS from image metadata...');
-    extractImageGps(file);
-  }
+      function handleMediaUpload(event, fileOverride) {
+        var file = fileOverride || (event && event.target && event.target.files ? event.target.files[0] : null);
+        if (!file) return;
+        currentUpload = file;
+        renderUploadPreview(file);
+        setGeoStatus('Reading GPS from image metadata...');
+        extractImageGps(file);
+      }
 
-  function extractImageGps(file) {
-    if (!window.EXIF) {
-      hasImageGps = false;
-      setGeoStatus('EXIF parser unavailable. Using browser location if available.');
-      if (fallbackLocation) setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
-      return;
-    }
-
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      var img = new Image();
-      img.onload = function () {
-        EXIF.getData(img, function () {
-          var lat = EXIF.getTag(this, 'GPSLatitude');
-          var latRef = EXIF.getTag(this, 'GPSLatitudeRef');
-          var lng = EXIF.getTag(this, 'GPSLongitude');
-          var lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
-
-          if (lat && lng && latRef && lngRef) {
-            var decLat = gpsToDecimal(lat, latRef);
-            var decLng = gpsToDecimal(lng, lngRef);
-            hasImageGps = true;
-            setLatLng(decLat, decLng, 'image');
-            return;
-          }
-
+      function extractImageGps(file) {
+        if (!window.EXIF) {
           hasImageGps = false;
-          setGeoStatus('No GPS in image. Using browser location if available.');
-          if (fallbackLocation) {
-            setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+          setGeoStatus('EXIF parser unavailable. Using browser location if available.');
+          if (fallbackLocation) setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var img = new Image();
+          img.onload = function () {
+            EXIF.getData(img, function () {
+              var lat = EXIF.getTag(this, 'GPSLatitude');
+              var latRef = EXIF.getTag(this, 'GPSLatitudeRef');
+              var lng = EXIF.getTag(this, 'GPSLongitude');
+              var lngRef = EXIF.getTag(this, 'GPSLongitudeRef');
+
+              if (lat && lng && latRef && lngRef) {
+                var decLat = gpsToDecimal(lat, latRef);
+                var decLng = gpsToDecimal(lng, lngRef);
+                hasImageGps = true;
+                setLatLng(decLat, decLng, 'image');
+                return;
+              }
+
+              hasImageGps = false;
+              setGeoStatus('No GPS in image. Using browser location if available.');
+              if (fallbackLocation) {
+                setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+              }
+            });
+          };
+          img.onerror = function () {
+            hasImageGps = false;
+            setGeoStatus('Unable to read image metadata. Using browser location if available.');
+            if (fallbackLocation) setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function gpsToDecimal(gpsArray, ref) {
+        var d = gpsArray[0];
+        var m = gpsArray[1];
+        var s = gpsArray[2];
+        var dec = d + m / 60 + s / 3600;
+        if (ref === 'S' || ref === 'W') dec = -dec;
+        return dec;
+      }
+
+      function renderUploadPreview(file) {
+        var preview = document.getElementById('uploadPreview');
+        var img = document.getElementById('uploadPreviewImg');
+        var meta = document.getElementById('uploadMetaText');
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          img.src = e.target.result;
+          preview.style.display = 'block';
+          meta.textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function clearUploadedImage() {
+        currentUpload = null;
+        document.getElementById('fileUpload').value = '';
+        document.getElementById('uploadPreview').style.display = 'none';
+        document.getElementById('uploadPreviewImg').src = '';
+        document.getElementById('uploadMetaText').textContent = 'No file selected.';
+        setGeoStatus('Waiting for image GPS.');
+      }
+
+      function setLatLng(lat, lng, source) {
+        document.getElementById('lat').value = lat.toFixed(6);
+        document.getElementById('lng').value = lng.toFixed(6);
+        if (source === 'image') {
+          hasImageGps = true;
+          setGeoStatus('Geo tag read from image metadata.');
+        } else if (source === 'browser') {
+          if (!hasImageGps) {
+            setGeoStatus('Geo tag captured from browser location.');
           }
-        });
-      };
-      img.onerror = function () {
-        hasImageGps = false;
-        setGeoStatus('Unable to read image metadata. Using browser location if available.');
-        if (fallbackLocation) setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function gpsToDecimal(gpsArray, ref) {
-    var d = gpsArray[0];
-    var m = gpsArray[1];
-    var s = gpsArray[2];
-    var dec = d + (m / 60) + (s / 3600);
-    if (ref === 'S' || ref === 'W') dec = -dec;
-    return dec;
-  }
-
-  function renderUploadPreview(file) {
-    var preview = document.getElementById('uploadPreview');
-    var img = document.getElementById('uploadPreviewImg');
-    var meta = document.getElementById('uploadMetaText');
-
-    var reader = new FileReader();
-    reader.onload = function (e) {
-      img.src = e.target.result;
-      preview.style.display = 'block';
-      meta.textContent = file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function clearUploadedImage() {
-    currentUpload = null;
-    document.getElementById('fileUpload').value = '';
-    document.getElementById('uploadPreview').style.display = 'none';
-    document.getElementById('uploadPreviewImg').src = '';
-    document.getElementById('uploadMetaText').textContent = 'No file selected.';
-    setGeoStatus('Waiting for image GPS.');
-  }
-
-  function setLatLng(lat, lng, source) {
-    document.getElementById('lat').value = lat.toFixed(6);
-    document.getElementById('lng').value = lng.toFixed(6);
-    if (source === 'image') {
-      hasImageGps = true;
-      setGeoStatus('Geo tag read from image metadata.');
-    } else if (source === 'browser') {
-      if (!hasImageGps) {
-        setGeoStatus('Geo tag captured from browser location.');
-      }
-    }
-  }
-
-  function getLocation(quiet) {
-    if (!navigator.geolocation) {
-      setGeoStatus('Geolocation not supported on this device.');
-      return;
-    }
-
-    if (!quiet) {
-      setGeoStatus('Fetching location...');
-    }
-    navigator.geolocation.getCurrentPosition(function (position) {
-      fallbackLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-      if (!hasImageGps) {
-        setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
-      }
-      if (!quiet) {
-        setGeoStatus('Geo tag captured just now.');
-      }
-    }, function () {
-      if (!quiet) {
-        setGeoStatus('Unable to fetch location. Please enter manually.');
-      }
-    }, { enableHighAccuracy:true, timeout:8000 });
-  }
-
-  function clearLocation() {
-    document.getElementById('lat').value = '';
-    document.getElementById('lng').value = '';
-    hasImageGps = false;
-    setGeoStatus('Geo tag cleared.');
-  }
-
-  var measurementConfigs = {
-    Pole: {
-      fields: [
-        { key: 'height', label: 'Height (m)' },
-        { key: 'offset', label: 'Offset (m)' },
-        { key: 'span', label: 'Span (m)' },
-        { key: 'clearance', label: 'Clearance (m)' }
-      ]
-    },
-    Manhole: {
-      modes: {
-        rect: { label: 'Length + Width + Depth' },
-        circ: { label: 'Circumference + Depth' }
-      },
-      fieldsByMode: {
-        rect: [
-          { key: 'length', label: 'Length (m)' },
-          { key: 'width', label: 'Width (m)' },
-          { key: 'depth', label: 'Depth (m)' }
-        ],
-        circ: [
-          { key: 'circumference', label: 'Circumference (m)' },
-          { key: 'depth', label: 'Depth (m)' }
-        ]
-      }
-    },
-    Cabinet: {
-      fields: [
-        { key: 'height', label: 'Height (m)' },
-        { key: 'width', label: 'Width (m)' },
-        { key: 'depth', label: 'Depth (m)' }
-      ]
-    },
-    Trench: {
-      fields: [
-        { key: 'depth', label: 'Depth (m)' },
-        { key: 'width', label: 'Width (m)' }
-      ]
-    },
-    Duct: {
-      fields: [
-        { key: 'circumference', label: 'Circumference (m)' }
-      ]
-    },
-    Handhole: {
-      modes: {
-        rect: { label: 'Length + Width + Depth' },
-        circ: { label: 'Circumference + Depth' }
-      },
-      fieldsByMode: {
-        rect: [
-          { key: 'length', label: 'Length (m)' },
-          { key: 'width', label: 'Width (m)' },
-          { key: 'depth', label: 'Depth (m)' }
-        ],
-        circ: [
-          { key: 'circumference', label: 'Circumference (m)' },
-          { key: 'depth', label: 'Depth (m)' }
-        ]
-      }
-    }
-  };
-
-  var currentMeasurementFields = [];
-
-  var selectedFeatureType = 'Pole';
-  var selectedFeatureName = '';
-  var selectedProjectName = '';
-
-  function inferTypeFromFeatureName(name) {
-    if (!name) return 'Pole';
-    var keys = Object.keys(measurementConfigs);
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      if (name.toLowerCase().indexOf(key.toLowerCase()) > -1) {
-        return key;
-      }
-    }
-    return 'Pole';
-  }
-
-  function getCurrentFeatureType() {
-    return selectedFeatureType || 'Pole';
-  }
-
-  function applyFeatureContext() {
-    var projectInput = document.getElementById('projectName');
-    var featureInput = document.getElementById('featureName');
-    var typeInput = document.getElementById('featureTypeInput');
-
-    if (projectInput) projectInput.value = selectedProjectName || '';
-    if (featureInput) featureInput.value = selectedFeatureName || '';
-    if (typeInput) typeInput.value = selectedFeatureType || '';
-
-    renderMeasurementFields();
-  }
-
-  function handleMeasurementModeChange() {
-    renderMeasurementFields();
-  }
-
-  function buildRows(fields, prefix, readOnly) {
-    var html = '';
-    for (var i = 0; i < fields.length; i += 2) {
-      html += '<div class="row">';
-      for (var j = i; j < i + 2 && j < fields.length; j++) {
-        var field = fields[j];
-        var id = prefix + '_' + field.key;
-        html += '<div>';
-        html += '<label>' + field.label + '</label>';
-        html += '<input id="' + id + '" type="' + (readOnly ? 'text' : 'number') + '" step="0.01" placeholder="--"' + (readOnly ? ' readonly' : '') + ' />';
-        html += '</div>';
-      }
-      html += '</div>';
-    }
-    return html;
-  }
-
-  function getFieldsForType(type) {
-    var config = measurementConfigs[type] || measurementConfigs.Pole;
-    if (!config.modes) {
-      return config.fields;
-    }
-
-    var modeSelect = document.getElementById('measurementMode');
-    var currentMode = modeSelect && modeSelect.value ? modeSelect.value : 'rect';
-    return config.fieldsByMode[currentMode] || config.fieldsByMode.rect;
-  }
-
-  function renderMeasurementMode(type) {
-    var config = measurementConfigs[type] || measurementConfigs.Pole;
-    var row = document.getElementById('measurementModeRow');
-    var select = document.getElementById('measurementMode');
-    if (!config.modes) {
-      row.style.display = 'none';
-      select.innerHTML = '';
-      return;
-    }
-
-    row.style.display = 'block';
-    var options = '';
-    for (var key in config.modes) {
-      if (Object.prototype.hasOwnProperty.call(config.modes, key)) {
-        options += '<option value="' + key + '">' + config.modes[key].label + '</option>';
-      }
-    }
-    select.innerHTML = options;
-  }
-
-  function renderMeasurementFields() {
-    var type = getCurrentFeatureType();
-    renderMeasurementMode(type);
-    var fields = getFieldsForType(type);
-    currentMeasurementFields = fields.map(function (field) { return field.key; });
-
-    document.getElementById('engFields').innerHTML = buildRows(fields, 'eng', false);
-  }
-
-  async function submitFeature() {
-    var submitStatus = document.getElementById('submitStatus');
-    var complianceStatus = document.getElementById('complianceStatus');
-    var complianceMeta = document.getElementById('complianceMeta');
-
-    try {
-      submitStatus.textContent = 'Submitting...';
-      submitStatus.classList.remove('success');
-
-      var user = window.FiberAuth.getUser();
-      var engineerId = user && user.id ? user.id : null;
-
-      if (!engineerId) {
-        throw new Error('User not authenticated. Please login again.');
-      }
-
-      var imageFile = currentUpload;
-      if (!imageFile) {
-        throw new Error('Please upload an image before submitting.');
-      }
-
-      var lat = document.getElementById('lat').value;
-      var lng = document.getElementById('lng').value;
-      if (!lat || !lng) {
-        throw new Error('GPS coordinates required. Please capture location or upload an image with GPS metadata.');
-      }
-
-      var measurements = {};
-      for (var i = 0; i < currentMeasurementFields.length; i++) {
-        var key = currentMeasurementFields[i];
-        var input = document.getElementById('eng_' + key);
-        if (input && input.value) {
-          measurements[key] = parseFloat(input.value);
         }
       }
 
-      var notes = document.querySelector('textarea') ? document.querySelector('textarea').value : '';
+      function getLocation(quiet) {
+        if (!navigator.geolocation) {
+          setGeoStatus('Geolocation not supported on this device.');
+          return;
+        }
 
-      var formData = new FormData();
-      formData.append('image', imageFile);
-      formData.append('latitude', lat);
-      formData.append('longitude', lng);
-      formData.append('measurements', JSON.stringify(measurements));
-      formData.append('notes', notes);
-      formData.append('project_name', selectedProjectName || '');
-      formData.append('feature_name', selectedFeatureName || '');
-      formData.append('feature_type', selectedFeatureType || 'Pole');
-      formData.append('engineer', engineerId);
-
-      var response = await window.FiberApi.apiFetch('/api/features/submit/', {
-        method: 'POST',
-        body: formData
-      });
-
-      submitStatus.textContent = 'Status: Submitted for review.';
-      submitStatus.classList.add('success');
-      setComplianceStatus('Submitted successfully!', 'Awaiting compliance review. Result: Pass or Review.', 'review');
-
-    } catch (error) {
-      submitStatus.textContent = 'Error: ' + (FtthUI.humanize(error));
-      submitStatus.classList.remove('success');
-      setComplianceStatus('Submission failed.', FtthUI.humanize(error) || 'Please try again.', 'failed');
-    }
-  }
-
-  function setComplianceStatus(status, meta, type) {
-    var complianceStatus = document.getElementById('complianceStatus');
-    var complianceMeta = document.getElementById('complianceMeta');
-    if (complianceStatus) complianceStatus.textContent = status;
-    if (complianceMeta) complianceMeta.textContent = meta;
-    if (complianceStatus) {
-      complianceStatus.className = 'result-status ' + (type || '');
-    }
-  }
-
-  var liveStream = null;
-
-  function setCameraStatus(message) {
-    document.getElementById('cameraStatus').textContent = message;
-  }
-
-  function startLiveCamera() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setCameraStatus('Live camera not supported on this device.');
-      return;
-    }
-
-    setCameraStatus('Starting camera...');
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
-      .then(function (stream) {
-        liveStream = stream;
-        var video = document.getElementById('liveVideo');
-        video.srcObject = stream;
-        setCameraStatus('Camera is live.');
-      })
-      .catch(function () {
-        setCameraStatus('Unable to access camera. Check permissions.');
-      });
-  }
-
-  function stopLiveCamera() {
-    if (liveStream) {
-      liveStream.getTracks().forEach(function (track) { track.stop(); });
-      liveStream = null;
-      document.getElementById('liveVideo').srcObject = null;
-      setCameraStatus('Camera stopped.');
-    } else {
-      setCameraStatus('Camera is not running.');
-    }
-  }
-
-  function captureSnapshot() {
-    var video = document.getElementById('liveVideo');
-    if (!video.srcObject) {
-      setCameraStatus('Start the camera before capturing.');
-      return;
-    }
-
-    var canvas = document.getElementById('snapshotCanvas');
-    canvas.style.display = 'block';
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob(function (blob) {
-      if (!blob) {
-        setCameraStatus('Snapshot failed. Try again.');
-        return;
+        if (!quiet) {
+          setGeoStatus('Fetching location...');
+        }
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            fallbackLocation = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            if (!hasImageGps) {
+              setLatLng(fallbackLocation.lat, fallbackLocation.lng, 'browser');
+            }
+            if (!quiet) {
+              setGeoStatus('Geo tag captured just now.');
+            }
+          },
+          function () {
+            if (!quiet) {
+              setGeoStatus('Unable to fetch location. Please enter manually.');
+            }
+          },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
       }
-      var file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-      handleMediaUpload(null, file);
-      setCameraStatus('Snapshot captured and attached.');
-    }, 'image/jpeg', 0.92);
-  }
 
-  (function setFeatureFromQuery() {
-    var params = new URLSearchParams(window.location.search);
-    selectedProjectName = params.get('project') || '';
-    selectedFeatureName = params.get('feature') || '';
-    selectedFeatureType = params.get('type') || inferTypeFromFeatureName(selectedFeatureName);
-    applyFeatureContext();
-  })();
+      function clearLocation() {
+        document.getElementById('lat').value = '';
+        document.getElementById('lng').value = '';
+        hasImageGps = false;
+        setGeoStatus('Geo tag cleared.');
+      }
 
-  (function requestLocationOnLoad() {
-    getLocation(true);
-  })();
+      var measurementConfigs = {
+        Pole: {
+          fields: [
+            { key: 'height', label: 'Height (m)' },
+            { key: 'offset', label: 'Offset (m)' },
+            { key: 'span', label: 'Span (m)' },
+            { key: 'clearance', label: 'Clearance (m)' },
+          ],
+        },
+        Manhole: {
+          modes: {
+            rect: { label: 'Length + Width + Depth' },
+            circ: { label: 'Circumference + Depth' },
+          },
+          fieldsByMode: {
+            rect: [
+              { key: 'length', label: 'Length (m)' },
+              { key: 'width', label: 'Width (m)' },
+              { key: 'depth', label: 'Depth (m)' },
+            ],
+            circ: [
+              { key: 'circumference', label: 'Circumference (m)' },
+              { key: 'depth', label: 'Depth (m)' },
+            ],
+          },
+        },
+        Cabinet: {
+          fields: [
+            { key: 'height', label: 'Height (m)' },
+            { key: 'width', label: 'Width (m)' },
+            { key: 'depth', label: 'Depth (m)' },
+          ],
+        },
+        Trench: {
+          fields: [
+            { key: 'depth', label: 'Depth (m)' },
+            { key: 'width', label: 'Width (m)' },
+          ],
+        },
+        Duct: {
+          fields: [{ key: 'circumference', label: 'Circumference (m)' }],
+        },
+        Handhole: {
+          modes: {
+            rect: { label: 'Length + Width + Depth' },
+            circ: { label: 'Circumference + Depth' },
+          },
+          fieldsByMode: {
+            rect: [
+              { key: 'length', label: 'Length (m)' },
+              { key: 'width', label: 'Width (m)' },
+              { key: 'depth', label: 'Depth (m)' },
+            ],
+            circ: [
+              { key: 'circumference', label: 'Circumference (m)' },
+              { key: 'depth', label: 'Depth (m)' },
+            ],
+          },
+        },
+      };
 
-</script>
+      var currentMeasurementFields = [];
 
-</body>
+      var selectedFeatureType = 'Pole';
+      var selectedFeatureName = '';
+      var selectedProjectName = '';
+
+      function inferTypeFromFeatureName(name) {
+        if (!name) return 'Pole';
+        var keys = Object.keys(measurementConfigs);
+        for (var i = 0; i < keys.length; i++) {
+          var key = keys[i];
+          if (name.toLowerCase().indexOf(key.toLowerCase()) > -1) {
+            return key;
+          }
+        }
+        return 'Pole';
+      }
+
+      function getCurrentFeatureType() {
+        return selectedFeatureType || 'Pole';
+      }
+
+      function applyFeatureContext() {
+        var projectInput = document.getElementById('projectName');
+        var featureInput = document.getElementById('featureName');
+        var typeInput = document.getElementById('featureTypeInput');
+
+        if (projectInput) projectInput.value = selectedProjectName || '';
+        if (featureInput) featureInput.value = selectedFeatureName || '';
+        if (typeInput) typeInput.value = selectedFeatureType || '';
+
+        renderMeasurementFields();
+      }
+
+      function handleMeasurementModeChange() {
+        renderMeasurementFields();
+      }
+
+      function buildRows(fields, prefix, readOnly) {
+        var html = '';
+        for (var i = 0; i < fields.length; i += 2) {
+          html += '<div class="row">';
+          for (var j = i; j < i + 2 && j < fields.length; j++) {
+            var field = fields[j];
+            var id = prefix + '_' + field.key;
+            html += '<div>';
+            html += '<label>' + field.label + '</label>';
+            html +=
+              '<input id="' +
+              id +
+              '" type="' +
+              (readOnly ? 'text' : 'number') +
+              '" step="0.01" placeholder="--"' +
+              (readOnly ? ' readonly' : '') +
+              ' />';
+            html += '</div>';
+          }
+          html += '</div>';
+        }
+        return html;
+      }
+
+      function getFieldsForType(type) {
+        var config = measurementConfigs[type] || measurementConfigs.Pole;
+        if (!config.modes) {
+          return config.fields;
+        }
+
+        var modeSelect = document.getElementById('measurementMode');
+        var currentMode = modeSelect && modeSelect.value ? modeSelect.value : 'rect';
+        return config.fieldsByMode[currentMode] || config.fieldsByMode.rect;
+      }
+
+      function renderMeasurementMode(type) {
+        var config = measurementConfigs[type] || measurementConfigs.Pole;
+        var row = document.getElementById('measurementModeRow');
+        var select = document.getElementById('measurementMode');
+        if (!config.modes) {
+          row.style.display = 'none';
+          select.innerHTML = '';
+          return;
+        }
+
+        row.style.display = 'block';
+        var options = '';
+        for (var key in config.modes) {
+          if (Object.prototype.hasOwnProperty.call(config.modes, key)) {
+            options += '<option value="' + key + '">' + config.modes[key].label + '</option>';
+          }
+        }
+        select.innerHTML = options;
+      }
+
+      function renderMeasurementFields() {
+        var type = getCurrentFeatureType();
+        renderMeasurementMode(type);
+        var fields = getFieldsForType(type);
+        currentMeasurementFields = fields.map(function (field) {
+          return field.key;
+        });
+
+        document.getElementById('engFields').innerHTML = buildRows(fields, 'eng', false);
+      }
+
+      async function submitFeature() {
+        var submitStatus = document.getElementById('submitStatus');
+        var complianceStatus = document.getElementById('complianceStatus');
+        var complianceMeta = document.getElementById('complianceMeta');
+
+        try {
+          submitStatus.textContent = 'Submitting...';
+          submitStatus.classList.remove('success');
+
+          var user = window.FiberAuth.getUser();
+          var engineerId = user && user.id ? user.id : null;
+
+          if (!engineerId) {
+            throw new Error('User not authenticated. Please login again.');
+          }
+
+          var imageFile = currentUpload;
+          if (!imageFile) {
+            throw new Error('Please upload an image before submitting.');
+          }
+
+          var lat = document.getElementById('lat').value;
+          var lng = document.getElementById('lng').value;
+          if (!lat || !lng) {
+            throw new Error('GPS coordinates required. Please capture location or upload an image with GPS metadata.');
+          }
+
+          var measurements = {};
+          for (var i = 0; i < currentMeasurementFields.length; i++) {
+            var key = currentMeasurementFields[i];
+            var input = document.getElementById('eng_' + key);
+            if (input && input.value) {
+              measurements[key] = parseFloat(input.value);
+            }
+          }
+
+          var notes = document.querySelector('textarea') ? document.querySelector('textarea').value : '';
+
+          var formData = new FormData();
+          formData.append('image', imageFile);
+          formData.append('latitude', lat);
+          formData.append('longitude', lng);
+          formData.append('measurements', JSON.stringify(measurements));
+          formData.append('notes', notes);
+          formData.append('project_name', selectedProjectName || '');
+          formData.append('feature_name', selectedFeatureName || '');
+          formData.append('feature_type', selectedFeatureType || 'Pole');
+          formData.append('engineer', engineerId);
+
+          var response = await window.FiberApi.apiFetch('/api/features/submit/', {
+            method: 'POST',
+            body: formData,
+          });
+
+          submitStatus.textContent = 'Status: Submitted for review.';
+          submitStatus.classList.add('success');
+          setComplianceStatus(
+            'Submitted successfully!',
+            'Awaiting compliance review. Result: Pass or Review.',
+            'review'
+          );
+        } catch (error) {
+          submitStatus.textContent = 'Error: ' + FtthUI.humanize(error);
+          submitStatus.classList.remove('success');
+          setComplianceStatus('Submission failed.', FtthUI.humanize(error) || 'Please try again.', 'failed');
+        }
+      }
+
+      function setComplianceStatus(status, meta, type) {
+        var complianceStatus = document.getElementById('complianceStatus');
+        var complianceMeta = document.getElementById('complianceMeta');
+        if (complianceStatus) complianceStatus.textContent = status;
+        if (complianceMeta) complianceMeta.textContent = meta;
+        if (complianceStatus) {
+          complianceStatus.className = 'result-status ' + (type || '');
+        }
+      }
+
+      var liveStream = null;
+
+      function setCameraStatus(message) {
+        document.getElementById('cameraStatus').textContent = message;
+      }
+
+      function startLiveCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          setCameraStatus('Live camera not supported on this device.');
+          return;
+        }
+
+        setCameraStatus('Starting camera...');
+        navigator.mediaDevices
+          .getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+          .then(function (stream) {
+            liveStream = stream;
+            var video = document.getElementById('liveVideo');
+            video.srcObject = stream;
+            setCameraStatus('Camera is live.');
+          })
+          .catch(function () {
+            setCameraStatus('Unable to access camera. Check permissions.');
+          });
+      }
+
+      function stopLiveCamera() {
+        if (liveStream) {
+          liveStream.getTracks().forEach(function (track) {
+            track.stop();
+          });
+          liveStream = null;
+          document.getElementById('liveVideo').srcObject = null;
+          setCameraStatus('Camera stopped.');
+        } else {
+          setCameraStatus('Camera is not running.');
+        }
+      }
+
+      function captureSnapshot() {
+        var video = document.getElementById('liveVideo');
+        if (!video.srcObject) {
+          setCameraStatus('Start the camera before capturing.');
+          return;
+        }
+
+        var canvas = document.getElementById('snapshotCanvas');
+        canvas.style.display = 'block';
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          function (blob) {
+            if (!blob) {
+              setCameraStatus('Snapshot failed. Try again.');
+              return;
+            }
+            var file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+            handleMediaUpload(null, file);
+            setCameraStatus('Snapshot captured and attached.');
+          },
+          'image/jpeg',
+          0.92
+        );
+      }
+
+      (function setFeatureFromQuery() {
+        var params = new URLSearchParams(window.location.search);
+        selectedProjectName = params.get('project') || '';
+        selectedFeatureName = params.get('feature') || '';
+        selectedFeatureType = params.get('type') || inferTypeFromFeatureName(selectedFeatureName);
+        applyFeatureContext();
+      })();
+
+      (function requestLocationOnLoad() {
+        getLocation(true);
+      })();
+    </script>
+  </body>
 </html>
-

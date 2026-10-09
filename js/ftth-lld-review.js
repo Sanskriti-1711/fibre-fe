@@ -16,7 +16,7 @@
 
   const params = new URLSearchParams(window.location.search);
   const requestedProject = params.get('project_id');
-  let projectId = requestedProject || '';   // resolved to a real project in boot()
+  let projectId = requestedProject || ''; // resolved to a real project in boot()
 
   // Colors for the three states + difference highlight.
   const COLORS = {
@@ -27,14 +27,14 @@
   };
 
   // State
-  let review = null;            // full review payload
-  let changes = [];             // survey changes
+  let review = null; // full review payload
+  let changes = []; // survey changes
   let map = null;
   let selectedChange = null;
   let filter = 'all';
   let searchTerm = '';
-  let geomMode = 'difference';  // original | survey | difference (drawer SVG)
-  let viewMode = 'difference';  // map focus emphasis
+  let geomMode = 'difference'; // original | survey | difference (drawer SVG)
+  let viewMode = 'difference'; // map focus emphasis
   let approvedVersion = null;
 
   // Layer visibility (legend toggles)
@@ -97,13 +97,15 @@
 
     const heading = document.createElement('p');
     heading.textContent = title;
-    heading.style.cssText = 'margin:0 0 6px;font-size:15px;font-weight:600;color:var(--danger,#B91C1C);';
+    heading.style.cssText =
+      'margin:0 0 6px;font-size:15px;font-weight:600;color:var(--danger,#B91C1C);';
     box.appendChild(heading);
 
     if (detail) {
       const body = document.createElement('p');
       body.textContent = detail;
-      body.style.cssText = 'margin:0 0 14px;font-size:13px;line-height:1.5;color:var(--text-muted,#616A75);';
+      body.style.cssText =
+        'margin:0 0 14px;font-size:13px;line-height:1.5;color:var(--text-muted,#616A75);';
       box.appendChild(body);
     }
 
@@ -134,8 +136,10 @@
   // Boot
   // ==================================================================
   async function boot() {
-    if (typeof window.FiberAuth !== 'undefined' &&
-        typeof window.FiberAuth.requireLogin === 'function') {
+    if (
+      typeof window.FiberAuth !== 'undefined' &&
+      typeof window.FiberAuth.requireLogin === 'function'
+    ) {
       window.FiberAuth.requireLogin();
     }
 
@@ -145,11 +149,14 @@
       try {
         const resolved = await window.FtthLldApi.resolveDefaultProject();
         if (resolved && resolved.project_id) projectId = resolved.project_id;
-      } catch (_) { /* fall through */ }
+      } catch (_) {
+        /* fall through */
+      }
     }
     if (!projectId) {
       projectIdEl.textContent = '—';
-      mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#B91C1C;font-size:14px;">No project selected. Open this page from a project\'s LLD Review link.</p></div>';
+      mapLoading.innerHTML =
+        '<div style="text-align:center;"><p style="color:#B91C1C;font-size:14px;">No project selected. Open this page from a project\'s LLD Review link.</p></div>';
       return;
     }
 
@@ -161,11 +168,16 @@
 
     try {
       review = await withTimeout(
-        window.FtthLldApi.loadReview(projectId), LOAD_TIMEOUT_MS, 'review data');
+        window.FtthLldApi.loadReview(projectId),
+        LOAD_TIMEOUT_MS,
+        'review data'
+      );
     } catch (err) {
       if (err && window.FtthUI && window.FtthUI.errorKind(err) === 'timeout') {
-        showFailure('This review is taking too long to load',
-          'The server did not respond within 20 seconds. It may be busy or unreachable.');
+        showFailure(
+          'This review is taking too long to load',
+          'The server did not respond within 20 seconds. It may be busy or unreachable.'
+        );
       } else {
         showFailure('Could not load this review', explain(err));
       }
@@ -175,7 +187,8 @@
     changes = review.changes || [];
     approvedVersion = review.approved_survey_version || null;
 
-    projectNameEl.textContent = review.project && review.project.name ? review.project.name : projectId;
+    projectNameEl.textContent =
+      review.project && review.project.name ? review.project.name : projectId;
     hldVersionEl.textContent = (review.project && review.project.hld_version) || '—';
 
     try {
@@ -220,8 +233,10 @@
     };
     setTimeout(() => {
       if (mapSettled) return;
-      showFailure('The map did not finish loading',
-        'Basemap tiles are not reachable. Your review data is unaffected — retry to reconnect.');
+      showFailure(
+        'The map did not finish loading',
+        'Basemap tiles are not reachable. Your review data is unaffected — retry to reconnect.'
+      );
     }, MAP_TIMEOUT_MS);
 
     map.on('load', () => {
@@ -246,19 +261,34 @@
     const defs = [
       ['streets', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', '© OpenStreetMap'],
       ['light', 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', '© OSM © CARTO'],
-      ['satellite', 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', '© Esri, Maxar'],
+      [
+        'satellite',
+        'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        '© Esri, Maxar',
+      ],
       ['dark', 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png', '© OSM © CARTO'],
     ];
     defs.forEach((d, i) => {
-      map.addSource('base-' + d[0], { type: 'raster', tiles: [d[1]], tileSize: 256, attribution: d[2] });
-      map.addLayer({ id: 'base-layer-' + d[0], type: 'raster', source: 'base-' + d[0], layout: { visibility: i === 0 ? 'visible' : 'none' } });
+      map.addSource('base-' + d[0], {
+        type: 'raster',
+        tiles: [d[1]],
+        tileSize: 256,
+        attribution: d[2],
+      });
+      map.addLayer({
+        id: 'base-layer-' + d[0],
+        type: 'raster',
+        source: 'base-' + d[0],
+        layout: { visibility: i === 0 ? 'visible' : 'none' },
+      });
     });
   }
 
   function setBasemap(name) {
     ['streets', 'light', 'satellite', 'dark'].forEach((k) => {
       const layer = map.getLayer('base-layer-' + k);
-      if (layer) map.setLayoutProperty('base-layer-' + k, 'visibility', k === name ? 'visible' : 'none');
+      if (layer)
+        map.setLayoutProperty('base-layer-' + k, 'visibility', k === name ? 'visible' : 'none');
     });
   }
 
@@ -274,8 +304,12 @@
 
     map.addSource(sourceId, { type: 'geojson', data: geojson });
 
-    const hasLine = geojson.features.some((f) => /line/i.test(f.geometry && f.geometry.type || ''));
-    const hasPoint = geojson.features.some((f) => /point/i.test(f.geometry && f.geometry.type || ''));
+    const hasLine = geojson.features.some((f) =>
+      /line/i.test((f.geometry && f.geometry.type) || '')
+    );
+    const hasPoint = geojson.features.some((f) =>
+      /point/i.test((f.geometry && f.geometry.type) || '')
+    );
 
     if (hasLine) {
       const paint = {
@@ -329,8 +363,12 @@
 
     map.addSource('src-approved', { type: 'geojson', data: review.approved });
 
-    const hasLine = review.approved.features.some((f) => /line/i.test(f.geometry && f.geometry.type || ''));
-    const hasPoint = review.approved.features.some((f) => /point/i.test(f.geometry && f.geometry.type || ''));
+    const hasLine = review.approved.features.some((f) =>
+      /line/i.test((f.geometry && f.geometry.type) || '')
+    );
+    const hasPoint = review.approved.features.some((f) =>
+      /point/i.test((f.geometry && f.geometry.type) || '')
+    );
 
     if (hasLine) {
       map.addLayer({
@@ -363,11 +401,22 @@
     }
 
     // Keep the selected change's focus highlights above the refreshed layer.
-    ['layer-focus-diff', 'layer-focus-survey', 'layer-focus-original',
-     'layer-focus-original-pts', 'layer-focus-survey-pts', 'layer-focus-diff-pts']
-      .forEach((id) => {
-        if (map.getLayer(id)) { try { map.moveLayer(id); } catch (_) { /* ignore */ } }
-      });
+    [
+      'layer-focus-diff',
+      'layer-focus-survey',
+      'layer-focus-original',
+      'layer-focus-original-pts',
+      'layer-focus-survey-pts',
+      'layer-focus-diff-pts',
+    ].forEach((id) => {
+      if (map.getLayer(id)) {
+        try {
+          map.moveLayer(id);
+        } catch (_) {
+          /* ignore */
+        }
+      }
+    });
   }
 
   function setLayerVisible(key, visible) {
@@ -391,8 +440,12 @@
           if (cid) selectChange(cid);
           else showFeaturePopup(e, f);
         });
-        map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
-        map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
+        map.on('mouseenter', id, () => {
+          map.getCanvas().style.cursor = 'pointer';
+        });
+        map.on('mouseleave', id, () => {
+          map.getCanvas().style.cursor = '';
+        });
       });
     });
   }
@@ -407,19 +460,26 @@
     });
     html += '</div>';
     new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
-      .setLngLat(e.lngLat).setHTML(html).addTo(map);
+      .setLngLat(e.lngLat)
+      .setHTML(html)
+      .addTo(map);
   }
 
   // Highlight the selected change's geometry on the map per view mode.
   function renderFocusOnMap() {
     ['focus-original', 'focus-survey', 'focus-diff'].forEach((k) => {
       ['layer-' + k, 'layer-' + k + '-pts'].forEach((id) => {
-        if (map.getLayer(id)) { map.removeLayer(id); }
+        if (map.getLayer(id)) {
+          map.removeLayer(id);
+        }
       });
       if (map.getSource('src-' + k)) map.removeSource('src-' + k);
     });
 
-    if (!selectedChange) { viewModeEl.classList.remove('show'); return; }
+    if (!selectedChange) {
+      viewModeEl.classList.remove('show');
+      return;
+    }
 
     const orig = selectedChange.original_geometry;
     const surv = selectedChange.survey_geometry;
@@ -444,7 +504,10 @@
   }
 
   function addFocusLayer(key, geometry, color, thick, dashed) {
-    const geojson = { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: geometry, properties: {} }] };
+    const geojson = {
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', geometry: geometry, properties: {} }],
+    };
     map.addSource('src-' + key, { type: 'geojson', data: geojson });
     const isLine = /line/i.test(geometry.type);
     const isPoint = /point/i.test(geometry.type);
@@ -487,7 +550,8 @@
     const diff = [];
     const collect = (coords, other) => {
       for (let i = 0; i < coords.length - 1; i++) {
-        const a = coords[i], b = coords[i + 1];
+        const a = coords[i],
+          b = coords[i + 1];
         const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
         let minDist = Infinity;
         for (let j = 0; j < other.length - 1; j++) {
@@ -511,11 +575,13 @@
   }
 
   function pointSegDist(p, a, b) {
-    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const dx = b[0] - a[0],
+      dy = b[1] - a[1];
     const len2 = dx * dx + dy * dy;
     let t = len2 ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2 : 0;
     t = Math.max(0, Math.min(1, t));
-    const x = a[0] + t * dx, y = a[1] + t * dy;
+    const x = a[0] + t * dx,
+      y = a[1] + t * dy;
     return Math.hypot(p[0] - x, p[1] - y);
   }
 
@@ -524,7 +590,11 @@
     if (!coords.length) return;
     const bounds = new maplibregl.LngLatBounds();
     coords.forEach((c) => bounds.extend(c));
-    try { map.fitBounds(bounds, { padding: padding || 100, maxZoom: 17 }); } catch (_) { /* ignore */ }
+    try {
+      map.fitBounds(bounds, { padding: padding || 100, maxZoom: 17 });
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   function fitProject() {
@@ -539,7 +609,11 @@
     if (!all.length) return;
     const bounds = new maplibregl.LngLatBounds();
     all.forEach((c) => bounds.extend(c));
-    try { map.fitBounds(bounds, { padding: 50, maxZoom: 15 }); } catch (_) { /* ignore */ }
+    try {
+      map.fitBounds(bounds, { padding: 50, maxZoom: 15 });
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   // ==================================================================
@@ -600,8 +674,16 @@
     const labels = { critical: 'Critical', high: 'High', medium: 'Medium', low: 'Low' };
     $('queueRiskBands').innerHTML = order
       .filter((b) => risk.bands[b])
-      .map((b) => '<span class="lld-risk-badge lld-risk-' + b + '">'
-                  + risk.bands[b] + ' ' + labels[b] + '</span>')
+      .map(
+        (b) =>
+          '<span class="lld-risk-badge lld-risk-' +
+          b +
+          '">' +
+          risk.bands[b] +
+          ' ' +
+          labels[b] +
+          '</span>'
+      )
       .join('');
 
     const lead = order.find((b) => risk.bands[b]);
@@ -610,11 +692,18 @@
       hint.textContent = '';
     } else {
       const n = risk.bands[lead];
-      let text = n + ' ' + labels[lead].toLowerCase() + ' change' + (n === 1 ? '' : 's')
-        + ' — work ' + labels[lead].toLowerCase() + ' first.';
+      let text =
+        n +
+        ' ' +
+        labels[lead].toLowerCase() +
+        ' change' +
+        (n === 1 ? '' : 's') +
+        ' — work ' +
+        labels[lead].toLowerCase() +
+        ' first.';
       if (risk.top && risk.top.feature_id) {
-        text += ' Worst: ' + risk.top.feature_id + ' ('
-          + ((risk.top.risk || {}).score || 0) + '/25).';
+        text +=
+          ' Worst: ' + risk.top.feature_id + ' (' + ((risk.top.risk || {}).score || 0) + '/25).';
       }
       hint.textContent = text;
     }
@@ -648,8 +737,9 @@
     // Approved Survey Version button
     const canCreateAs = ready && !approvedVersion;
     createAsBtn.disabled = !canCreateAs;
-    createAsBtn.querySelector('.btn-label').textContent =
-      approvedVersion ? 'Approved Survey Created' : 'Create Approved Survey Version';
+    createAsBtn.querySelector('.btn-label').textContent = approvedVersion
+      ? 'Approved Survey Created'
+      : 'Create Approved Survey Version';
 
     // Run LLD buttons (verify + full re-plan)
     const canRun = ready && !!approvedVersion;
@@ -680,17 +770,32 @@
       }
       const lead = ['critical', 'high'].find((b) => queueRisk.bands[b]);
       const riskLine = lead
-        ? ' Start with the <strong>' + queueRisk.bands[lead] + ' ' + lead + '</strong> change'
-          + (queueRisk.bands[lead] === 1 ? '' : 's') + ' — the rest can wait.'
+        ? ' Start with the <strong>' +
+          queueRisk.bands[lead] +
+          ' ' +
+          lead +
+          '</strong> change' +
+          (queueRisk.bands[lead] === 1 ? '' : 's') +
+          ' — the rest can wait.'
         : '';
-      readinessNote.innerHTML = '<strong>LLD cannot run</strong> while <strong>' + remaining + '</strong> change'
-        + (remaining === 1 ? ' is' : 's are') + ' unresolved (' + parts.join(', ') + ').'
-        + ' Review the queue below — every change must be <strong>Approved</strong> or <strong>Rejected</strong>.'
-        + riskLine;
+      readinessNote.innerHTML =
+        '<strong>LLD cannot run</strong> while <strong>' +
+        remaining +
+        '</strong> change' +
+        (remaining === 1 ? ' is' : 's are') +
+        ' unresolved (' +
+        parts.join(', ') +
+        ').' +
+        ' Review the queue below — every change must be <strong>Approved</strong> or <strong>Rejected</strong>.' +
+        riskLine;
     } else if (!approvedVersion) {
-      readinessNote.innerHTML = 'All changes resolved. Create the immutable <strong>Approved Survey Version</strong> (HLD + approved changes) before running LLD.';
+      readinessNote.innerHTML =
+        'All changes resolved. Create the immutable <strong>Approved Survey Version</strong> (HLD + approved changes) before running LLD.';
     } else {
-      readinessNote.innerHTML = 'Ready to generate the detailed network design from ' + approvedVersion + '. The approved survey is immutable — new corrections will require a new version.';
+      readinessNote.innerHTML =
+        'Ready to generate the detailed network design from ' +
+        approvedVersion +
+        '. The approved survey is immutable — new corrections will require a new version.';
     }
   }
 
@@ -712,11 +817,14 @@
       const btn = document.createElement('button');
       btn.className = 'lld-filter-tab' + (filter === f.key ? ' active' : '');
       btn.type = 'button';
-      const count = f.key === 'all' ? c.total
-        : f.key === 'pending_review' ? c.pending
-        : c[f.key] || 0;
+      const count =
+        f.key === 'all' ? c.total : f.key === 'pending_review' ? c.pending : c[f.key] || 0;
       btn.innerHTML = esc(f.label) + ' <span class="cnt">' + count + '</span>';
-      btn.addEventListener('click', () => { filter = f.key; renderFilterTabs(); renderChangeList(); });
+      btn.addEventListener('click', () => {
+        filter = f.key;
+        renderFilterTabs();
+        renderChangeList();
+      });
       filterTabs.appendChild(btn);
     });
   }
@@ -732,11 +840,12 @@
     let list = changes;
     if (filter !== 'all') list = list.filter((c) => c.status === filter);
     if (searchTerm) {
-      list = list.filter((c) =>
-        (c.change_id || '').toLowerCase().includes(searchTerm) ||
-        (c.feature_id || '').toLowerCase().includes(searchTerm) ||
-        (c.layer || '').toLowerCase().includes(searchTerm) ||
-        (c.reason || '').toLowerCase().includes(searchTerm)
+      list = list.filter(
+        (c) =>
+          (c.change_id || '').toLowerCase().includes(searchTerm) ||
+          (c.feature_id || '').toLowerCase().includes(searchTerm) ||
+          (c.layer || '').toLowerCase().includes(searchTerm) ||
+          (c.reason || '').toLowerCase().includes(searchTerm)
       );
     }
     return list;
@@ -747,13 +856,16 @@
     changeListEl.innerHTML = '';
 
     if (!list.length) {
-      changeListEl.innerHTML = '<div class="ftth-empty-state"><div class="ftth-empty-state-icon">🗂️</div><div class="ftth-empty-state-text">No changes match this filter.</div></div>';
+      changeListEl.innerHTML =
+        '<div class="ftth-empty-state"><div class="ftth-empty-state-icon">🗂️</div><div class="ftth-empty-state-text">No changes match this filter.</div></div>';
       return;
     }
 
     list.forEach((ch) => {
       const row = document.createElement('div');
-      row.className = 'lld-change-row' + (selectedChange && selectedChange.change_id === ch.change_id ? ' active' : '');
+      row.className =
+        'lld-change-row' +
+        (selectedChange && selectedChange.change_id === ch.change_id ? ' active' : '');
       row.appendChild(statusBadge(ch.status));
       row.appendChild(typeBadge(ch.change_type));
       row.appendChild(riskBadge(ch));
@@ -762,10 +874,16 @@
       main.className = 'lld-change-row-main';
       const title = document.createElement('div');
       title.className = 'lld-change-row-title';
-      title.innerHTML = '<span>' + esc(ch.feature_id || '—') + '</span><span class="chg-id">' + esc(ch.change_id || '') + '</span>';
+      title.innerHTML =
+        '<span>' +
+        esc(ch.feature_id || '—') +
+        '</span><span class="chg-id">' +
+        esc(ch.change_id || '') +
+        '</span>';
       const sub = document.createElement('div');
       sub.className = 'lld-change-row-sub';
-      sub.textContent = (ch.layer || '') + ' · ' + (ch.engineer || '') + ' · ' + (ch.timestamp || '');
+      sub.textContent =
+        (ch.layer || '') + ' · ' + (ch.engineer || '') + ' · ' + (ch.timestamp || '');
       main.appendChild(title);
       main.appendChild(sub);
       row.appendChild(main);
@@ -813,30 +931,36 @@
     let html = '';
 
     // Header
-    html += '<div class="top-row">'
-      + '<h3>' + statusBadge(ch.status).outerHTML + '</h3>'
-      + '<button type="button" class="lld-close-btn" id="closeDrawerBtn" aria-label="Close">✕</button>'
-      + '</div>';
+    html +=
+      '<div class="top-row">' +
+      '<h3>' +
+      statusBadge(ch.status).outerHTML +
+      '</h3>' +
+      '<button type="button" class="lld-close-btn" id="closeDrawerBtn" aria-label="Close">✕</button>' +
+      '</div>';
 
     // Meta grid
-    html += '<div class="lld-meta-grid">'
-      + meta('Feature ID', ch.feature_id || '—')
-      + meta('Layer', ch.layer || '—')
-      + meta('Change ID', ch.change_id || '—')
-      + meta('Change Type', typeLabel(ch.change_type))
-      + meta('Risk', ch.risk && ch.risk.band
-          ? ch.risk.band + ' · ' + Number(ch.risk.score || 0) + '/25'
-          : '—')
-      + meta('Engineer', ch.engineer || '—')
-      + meta('Timestamp', ch.timestamp || '—')
-      + '</div>';
+    html +=
+      '<div class="lld-meta-grid">' +
+      meta('Feature ID', ch.feature_id || '—') +
+      meta('Layer', ch.layer || '—') +
+      meta('Change ID', ch.change_id || '—') +
+      meta('Change Type', typeLabel(ch.change_type)) +
+      meta(
+        'Risk',
+        ch.risk && ch.risk.band ? ch.risk.band + ' · ' + Number(ch.risk.score || 0) + '/25' : '—'
+      ) +
+      meta('Engineer', ch.engineer || '—') +
+      meta('Timestamp', ch.timestamp || '—') +
+      '</div>';
 
     // Risk factors (Tier-1 A5 — deterministic rules, shown so the reviewer
     // can see exactly why a change was ranked).
     if (ch.risk && (ch.risk.factors || []).length) {
-      html += '<div class="lld-section-title">Risk Factors</div>'
-        + '<ul style="margin:0;padding-left:18px;font-size:12px;color:#616A75;">';
-      ch.risk.factors.forEach(function(f) {
+      html +=
+        '<div class="lld-section-title">Risk Factors</div>' +
+        '<ul style="margin:0;padding-left:18px;font-size:12px;color:#616A75;">';
+      ch.risk.factors.forEach(function (f) {
         html += '<li>' + esc(f) + '</li>';
       });
       html += '</ul>';
@@ -848,71 +972,102 @@
     const anomalies = ch.anomalies || [];
     if (anomalies.length) {
       html += '<div class="lld-section-title">Attribute Checks (' + anomalies.length + ')</div>';
-      anomalies.forEach(function(a) {
+      anomalies.forEach(function (a) {
         const isError = a.severity === 'error';
         const tone = isError
           ? 'background:#FEF2F2;border:1px solid #FECACA;border-left:4px solid #B91C1C;color:#991B1B;'
           : 'background:#FFFBEB;border:1px solid #FDE68A;border-left:4px solid #B45309;color:#78350F;';
-        html += '<div style="' + tone + 'border-radius:8px;padding:9px 11px;font-size:12px;line-height:1.5;margin-bottom:8px;">'
-          + '<strong>' + esc(isError ? 'Contradiction' : 'Check') + '</strong>'
-          + ' · <span class="lld-risk-badge ' + (isError ? 'lld-risk-critical' : 'lld-risk-medium') + '">'
-          + esc(String(a.confidence != null ? Math.round(a.confidence * 100) + '%' : '')) + ' confident</span>'
-          + '<div style="margin-top:4px;">' + esc(a.message || '') + '</div>'
-          + (isError
-              ? '<div style="margin-top:4px;font-weight:600;">Blocks the Approved Survey Version until fixed.</div>'
-              : '')
-          + '</div>';
+        html +=
+          '<div style="' +
+          tone +
+          'border-radius:8px;padding:9px 11px;font-size:12px;line-height:1.5;margin-bottom:8px;">' +
+          '<strong>' +
+          esc(isError ? 'Contradiction' : 'Check') +
+          '</strong>' +
+          ' · <span class="lld-risk-badge ' +
+          (isError ? 'lld-risk-critical' : 'lld-risk-medium') +
+          '">' +
+          esc(String(a.confidence != null ? Math.round(a.confidence * 100) + '%' : '')) +
+          ' confident</span>' +
+          '<div style="margin-top:4px;">' +
+          esc(a.message || '') +
+          '</div>' +
+          (isError
+            ? '<div style="margin-top:4px;font-weight:600;">Blocks the Approved Survey Version until fixed.</div>'
+            : '') +
+          '</div>';
       });
     }
 
     // Reason
     if (ch.reason) {
-      html += '<div class="lld-section-title">Survey Engineer Note</div>'
-        + '<div class="lld-reason">' + esc(ch.reason) + '</div>';
+      html +=
+        '<div class="lld-section-title">Survey Engineer Note</div>' +
+        '<div class="lld-reason">' +
+        esc(ch.reason) +
+        '</div>';
     }
 
     // Attribute comparison
     if (hasAttrs) {
-      html += '<div class="lld-section-title">Attribute Change</div>'
-        + '<table class="lld-diff-table"><thead><tr>'
-        + '<th>Field</th><th>HLD Value</th><th></th><th>Survey Value</th>'
-        + '</tr></thead><tbody>';
+      html +=
+        '<div class="lld-section-title">Attribute Change</div>' +
+        '<table class="lld-diff-table"><thead><tr>' +
+        '<th>Field</th><th>HLD Value</th><th></th><th>Survey Value</th>' +
+        '</tr></thead><tbody>';
       ch.attributes.forEach((a) => {
-        html += '<tr>'
-          + '<td class="field">' + esc(a.field) + '</td>'
-          + '<td class="old-val">' + esc(a.hld_value) + '</td>'
-          + '<td class="arrow">→</td>'
-          + '<td class="new-val">' + esc(a.survey_value)
-          + (a.reason ? '<span class="attr-reason">' + esc(a.reason) + '</span>' : '')
-          + '</td></tr>';
+        html +=
+          '<tr>' +
+          '<td class="field">' +
+          esc(a.field) +
+          '</td>' +
+          '<td class="old-val">' +
+          esc(a.hld_value) +
+          '</td>' +
+          '<td class="arrow">→</td>' +
+          '<td class="new-val">' +
+          esc(a.survey_value) +
+          (a.reason ? '<span class="attr-reason">' + esc(a.reason) + '</span>' : '') +
+          '</td></tr>';
       });
       html += '</tbody></table>';
     }
 
     // Geometry comparison (line/point changes with a survey geometry)
-    const showGeom = (ch.original_geometry && ch.survey_geometry) || (isNew && ch.survey_geometry) || (isRemoval && ch.original_geometry);
+    const showGeom =
+      (ch.original_geometry && ch.survey_geometry) ||
+      (isNew && ch.survey_geometry) ||
+      (isRemoval && ch.original_geometry);
     if (showGeom) {
-      html += '<div class="lld-geom-compare">'
-        + '<div class="lld-section-title">' + (isNew ? 'New Feature Geometry' : isRemoval ? 'Feature to Remove' : 'Geometry Change') + '</div>'
-        + '<div class="lld-geom-mode-tabs" id="geomTabs">'
-        + '<button type="button" class="lld-geom-mode-tab" data-mode="original">Original</button>'
-        + '<button type="button" class="lld-geom-mode-tab" data-mode="survey">Survey</button>'
-        + '<button type="button" class="lld-geom-mode-tab active" data-mode="difference">Difference</button>'
-        + '</div>'
-        + '<div class="lld-geom-legend">'
-        + '<span><span class="sw" style="background:#3B82F6;"></span>HLD</span>'
-        + '<span><span class="sw" style="background:#F97316;"></span>Survey</span>'
-        + '<span><span class="sw" style="background:repeating-linear-gradient(90deg,#EF4444 0 4px,transparent 4px 7px);"></span>Difference</span>'
-        + '</div>'
-        + '<svg class="lld-svg-compare" id="geomSvg" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet"></svg>'
-        + '</div>';
+      html +=
+        '<div class="lld-geom-compare">' +
+        '<div class="lld-section-title">' +
+        (isNew ? 'New Feature Geometry' : isRemoval ? 'Feature to Remove' : 'Geometry Change') +
+        '</div>' +
+        '<div class="lld-geom-mode-tabs" id="geomTabs">' +
+        '<button type="button" class="lld-geom-mode-tab" data-mode="original">Original</button>' +
+        '<button type="button" class="lld-geom-mode-tab" data-mode="survey">Survey</button>' +
+        '<button type="button" class="lld-geom-mode-tab active" data-mode="difference">Difference</button>' +
+        '</div>' +
+        '<div class="lld-geom-legend">' +
+        '<span><span class="sw" style="background:#3B82F6;"></span>HLD</span>' +
+        '<span><span class="sw" style="background:#F97316;"></span>Survey</span>' +
+        '<span><span class="sw" style="background:repeating-linear-gradient(90deg,#EF4444 0 4px,transparent 4px 7px);"></span>Difference</span>' +
+        '</div>' +
+        '<svg class="lld-svg-compare" id="geomSvg" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet"></svg>' +
+        '</div>';
     }
 
     // Evidence
     if (ch.evidence && (ch.evidence.photos || ch.evidence.notes)) {
       html += '<div class="lld-section-title">Survey Evidence</div><div class="lld-evidence">';
       if (ch.evidence.photos) {
-        html += '<span class="lld-evidence-chip">📷 ' + ch.evidence.photos + ' photo' + (ch.evidence.photos > 1 ? 's' : '') + '</span>';
+        html +=
+          '<span class="lld-evidence-chip">📷 ' +
+          ch.evidence.photos +
+          ' photo' +
+          (ch.evidence.photos > 1 ? 's' : '') +
+          '</span>';
       }
       if (ch.evidence.notes) {
         html += '<span class="lld-evidence-chip">📝 ' + esc(ch.evidence.notes) + '</span>';
@@ -924,34 +1079,53 @@
     if (ch.comments && ch.comments.length) {
       html += '<div class="lld-section-title">Review History</div><div class="lld-comment-list">';
       ch.comments.forEach((c) => {
-        html += '<div class="lld-comment">'
-          + '<span class="avatar">' + esc((c.by || '?').charAt(0)) + '</span>'
-          + '<div class="body"><div class="who">' + esc(c.by || 'Reviewer') + '<span class="when">' + esc(c.timestamp || '') + '</span></div>'
-          + '<div class="text">' + esc(c.text) + '</div></div></div>';
+        html +=
+          '<div class="lld-comment">' +
+          '<span class="avatar">' +
+          esc((c.by || '?').charAt(0)) +
+          '</span>' +
+          '<div class="body"><div class="who">' +
+          esc(c.by || 'Reviewer') +
+          '<span class="when">' +
+          esc(c.timestamp || '') +
+          '</span></div>' +
+          '<div class="text">' +
+          esc(c.text) +
+          '</div></div></div>';
       });
       html += '</div>';
     }
 
     // Actions
     if (resolved) {
-      const noteClass = ch.status === 'approved' ? 'approved' : ch.status === 'rejected' ? 'rejected' : 'correction';
-      const noteText = ch.status === 'approved'
-        ? '✓ Approved — this change is part of the Approved Survey dataset.'
-        : ch.status === 'rejected'
-          ? '✕ Rejected — this change will NOT be part of the Approved Survey.'
-          : '↻ Needs Correction — survey engineer must revise this change.';
+      const noteClass =
+        ch.status === 'approved'
+          ? 'approved'
+          : ch.status === 'rejected'
+            ? 'rejected'
+            : 'correction';
+      const noteText =
+        ch.status === 'approved'
+          ? '✓ Approved — this change is part of the Approved Survey dataset.'
+          : ch.status === 'rejected'
+            ? '✕ Rejected — this change will NOT be part of the Approved Survey.'
+            : '↻ Needs Correction — survey engineer must revise this change.';
       html += '<div class="lld-resolved-note ' + noteClass + '">' + noteText + '</div>';
     } else if (locked) {
-      html += '<div class="lld-resolved-note locked">🔒 Review locked — Approved Survey ' + esc(approvedVersion) + ' is immutable. Further changes require a new review cycle (new version).</div>';
+      html +=
+        '<div class="lld-resolved-note locked">🔒 Review locked — Approved Survey ' +
+        esc(approvedVersion) +
+        ' is immutable. Further changes require a new review cycle (new version).</div>';
     } else {
-      html += '<div class="lld-action-area">'
-        + '<div class="lld-section-title">Review Decision</div>'
-        + '<textarea class="lld-comment-input" id="reviewComment" placeholder="Add a review comment (required for reject / correction)…"></textarea>'
-        + '<div class="lld-action-btns">'
-        + '<button type="button" class="lld-action-btn lld-action-approve" data-action="approve">✓ Approve</button>'
-        + '<button type="button" class="lld-action-btn lld-action-reject" data-action="reject">✕ Reject</button>'
-        + '<button type="button" class="lld-action-btn lld-action-correction" data-action="correction">↻ Correction</button>'
-        + '</div></div>';
+      html +=
+        '<div class="lld-action-area">' +
+        '<div class="lld-section-title">Review Decision</div>' +
+        '<textarea class="lld-comment-input" id="reviewComment" placeholder="Add a review comment (required for reject / correction)…"></textarea>' +
+        '<div class="lld-action-btns">' +
+        '<button type="button" class="lld-action-btn lld-action-approve" data-action="approve">✓ Approve</button>' +
+        '<button type="button" class="lld-action-btn lld-action-reject" data-action="reject">✕ Reject</button>' +
+        '<button type="button" class="lld-action-btn lld-action-correction" data-action="correction">↻ Correction</button>' +
+        '</div></div>';
     }
 
     drawerBody.innerHTML = html;
@@ -964,7 +1138,9 @@
     if (geomTabs) {
       geomTabs.querySelectorAll('.lld-geom-mode-tab').forEach((tab) => {
         tab.addEventListener('click', () => {
-          geomTabs.querySelectorAll('.lld-geom-mode-tab').forEach((t) => t.classList.remove('active'));
+          geomTabs
+            .querySelectorAll('.lld-geom-mode-tab')
+            .forEach((t) => t.classList.remove('active'));
           tab.classList.add('active');
           geomMode = tab.dataset.mode;
           renderGeomSvg();
@@ -980,16 +1156,24 @@
   }
 
   function meta(k, v) {
-    return '<div class="lld-meta-item"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + '</div></div>';
+    return (
+      '<div class="lld-meta-item"><div class="k">' +
+      esc(k) +
+      '</div><div class="v">' +
+      esc(v) +
+      '</div></div>'
+    );
   }
 
   function typeLabel(t) {
-    return {
-      geometry: 'Geometry',
-      attribute: 'Attribute',
-      new_feature: 'New Feature',
-      removed_feature: 'Removed Feature',
-    }[t] || t;
+    return (
+      {
+        geometry: 'Geometry',
+        attribute: 'Attribute',
+        new_feature: 'New Feature',
+        removed_feature: 'Removed Feature',
+      }[t] || t
+    );
   }
 
   // SVG sketch comparing original vs survey geometry.
@@ -997,7 +1181,9 @@
     const svg = $('geomSvg');
     if (!svg) return;
     const ch = selectedChange;
-    const W = 320, H = 120, pad = 16;
+    const W = 320,
+      H = 120,
+      pad = 16;
     const orig = ch.original_geometry;
     const surv = ch.survey_geometry;
 
@@ -1008,12 +1194,15 @@
 
     const lngs = allCoords.map((c) => c[0]);
     const lats = allCoords.map((c) => c[1]);
-    const minLng = Math.min.apply(null, lngs), maxLng = Math.max.apply(null, lngs);
-    const minLat = Math.min.apply(null, lats), maxLat = Math.max.apply(null, lats);
-    const spanX = (maxLng - minLng) || 0.0001;
-    const spanY = (maxLat - minLat) || 0.0001;
+    const minLng = Math.min.apply(null, lngs),
+      maxLng = Math.max.apply(null, lngs);
+    const minLat = Math.min.apply(null, lats),
+      maxLat = Math.max.apply(null, lats);
+    const spanX = maxLng - minLng || 0.0001;
+    const spanY = maxLat - minLat || 0.0001;
     const scale = Math.min((W - pad * 2) / spanX, (H - pad * 2) / spanY);
-    const ox = (W - spanX * scale) / 2, oy = (H + spanY * scale) / 2;
+    const ox = (W - spanX * scale) / 2,
+      oy = (H + spanY * scale) / 2;
 
     const proj = (c) => [ox + (c[0] - minLng) * scale, oy - (c[1] - minLat) * scale];
 
@@ -1022,23 +1211,52 @@
       if (!coords.length) return '';
       const pts = coords.map(proj);
       if (coords.length === 1) return '';
-      return pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+      return pts
+        .map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1))
+        .join(' ');
     };
     const circleFor = (geom, color) => {
       const coords = flattenCoords(geom);
       if (!coords.length) return '';
       const p = proj(coords[0]);
-      return '<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="6" fill="' + color + '" stroke="#FFF" stroke-width="2"/>';
+      return (
+        '<circle cx="' +
+        p[0].toFixed(1) +
+        '" cy="' +
+        p[1].toFixed(1) +
+        '" r="6" fill="' +
+        color +
+        '" stroke="#FFF" stroke-width="2"/>'
+      );
     };
 
-    let inner = '<rect x="1" y="1" width="' + (W - 2) + '" height="' + (H - 2) + '" fill="#0B1020"/>';
+    let inner =
+      '<rect x="1" y="1" width="' + (W - 2) + '" height="' + (H - 2) + '" fill="#0B1020"/>';
 
     // Grid lines
     for (let gx = pad; gx < W - pad; gx += 32) {
-      inner += '<line x1="' + gx + '" y1="' + pad + '" x2="' + gx + '" y2="' + (H - pad) + '" stroke="#1F2937" stroke-width="1"/>';
+      inner +=
+        '<line x1="' +
+        gx +
+        '" y1="' +
+        pad +
+        '" x2="' +
+        gx +
+        '" y2="' +
+        (H - pad) +
+        '" stroke="#1F2937" stroke-width="1"/>';
     }
     for (let gy = pad; gy < H - pad; gy += 32) {
-      inner += '<line x1="' + pad + '" y1="' + gy + '" x2="' + (W - pad) + '" y2="' + gy + '" stroke="#1F2937" stroke-width="1"/>';
+      inner +=
+        '<line x1="' +
+        pad +
+        '" y1="' +
+        gy +
+        '" x2="' +
+        (W - pad) +
+        '" y2="' +
+        gy +
+        '" stroke="#1F2937" stroke-width="1"/>';
     }
 
     const showOrig = geomMode === 'original' || geomMode === 'difference';
@@ -1046,12 +1264,20 @@
 
     if (showSurv && surv) {
       const p = pathFor(surv);
-      if (p) inner += '<path d="' + p + '" fill="none" stroke="#F97316" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      if (p)
+        inner +=
+          '<path d="' +
+          p +
+          '" fill="none" stroke="#F97316" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
       inner += circleFor(surv, '#F97316');
     }
     if (showOrig && orig) {
       const p = pathFor(orig);
-      if (p) inner += '<path d="' + p + '" fill="none" stroke="#3B82F6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+      if (p)
+        inner +=
+          '<path d="' +
+          p +
+          '" fill="none" stroke="#3B82F6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
       inner += circleFor(orig, '#3B82F6');
     }
 
@@ -1060,16 +1286,36 @@
       const diff = differenceSegments(orig, surv);
       if (diff && diff.coordinates) {
         diff.coordinates.forEach((seg) => {
-          const a = proj(seg[0]), b = proj(seg[1]);
-          inner += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" stroke="#EF4444" stroke-width="3" stroke-dasharray="5,3" stroke-linecap="round"/>';
+          const a = proj(seg[0]),
+            b = proj(seg[1]);
+          inner +=
+            '<line x1="' +
+            a[0].toFixed(1) +
+            '" y1="' +
+            a[1].toFixed(1) +
+            '" x2="' +
+            b[0].toFixed(1) +
+            '" y2="' +
+            b[1].toFixed(1) +
+            '" stroke="#EF4444" stroke-width="3" stroke-dasharray="5,3" stroke-linecap="round"/>';
         });
       }
       // Point relocation: connect the two positions with a red dashed line.
       const oc = orig ? flattenCoords(orig) : [];
       const sc = surv ? flattenCoords(surv) : [];
       if (oc.length === 1 && sc.length === 1) {
-        const a = proj(oc[0]), b = proj(sc[0]);
-        inner += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" stroke="#EF4444" stroke-width="2" stroke-dasharray="4,3" stroke-linecap="round"/>';
+        const a = proj(oc[0]),
+          b = proj(sc[0]);
+        inner +=
+          '<line x1="' +
+          a[0].toFixed(1) +
+          '" y1="' +
+          a[1].toFixed(1) +
+          '" x2="' +
+          b[0].toFixed(1) +
+          '" y2="' +
+          b[1].toFixed(1) +
+          '" stroke="#EF4444" stroke-width="2" stroke-dasharray="4,3" stroke-linecap="round"/>';
       }
     }
 
@@ -1087,13 +1333,15 @@
     if ((action === 'reject' || action === 'correction') && !comment.trim()) {
       await window.FtthUI.alert({
         title: 'Add a comment first',
-        message: 'Please add a review comment so the survey engineer understands why.'
+        message: 'Please add a review comment so the survey engineer understands why.',
       });
       return;
     }
 
     const btns = drawerBody.querySelectorAll('.lld-action-btn');
-    btns.forEach((b) => { b.disabled = true; });
+    btns.forEach((b) => {
+      b.disabled = true;
+    });
 
     try {
       await window.FtthLldApi.submitAction(projectId, selectedChange.change_id, action, comment);
@@ -1113,9 +1361,11 @@
     } catch (err) {
       await window.FtthUI.alert({
         title: 'Action failed',
-        message: explain(err)
+        message: explain(err),
       });
-      btns.forEach((b) => { b.disabled = false; });
+      btns.forEach((b) => {
+        b.disabled = false;
+      });
     }
   }
 
@@ -1136,12 +1386,19 @@
       renderReadiness();
       renderDetail(); // shows the locked state in the drawer
       mapLoading.style.display = 'flex';
-      mapLoading.innerHTML = '<p style="color:#047857;font-size:15px;font-weight:600;">✅ Approved Survey ' + esc(approvedVersion) + ' created — ' + esc(review.approved ? review.approved.features.length : 0) + ' features. Run LLD when ready.</p>';
-      setTimeout(() => { mapLoading.style.display = 'none'; }, 2600);
+      mapLoading.innerHTML =
+        '<p style="color:#047857;font-size:15px;font-weight:600;">✅ Approved Survey ' +
+        esc(approvedVersion) +
+        ' created — ' +
+        esc(review.approved ? review.approved.features.length : 0) +
+        ' features. Run LLD when ready.</p>';
+      setTimeout(() => {
+        mapLoading.style.display = 'none';
+      }, 2600);
     } catch (err) {
       await window.FtthUI.alert({
         title: 'Could not create the Approved Survey Version',
-        message: explain(err)
+        message: explain(err),
       });
       createAsBtn.disabled = false;
     } finally {
@@ -1167,14 +1424,14 @@
         ? [
             'The current LLD design is replaced. There is no undo.',
             'Takes 10–40 minutes; the page can be closed while it runs.',
-            'Only needed for structural changes — moved PDP, re-zoning, aerial conversion.'
+            'Only needed for structural changes — moved PDP, re-zoning, aerial conversion.',
           ]
         : [
             'The current LLD design is rewritten from the survey changes.',
-            'Affects geometry, not just attributes — check the result before approving.'
+            'Affects geometry, not just attributes — check the result before approving.',
           ],
       danger: isReplan,
-      confirmLabel: isReplan ? 'Run full re-plan' : 'Run LLD'
+      confirmLabel: isReplan ? 'Run full re-plan' : 'Run LLD',
     });
     if (!ok) return;
     btn.disabled = true;
@@ -1188,15 +1445,25 @@
         const ver = res.lld_version || 'LLD-V01';
         const label = mode === 'replan' ? 're-plan' : 'LLD';
         mapLoading.style.display = 'flex';
-        mapLoading.innerHTML = '<div style="text-align:center;"><p style="color:#047857;font-size:15px;font-weight:600;margin-bottom:8px;">🚀 ' + (mode === 'replan' ? 'Full re-plan' : 'LLD') + ' ' + esc(ver) + ' started on ' + esc(approvedVersion) + '</p>'
-          + '<a href="ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId) + '" style="display:inline-block;padding:9px 18px;background:#047857;color:#FFF;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View LLD Versions →</a></div>';
+        mapLoading.innerHTML =
+          '<div style="text-align:center;"><p style="color:#047857;font-size:15px;font-weight:600;margin-bottom:8px;">🚀 ' +
+          (mode === 'replan' ? 'Full re-plan' : 'LLD') +
+          ' ' +
+          esc(ver) +
+          ' started on ' +
+          esc(approvedVersion) +
+          '</p>' +
+          '<a href="ftth-lld-versions.html?project_id=' +
+          encodeURIComponent(projectId) +
+          '" style="display:inline-block;padding:9px 18px;background:#047857;color:#FFF;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View LLD Versions →</a></div>';
         btn.querySelector('.btn-label').textContent = label;
       } catch (err) {
         await window.FtthUI.alert({
-        title: 'Run ' + verb + ' failed',
-        message: explain(err)
-      });
-        btn.querySelector('.btn-label').textContent = mode === 'replan' ? 'Full re-plan' : 'Run LLD on ' + approvedVersion;
+          title: 'Run ' + verb + ' failed',
+          message: explain(err),
+        });
+        btn.querySelector('.btn-label').textContent =
+          mode === 'replan' ? 'Full re-plan' : 'Run LLD on ' + approvedVersion;
       } finally {
         btn.classList.remove('loading');
         const canRun = ready && !!approvedVersion;
@@ -1228,7 +1495,8 @@
       if (item.dash) {
         chip.innerHTML = '<span class="sw dash"></span>' + item.label;
       } else {
-        chip.innerHTML = '<span class="sw" style="background:' + item.color + ';"></span>' + item.label;
+        chip.innerHTML =
+          '<span class="sw" style="background:' + item.color + ';"></span>' + item.label;
       }
       chip.addEventListener('click', () => {
         if (item.key === 'diff') return; // informational only
@@ -1305,16 +1573,24 @@
     el.className = 'lld-risk-badge lld-risk-' + band;
     el.textContent = 'RISK ' + band + ' · ' + Number(r.score || 0);
     const factors = (r.factors || []).join(' · ');
-    el.title = factors || ('severity=' + (r.severity || '?')
-      + ' × likelihood=' + (r.likelihood || 0)
-      + ' × lld_impact=' + (r.lld_impact || 0));
+    el.title =
+      factors ||
+      'severity=' +
+        (r.severity || '?') +
+        ' × likelihood=' +
+        (r.likelihood || 0) +
+        ' × lld_impact=' +
+        (r.lld_impact || 0);
     return el;
   }
 
   function esc(str) {
     return String(str === undefined || str === null ? '' : str)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   boot();

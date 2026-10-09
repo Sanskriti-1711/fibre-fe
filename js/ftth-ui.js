@@ -20,7 +20,7 @@
     notfound: 'That record no longer exists. It may have been deleted.',
     ratelimit: 'Too many requests. Wait a moment before trying again.',
     server: 'The design service hit an internal error. Try again shortly.',
-    default: 'Could not reach the design service. Check that the API is running.'
+    default: 'Could not reach the design service. Check that the API is running.',
   };
 
   /* Classify a failure into one of the ERROR_COPY keys. Single source of
@@ -46,16 +46,18 @@
     var msg = String((err && err.message) || '').toLowerCase();
     if (!msg) return 'default';
     if (/failed to fetch|networkerror|load failed|network request|fetch failed/.test(msg)) {
-      return (typeof navigator !== 'undefined' && navigator.onLine === false)
-        ? 'offline'
-        : 'default';
+      return typeof navigator !== 'undefined' && navigator.onLine === false ? 'offline' : 'default';
     }
     // Wording this backend actually emits for a dead session. Django's
     // simplejwt answers 401 with "Given token not valid for any token type",
     // and an expired refresh token gets 400 with "Token is invalid or
     // expired". Both are a dead session, and both used to reach the user as
     // "check that the API is running".
-    if (/session (has )?expired|please (log ?in|login)|unauthor|invalid token|token (has )?expired|token is invalid|not valid for any token type|token_?is_?blacklisted/.test(msg)) {
+    if (
+      /session (has )?expired|please (log ?in|login)|unauthor|invalid token|token (has )?expired|token is invalid|not valid for any token type|token_?is_?blacklisted/.test(
+        msg
+      )
+    ) {
       return 'unauthorized';
     }
     if (/permission|forbidden|not allowed|role does not have/.test(msg)) return 'forbidden';
@@ -92,14 +94,21 @@
     // No status, no meaningful kind, but there is a message. If it looks
     // like platform plumbing rather than an application error, it is not
     // worth a user's attention — say something actionable instead.
-    if (!raw || /^(failed to fetch|networkerror|load failed|fetch failed|network request failed|error loading|request failed)/i.test(raw)) {
+    if (
+      !raw ||
+      /^(failed to fetch|networkerror|load failed|fetch failed|network request failed|error loading|request failed)/i.test(
+        raw
+      )
+    ) {
       return ERROR_COPY.default;
     }
     return raw;
   }
 
   function markKind(err, kind) {
-    try { if (err && typeof err === 'object') err.__ftthKind = kind; } catch (_) {}
+    try {
+      if (err && typeof err === 'object') err.__ftthKind = kind;
+    } catch (_) {}
     return err;
   }
 
@@ -159,8 +168,11 @@
     if (this.host) this.host.setAttribute('aria-busy', 'true');
     if (this._box) {
       this._box.className = 'panel-state panel-state--loading';
-      this._box.innerHTML = '<span class="panel-spinner" aria-hidden="true"></span>' +
-        '<span>Loading ' + esc(this.label.toLowerCase()) + '…</span>';
+      this._box.innerHTML =
+        '<span class="panel-spinner" aria-hidden="true"></span>' +
+        '<span>Loading ' +
+        esc(this.label.toLowerCase()) +
+        '…</span>';
     }
   };
 
@@ -168,7 +180,10 @@
     this._state = 'ok';
     this._lastGood = note || null;
     if (this.host) this.host.setAttribute('aria-busy', 'false');
-    if (this._box) { this._box.innerHTML = ''; this._box.hidden = true; }
+    if (this._box) {
+      this._box.innerHTML = '';
+      this._box.hidden = true;
+    }
     if (this.valueEl) this.valueEl.textContent = value;
     if (this.noteEl) this.noteEl.textContent = note || '';
   };
@@ -182,9 +197,15 @@
     this._box.className = 'panel-state panel-state--empty';
     var act = action || this.emptyAction;
     this._box.innerHTML =
-      '<p class="panel-state__title">' + esc(title || this.emptyTitle) + '</p>' +
-      (body || this.emptyBody ? '<p class="panel-state__body">' + esc(body || this.emptyBody) + '</p>' : '') +
-      (act ? '<a class="panel-state__action" href="' + esc(act.href) + '">' + esc(act.label) + '</a>' : '');
+      '<p class="panel-state__title">' +
+      esc(title || this.emptyTitle) +
+      '</p>' +
+      (body || this.emptyBody
+        ? '<p class="panel-state__body">' + esc(body || this.emptyBody) + '</p>'
+        : '') +
+      (act
+        ? '<a class="panel-state__action" href="' + esc(act.href) + '">' + esc(act.label) + '</a>'
+        : '');
   };
 
   Panel.prototype.error = function (err) {
@@ -199,12 +220,20 @@
       ? '<button type="button" class="panel-state__retry" data-ftth-retry>Try again</button>'
       : '';
     this._box.innerHTML =
-      '<p class="panel-state__title">Can’t load ' + esc(this.label.toLowerCase()) + '</p>' +
-      '<p class="panel-state__body">' + esc(msg) + '</p>' + retry;
+      '<p class="panel-state__title">Can’t load ' +
+      esc(this.label.toLowerCase()) +
+      '</p>' +
+      '<p class="panel-state__body">' +
+      esc(msg) +
+      '</p>' +
+      retry;
     if (retry && this.onRetry) {
-      this._box.querySelector('[data-ftth-retry]').addEventListener('click', function () {
-        this.onRetry();
-      }.bind(this));
+      this._box.querySelector('[data-ftth-retry]').addEventListener(
+        'click',
+        function () {
+          this.onRetry();
+        }.bind(this)
+      );
     }
   };
 
@@ -214,7 +243,9 @@
     return this._lastGood ? 'Last updated ' + this._lastGood : '';
   };
 
-  Panel.prototype.state = function () { return this._state; };
+  Panel.prototype.state = function () {
+    return this._state;
+  };
 
   /* ── Toast ────────────────────────────────────────────────────────
      The old .ftth-toast was defined on one page and used on three, so
@@ -240,16 +271,25 @@
        message endlessly. Identical text is reused, not duplicated. */
     var existing = null;
     for (var i = 0; i < host.children.length; i++) {
-      if (host.children[i].getAttribute('data-ftth-msg') === message) { existing = host.children[i]; break; }
+      if (host.children[i].getAttribute('data-ftth-msg') === message) {
+        existing = host.children[i];
+        break;
+      }
     }
     if (existing) {
       clearTimeout(existing.__timer);
-      existing.__timer = setTimeout(function () { dismissOne(existing); }, 9000);
-      return { dismiss: function () { dismissOne(existing); } };
+      existing.__timer = setTimeout(function () {
+        dismissOne(existing);
+      }, 9000);
+      return {
+        dismiss: function () {
+          dismissOne(existing);
+        },
+      };
     }
 
     var el = document.createElement('div');
-    el.className = 'ftth-toast ftth-toast--' + (isError ? 'error' : (kind || 'info'));
+    el.className = 'ftth-toast ftth-toast--' + (isError ? 'error' : kind || 'info');
     el.setAttribute('role', isError ? 'alert' : 'status');
     el.setAttribute('data-ftth-msg', message);
     el.textContent = message;
@@ -259,22 +299,35 @@
     close.className = 'ftth-toast__close';
     close.setAttribute('aria-label', 'Dismiss notification');
     close.textContent = '×';
-    close.addEventListener('click', function () { dismissOne(el); });
+    close.addEventListener('click', function () {
+      dismissOne(el);
+    });
     el.appendChild(close);
     host.appendChild(el);
 
     while (host.children.length > 3) host.removeChild(host.firstChild);
 
-    el.__timer = setTimeout(function () { dismissOne(el); }, isError ? 9000 : 4500);
+    el.__timer = setTimeout(
+      function () {
+        dismissOne(el);
+      },
+      isError ? 9000 : 4500
+    );
 
-    return { dismiss: function () { dismissOne(el); } };
+    return {
+      dismiss: function () {
+        dismissOne(el);
+      },
+    };
   }
 
   function dismissOne(el) {
     if (!el || !el.parentNode) return;
     clearTimeout(el.__timer);
     el.classList.add('is-leaving');
-    setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 200);
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 200);
   }
 
   /* ── Canvas descriptions ───────────────────────────────────────────
@@ -288,7 +341,9 @@
 
   /* ── Motion ───────────────────────────────────────────────────────
      A single source of truth so no page re-derives the media query. */
-  function motionOk() { return !reduceMotion.matches; }
+  function motionOk() {
+    return !reduceMotion.matches;
+  }
 
   function onMotionChange(fn) {
     if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', fn);
@@ -312,10 +367,17 @@
     }
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) stop(); else start();
+        if (document.hidden) stop();
+        else start();
       });
     }
-    return { start: start, stop: stop, isRunning: function () { return !!timer; } };
+    return {
+      start: start,
+      stop: stop,
+      isRunning: function () {
+        return !!timer;
+      },
+    };
   }
 
   /* ── Poll with exponential backoff on 5xx errors ───────────────────
@@ -333,24 +395,32 @@
       if (typeof document !== 'undefined' && document.hidden) return;
       var promise = fn();
       if (promise && typeof promise.then === 'function') {
-        promise.then(function () {
-          // Success - reset interval
-          if (currentIntervalMs !== baseIntervalMs) {
-            currentIntervalMs = baseIntervalMs;
-            if (timer) { clearInterval(timer); timer = setInterval(run, currentIntervalMs); }
-          }
-        }).catch(function (err) {
-          var kind = (err && err.kind) || (err && err.status >= 500 && 'server') || 'other';
-          if (kind === 'server' || kind === 'timeout') {
-            // Back off
-            currentIntervalMs = Math.min(currentIntervalMs * 2, maxIntervalMs);
-            if (timer) { clearInterval(timer); timer = setInterval(run, currentIntervalMs); }
-          } else if (kind === 'unauthorized') {
-            stoppedBy401 = true;
-            stop();
-            FtthUI.toast('Session expired. Please refresh the page.', 'error');
-          }
-        });
+        promise
+          .then(function () {
+            // Success - reset interval
+            if (currentIntervalMs !== baseIntervalMs) {
+              currentIntervalMs = baseIntervalMs;
+              if (timer) {
+                clearInterval(timer);
+                timer = setInterval(run, currentIntervalMs);
+              }
+            }
+          })
+          .catch(function (err) {
+            var kind = (err && err.kind) || (err && err.status >= 500 && 'server') || 'other';
+            if (kind === 'server' || kind === 'timeout') {
+              // Back off
+              currentIntervalMs = Math.min(currentIntervalMs * 2, maxIntervalMs);
+              if (timer) {
+                clearInterval(timer);
+                timer = setInterval(run, currentIntervalMs);
+              }
+            } else if (kind === 'unauthorized') {
+              stoppedBy401 = true;
+              stop();
+              FtthUI.toast('Session expired. Please refresh the page.', 'error');
+            }
+          });
       }
     }
 
@@ -377,10 +447,18 @@
 
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', function () {
-        if (document.hidden) stop(); else start();
+        if (document.hidden) stop();
+        else start();
       });
     }
-    return { start: start, stop: stop, reset: reset, isRunning: function () { return !!timer; } };
+    return {
+      start: start,
+      stop: stop,
+      reset: reset,
+      isRunning: function () {
+        return !!timer;
+      },
+    };
   }
 
   /* ── Debounce helper ────────────────────────────────────────────────
@@ -388,16 +466,22 @@
   function debounce(fn, waitMs) {
     var timeout = null;
     return function () {
-      var ctx = this, args = arguments;
+      var ctx = this,
+        args = arguments;
       if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(function () { fn.apply(ctx, args); }, waitMs);
+      timeout = setTimeout(function () {
+        fn.apply(ctx, args);
+      }, waitMs);
     };
   }
 
   function esc(s) {
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   /* ── Request timeout ────────────────────────────────────────────
@@ -412,7 +496,9 @@
         reject(markKind(new Error('timeout: ' + (label || 'request')), 'timeout'));
       }, ms);
     });
-    return Promise.race([promise, timeout]).finally(function () { clearTimeout(timer); });
+    return Promise.race([promise, timeout]).finally(function () {
+      clearTimeout(timer);
+    });
   }
 
   /* ── Drawer ──────────────────────────────────────────────────────
@@ -434,12 +520,16 @@
     var lastFocused = null;
     var open = false;
 
-    function isOpen() { return open; }
+    function isOpen() {
+      return open;
+    }
 
     function focusables() {
-      return Array.prototype.slice.call(
-        (nav || sidebar).querySelectorAll('a[href], button, [tabindex]:not([tabindex="-1"])')
-      ).filter(function (el) { return el.offsetParent !== null; });
+      return Array.prototype.slice
+        .call((nav || sidebar).querySelectorAll('a[href], button, [tabindex]:not([tabindex="-1"])'))
+        .filter(function (el) {
+          return el.offsetParent !== null;
+        });
     }
 
     function setOpen(next) {
@@ -470,15 +560,24 @@
         var inside = sidebar.contains(active);
         if (inside) {
           var target = lastFocused;
-          var usable = target && target.focus && target !== document.body &&
-            document.contains(target) && target.offsetParent !== null;
+          var usable =
+            target &&
+            target.focus &&
+            target !== document.body &&
+            document.contains(target) &&
+            target.offsetParent !== null;
           (usable ? target : toggle).focus();
         }
       }
     }
 
-    toggle.addEventListener('click', function () { setOpen(!open); });
-    if (scrim) scrim.addEventListener('click', function () { setOpen(false); });
+    toggle.addEventListener('click', function () {
+      setOpen(!open);
+    });
+    if (scrim)
+      scrim.addEventListener('click', function () {
+        setOpen(false);
+      });
 
     // Following a link navigates, but if the link is an in-page anchor the
     // drawer would otherwise stay open over the destination.
@@ -490,24 +589,43 @@
 
     document.addEventListener('keydown', function (e) {
       if (!open) return;
-      if (e.key === 'Escape') { setOpen(false); return; }
+      if (e.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
       if (e.key !== 'Tab') return;
       // Keep Tab inside the drawer while it is modal over the page.
       var items = focusables();
       if (!items.length) return;
-      var first = items[0], last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      var first = items[0],
+        last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     });
 
     // A drawer open when the window widens past the breakpoint would sit
     // invisibly over a desktop layout with its scroll lock still applied.
     var mq = window.matchMedia('(min-width: 861px)');
-    var onChange = function (e) { if (e.matches) setOpen(false); };
+    var onChange = function (e) {
+      if (e.matches) setOpen(false);
+    };
     if (mq.addEventListener) mq.addEventListener('change', onChange);
     else if (mq.addListener) mq.addListener(onChange);
 
-    return { open: function () { setOpen(true); }, close: function () { setOpen(false); }, isOpen: isOpen };
+    return {
+      open: function () {
+        setOpen(true);
+      },
+      close: function () {
+        setOpen(false);
+      },
+      isOpen: isOpen,
+    };
   }
 
   /* ── Dialog ───────────────────────────────────────────────────────
@@ -580,7 +698,12 @@
            be the only teardown. */
         if (typeof dlg.close === 'function' && dlg.open) dlg.close();
         /* Defer removal past the exit animation. */
-        setTimeout(function () { if (dlg.parentNode) dlg.parentNode.removeChild(dlg); }, motionOk() ? 160 : 0);
+        setTimeout(
+          function () {
+            if (dlg.parentNode) dlg.parentNode.removeChild(dlg);
+          },
+          motionOk() ? 160 : 0
+        );
       }
 
       var head = el('div', 'ftth-dialog__head');
@@ -594,7 +717,9 @@
       x.type = 'button';
       x.setAttribute('aria-label', 'Close dialog');
       x.innerHTML = '<span aria-hidden="true">&times;</span>';
-      x.addEventListener('click', function () { settle(opts.onCancel ? opts.onCancel() : null); });
+      x.addEventListener('click', function () {
+        settle(opts.onCancel ? opts.onCancel() : null);
+      });
       head.appendChild(x);
       dlg.appendChild(head);
 
@@ -609,7 +734,9 @@
          confirm cannot express, and the reason these dialogs exist. */
       if (opts.lines && opts.lines.length) {
         var ul = el('ul', 'ftth-dialog__points');
-        opts.lines.forEach(function (t) { ul.appendChild(el('li', null, t)); });
+        opts.lines.forEach(function (t) {
+          ul.appendChild(el('li', null, t));
+        });
         body.appendChild(ul);
       }
       if (opts.input) body.appendChild(opts.input);
@@ -618,7 +745,11 @@
 
       var foot = el('div', 'ftth-dialog__foot');
       (opts.actions || []).forEach(function (a) {
-        var b = el('button', 'ftth-btn ' + (a.variant ? 'ftth-btn--' + a.variant : 'ftth-btn--secondary'), a.label);
+        var b = el(
+          'button',
+          'ftth-btn ' + (a.variant ? 'ftth-btn--' + a.variant : 'ftth-btn--secondary'),
+          a.label
+        );
         b.type = 'button';
         b.addEventListener('click', function () {
           /* `collect` lets a submit button read the fields at click time and
@@ -630,7 +761,10 @@
              closes. */
           if (a.collect) {
             var got = a.collect(dlg);
-            if (typeof got === 'string') { settle(got); return; }
+            if (typeof got === 'string') {
+              settle(got);
+              return;
+            }
             if (got && got.__error) {
               showFieldError(dlg, got.field, got.error);
               return;
@@ -660,7 +794,12 @@
       dlg.addEventListener('click', function (e) {
         if (e.target !== dlg) return;
         var r = dlg.getBoundingClientRect();
-        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) {
+        if (
+          e.clientX < r.left ||
+          e.clientX > r.right ||
+          e.clientY < r.top ||
+          e.clientY > r.bottom
+        ) {
           settle(opts.onCancel ? opts.onCancel() : null);
         }
       });
@@ -700,7 +839,9 @@
          they all route through close(). */
       dlg.addEventListener('close', function () {
         if (restoreTo && restoreTo.focus && document.contains(restoreTo)) {
-          try { restoreTo.focus(); } catch (_) {}
+          try {
+            restoreTo.focus();
+          } catch (_) {}
         }
       });
     });
@@ -715,14 +856,16 @@
       lines: opts.lines,
       note: opts.note,
       variant: opts.danger ? 'danger' : 'default',
-      onCancel: function () { return false; },
+      onCancel: function () {
+        return false;
+      },
       actions: [
         { label: opts.cancelLabel || 'Cancel', value: false, variant: 'secondary' },
         {
           label: opts.confirmLabel || (opts.danger ? 'Delete' : 'Confirm'),
           value: true,
-          variant: opts.danger ? 'danger' : 'primary'
-        }
+          variant: opts.danger ? 'danger' : 'primary',
+        },
       ],
       initialFocus: function (dlg) {
         if (opts.danger) {
@@ -730,7 +873,7 @@
           return btns[0] || null;
         }
         return dlg.querySelector('.ftth-btn--primary') || null;
-      }
+      },
     });
   }
 
@@ -747,9 +890,13 @@
       lines: opts.lines,
       note: opts.note,
       variant: opts.variant || 'default',
-      onCancel: function () { return true; },
+      onCancel: function () {
+        return true;
+      },
       actions: [{ label: opts.confirmLabel || 'Close', value: true, variant: 'primary' }],
-      initialFocus: function (dlg) { return dlg.querySelector('.ftth-btn--primary') || null; }
+      initialFocus: function (dlg) {
+        return dlg.querySelector('.ftth-btn--primary') || null;
+      },
     });
   }
 
@@ -799,19 +946,27 @@
       note: opts.note,
       variant: opts.danger ? 'danger' : 'default',
       input: wrap,
-      onCancel: function () { return null; },
+      onCancel: function () {
+        return null;
+      },
       actions: [
         { label: opts.cancelLabel || 'Cancel', value: null, variant: 'secondary' },
-        { label: opts.confirmLabel || 'Save', value: '__submit__', variant: opts.danger ? 'danger' : 'primary' }
+        {
+          label: opts.confirmLabel || 'Save',
+          value: '__submit__',
+          variant: opts.danger ? 'danger' : 'primary',
+        },
       ],
       initialFocus: function () {
         /* Retrying should put the caret in the text, not select it — the user
            is amending a sentence, not re-picking a value. */
         input.focus();
         var n = input.value.length;
-        try { input.setSelectionRange(n, n); } catch (_) {}
+        try {
+          input.setSelectionRange(n, n);
+        } catch (_) {}
         return input;
-      }
+      },
     }).then(function (res) {
       if (res !== '__submit__') return null;
       var v = input.value.trim();
@@ -850,6 +1005,6 @@
     pollWithBackoff: pollWithBackoff,
     debounce: debounce,
     reduceMotion: reduceMotion,
-    esc: esc
+    esc: esc,
   };
 })();

@@ -8,12 +8,13 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 
 ## Authentication APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/users/login/` | User login with email and password |
-| POST | `/api/users/token/refresh/` | Refresh access token using refresh token |
+| Method | Endpoint                    | Description                              |
+| ------ | --------------------------- | ---------------------------------------- |
+| POST   | `/api/users/login/`         | User login with email and password       |
+| POST   | `/api/users/token/refresh/` | Refresh access token using refresh token |
 
 **Login Request:**
+
 ```json
 {
   "email": "engineer@example.com",
@@ -22,6 +23,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Login Response (200 OK):**
+
 ```json
 {
   "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
@@ -38,6 +40,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Token Refresh Request:**
+
 ```json
 {
   "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
@@ -45,6 +48,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Token Refresh Response (200 OK):**
+
 ```json
 {
   "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
@@ -55,13 +59,14 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 
 ## User/Engineer APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/users/engineers/` | List all engineers |
-| POST | `/api/users/` | Create a new engineer user |
-| DELETE | `/api/users/{uuid}/` | Delete an engineer by UUID |
+| Method | Endpoint                | Description                |
+| ------ | ----------------------- | -------------------------- |
+| GET    | `/api/users/engineers/` | List all engineers         |
+| POST   | `/api/users/`           | Create a new engineer user |
+| DELETE | `/api/users/{uuid}/`    | Delete an engineer by UUID |
 
 **List Engineers Response (200 OK):**
+
 ```json
 {
   "count": 3,
@@ -91,6 +96,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Create Engineer Request:**
+
 ```json
 {
   "email": "newengineer@example.com",
@@ -103,6 +109,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Create Engineer Response (201 Created):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440003",
@@ -122,17 +129,18 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 
 ## Project APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/projects/` | List all projects |
-| GET | `/api/projects/?{query}` | List projects with filters |
-| GET | `/api/projects/latest/` | Get latest projects |
-| GET | `/api/projects/{proj_id}/` | Get a single project by ID |
-| POST | `/api/projects/` | Create a new project |
-| DELETE | `/api/projects/{proj_id}/` | Delete a project by ID |
-| GET | `/api/projects/{proj_id}/completion/` | Get project completion rate |
+| Method | Endpoint                              | Description                 |
+| ------ | ------------------------------------- | --------------------------- |
+| GET    | `/api/projects/`                      | List all projects           |
+| GET    | `/api/projects/?{query}`              | List projects with filters  |
+| GET    | `/api/projects/latest/`               | Get latest projects         |
+| GET    | `/api/projects/{proj_id}/`            | Get a single project by ID  |
+| POST   | `/api/projects/`                      | Create a new project        |
+| DELETE | `/api/projects/{proj_id}/`            | Delete a project by ID      |
+| GET    | `/api/projects/{proj_id}/completion/` | Get project completion rate |
 
 **List Projects Response (200 OK):**
+
 ```json
 {
   "count": 10,
@@ -166,6 +174,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Create Project Request:**
+
 ```json
 {
   "name": "South Mall Connection",
@@ -175,6 +184,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Create Project Response (201 Created):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440012",
@@ -190,6 +200,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Get Single Project Response (200 OK):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440010",
@@ -219,6 +230,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Get Project Completion Response (200 OK):**
+
 ```json
 {
   "project_id": "550e8400-e29b-41d4-a716-446655440010",
@@ -248,14 +260,15 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 
 ## Layer APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/projects/{proj_id}/layers/` | List all layers for a project |
-| GET | `/api/projects/{proj_id}/layers/{layer_id}/` | Get layer details |
-| GET | `/api/projects/{proj_id}/layers/weights/` | Get layer weights for completion calculation |
-| PUT | `/api/projects/{proj_id}/layers/weights/` | Update layer weights |
+| Method | Endpoint                                     | Description                                  |
+| ------ | -------------------------------------------- | -------------------------------------------- |
+| GET    | `/api/projects/{proj_id}/layers/`            | List all layers for a project                |
+| GET    | `/api/projects/{proj_id}/layers/{layer_id}/` | Get layer details                            |
+| GET    | `/api/projects/{proj_id}/layers/weights/`    | Get layer weights for completion calculation |
+| PUT    | `/api/projects/{proj_id}/layers/weights/`    | Update layer weights                         |
 
 **List Layers Response (200 OK):**
+
 ```json
 {
   "count": 3,
@@ -297,6 +310,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Get Layer Details Response (200 OK):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440100",
@@ -309,15 +323,16 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
   "created_at": "2024-01-10T10:30:00Z",
   "schema": {
     "fields": [
-      {"name": "cable_type", "type": "string"},
-      {"name": "length_m", "type": "number"},
-      {"name": "installation_date", "type": "date"}
+      { "name": "cable_type", "type": "string" },
+      { "name": "length_m", "type": "number" },
+      { "name": "installation_date", "type": "date" }
     ]
   }
 }
 ```
 
 **Get Layer Weights Response (200 OK):**
+
 ```json
 {
   "project_id": "550e8400-e29b-41d4-a716-446655440010",
@@ -343,24 +358,38 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Update Layer Weights Request:**
+
 ```json
 {
   "weights": [
-    {"layer_id": "550e8400-e29b-41d4-a716-446655440100", "weight": 50},
-    {"layer_id": "550e8400-e29b-41d4-a716-446655440101", "weight": 30},
-    {"layer_id": "550e8400-e29b-41d4-a716-446655440102", "weight": 20}
+    { "layer_id": "550e8400-e29b-41d4-a716-446655440100", "weight": 50 },
+    { "layer_id": "550e8400-e29b-41d4-a716-446655440101", "weight": 30 },
+    { "layer_id": "550e8400-e29b-41d4-a716-446655440102", "weight": 20 }
   ]
 }
 ```
 
 **Update Layer Weights Response (200 OK):**
+
 ```json
 {
   "project_id": "550e8400-e29b-41d4-a716-446655440010",
   "weights": [
-    {"layer_id": "550e8400-e29b-41d4-a716-446655440100", "layer_name": "Main Cables", "weight": 50},
-    {"layer_id": "550e8400-e29b-41d4-a716-446655440101", "layer_name": "Distribution Points", "weight": 30},
-    {"layer_id": "550e8400-e29b-41d4-a716-446655440102", "layer_name": "Service Areas", "weight": 20}
+    {
+      "layer_id": "550e8400-e29b-41d4-a716-446655440100",
+      "layer_name": "Main Cables",
+      "weight": 50
+    },
+    {
+      "layer_id": "550e8400-e29b-41d4-a716-446655440101",
+      "layer_name": "Distribution Points",
+      "weight": 30
+    },
+    {
+      "layer_id": "550e8400-e29b-41d4-a716-446655440102",
+      "layer_name": "Service Areas",
+      "weight": 20
+    }
   ],
   "total_weight": 100,
   "message": "Layer weights updated successfully"
@@ -371,14 +400,15 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 
 ## Feature APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/projects/{proj_id}/features/{feature_id}/` | Get a single feature |
-| PATCH | `/api/features/{feature_id}/field-measurements/` | Update field measurements for a feature |
-| PATCH | `/api/features/{feature_id}/submit/` | Submit a single feature for review |
-| POST | `/api/features/{feature_id}/upload-photo/` | Upload a photo for a feature |
+| Method | Endpoint                                         | Description                             |
+| ------ | ------------------------------------------------ | --------------------------------------- |
+| GET    | `/api/projects/{proj_id}/features/{feature_id}/` | Get a single feature                    |
+| PATCH  | `/api/features/{feature_id}/field-measurements/` | Update field measurements for a feature |
+| PATCH  | `/api/features/{feature_id}/submit/`             | Submit a single feature for review      |
+| POST   | `/api/features/{feature_id}/upload-photo/`       | Upload a photo for a feature            |
 
 **Get Feature Response (200 OK):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440200",
@@ -388,7 +418,10 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
   "status": "draft",
   "geometry": {
     "type": "LineString",
-    "coordinates": [[-122.4194, 37.7749], [-122.4184, 37.7759]]
+    "coordinates": [
+      [-122.4194, 37.7749],
+      [-122.4184, 37.7759]
+    ]
   },
   "attributes": {
     "cable_type": "Single Mode",
@@ -413,6 +446,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Submit Single Feature Request:**
+
 ```json
 {
   "status": "submitted",
@@ -421,6 +455,7 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Submit Single Feature Response (200 OK):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440200",
@@ -433,12 +468,14 @@ This document lists all APIs used in the Fiber Engineer Frontend project.
 ```
 
 **Upload Photo Request (multipart/form-data):**
+
 ```
 file: <binary image data>
 description: "Cable installed at pole 123"
 ```
 
 **Upload Photo Response (201 Created):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440301",
@@ -454,13 +491,14 @@ description: "Cable installed at pole 123"
 
 ## Feature Workflow APIs (Bulk Operations)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/features/submit/` | Submit multiple features for review |
-| POST | `/api/features/approve/` | Approve multiple features |
-| POST | `/api/features/reject/` | Reject multiple features |
+| Method | Endpoint                 | Description                         |
+| ------ | ------------------------ | ----------------------------------- |
+| POST   | `/api/features/submit/`  | Submit multiple features for review |
+| POST   | `/api/features/approve/` | Approve multiple features           |
+| POST   | `/api/features/reject/`  | Reject multiple features            |
 
 **Submit Features Body:**
+
 ```json
 {
   "feature_ids": ["550e8400-e29b-41d4-a716-446655440200", "550e8400-e29b-41d4-a716-446655440201"],
@@ -469,6 +507,7 @@ description: "Cable installed at pole 123"
 ```
 
 **Submit Features Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -490,6 +529,7 @@ description: "Cable installed at pole 123"
 ```
 
 **Approve Features Body:**
+
 ```json
 {
   "feature_ids": ["550e8400-e29b-41d4-a716-446655440200", "550e8400-e29b-41d4-a716-446655440201"],
@@ -499,6 +539,7 @@ description: "Cable installed at pole 123"
 ```
 
 **Approve Features Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -522,6 +563,7 @@ description: "Cable installed at pole 123"
 ```
 
 **Reject Features Body:**
+
 ```json
 {
   "feature_ids": ["550e8400-e29b-41d4-a716-446655440200"],
@@ -531,6 +573,7 @@ description: "Cable installed at pole 123"
 ```
 
 **Reject Features Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -552,19 +595,21 @@ description: "Cable installed at pole 123"
 
 ## Import APIs (GPKG Upload)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/projects/{proj_id}/import/upload/` | Upload GPKG file for a project |
-| POST | `/api/projects/{proj_id}/import/discover/` | Discover layers in uploaded GPKG |
-| POST | `/api/projects/{proj_id}/import/import/` | Import selected layers from GPKG |
+| Method | Endpoint                                   | Description                      |
+| ------ | ------------------------------------------ | -------------------------------- |
+| POST   | `/api/projects/{proj_id}/import/upload/`   | Upload GPKG file for a project   |
+| POST   | `/api/projects/{proj_id}/import/discover/` | Discover layers in uploaded GPKG |
+| POST   | `/api/projects/{proj_id}/import/import/`   | Import selected layers from GPKG |
 
 **Upload GPKG Request (multipart/form-data):**
+
 ```
 file: <binary GPKG file>
 name: "downtown_survey.gpkg"
 ```
 
 **Upload GPKG Response (201 Created):**
+
 ```json
 {
   "upload_id": "550e8400-e29b-41d4-a716-446655440500",
@@ -579,6 +624,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Discover Layers Request:**
+
 ```json
 {
   "upload_id": "550e8400-e29b-41d4-a716-446655440500"
@@ -586,6 +632,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Discover Layers Response (200 OK):**
+
 ```json
 {
   "upload_id": "550e8400-e29b-41d4-a716-446655440500",
@@ -615,6 +662,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Import Layers Request:**
+
 ```json
 {
   "upload_id": "550e8400-e29b-41d4-a716-446655440500",
@@ -646,6 +694,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Import Layers Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -683,17 +732,18 @@ name: "downtown_survey.gpkg"
 
 ## Assignment/Job APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/assignments/jobs/` | List all jobs with optional filters |
-| GET | `/api/assignments/` | List all assignments |
-| GET | `/api/assignments/{job_id}/` | Get a single assignment/job |
-| POST | `/api/assignments/` | Create a new assignment |
-| PATCH | `/api/assignments/{job_id}/` | Update an assignment |
-| DELETE | `/api/assignments/{job_id}/` | Delete an assignment |
-| GET | `/api/assignments/summary/` | Get assignments summary |
+| Method | Endpoint                     | Description                         |
+| ------ | ---------------------------- | ----------------------------------- |
+| GET    | `/api/assignments/jobs/`     | List all jobs with optional filters |
+| GET    | `/api/assignments/`          | List all assignments                |
+| GET    | `/api/assignments/{job_id}/` | Get a single assignment/job         |
+| POST   | `/api/assignments/`          | Create a new assignment             |
+| PATCH  | `/api/assignments/{job_id}/` | Update an assignment                |
+| DELETE | `/api/assignments/{job_id}/` | Delete an assignment                |
+| GET    | `/api/assignments/summary/`  | Get assignments summary             |
 
 **Job Query Parameters:**
+
 - `project={proj_id}` - Filter by project
 - `engineer={engineer_uuid}` - Filter by engineer
 - `status=pending|assigned|under_review|approved|redo` - Filter by status
@@ -701,6 +751,7 @@ name: "downtown_survey.gpkg"
 - `page` & `page_size` - Pagination
 
 **List Jobs Response (200 OK):**
+
 ```json
 {
   "count": 15,
@@ -742,6 +793,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Create Assignment Request:**
+
 ```json
 {
   "title": "Survey Junction Boxes",
@@ -756,6 +808,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Create Assignment Response (201 Created):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440702",
@@ -775,6 +828,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Get Single Assignment Response (200 OK):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440700",
@@ -808,6 +862,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Update Assignment Request:**
+
 ```json
 {
   "status": "under_review",
@@ -816,6 +871,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Update Assignment Response (200 OK):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440700",
@@ -826,6 +882,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Get Assignments Summary Response (200 OK):**
+
 ```json
 {
   "total": 15,
@@ -867,16 +924,18 @@ name: "downtown_survey.gpkg"
 
 ## Engineer Activity & Stats APIs
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/engineer/activity/` | Get engineer activity log |
-| GET | `/api/engineer/stats/` | Get engineer statistics |
+| Method | Endpoint                  | Description               |
+| ------ | ------------------------- | ------------------------- |
+| GET    | `/api/engineer/activity/` | Get engineer activity log |
+| GET    | `/api/engineer/stats/`    | Get engineer statistics   |
 
 **Stats Query Parameters:**
+
 - `engineer={uuid}` - Engineer UUID (required)
 - `days={number}` - Number of days to include in stats
 
 **Get Engineer Activity Response (200 OK):**
+
 ```json
 {
   "count": 25,
@@ -924,6 +983,7 @@ name: "downtown_survey.gpkg"
 ```
 
 **Get Engineer Stats Response (200 OK):**
+
 ```json
 {
   "engineer": "550e8400-e29b-41d4-a716-446655440001",
@@ -961,22 +1021,24 @@ name: "downtown_survey.gpkg"
 
 ## Field Measurements API
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| PATCH | `/api/features/{feature_id}/field-measurements/` | Update field measurements and comparison notes |
+| Method | Endpoint                                         | Description                                    |
+| ------ | ------------------------------------------------ | ---------------------------------------------- |
+| PATCH  | `/api/features/{feature_id}/field-measurements/` | Update field measurements and comparison notes |
 
 **Request Body:**
+
 ```json
 {
-  "field_measurements": { 
-    "length": 120.5, 
-    "width": 50.2 
+  "field_measurements": {
+    "length": 120.5,
+    "width": 50.2
   },
   "comparison_notes": "Verified measurements on site"
 }
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440200",
@@ -995,9 +1057,11 @@ name: "downtown_survey.gpkg"
 ## API Modules
 
 ### `js/fiber-api.js`
+
 Main API module containing all general-purpose APIs used across the application.
 
 ### `js/api.js`
+
 Engineer-specific API module with localized functions for engineer pages.
 
 ---

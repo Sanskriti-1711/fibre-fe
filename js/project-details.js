@@ -51,7 +51,8 @@ function initMap() {
           type: 'raster',
           tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
           tileSize: 256,
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          attribution:
+            '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         },
       },
       layers: [
@@ -77,7 +78,7 @@ async function fetchProjectDetails(projectId) {
 async function fetchProjectMapData(projectId) {
   const response = await window.FiberApi.rawFetch(
     `/api/projects/${encodeURIComponent(projectId)}/map-data/`,
-    { method: "GET" }
+    { method: 'GET' }
   );
   return response;
 }
@@ -99,11 +100,21 @@ function boundsOfFeatures(features) {
     const coords = f.geometry.coordinates;
     const type = f.geometry.type;
     const points = [];
-    if (type === 'Point') { points.push(coords); }
-    else if (type === 'MultiPoint' || type === 'LineString') { points.push(...coords); }
-    else if (type === 'MultiLineString' || type === 'Polygon') { points.push(...(coords[0] || [])); }
-    else if (type === 'MultiPolygon') { points.push(...((coords[0] && coords[0][0]) || [])); }
-    points.forEach(function (p) { if (p && p.length >= 2) { b.extend(p); any = true; } });
+    if (type === 'Point') {
+      points.push(coords);
+    } else if (type === 'MultiPoint' || type === 'LineString') {
+      points.push(...coords);
+    } else if (type === 'MultiLineString' || type === 'Polygon') {
+      points.push(...(coords[0] || []));
+    } else if (type === 'MultiPolygon') {
+      points.push(...((coords[0] && coords[0][0]) || []));
+    }
+    points.forEach(function (p) {
+      if (p && p.length >= 2) {
+        b.extend(p);
+        any = true;
+      }
+    });
   });
   return any ? b : null;
 }
@@ -129,9 +140,17 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
   features.forEach(function (f) {
     if (!f || !f.geometry) return;
     const t = f.geometry.type;
-    if (t === 'Point' || t === 'MultiPoint') { pointFeatures.push(f); }
-    else if (t === 'LineString' || t === 'MultiLineString' || String(t).toLowerCase().indexOf('line') !== -1) { lineFeatures.push(f); }
-    else { polygonFeatures.push(f); }
+    if (t === 'Point' || t === 'MultiPoint') {
+      pointFeatures.push(f);
+    } else if (
+      t === 'LineString' ||
+      t === 'MultiLineString' ||
+      String(t).toLowerCase().indexOf('line') !== -1
+    ) {
+      lineFeatures.push(f);
+    } else {
+      polygonFeatures.push(f);
+    }
   });
 
   const addLayers = function () {
@@ -142,19 +161,45 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
 
     if (lineFeatures.length) {
       const lineLayerId = sourceId + '-line';
-      map.addLayer({ id: lineLayerId, type: 'line', source: sourceId, paint: { 'line-color': color, 'line-width': 3, 'line-opacity': 0.8 } });
+      map.addLayer({
+        id: lineLayerId,
+        type: 'line',
+        source: sourceId,
+        paint: { 'line-color': color, 'line-width': 3, 'line-opacity': 0.8 },
+      });
       group.layerIds.push(lineLayerId);
     }
     if (pointFeatures.length) {
       const pointLayerId = sourceId + '-point';
-      map.addLayer({ id: pointLayerId, type: 'circle', source: sourceId, paint: { 'circle-radius': 6, 'circle-color': color, 'circle-opacity': 0.85, 'circle-stroke-color': '#FFFFFF', 'circle-stroke-width': 1 } });
+      map.addLayer({
+        id: pointLayerId,
+        type: 'circle',
+        source: sourceId,
+        paint: {
+          'circle-radius': 6,
+          'circle-color': color,
+          'circle-opacity': 0.85,
+          'circle-stroke-color': '#FFFFFF',
+          'circle-stroke-width': 1,
+        },
+      });
       group.layerIds.push(pointLayerId);
     }
     if (polygonFeatures.length) {
       const fillLayerId = sourceId + '-fill';
       const outlineLayerId = sourceId + '-outline';
-      map.addLayer({ id: fillLayerId, type: 'fill', source: sourceId, paint: { 'fill-color': color, 'fill-opacity': 0.3 } });
-      map.addLayer({ id: outlineLayerId, type: 'line', source: sourceId, paint: { 'line-color': color, 'line-width': 2 } });
+      map.addLayer({
+        id: fillLayerId,
+        type: 'fill',
+        source: sourceId,
+        paint: { 'fill-color': color, 'fill-opacity': 0.3 },
+      });
+      map.addLayer({
+        id: outlineLayerId,
+        type: 'line',
+        source: sourceId,
+        paint: { 'line-color': color, 'line-width': 2 },
+      });
       group.layerIds.push(fillLayerId, outlineLayerId);
     }
 
@@ -169,17 +214,28 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
           status: props.status || 'Pending',
           engineer: props.engineer || '--',
           completion: props.completion || '--',
-          layer: layerInfo.name
+          layer: layerInfo.name,
         };
         highlightLayer(lid, color);
         setFeatureDetails(featureData);
         new maplibregl.Popup({ closeButton: true, maxWidth: '260px' })
           .setLngLat(e.lngLat)
-          .setHTML('<strong>' + esc(props.ID || props.NAME || 'Feature') + '</strong><br/>Type: ' + esc(props.Type || layerInfo.name) + '<br/>Status: ' + esc(featureData.status))
+          .setHTML(
+            '<strong>' +
+              esc(props.ID || props.NAME || 'Feature') +
+              '</strong><br/>Type: ' +
+              esc(props.Type || layerInfo.name) +
+              '<br/>Status: ' +
+              esc(featureData.status)
+          )
           .addTo(map);
       });
-      map.on('mouseenter', lid, function () { map.getCanvas().style.cursor = 'pointer'; });
-      map.on('mouseleave', lid, function () { map.getCanvas().style.cursor = ''; });
+      map.on('mouseenter', lid, function () {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', lid, function () {
+        map.getCanvas().style.cursor = '';
+      });
     });
   };
 
@@ -194,21 +250,26 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
   features.forEach(function (geoFeature) {
     const props = geoFeature.properties || {};
     const id = props.ID || geoFeature.id;
-    const label = layerInfo.name + ' #' + id + ' • ' + (geoFeature.geometry ? geoFeature.geometry.type : '?');
+    const label =
+      layerInfo.name + ' #' + id + ' • ' + (geoFeature.geometry ? geoFeature.geometry.type : '?');
     const fBounds = boundsOfFeatures([geoFeature]);
     const fCenter = featureCenter(geoFeature);
-    addFeatureListItem(label, {
-      layerId: group.layerIds[0],
-      color: color,
-      bounds: fBounds,
-      center: fCenter,
-      data: {
-        id: id,
-        type: geoFeature.geometry ? geoFeature.geometry.type : '',
-        layer: layerInfo.name,
-        status: 'Pending'
-      }
-    }, color);
+    addFeatureListItem(
+      label,
+      {
+        layerId: group.layerIds[0],
+        color: color,
+        bounds: fBounds,
+        center: fCenter,
+        data: {
+          id: id,
+          type: geoFeature.geometry ? geoFeature.geometry.type : '',
+          layer: layerInfo.name,
+          status: 'Pending',
+        },
+      },
+      color
+    );
   });
 
   return group;
@@ -224,7 +285,10 @@ function featureCenter(feature) {
 
 function esc(str) {
   return String(str === undefined || str === null ? '' : str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // Load and render project data
@@ -233,7 +297,8 @@ async function loadAndRenderProject() {
 
   if (!projectId) {
     document.getElementById('projectTitle').textContent = 'No Project Selected';
-    document.getElementById('projectDescription').textContent = 'Please provide a project_id in the URL (e.g., ?project_id=123)';
+    document.getElementById('projectDescription').textContent =
+      'Please provide a project_id in the URL (e.g., ?project_id=123)';
     setLoading(false);
     return;
   }
@@ -241,7 +306,8 @@ async function loadAndRenderProject() {
   setLoading(true);
 
   if (!map) {
-    document.getElementById('projectDescription').textContent = 'Map library failed to load — please refresh the page.';
+    document.getElementById('projectDescription').textContent =
+      'Map library failed to load — please refresh the page.';
     setLoading(false);
     return;
   }
@@ -250,7 +316,7 @@ async function loadAndRenderProject() {
     // Fetch both project details and map data in parallel
     const [projectDetails, mapData] = await Promise.all([
       fetchProjectDetails(projectId),
-      fetchProjectMapData(projectId)
+      fetchProjectMapData(projectId),
     ]);
 
     let apiLayers = null;
@@ -262,7 +328,7 @@ async function loadAndRenderProject() {
       apiLayers = null;
     }
 
-    const apiLayerList = (apiLayers && Array.isArray(apiLayers.layers)) ? apiLayers.layers : [];
+    const apiLayerList = apiLayers && Array.isArray(apiLayers.layers) ? apiLayers.layers : [];
     const apiLayerIdByName = {};
     const apiLayerIdByNameNormalized = {};
     apiLayerList.forEach(function (l) {
@@ -284,8 +350,10 @@ async function loadAndRenderProject() {
     clearView();
 
     // Update project header with details from API
-    document.getElementById('projectTitle').textContent = projectDetails.name || `Project ${projectId}`;
-    document.getElementById('projectDescription').textContent = projectDetails.description || 'Layer and feature management for the selected project';
+    document.getElementById('projectTitle').textContent =
+      projectDetails.name || `Project ${projectId}`;
+    document.getElementById('projectDescription').textContent =
+      projectDetails.description || 'Layer and feature management for the selected project';
 
     // Update KPI section with project details
     const totalFeatures = mapData.features ? mapData.features.length : 0;
@@ -293,7 +361,8 @@ async function loadAndRenderProject() {
     document.getElementById('projectTotalFeatures').textContent = totalFeatures;
     document.getElementById('projectTotalLayers').textContent = totalLayers;
     document.getElementById('projectRegion').textContent = projectDetails.region || '--';
-    document.getElementById('projectCompletion').textContent = formatCompletionPercentage(projectDetails.completion_percentage) + '%';
+    document.getElementById('projectCompletion').textContent =
+      formatCompletionPercentage(projectDetails.completion_percentage) + '%';
 
     // Render layers
     const layers = mapData.layers || [];
@@ -316,11 +385,22 @@ async function loadAndRenderProject() {
 
       console.log('Layer mapping:', { mapName: layerInfo.name, resolvedId: layerId });
 
-      row.innerHTML = ''
-        + '<td>' + layerInfo.name + '</td>'
-        + '<td>' + (layerInfo.type || '--') + '</td>'
-        + '<td><input type="checkbox" checked data-layer="' + layerInfo.name + '" /></td>'
-        + '<td><a href="layer-details.html?project_id=' + encodeURIComponent(projectId) + '&layer_id=' + encodeURIComponent(layerId) + '" class="btn btn-details">View</a></td>';
+      row.innerHTML =
+        '' +
+        '<td>' +
+        layerInfo.name +
+        '</td>' +
+        '<td>' +
+        (layerInfo.type || '--') +
+        '</td>' +
+        '<td><input type="checkbox" checked data-layer="' +
+        layerInfo.name +
+        '" /></td>' +
+        '<td><a href="layer-details.html?project_id=' +
+        encodeURIComponent(projectId) +
+        '&layer_id=' +
+        encodeURIComponent(layerId) +
+        '" class="btn btn-details">View</a></td>';
       layerBasicsBody.appendChild(row);
 
       // Render GeoJSON features for this layer
@@ -347,13 +427,15 @@ async function loadAndRenderProject() {
     // Fit map to all features
     if (allLayerBounds.length && map) {
       const combined = new maplibregl.LngLatBounds();
-      allLayerBounds.forEach(function (b) { combined.extend(b); });
+      allLayerBounds.forEach(function (b) {
+        combined.extend(b);
+      });
       map.fitBounds(combined, { padding: 40, maxZoom: 16 });
     }
-
   } catch (error) {
     console.error('Error loading project data:', error);
-    document.getElementById('projectDescription').textContent = 'Error loading project data: ' + FtthUI.humanize(error);
+    document.getElementById('projectDescription').textContent =
+      'Error loading project data: ' + FtthUI.humanize(error);
   } finally {
     setLoading(false);
   }
@@ -362,11 +444,14 @@ async function loadAndRenderProject() {
 function highlightLayer(layerId, baseColor) {
   if (!map || !map.getLayer(layerId)) return;
   const type = map.getLayer(layerId).type;
-  const paintKey = type === 'circle' ? 'circle-color' : (type === 'fill' ? 'fill-color' : 'line-color');
+  const paintKey =
+    type === 'circle' ? 'circle-color' : type === 'fill' ? 'fill-color' : 'line-color';
   try {
     map.setPaintProperty(layerId, paintKey, '#E31837');
     setTimeout(function () {
-      try { map.setPaintProperty(layerId, paintKey, baseColor || '#0369A1'); } catch (_) {}
+      try {
+        map.setPaintProperty(layerId, paintKey, baseColor || '#0369A1');
+      } catch (_) {}
     }, 1200);
   } catch (_) {}
 }
@@ -374,7 +459,7 @@ function highlightLayer(layerId, baseColor) {
 function setFeatureDetails(feature) {
   if (!feature) return;
   // Build display name from id, type, layer since name field was removed from API
-  const displayName = feature.id ? `${feature.layer || ''} #${feature.id}` : (feature.name || '--');
+  const displayName = feature.id ? `${feature.layer || ''} #${feature.id}` : feature.name || '--';
   detailName.textContent = displayName;
   detailStatus.textContent = feature.status || '--';
   detailEngineer.textContent = feature.engineer || '--';

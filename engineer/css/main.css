@@ -1,16 +1,21 @@
 /* ===== Engineer Login Page Specific ===== */
 
 :root {
-  --tm-red: #E31837;
-  --tm-dark: #1F2937;
-  --tm-gray: #616A75;
-  --tm-light: #F9FAFB;
-  --tm-white: #FFFFFF;
+  --tm-red: #e31837;
+  --tm-dark: #1f2937;
+  --tm-gray: #616a75;
+  --tm-light: #f9fafb;
+  --tm-white: #fff;
 }
 
 * {
   box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 body {
@@ -65,7 +70,7 @@ body {
   background: var(--tm-white);
   padding: 32px;
   border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 25px rgb(0 0 0 / 8%);
 }
 
 .engineer-login .logo {
@@ -101,7 +106,7 @@ body {
 .engineer-login input {
   width: 100%;
   padding: 12px;
-  border: 1px solid #D1D5DB;
+  border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 14px;
 }

@@ -17,17 +17,20 @@
 (function () {
   'use strict';
 
-  var BASE_URL =
-    (window.FTTH_BASE_URL || window.location.origin).replace(/\/+$/, '');
+  var BASE_URL = (window.FTTH_BASE_URL || window.location.origin).replace(/\/+$/, '');
   var API_PREFIX = '/api/ftth/lld';
 
   function getAuthToken() {
     try {
-      if (typeof window.FiberAuth !== 'undefined' &&
-          typeof window.FiberAuth.getAccess === 'function') {
+      if (
+        typeof window.FiberAuth !== 'undefined' &&
+        typeof window.FiberAuth.getAccess === 'function'
+      ) {
         return window.FiberAuth.getAccess();
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
     return null;
   }
 
@@ -77,7 +80,9 @@
       if (window.FiberAuth && typeof window.FiberAuth.clear === 'function') {
         window.FiberAuth.clear();
       }
-    } catch (_) { /* ignore */ }
+    } catch (_) {
+      /* ignore */
+    }
   }
 
   async function authFetch(url, options, _retried) {
@@ -104,9 +109,13 @@
   function parseBody(response) {
     var ct = (response.headers.get('content-type') || '').toLowerCase();
     if (ct.indexOf('application/json') !== -1) {
-      return response.json().catch(function () { return null; });
+      return response.json().catch(function () {
+        return null;
+      });
     }
-    return response.text().catch(function () { return null; });
+    return response.text().catch(function () {
+      return null;
+    });
   }
 
   // ==================================================================
@@ -126,7 +135,14 @@
   }
 
   async function apiSubmitAction(projectId, changeId, action, comment) {
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/changes/' + encodeURIComponent(changeId) + '/action/');
+    var url = buildUrl(
+      API_PREFIX +
+        '/projects/' +
+        encodeURIComponent(projectId) +
+        '/changes/' +
+        encodeURIComponent(changeId) +
+        '/action/'
+    );
     var response = await authFetch(url, {
       method: 'POST',
       body: JSON.stringify({ action: action, comment: comment || '' }),
@@ -137,7 +153,9 @@
   }
 
   async function apiCreateApprovedVersion(projectId) {
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/approved-version/');
+    var url = buildUrl(
+      API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/approved-version/'
+    );
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
     var body = await parseBody(response);
     if (!response.ok) throw new Error((body && body.detail) || response.statusText);
@@ -170,7 +188,9 @@
     var qs = '';
     if (fromVersion) qs += '?from=' + encodeURIComponent(fromVersion);
     if (toVersion) qs += (qs ? '&' : '?') + 'to=' + encodeURIComponent(toVersion);
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/versions/diff/' + qs);
+    var url = buildUrl(
+      API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/versions/diff/' + qs
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
     if (!response.ok) {
@@ -182,7 +202,14 @@
   }
 
   async function apiGetRunStatus(projectId, lldVersion) {
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/' + encodeURIComponent(lldVersion) + '/');
+    var url = buildUrl(
+      API_PREFIX +
+        '/projects/' +
+        encodeURIComponent(projectId) +
+        '/runs/' +
+        encodeURIComponent(lldVersion) +
+        '/'
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
     if (!response.ok) {
@@ -194,7 +221,16 @@
   }
 
   async function apiGetRunLayer(projectId, lldVersion, layer) {
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/' + encodeURIComponent(lldVersion) + '/layers/' + encodeURIComponent(layer) + '/');
+    var url = buildUrl(
+      API_PREFIX +
+        '/projects/' +
+        encodeURIComponent(projectId) +
+        '/runs/' +
+        encodeURIComponent(lldVersion) +
+        '/layers/' +
+        encodeURIComponent(layer) +
+        '/'
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
     if (!response.ok) {
@@ -209,11 +245,14 @@
     authFetch(url, { method: 'GET' })
       .then(function (response) {
         if (!response.ok) {
-          return response.json().then(function (err) {
-            throw new Error((err && err.detail) || 'Download failed (' + response.status + ')');
-          }).catch(function () {
-            throw new Error('Download failed (' + response.status + ')');
-          });
+          return response
+            .json()
+            .then(function (err) {
+              throw new Error((err && err.detail) || 'Download failed (' + response.status + ')');
+            })
+            .catch(function () {
+              throw new Error('Download failed (' + response.status + ')');
+            });
         }
         var disposition = response.headers.get('Content-Disposition') || '';
         var match = disposition.match(/filename="?([^"]+)"?/);
@@ -239,7 +278,14 @@
   }
 
   function apiDownloadRunZip(projectId, lldVersion) {
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/runs/' + encodeURIComponent(lldVersion) + '/download/');
+    var url = buildUrl(
+      API_PREFIX +
+        '/projects/' +
+        encodeURIComponent(projectId) +
+        '/runs/' +
+        encodeURIComponent(lldVersion) +
+        '/download/'
+    );
     downloadBlob(url, projectId + '_' + lldVersion + '_lld.zip');
   }
 
@@ -254,7 +300,9 @@
     var body = await parseBody(response);
     if (!response.ok) return null;
     var list = Array.isArray(body) ? body : (body && body.results) || [];
-    var completed = list.filter(function (p) { return p.status === 'completed'; });
+    var completed = list.filter(function (p) {
+      return p.status === 'completed';
+    });
     var pick = completed[0] || list[0];
     return pick ? { project_id: pick.project_id, name: pick.name } : null;
   }
@@ -284,7 +332,14 @@
   }
 
   async function apiGetFeatureLineage(projectId, featureId) {
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/features/' + encodeURIComponent(featureId) + '/lineage/');
+    var url = buildUrl(
+      API_PREFIX +
+        '/projects/' +
+        encodeURIComponent(projectId) +
+        '/features/' +
+        encodeURIComponent(featureId) +
+        '/lineage/'
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
     if (!response.ok) {
@@ -347,7 +402,14 @@
   }
 
   async function apiRemoveMember(projectId, memberId) {
-    var url = buildUrl(API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/members/' + encodeURIComponent(memberId) + '/');
+    var url = buildUrl(
+      API_PREFIX +
+        '/projects/' +
+        encodeURIComponent(projectId) +
+        '/members/' +
+        encodeURIComponent(memberId) +
+        '/'
+    );
     var response = await authFetch(url, { method: 'DELETE' });
     if (response.status === 204) return null;
     var body = await parseBody(response);
@@ -378,8 +440,12 @@
   async function apiListAllPermits(params) {
     params = params || {};
     var qs = Object.keys(params)
-      .filter(function (k) { return params[k]; })
-      .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
+      .filter(function (k) {
+        return params[k];
+      })
+      .map(function (k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      })
       .join('&');
     var url = buildUrl('/api/ftth/permits/' + (qs ? '?' + qs : ''));
     var response = await authFetch(url);
@@ -393,7 +459,9 @@
   }
 
   async function apiRunPermitAnalysis(projectId) {
-    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/permits/analyze/');
+    var url = buildUrl(
+      '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/permits/analyze/'
+    );
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
     var body = await parseBody(response);
     if (!response.ok) {
@@ -441,7 +509,9 @@
   }
 
   function getPermitPackageDownloadUrl(projectId) {
-    return buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/package/download/');
+    return buildUrl(
+      '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/package/download/'
+    );
   }
 
   // ==================================================================
@@ -451,8 +521,12 @@
   async function apiListSubmissions(params) {
     params = params || {};
     var qs = Object.keys(params)
-      .filter(function (k) { return params[k]; })
-      .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
+      .filter(function (k) {
+        return params[k];
+      })
+      .map(function (k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      })
       .join('&');
     var url = buildUrl('/api/ftth/permits/submissions/' + (qs ? '?' + qs : ''));
     var response = await authFetch(url);
@@ -481,7 +555,9 @@
   }
 
   async function apiTransitionSubmission(submissionId, payload) {
-    var url = buildUrl('/api/ftth/permits/submissions/' + encodeURIComponent(submissionId) + '/transition/');
+    var url = buildUrl(
+      '/api/ftth/permits/submissions/' + encodeURIComponent(submissionId) + '/transition/'
+    );
     var response = await authFetch(url, {
       method: 'POST',
       body: JSON.stringify(payload || {}),
@@ -497,11 +573,16 @@
 
   // Permit AI copilot (advisory-only; deterministic completeness/risk/timeline never overwritten)
   async function apiDraftPermit(projectId, payload) {
-    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/draft/');
+    var url = buildUrl(
+      '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/draft/'
+    );
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload || {}) });
     var body = await parseBody(response);
     if (!response.ok) {
-      var msg = (body && (body.detail || body.hint)) ? ((body.detail||'') + (body.hint ? ' — ' + body.hint : '')) : (response.statusText || 'Draft failed');
+      var msg =
+        body && (body.detail || body.hint)
+          ? (body.detail || '') + (body.hint ? ' — ' + body.hint : '')
+          : response.statusText || 'Draft failed';
       var err = new Error(msg.trim());
       err.status = response.status;
       err.detail = body && body.detail;
@@ -512,88 +593,169 @@
     return body;
   }
   async function apiPermitRequirements(projectId, permitType, permitId) {
-    var qs = permitType ? '?permit_type=' + encodeURIComponent(permitType) + (permitId ? '&permit_id=' + encodeURIComponent(permitId) : '')
-      : permitId ? '?permit_id=' + encodeURIComponent(permitId) : '';
-    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/requirements/' + qs);
+    var qs = permitType
+      ? '?permit_type=' +
+        encodeURIComponent(permitType) +
+        (permitId ? '&permit_id=' + encodeURIComponent(permitId) : '')
+      : permitId
+        ? '?permit_id=' + encodeURIComponent(permitId)
+        : '';
+    var url = buildUrl(
+      '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/requirements/' + qs
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiExtractRequirements(projectId, rawText) {
-    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/requirements/');
-    var response = await authFetch(url, { method: 'POST', body: JSON.stringify({ raw_text: rawText }) });
+    var url = buildUrl(
+      '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/requirements/'
+    );
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ raw_text: rawText }),
+    });
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiPermitCompleteness(permitId) {
-    var url = buildUrl('/api/ftth/permits/permits/' + encodeURIComponent(permitId) + '/ai/completeness/');
+    var url = buildUrl(
+      '/api/ftth/permits/permits/' + encodeURIComponent(permitId) + '/ai/completeness/'
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiPermitRisk(projectId, permitId) {
-    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/risk/' + (permitId ? '?permit_id=' + encodeURIComponent(permitId) : ''));
+    var url = buildUrl(
+      '/api/ftth/permits/projects/' +
+        encodeURIComponent(projectId) +
+        '/ai/risk/' +
+        (permitId ? '?permit_id=' + encodeURIComponent(permitId) : '')
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiPermitTimeline(projectId) {
-    var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/timeline/');
+    var url = buildUrl(
+      '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/ai/timeline/'
+    );
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiListDrafts(params) {
     params = params || {};
-    var qs = Object.keys(params).filter(function(k){ return params[k]; }).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
+    var qs = Object.keys(params)
+      .filter(function (k) {
+        return params[k];
+      })
+      .map(function (k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      })
+      .join('&');
     var url = buildUrl('/api/ftth/permits/ai/drafts/' + (qs ? '?' + qs : ''));
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiReviewDraft(draftId) {
     var url = buildUrl('/api/ftth/permits/ai/drafts/' + encodeURIComponent(draftId) + '/review/');
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify({}) });
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiGetExpiries(projectId, params) {
     params = params || {};
-    var qs = Object.keys(params).filter(function(k){ return params[k] != null && String(params[k]) !== ''; }).map(function(k){ return encodeURIComponent(k)+'='+encodeURIComponent(params[k]); }).join('&');
-    var base = projectId ? '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/expiries/' : '/api/ftth/permits/expiries/';
+    var qs = Object.keys(params)
+      .filter(function (k) {
+        return params[k] != null && String(params[k]) !== '';
+      })
+      .map(function (k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+      })
+      .join('&');
+    var base = projectId
+      ? '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/expiries/'
+      : '/api/ftth/permits/expiries/';
     var url = buildUrl(base + (qs ? '?' + qs : ''));
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   // Package QA (P19b) — cross-project with ?project_id= filter, like expiries
   async function apiGetQa(projectId) {
-    var base = projectId ? '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/qa/' : '/api/ftth/permits/qa/';
-    var url = buildUrl(base + (projectId ? '' : ('')));
+    var base = projectId
+      ? '/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/qa/'
+      : '/api/ftth/permits/qa/';
+    var url = buildUrl(base + (projectId ? '' : ''));
     // Also support ?project_id= on the collection route for parity with expiries
     if (!projectId) {
       var pid = '';
-      try { pid = new URLSearchParams(window.location.search).get('project_id') || ''; } catch(_) {}
+      try {
+        pid = new URLSearchParams(window.location.search).get('project_id') || '';
+      } catch (_) {}
       if (pid) url = buildUrl('/api/ftth/permits/qa/?project_id=' + encodeURIComponent(pid));
     }
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiGetQaForProject(projectId) {
     var url = buildUrl('/api/ftth/permits/projects/' + encodeURIComponent(projectId) + '/qa/');
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   // Status-sync poller (P20b) — cross-project with ?project_id= filter
@@ -601,7 +763,11 @@
     var url = buildUrl('/api/ftth/permits/sync/status/');
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiPollSync(params) {
@@ -609,22 +775,40 @@
     var url = buildUrl('/api/ftth/permits/sync/poll/');
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify(params) });
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiSyncSubmission(submissionId, payload) {
-    var url = buildUrl('/api/ftth/permits/submissions/sync/' + (submissionId ? encodeURIComponent(submissionId) + '/' : ''));
+    var url = buildUrl(
+      '/api/ftth/permits/submissions/sync/' +
+        (submissionId ? encodeURIComponent(submissionId) + '/' : '')
+    );
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload || {}) });
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiSyncSubmissionsCsv(csvText, syncSource) {
-    var url = buildUrl('/api/ftth/permits/submissions/sync/csv/' + (syncSource ? '?sync_source=' + encodeURIComponent(syncSource) : ''));
+    var url = buildUrl(
+      '/api/ftth/permits/submissions/sync/csv/' +
+        (syncSource ? '?sync_source=' + encodeURIComponent(syncSource) : '')
+    );
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify({ csv: csvText }) });
     var body = await parseBody(response);
     // 207 Multi-Status when some rows errored — still useful
-    if (!response.ok && response.status !== 207) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok && response.status !== 207) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   // Auto-classify (P22b) — heuristic permit-type classifier + label feedback
@@ -633,21 +817,33 @@
     var payload = features && features.features ? features : { features: features };
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload) });
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiClassifyFeedback(payload) {
     var url = buildUrl('/api/ftth/permits/classify/feedback/');
     var response = await authFetch(url, { method: 'POST', body: JSON.stringify(payload || {}) });
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
   async function apiClassifyStats() {
     var url = buildUrl('/api/ftth/permits/classify/stats/');
     var response = await authFetch(url);
     var body = await parseBody(response);
-    if (!response.ok) { var err = new Error((body && body.detail) || response.statusText); err.status = response.status; throw err; }
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
     return body;
   }
 
@@ -655,28 +851,64 @@
   // Public API
   // ==================================================================
 
-  function loadReview(projectId) { return apiLoadReview(projectId); }
-  function submitAction(projectId, changeId, action, comment) { return apiSubmitAction(projectId, changeId, action, comment); }
-  function createApprovedVersion(projectId) { return apiCreateApprovedVersion(projectId); }
-  function runLld(projectId, mode) { return apiRunLld(projectId, mode); }
-  function listVersions(projectId) { return apiListVersions(projectId); }
-  function diffVersions(projectId, fromVersion, toVersion) { return apiDiffVersions(projectId, fromVersion, toVersion); }
-  function getRunStatus(projectId, lldVersion) { return apiGetRunStatus(projectId, lldVersion); }
-  function getRunLayer(projectId, lldVersion, layer) { return apiGetRunLayer(projectId, lldVersion, layer); }
-  function downloadRunZip(projectId, lldVersion) { apiDownloadRunZip(projectId, lldVersion); }
-
-  function getProject(projectId) {
-    return apiLoadReview(projectId).then(function (r) { return r.project; });
+  function loadReview(projectId) {
+    return apiLoadReview(projectId);
+  }
+  function submitAction(projectId, changeId, action, comment) {
+    return apiSubmitAction(projectId, changeId, action, comment);
+  }
+  function createApprovedVersion(projectId) {
+    return apiCreateApprovedVersion(projectId);
+  }
+  function runLld(projectId, mode) {
+    return apiRunLld(projectId, mode);
+  }
+  function listVersions(projectId) {
+    return apiListVersions(projectId);
+  }
+  function diffVersions(projectId, fromVersion, toVersion) {
+    return apiDiffVersions(projectId, fromVersion, toVersion);
+  }
+  function getRunStatus(projectId, lldVersion) {
+    return apiGetRunStatus(projectId, lldVersion);
+  }
+  function getRunLayer(projectId, lldVersion, layer) {
+    return apiGetRunLayer(projectId, lldVersion, layer);
+  }
+  function downloadRunZip(projectId, lldVersion) {
+    apiDownloadRunZip(projectId, lldVersion);
   }
 
-  function listProjects() { return apiListProjects(); }
-  function listRuns() { return apiListRuns(); }
-  function getFeatureLineage(projectId, featureId) { return apiGetFeatureLineage(projectId, featureId); }
-  function getProjectOverview(projectId) { return apiGetProjectOverview(projectId); }
-  function listUsers() { return apiListUsers(); }
-  function listMembers(projectId) { return apiListMembers(projectId); }
-  function addMember(projectId, userId, role) { return apiAddMember(projectId, userId, role); }
-  function removeMember(projectId, memberId) { return apiRemoveMember(projectId, memberId); }
+  function getProject(projectId) {
+    return apiLoadReview(projectId).then(function (r) {
+      return r.project;
+    });
+  }
+
+  function listProjects() {
+    return apiListProjects();
+  }
+  function listRuns() {
+    return apiListRuns();
+  }
+  function getFeatureLineage(projectId, featureId) {
+    return apiGetFeatureLineage(projectId, featureId);
+  }
+  function getProjectOverview(projectId) {
+    return apiGetProjectOverview(projectId);
+  }
+  function listUsers() {
+    return apiListUsers();
+  }
+  function listMembers(projectId) {
+    return apiListMembers(projectId);
+  }
+  function addMember(projectId, userId, role) {
+    return apiAddMember(projectId, userId, role);
+  }
+  function removeMember(projectId, memberId) {
+    return apiRemoveMember(projectId, memberId);
+  }
 
   window.FtthLldApi = {
     loadReview: loadReview,

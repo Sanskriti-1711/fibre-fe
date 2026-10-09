@@ -1,119 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Feature Details | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <style>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Feature Details | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <style>
       #auditMap {
-
         height: 240px;
 
         border-radius: 8px;
 
         overflow: hidden;
 
-        background: #E5E7EB;
-
+        background: #e5e7eb;
       }
-
     </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css" />
-  <script src="vendor/maplibre/maplibre-gl.js"></script>
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/components.css">
-  
-</head>
-<body class="audit-detail">
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css" />
+    <script src="vendor/maplibre/maplibre-gl.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body class="audit-detail">
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-<div class="layout">
-  <div id="sidebarContainer"></div>
+      <main class="content">
+        <div class="container">
+          <div
+            id="breadcrumb"
+            style="
+              margin: 4px 0 12px;
+              font-size: 13px;
+              color: #616a75;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+            "
+          >
+            <div style="min-width: 0">
+              <a id="crumbProject" href="projects.html" style="color: inherit; text-decoration: none">Project</a>
+              <span> / </span>
+              <a id="crumbLayer" href="projects.html" style="color: inherit; text-decoration: none">Layer</a>
+              <span> / </span>
+              <span id="crumbFeature">Feature</span>
+            </div>
 
-  <main class="content">
-    <div class="container">
+            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0">
+              <a id="assignJobBtn" class="btn" href="project-assign.html" style="text-decoration: none">Assign Job</a>
+              <div
+                id="featureStatusPill"
+                style="
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 6px;
+                  padding: 6px 10px;
+                  border-radius: 999px;
+                  background: #ecfdf5;
+                  color: #065f46;
+                  border: 1px solid rgba(6, 95, 70, 0.18);
+                  font-size: 13px;
+                  font-weight: 600;
+                  white-space: nowrap;
+                "
+              ></div>
+            </div>
+          </div>
 
-      <div id="breadcrumb" style="margin: 4px 0 12px; font-size: 13px; color: #616A75; display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div style="min-width:0;">
-          <a id="crumbProject" href="projects.html" style="color: inherit; text-decoration: none;">Project</a>
-          <span> / </span>
-          <a id="crumbLayer" href="projects.html" style="color: inherit; text-decoration: none;">Layer</a>
-          <span> / </span>
-          <span id="crumbFeature">Feature</span>
-        </div>
+          <h1 id="featureTitle" style="margin: 10px 0">Feature Details</h1>
 
-        <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
-          <a id="assignJobBtn" class="btn" href="project-assign.html" style="text-decoration:none;">Assign Job</a>
-          <div id="featureStatusPill" style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#ECFDF5; color:#065F46; border:1px solid rgba(6,95,70,0.18); font-size:13px; font-weight:600; white-space:nowrap;">
-            
+          <!-- Images -->
+          <div class="grid">
+            <div class="card">
+              <h3>Expected (Design)</h3>
+              <div id="auditMap" aria-label="Map placeholder"></div>
+            </div>
+
+            <div class="card">
+              <h3>Actual (Field Upload)</h3>
+              <div
+                id="fieldPhotoContainer"
+                class="image-box"
+                style="
+                  min-height: 200px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: #f3f4f6;
+                  border-radius: 8px;
+                  overflow: hidden;
+                "
+              >
+                <span id="fieldPhotoPlaceholder">No photo uploaded</span>
+                <img
+                  id="fieldPhoto"
+                  style="max-width: 100%; max-height: 240px; display: none; object-fit: contain"
+                  alt="Field photo"
+                />
+              </div>
+              <div id="photoUploadInfo" style="margin-top: 8px; font-size: 12px; color: #616a75"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Measurements &amp; Geometry</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Measurement</th>
+                  <th>Planned</th>
+                  <th>Detected / As-Built</th>
+                </tr>
+              </thead>
+              <tbody id="measurementsBody">
+                <tr>
+                  <td>Length (L)</td>
+                  <td id="plannedLength">--</td>
+                  <td id="detectedLength">--</td>
+                </tr>
+                <tr>
+                  <td>Diameter/Depth (D)</td>
+                  <td id="plannedDiameter">--</td>
+                  <td id="detectedDiameter">--</td>
+                </tr>
+                <tr>
+                  <td>Start (SX, SY)</td>
+                  <td id="plannedStart">--</td>
+                  <td id="detectedStart">--</td>
+                </tr>
+                <tr>
+                  <td>End (EX, EY)</td>
+                  <td id="plannedEnd">--</td>
+                  <td id="detectedEnd">--</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3 style="margin-top: 10px">Status</h3>
+            <table>
+              <!-- <tr><td>Feature UUID</td><td id="featureUuid">--</td></tr> -->
+              <tr>
+                <td>Status</td>
+                <td id="featureStatus">--</td>
+              </tr>
+              <tr>
+                <td>Captured at</td>
+                <td id="featureCreated">--</td>
+              </tr>
+              <!-- <tr><td>Last Updated</td><td id="featureUpdated">--</td></tr> -->
+            </table>
+
+            <textarea placeholder="Comments for field engineer (optional)"></textarea>
+
+            <div class="actions">
+              <button class="btn approve">Approve</button>
+              <!-- <button class="btn reject">Reject</button> -->
+              <button class="btn rework">Rework</button>
+            </div>
           </div>
         </div>
-      </div>
-
-      <h1 id="featureTitle" style="margin:10px 0;">Feature Details</h1>
-
-      <!-- Images -->
-      <div class="grid">
-        <div class="card">
-          <h3>Expected (Design)</h3>
-          <div id="auditMap" aria-label="Map placeholder"></div>
-        </div>
-
-        <div class="card">
-          <h3>Actual (Field Upload)</h3>
-          <div id="fieldPhotoContainer" class="image-box" style="min-height: 200px; display: flex; align-items: center; justify-content: center; background: #F3F4F6; border-radius: 8px; overflow: hidden;">
-            <span id="fieldPhotoPlaceholder">No photo uploaded</span>
-            <img id="fieldPhoto" style="max-width: 100%; max-height: 240px; display: none; object-fit: contain;" alt="Field photo" />
-          </div>
-          <div id="photoUploadInfo" style="margin-top: 8px; font-size: 12px; color: #616A75;"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Measurements &amp; Geometry</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Measurement</th>
-              <th>Planned</th>
-              <th>Detected / As-Built</th>
-            </tr>
-          </thead>
-          <tbody id="measurementsBody">
-            <tr><td>Length (L)</td><td id="plannedLength">--</td><td id="detectedLength">--</td></tr>
-            <tr><td>Diameter/Depth (D)</td><td id="plannedDiameter">--</td><td id="detectedDiameter">--</td></tr>
-            <tr><td>Start (SX, SY)</td><td id="plannedStart">--</td><td id="detectedStart">--</td></tr>
-            <tr><td>End (EX, EY)</td><td id="plannedEnd">--</td><td id="detectedEnd">--</td></tr>
-          </tbody>
-        </table>
-     
-        <h3 style="margin-top: 10px;">Status</h3>
-        <table>
-          <!-- <tr><td>Feature UUID</td><td id="featureUuid">--</td></tr> -->
-          <tr><td>Status</td><td id="featureStatus">--</td></tr>
-          <tr><td>Captured at</td><td id="featureCreated">--</td></tr>
-          <!-- <tr><td>Last Updated</td><td id="featureUpdated">--</td></tr> -->
-        </table>
-
-        <textarea placeholder="Comments for field engineer (optional)"></textarea>
-
-        <div class="actions">
-          <button class="btn approve">Approve</button>
-          <!-- <button class="btn reject">Reject</button> -->
-          <button class="btn rework">Rework</button>
-        </div>
-      </div>
-
+      </main>
     </div>
-  </main>
+  </body>
+  <script src="partials/sidebar-loader.js"></script>
+  <script src="js/ftth-ui.js"></script>
 
-</div>
-
-</body>
-<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
-
-<script src="fiber-api.js"></script>
-<script src="js/feature-details.js"></script>
+  <script src="fiber-api.js"></script>
+  <script src="js/feature-details.js"></script>
 </html>

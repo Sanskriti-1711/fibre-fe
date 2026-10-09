@@ -63,7 +63,11 @@ function formatDate(dateStr) {
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return '-';
-    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return (
+      d.toLocaleDateString() +
+      ' ' +
+      d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    );
   } catch (_) {
     return '-';
   }
@@ -71,22 +75,22 @@ function formatDate(dateStr) {
 
 function getStatusClass(status) {
   const statusMap = {
-    'PENDING': 'pending',
-    'ASSIGNED': 'assigned',
-    'UNDER_REVIEW': 'review',
-    'APPROVED': 'approved',
-    'REDO': 'redo'
+    PENDING: 'pending',
+    ASSIGNED: 'assigned',
+    UNDER_REVIEW: 'review',
+    APPROVED: 'approved',
+    REDO: 'redo',
   };
   return statusMap[status] || 'pending';
 }
 
 function getStatusLabel(status) {
   const labelMap = {
-    'PENDING': 'Assigned',
-    'ASSIGNED': 'Assigned',
-    'UNDER_REVIEW': 'Under Review',
-    'APPROVED': 'Approved',
-    'REDO': 'Redo'
+    PENDING: 'Assigned',
+    ASSIGNED: 'Assigned',
+    UNDER_REVIEW: 'Under Review',
+    APPROVED: 'Approved',
+    REDO: 'Redo',
   };
   return labelMap[status] || status;
 }
@@ -95,19 +99,28 @@ function getStatusLabel(status) {
 async function loadEngineers() {
   try {
     const data = await window.FiberApi.listEngineers();
-    engineersList = Array.isArray(data) ? data : (data && Array.isArray(data.results) ? data.results : []);
-    
+    engineersList = Array.isArray(data)
+      ? data
+      : data && Array.isArray(data.results)
+        ? data.results
+        : [];
+
     engineerSelect.innerHTML = '<option value="">Select Engineer...</option>';
-    engineersList.forEach(eng => {
+    engineersList.forEach((eng) => {
       const id = eng.uuid || eng.id || eng.user_uuid || eng.pk;
-      const name = eng.full_name || `${eng.first_name || ''} ${eng.last_name || ''}`.trim() || eng.name || eng.username || eng.email;
+      const name =
+        eng.full_name ||
+        `${eng.first_name || ''} ${eng.last_name || ''}`.trim() ||
+        eng.name ||
+        eng.username ||
+        eng.email;
       const option = document.createElement('option');
       option.value = id;
       option.textContent = `${name} (${eng.email})`;
       engineerSelect.appendChild(option);
     });
   } catch (e) {
-    showError('Failed to load engineers: ' + (FtthUI.humanize(e)));
+    showError('Failed to load engineers: ' + FtthUI.humanize(e));
   }
 }
 
@@ -119,13 +132,17 @@ async function loadEngineerActivity(engineerId) {
   }
 
   showError('');
-  currentEngineer = engineersList.find(e => 
-    (e.uuid || e.id || e.user_uuid || e.pk) === engineerId
+  currentEngineer = engineersList.find(
+    (e) => (e.uuid || e.id || e.user_uuid || e.pk) === engineerId
   );
 
   if (currentEngineer) {
-    const name = currentEngineer.full_name || `${currentEngineer.first_name || ''} ${currentEngineer.last_name || ''}`.trim() || 
-                 currentEngineer.name || currentEngineer.username || currentEngineer.email;
+    const name =
+      currentEngineer.full_name ||
+      `${currentEngineer.first_name || ''} ${currentEngineer.last_name || ''}`.trim() ||
+      currentEngineer.name ||
+      currentEngineer.username ||
+      currentEngineer.email;
     engineerName.textContent = name;
     engineerSubtitle.textContent = currentEngineer.email;
   }
@@ -133,12 +150,12 @@ async function loadEngineerActivity(engineerId) {
   try {
     // Load assignments for this engineer
     const assignments = await window.FiberApi.listAssignments({ assignee: engineerId });
-    assignmentsData = Array.isArray(assignments) ? assignments : (assignments?.results || []);
+    assignmentsData = Array.isArray(assignments) ? assignments : assignments?.results || [];
 
     // Load stats if available
     let stats = {};
     try {
-      stats = await window.FiberApi.getAssignmentsSummary({ assignee: engineerId }) || {};
+      stats = (await window.FiberApi.getAssignmentsSummary({ assignee: engineerId })) || {};
     } catch (_) {
       // Stats endpoint may not exist yet
     }
@@ -147,7 +164,7 @@ async function loadEngineerActivity(engineerId) {
     let activity = [];
     try {
       const activityData = await window.FiberApi.getEngineerActivity(engineerId);
-      activity = Array.isArray(activityData) ? activityData : (activityData?.results || []);
+      activity = Array.isArray(activityData) ? activityData : activityData?.results || [];
     } catch (_) {
       // Activity endpoint may not exist yet
     }
@@ -156,7 +173,7 @@ async function loadEngineerActivity(engineerId) {
     activityContent.style.display = 'block';
     noSelectionState.style.display = 'none';
   } catch (e) {
-    showError('Failed to load activity: ' + (FtthUI.humanize(e)));
+    showError('Failed to load activity: ' + FtthUI.humanize(e));
   }
 }
 
@@ -174,7 +191,7 @@ function updateKPICards(stats) {
   const layers = new Set();
   let featureCount = 0;
 
-  assignmentsData.forEach(a => {
+  assignmentsData.forEach((a) => {
     if (a.project) projects.add(a.project.id || a.project);
     if (a.layer) layers.add(a.layer.id || a.layer);
     if (a.scope === 'FEATURE') featureCount++;
@@ -182,7 +199,8 @@ function updateKPICards(stats) {
 
   document.getElementById('statProjects').textContent = stats.total_projects || projects.size || 0;
   document.getElementById('statLayers').textContent = stats.total_layers || layers.size || 0;
-  document.getElementById('statFeatures').textContent = stats.total_features || featureCount || assignmentsData.length || 0;
+  document.getElementById('statFeatures').textContent =
+    stats.total_features || featureCount || assignmentsData.length || 0;
 }
 
 function updateStatusBreakdown() {
@@ -190,10 +208,10 @@ function updateStatusBreakdown() {
     ASSIGNED: 0,
     UNDER_REVIEW: 0,
     APPROVED: 0,
-    REDO: 0
+    REDO: 0,
   };
 
-  assignmentsData.forEach(a => {
+  assignmentsData.forEach((a) => {
     const status = a.status || 'ASSIGNED';
     if (counts.hasOwnProperty(status)) {
       counts[status]++;
@@ -208,27 +226,29 @@ function updateStatusBreakdown() {
 
 function updateWorkQueue() {
   const queueList = document.getElementById('workQueueList');
-  
+
   const statusFilter = {
-    'ready': ['ASSIGNED', 'PENDING'],
-    'review': ['UNDER_REVIEW'],
-    'redo': ['REDO']
+    ready: ['ASSIGNED', 'PENDING'],
+    review: ['UNDER_REVIEW'],
+    redo: ['REDO'],
   }[currentQueueFilter] || ['ASSIGNED', 'PENDING'];
 
-  const filtered = assignmentsData.filter(a => statusFilter.includes(a.status));
+  const filtered = assignmentsData.filter((a) => statusFilter.includes(a.status));
 
   if (filtered.length === 0) {
     queueList.innerHTML = '<div class="empty-state">No items in this queue</div>';
     return;
   }
 
-  queueList.innerHTML = filtered.slice(0, 10).map(a => {
-    const projectName = a.project?.name || a.project_name || 'Unknown Project';
-    const scope = a.scope || 'PROJECT';
-    const target = a.target_details || {};
-    const targetName = target.name || target.feature_id || a.target_id || scope;
-    
-    return `
+  queueList.innerHTML = filtered
+    .slice(0, 10)
+    .map((a) => {
+      const projectName = a.project?.name || a.project_name || 'Unknown Project';
+      const scope = a.scope || 'PROJECT';
+      const target = a.target_details || {};
+      const targetName = target.name || target.feature_id || a.target_id || scope;
+
+      return `
       <div class="queue-item">
         <div class="queue-info">
           <span class="queue-project">${escapeHtml(projectName)}</span>
@@ -240,26 +260,27 @@ function updateWorkQueue() {
         </div>
       </div>
     `;
-  }).join('');
+    })
+    .join('');
 
   // Add event listeners
-  queueList.querySelectorAll('[data-action="field"]').forEach(btn => {
+  queueList.querySelectorAll('[data-action="field"]').forEach((btn) => {
     btn.addEventListener('click', () => openFieldWorkModal(btn.dataset.id));
   });
-  queueList.querySelectorAll('[data-action="submit"]').forEach(btn => {
+  queueList.querySelectorAll('[data-action="submit"]').forEach((btn) => {
     btn.addEventListener('click', () => submitAssignmentForReview(btn.dataset.id));
   });
 }
 
 function updateAssignmentsTable() {
   const tbody = document.getElementById('assignmentsTbody');
-  
+
   const projectFilter = filterProject.value;
   const scopeFilter = filterScope.value;
   const statusFilter = filterStatus.value;
   const searchTerm = searchAssignments.value.toLowerCase();
 
-  let filtered = assignmentsData.filter(a => {
+  let filtered = assignmentsData.filter((a) => {
     if (projectFilter && String(a.project?.id || a.project) !== projectFilter) return false;
     if (scopeFilter && a.scope !== scopeFilter) return false;
     if (statusFilter && a.status !== statusFilter) return false;
@@ -267,7 +288,11 @@ function updateAssignmentsTable() {
       const projectName = (a.project?.name || a.project_name || '').toLowerCase();
       const targetName = (a.target_details?.name || a.target_id || '').toLowerCase();
       const layerName = (a.layer?.name || a.layer_name || '').toLowerCase();
-      if (!projectName.includes(searchTerm) && !targetName.includes(searchTerm) && !layerName.includes(searchTerm)) {
+      if (
+        !projectName.includes(searchTerm) &&
+        !targetName.includes(searchTerm) &&
+        !layerName.includes(searchTerm)
+      ) {
         return false;
       }
     }
@@ -279,15 +304,16 @@ function updateAssignmentsTable() {
     return;
   }
 
-  tbody.innerHTML = filtered.map(a => {
-    const projectName = a.project?.name || a.project_name || 'Unknown';
-    const scope = a.scope || 'PROJECT';
-    const target = a.target_details || {};
-    const targetName = target.name || target.feature_id || a.target_id || scope;
-    const status = a.status || 'PENDING';
-    const assignedDate = a.assigned_at || a.created_at;
+  tbody.innerHTML = filtered
+    .map((a) => {
+      const projectName = a.project?.name || a.project_name || 'Unknown';
+      const scope = a.scope || 'PROJECT';
+      const target = a.target_details || {};
+      const targetName = target.name || target.feature_id || a.target_id || scope;
+      const status = a.status || 'PENDING';
+      const assignedDate = a.assigned_at || a.created_at;
 
-    return `
+      return `
       <tr>
         <td>${escapeHtml(projectName)}</td>
         <td><span class="scope-badge ${scope.toLowerCase()}">${escapeHtml(scope)}</span></td>
@@ -298,17 +324,18 @@ function updateAssignmentsTable() {
         </td>
       </tr>
     `;
-  }).join('');
+    })
+    .join('');
 
   // Add event listeners
-  tbody.querySelectorAll('[data-action="view"]').forEach(btn => {
+  tbody.querySelectorAll('[data-action="view"]').forEach((btn) => {
     btn.addEventListener('click', () => viewAssignmentDetails(btn.dataset.id));
   });
 }
 
 function updateProjectFilter() {
   const projects = new Map();
-  assignmentsData.forEach(a => {
+  assignmentsData.forEach((a) => {
     const id = a.project?.id || a.project;
     const name = a.project?.name || a.project_name;
     if (id && name && !projects.has(String(id))) {
@@ -329,11 +356,11 @@ function updateProjectFilter() {
 
 function updateAnalytics(stats) {
   // Calculate analytics from assignments
-  const completed = assignmentsData.filter(a => a.status === 'APPROVED').length;
-  const totalReviewed = assignmentsData.filter(a => 
-    a.status === 'APPROVED' || a.status === 'REDO'
+  const completed = assignmentsData.filter((a) => a.status === 'APPROVED').length;
+  const totalReviewed = assignmentsData.filter(
+    (a) => a.status === 'APPROVED' || a.status === 'REDO'
   ).length;
-  const redoCount = assignmentsData.filter(a => a.status === 'REDO').length;
+  const redoCount = assignmentsData.filter((a) => a.status === 'REDO').length;
 
   const approvalRate = totalReviewed > 0 ? Math.round((completed / totalReviewed) * 100) : 0;
   const redoRate = totalReviewed > 0 ? Math.round((redoCount / totalReviewed) * 100) : 0;
@@ -343,13 +370,14 @@ function updateAnalytics(stats) {
   const velocity = days > 0 ? (completed / days).toFixed(1) : '0';
 
   document.getElementById('analyticsCompleted').textContent = stats.completed_count || completed;
-  document.getElementById('analyticsApprovalRate').textContent = (stats.approval_rate || approvalRate) + '%';
+  document.getElementById('analyticsApprovalRate').textContent =
+    (stats.approval_rate || approvalRate) + '%';
   document.getElementById('analyticsRedoRate').textContent = (stats.redo_rate || redoRate) + '%';
   document.getElementById('analyticsVelocity').textContent = (stats.velocity || velocity) + '/day';
 
   // Project contribution
   const projectStats = {};
-  assignmentsData.forEach(a => {
+  assignmentsData.forEach((a) => {
     const pid = a.project?.id || a.project || 'unknown';
     const pname = a.project?.name || a.project_name || 'Unknown';
     if (!projectStats[pid]) {
@@ -363,13 +391,14 @@ function updateAnalytics(stats) {
 
   const contributionList = document.getElementById('projectContribution');
   const contributions = Object.values(projectStats).slice(0, 5);
-  
+
   if (contributions.length === 0) {
     contributionList.innerHTML = '<div class="empty-state">No project data</div>';
   } else {
-    contributionList.innerHTML = contributions.map(p => {
-      const pct = p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
-      return `
+    contributionList.innerHTML = contributions
+      .map((p) => {
+        const pct = p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
+        return `
         <div class="contribution-item">
           <span class="contribution-name">${escapeHtml(p.name)}</span>
           <div class="contribution-bar">
@@ -378,30 +407,31 @@ function updateAnalytics(stats) {
           <span class="contribution-value">${p.completed}/${p.total}</span>
         </div>
       `;
-    }).join('');
+      })
+      .join('');
   }
 }
 
 function updateProjectOverview() {
   const overviewList = document.getElementById('projectOverviewList');
-  
+
   const projectStats = {};
-  assignmentsData.forEach(a => {
+  assignmentsData.forEach((a) => {
     const pid = a.project?.id || a.project || 'unknown';
     const pname = a.project?.name || a.project_name || 'Unknown Project';
     if (!projectStats[pid]) {
-      projectStats[pid] = { 
-        name: pname, 
-        total: 0, 
-        completed: 0, 
+      projectStats[pid] = {
+        name: pname,
+        total: 0,
+        completed: 0,
         layers: new Set(),
-        lastActivity: null 
+        lastActivity: null,
       };
     }
     projectStats[pid].total++;
     if (a.layer) projectStats[pid].layers.add(a.layer.id || a.layer);
     if (a.status === 'APPROVED') projectStats[pid].completed++;
-    
+
     const activityDate = a.updated_at || a.assigned_at;
     if (activityDate) {
       const date = new Date(activityDate);
@@ -417,10 +447,11 @@ function updateProjectOverview() {
     return;
   }
 
-  overviewList.innerHTML = projects.map(p => {
-    const pct = p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
-    const lastActivity = p.lastActivity ? p.lastActivity.toLocaleDateString() : '-';
-    return `
+  overviewList.innerHTML = projects
+    .map((p) => {
+      const pct = p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0;
+      const lastActivity = p.lastActivity ? p.lastActivity.toLocaleDateString() : '-';
+      return `
       <div class="overview-item">
         <div class="overview-header">
           <span class="overview-name">${escapeHtml(p.name)}</span>
@@ -436,33 +467,34 @@ function updateProjectOverview() {
         </div>
       </div>
     `;
-  }).join('');
+    })
+    .join('');
 }
 
 function updateActivityTimeline(activity) {
   const timeline = document.getElementById('activityTimeline');
-  
+
   // Build timeline from activity data or assignments
   let events = [];
-  
+
   if (activity && activity.length > 0) {
-    events = activity.map(a => ({
+    events = activity.map((a) => ({
       type: a.type || 'status_change',
       title: a.title || 'Activity',
       description: a.description || '',
       timestamp: a.timestamp || a.created_at,
-      status: a.status
+      status: a.status,
     }));
   } else {
     // Build from assignments data
-    assignmentsData.slice(0, 20).forEach(a => {
+    assignmentsData.slice(0, 20).forEach((a) => {
       if (a.assigned_at) {
         events.push({
           type: 'assignment',
           title: 'Assigned',
           description: `${a.scope || 'Project'} assignment created`,
           timestamp: a.assigned_at,
-          status: 'ASSIGNED'
+          status: 'ASSIGNED',
         });
       }
       if (a.updated_at && a.status !== 'PENDING' && a.status !== 'ASSIGNED') {
@@ -471,7 +503,7 @@ function updateActivityTimeline(activity) {
           title: `Status: ${getStatusLabel(a.status)}`,
           description: `Assignment status updated`,
           timestamp: a.updated_at,
-          status: a.status
+          status: a.status,
         });
       }
     });
@@ -486,7 +518,9 @@ function updateActivityTimeline(activity) {
     return;
   }
 
-  timeline.innerHTML = events.map(e => `
+  timeline.innerHTML = events
+    .map(
+      (e) => `
     <div class="timeline-item">
       <div class="timeline-dot ${getStatusClass(e.status)}"></div>
       <div class="timeline-content">
@@ -495,7 +529,9 @@ function updateActivityTimeline(activity) {
         <div class="timeline-time">${formatDate(e.timestamp)}</div>
       </div>
     </div>
-  `).join('');
+  `
+    )
+    .join('');
 }
 
 // Actions
@@ -503,10 +539,13 @@ function updateActivityTimeline(activity) {
 // Where the mobile app's web build lives (served from the Expo export).
 // Override for production via: window.SURVEY_MAP_BASE_URL = 'https://...'
 // Expo web build (survey map) is served on :8081 in dev.
-const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/,'');
+const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(
+  /\/+$/,
+  ''
+);
 
 function viewAssignmentDetails(id) {
-  const assignment = assignmentsData.find(a => String(a.id) === String(id));
+  const assignment = assignmentsData.find((a) => String(a.id) === String(id));
   if (!assignment) return;
 
   // Feature-scope assignment → the platform's feature detail page
@@ -520,26 +559,27 @@ function viewAssignmentDetails(id) {
   // with the platform's session token so no second login is needed.
   const projectId = assignment.project?.id || assignment.project;
   if (projectId) {
-    const token = (window.FiberAuth && window.FiberAuth.getAccess) ? window.FiberAuth.getAccess() : '';
+    const token =
+      window.FiberAuth && window.FiberAuth.getAccess ? window.FiberAuth.getAccess() : '';
     const url = `${SURVEY_MAP_BASE_URL}/?token=${encodeURIComponent(token)}&project=${encodeURIComponent(projectId)}`;
     window.open(url, '_blank', 'noopener');
   }
 }
 
 async function openFieldWorkModal(id) {
-  const assignment = assignmentsData.find(a => String(a.id) === String(id));
+  const assignment = assignmentsData.find((a) => String(a.id) === String(id));
   if (!assignment) return;
 
   currentEditingFeature = assignment;
   modalFeatureId.textContent = assignment.target_id || assignment.target_details?.feature_id || id;
-  
+
   // Load field data if available
   if (assignment.target_details?.field_measurements) {
     fieldMeasurements.value = JSON.stringify(assignment.target_details.field_measurements, null, 2);
   } else {
     fieldMeasurements.value = '';
   }
-  
+
   if (assignment.target_details?.comparison_notes) {
     comparisonNotes.value = assignment.target_details.comparison_notes;
   } else {
@@ -569,15 +609,18 @@ async function saveFieldWorkData() {
 
     const payload = {
       field_measurements: fieldData,
-      comparison_notes: comparisonNotes.value.trim()
+      comparison_notes: comparisonNotes.value.trim(),
     };
 
-    await window.FiberApi.updateFeatureFieldData(currentEditingFeature.target_id || currentEditingFeature.id, payload);
+    await window.FiberApi.updateFeatureFieldData(
+      currentEditingFeature.target_id || currentEditingFeature.id,
+      payload
+    );
     showError('Field work data saved successfully');
     closeFieldWorkModal();
     await loadEngineerActivity(currentEngineer?.uuid || currentEngineer?.id);
   } catch (e) {
-    showError('Failed to save field work: ' + (FtthUI.humanize(e)));
+    showError('Failed to save field work: ' + FtthUI.humanize(e));
   }
 }
 
@@ -587,9 +630,9 @@ async function submitAssignmentForReview(id) {
     message: 'A supervisor will review the field work you recorded.',
     lines: [
       'It leaves your list and appears in the review queue.',
-      'You can no longer edit it while it is under review.'
+      'You can no longer edit it while it is under review.',
     ],
-    confirmLabel: 'Submit for review'
+    confirmLabel: 'Submit for review',
   });
   if (!ok) return;
 
@@ -598,7 +641,7 @@ async function submitAssignmentForReview(id) {
     showError('Assignment submitted for review');
     await loadEngineerActivity(engineerSelect.value);
   } catch (e) {
-    showError('Failed to submit: ' + (FtthUI.humanize(e)));
+    showError('Failed to submit: ' + FtthUI.humanize(e));
   }
 }
 
@@ -614,7 +657,7 @@ refreshBtn.addEventListener('click', () => {
 });
 
 // Filter listeners
-[filterProject, filterScope, filterStatus].forEach(el => {
+[filterProject, filterScope, filterStatus].forEach((el) => {
   el.addEventListener('change', updateAssignmentsTable);
 });
 
@@ -657,7 +700,7 @@ async function init() {
   await loadEngineers();
   const fromUrl = engineerIdFromUrl();
   if (fromUrl && engineerSelect) {
-    const option = Array.from(engineerSelect.options).find(o => o.value === fromUrl);
+    const option = Array.from(engineerSelect.options).find((o) => o.value === fromUrl);
     if (option) {
       engineerSelect.value = fromUrl;
       await loadEngineerActivity(fromUrl);

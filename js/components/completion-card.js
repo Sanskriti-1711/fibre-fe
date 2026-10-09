@@ -14,10 +14,7 @@ const CompletionCard = {
    * @returns {HTMLElement} Completion card element
    */
   async create(projectId, options = {}) {
-    const {
-      showWeights = true,
-      compact = false
-    } = options;
+    const { showWeights = true, compact = false } = options;
 
     const container = document.createElement('div');
     container.className = compact ? 'ds-completion ds-completion--compact' : 'ds-completion';
@@ -66,20 +63,12 @@ const CompletionCard = {
 
     // Dynamic completion circle (only if weights defined)
     if (data.weights_defined) {
-      const dynamicCircle = this._createMiniCircle(
-        data.dynamic_completion,
-        '#047857',
-        'D'
-      );
+      const dynamicCircle = this._createMiniCircle(data.dynamic_completion, '#047857', 'D');
       container.appendChild(dynamicCircle);
     }
 
     // Standard completion circle
-    const standardCircle = this._createMiniCircle(
-      data.standard_completion,
-      '#3B82F6',
-      'S'
-    );
+    const standardCircle = this._createMiniCircle(data.standard_completion, '#3B82F6', 'S');
     container.appendChild(standardCircle);
 
     // Stats text
@@ -107,11 +96,11 @@ const CompletionCard = {
     wrapper.innerHTML = `
       <svg width="${size}" height="${size}" style="transform: rotate(-90deg);">
         <circle
-          cx="${size/2}" cy="${size/2}" r="${radius}"
+          cx="${size / 2}" cy="${size / 2}" r="${radius}"
           fill="none" stroke="#E5E7EB" stroke-width="${stroke}"
         />
         <circle
-          cx="${size/2}" cy="${size/2}" r="${radius}"
+          cx="${size / 2}" cy="${size / 2}" r="${radius}"
           fill="none" stroke="${color}" stroke-width="${stroke}"
           stroke-dasharray="${circumference}"
           stroke-dashoffset="${offset}"
@@ -152,20 +141,24 @@ const CompletionCard = {
     const metricsGrid = document.createElement('div');
     metricsGrid.className = 'ds-completion-metrics';
 
-    metricsGrid.appendChild(this._createMetricCard(
-      'Standard Completion',
-      data.standard_completion,
-      '#3B82F6',
-      'Simple count-based progress'
-    ));
+    metricsGrid.appendChild(
+      this._createMetricCard(
+        'Standard Completion',
+        data.standard_completion,
+        '#3B82F6',
+        'Simple count-based progress'
+      )
+    );
 
-    metricsGrid.appendChild(this._createMetricCard(
-      'Dynamic Completion',
-      data.dynamic_completion,
-      '#047857',
-      data.weights_defined ? 'Weight-based calculation' : 'Set weights to enable',
-      data.weights_defined
-    ));
+    metricsGrid.appendChild(
+      this._createMetricCard(
+        'Dynamic Completion',
+        data.dynamic_completion,
+        '#047857',
+        data.weights_defined ? 'Weight-based calculation' : 'Set weights to enable',
+        data.weights_defined
+      )
+    );
 
     // Stats card
     const statsCard = document.createElement('div');
@@ -213,7 +206,7 @@ const CompletionCard = {
     const table = document.createElement('div');
     table.className = 'ds-completion-breakdown-list';
 
-    layers.forEach(layer => {
+    layers.forEach((layer) => {
       const row = document.createElement('div');
       row.className = 'ds-completion-breakdown-row';
 
@@ -236,10 +229,10 @@ const CompletionCard = {
   _openWeightManager(projectId) {
     // Dispatch custom event for weight manager
     const event = new CustomEvent('open-weight-manager', {
-      detail: { projectId }
+      detail: { projectId },
     });
     document.dispatchEvent(event);
-  }
+  },
 };
 
 // Export for module systems or attach to window

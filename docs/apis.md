@@ -1,6 +1,7 @@
 # API Documentation
 
 ## Base URL
+
 ```
 {{server}}
 ```
@@ -10,14 +11,17 @@
 ## 1. Authentication API
 
 Most endpoints require:
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 ### Create User
+
 **POST** `/api/users/`
 
 **Body:**
+
 ```json
 {
   "email": "eng1@example.com",
@@ -27,14 +31,17 @@ Authorization: Bearer <access_token>
 ```
 
 **Notes:**
+
 - Role can be `ENGINEER`, `ADMIN`, etc.
 
 ---
 
 ### Login
+
 **POST** `/api/users/login/`
 
 **Body:**
+
 ```json
 {
   "email": "admin@admin.com",
@@ -48,6 +55,7 @@ Authorization: Bearer <access_token>
 > `400 {"non_field_errors": ["Invalid credentials"]}`.
 
 **Response:**
+
 ```json
 {
   "access": "...",
@@ -56,14 +64,17 @@ Authorization: Bearer <access_token>
 ```
 
 **Notes:**
+
 - Frontend should store tokens securely.
 
 ---
 
 ### Refresh Token
+
 **POST** `/api/users/token/refresh/`
 
 **Body:**
+
 ```json
 {
   "refresh": "<refresh_token>"
@@ -73,6 +84,7 @@ Authorization: Bearer <access_token>
 ---
 
 ### List Engineers
+
 **GET** `/api/users/engineers/`
 
 **Description:** Returns all engineer users.
@@ -80,6 +92,7 @@ Authorization: Bearer <access_token>
 ---
 
 ### Delete Engineer
+
 **DELETE** `/api/users/{engineer_uuid}/`
 
 ---
@@ -87,9 +100,11 @@ Authorization: Bearer <access_token>
 ## 2. Projects API
 
 ### Create Project
+
 **POST** `/api/projects/`
 
 **Body:**
+
 ```json
 {
   "name": "Fiber Rollout – Zone A",
@@ -101,25 +116,30 @@ Authorization: Bearer <access_token>
 ---
 
 ### List Projects
+
 **GET** `/api/projects/`
 
 **Optional filters:**
+
 - `?status=draft`
 - `?region=London`
 
 ---
 
 ### Latest Projects
+
 **GET** `/api/projects/latest/`
 
 ---
 
 ### Get Single Project
+
 **GET** `/api/projects/{proj_id}/`
 
 ---
 
 ### Delete Project
+
 **DELETE** `/api/projects/{proj_id}/`
 
 **Description:** Permanently deletes a project and all associated data including features, assignment jobs, import sessions, and uploaded files. Also cleans up project layers in the microservice.
@@ -127,6 +147,7 @@ Authorization: Bearer <access_token>
 **Response:** `204 No Content`
 
 **Error Responses:**
+
 - `404 Not Found` - Project does not exist
 - `502 Bad Gateway` - Failed to delete project layers in microservice
 
@@ -137,14 +158,17 @@ Authorization: Bearer <access_token>
 Handles GPKG file upload and import pipeline.
 
 ### Upload GPKG
+
 **POST** `/api/projects/{proj_id}/import/upload/`
 
 **Form Data:**
+
 - `file`: `<gpkg_file>`
 
 ---
 
 ### Discover Layers
+
 **POST** `/api/projects/{proj_id}/import/discover/`
 
 **Description:** Returns available layers inside GPKG.
@@ -152,9 +176,11 @@ Handles GPKG file upload and import pipeline.
 ---
 
 ### Import Selected Layers
+
 **POST** `/api/projects/{proj_id}/import/import/`
 
 **Body:**
+
 ```json
 {
   "selected_layers": ["Duct", "JC_HH New"]
@@ -164,6 +190,7 @@ Handles GPKG file upload and import pipeline.
 ---
 
 ### Import Status
+
 **GET** `/api/projects/{proj_id}/import/status/`
 
 **Description:** Returns the current import status for a project.
@@ -171,6 +198,7 @@ Handles GPKG file upload and import pipeline.
 ---
 
 ### Microservice Direct Import (Optional)
+
 **POST** `https://fiber-import.zeabur.app/import/gpkg`
 
 ---
@@ -178,26 +206,31 @@ Handles GPKG file upload and import pipeline.
 ## 4. Geo Data, Layers & Features API
 
 ### Fetch All Layers (Django)
+
 **GET** `/api/projects/{proj_id}/layers/`
 
 ---
 
 ### Fetch Single Layer
+
 **GET** `/api/projects/{proj_id}/layers/{layer_id}/`
 
 ---
 
 ### Fetch Single Feature
+
 **GET** `/api/projects/{proj_id}/features/{feature_id}/`
 
 ---
 
 ### Microservice — All Layers GEOJSON
+
 **GET** `/geo/projects/{uuid}/layers`
 
 ---
 
 ### Map Data (All Layers Combined)
+
 **GET** `/geo/projects/{uuid}/map-data`
 
 **Description:** Returns GeoJSON ready for map rendering.
@@ -205,6 +238,7 @@ Handles GPKG file upload and import pipeline.
 ---
 
 ### Health Check
+
 **GET** `/health`
 
 ---
@@ -214,6 +248,7 @@ Handles GPKG file upload and import pipeline.
 This is the new assignment job system with scope.
 
 **Scopes:**
+
 - `feature`
 - `layer`
 - `project`
@@ -221,9 +256,11 @@ This is the new assignment job system with scope.
 ---
 
 ### List Jobs
+
 **GET** `/api/assignments/`
 
 **Query Parameters:**
+
 - `project={proj_id}`
 - `layer_id={layer_id}` (optional)
 - `scope=feature|layer|project` (optional)
@@ -236,6 +273,7 @@ This is the new assignment job system with scope.
 **POST** `/api/assignments/`
 
 #### Layer Scope Example
+
 ```json
 {
   "project": "proj_id",
@@ -246,6 +284,7 @@ This is the new assignment job system with scope.
 ```
 
 #### Feature Scope Example
+
 ```json
 {
   "project": "proj_id",
@@ -256,6 +295,7 @@ This is the new assignment job system with scope.
 ```
 
 #### Project Scope Example
+
 ```json
 {
   "project": "proj_id",
@@ -267,14 +307,17 @@ This is the new assignment job system with scope.
 ---
 
 ### Retrieve Single Job
+
 **GET** `/api/assignments/{job_id}/`
 
 ---
 
 ### Update Assignee
+
 **PATCH** `/api/assignments/{job_id}/`
 
 **Body:**
+
 ```json
 {
   "assignee": "new_engineer_user_id"
@@ -284,14 +327,17 @@ This is the new assignment job system with scope.
 ---
 
 ### Delete Job
+
 **DELETE** `/api/assignments/{job_id}/`
 
 ---
 
 ### Assignment Summary
+
 **GET** `/api/assignments/summary/`
 
 **Query Parameters:**
+
 - `?project={proj_id}` (optional if assignee provided)
 - `?assignee={engineer_id}` (optional if project provided)
 
@@ -309,16 +355,16 @@ This is the new assignment job system with scope.
 
 **Query Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `search` | string | Filter by job ID, project name, or engineer email |
-| `project` | uuid | Filter by project ID |
-| `layer` | string | Filter by layer ID |
-| `status` | string | Filter by status: `pending`, `assigned`, `under_review`, `approved`, `redo` |
-| `engineer` | uuid | Filter by assignee ID |
-| `scope` | string | Filter by scope: `project`, `layer`, `feature` |
-| `page` | integer | Page number (default: 1) |
-| `page_size` | integer | Items per page (default: 20) |
+| Parameter   | Type    | Description                                                                 |
+| ----------- | ------- | --------------------------------------------------------------------------- |
+| `search`    | string  | Filter by job ID, project name, or engineer email                           |
+| `project`   | uuid    | Filter by project ID                                                        |
+| `layer`     | string  | Filter by layer ID                                                          |
+| `status`    | string  | Filter by status: `pending`, `assigned`, `under_review`, `approved`, `redo` |
+| `engineer`  | uuid    | Filter by assignee ID                                                       |
+| `scope`     | string  | Filter by scope: `project`, `layer`, `feature`                              |
+| `page`      | integer | Page number (default: 1)                                                    |
+| `page_size` | integer | Items per page (default: 20)                                                |
 
 **Response:**
 
@@ -365,6 +411,7 @@ This is the new assignment job system with scope.
 ```
 
 **Notes:**
+
 - `stats.total` represents the total number of features, not jobs
 - For project/layer scope jobs, status is aggregated from all child features
 - Status aggregation priority: `redo` > `under_review` > `approved` > `pending` > `assigned`
@@ -376,16 +423,16 @@ This is the new assignment job system with scope.
 
 ### Get Activity Timeline
 
-**GET** `/api/engineer/activity/` 
+**GET** `/api/engineer/activity/`
 
 **Description:** Returns a timeline of engineer activity including recent assignments and feature status changes.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `engineer` | uuid | Yes | Engineer user ID |
-| `days` | integer | No | Number of days to look back (default: 30) |
+| Parameter  | Type    | Required | Description                               |
+| ---------- | ------- | -------- | ----------------------------------------- |
+| `engineer` | uuid    | Yes      | Engineer user ID                          |
+| `days`     | integer | No       | Number of days to look back (default: 30) |
 
 **Response:**
 
@@ -433,16 +480,16 @@ This is the new assignment job system with scope.
 
 ### Get Performance Statistics
 
-**GET** `/api/engineer/stats/` 
+**GET** `/api/engineer/stats/`
 
 **Description:** Returns performance metrics for an engineer including overall stats, daily breakdown, and project breakdown.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `engineer` | uuid | Yes | Engineer user ID |
-| `days` | integer | No | Period for daily breakdown and recent stats (default: 30) |
+| Parameter  | Type    | Required | Description                                               |
+| ---------- | ------- | -------- | --------------------------------------------------------- |
+| `engineer` | uuid    | Yes      | Engineer user ID                                          |
+| `days`     | integer | No       | Period for daily breakdown and recent stats (default: 30) |
 
 **Response:**
 
@@ -491,7 +538,7 @@ This is the new assignment job system with scope.
 
 ### Update Field Measurements
 
-**PATCH** `/api/features/{feature_id}/field-measurements/` 
+**PATCH** `/api/features/{feature_id}/field-measurements/`
 
 **Description:** Updates field measurements and comparison notes for a feature.
 
@@ -524,6 +571,7 @@ This is the new assignment job system with scope.
 ```
 
 **Notes:**
+
 - Either `field_measurements` or `comparison_notes` can be provided independently
 - `field_measurements` must be a JSON object
 
@@ -538,9 +586,11 @@ This is the new assignment job system with scope.
 **Description:** Upload a site photo for a feature. Photos are stored with the feature and can be retrieved via the photo_url.
 
 **Form Data:**
+
 - `photo`: Image file (JPEG, PNG)
 
 **Request Headers:**
+
 ```
 Content-Type: multipart/form-data
 Authorization: Bearer <access_token>
@@ -583,6 +633,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Notes:**
+
 - Maximum file size: 10MB
 - Allowed formats: JPEG, PNG
 - Photos are stored in `media/feature_photos/YYYY/MM/DD/` directory
@@ -594,7 +645,7 @@ Authorization: Bearer <access_token>
 
 ### Submit Features for Review
 
-**POST** `/api/features/submit/` 
+**POST** `/api/features/submit/`
 
 **Description:** Bulk submit assigned features for review. Changes status from `assigned` or `redo` to `under_review`.
 
@@ -629,13 +680,12 @@ Authorization: Bearer <access_token>
 ```json
 {
   "detail": "Some features cannot be submitted",
-  "invalid_features": [
-    {"id": "feature_uuid_1", "status": "approved"}
-  ]
+  "invalid_features": [{ "id": "feature_uuid_1", "status": "approved" }]
 }
 ```
 
 **Notes:**
+
 - Features must be assigned to the specified engineer
 - Only features with status `assigned` or `redo` can be submitted
 - Features with status `approved`, `under_review`, or `pending` cannot be submitted
@@ -684,6 +734,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Notes:**
+
 - `standard_completion`: Simple count-based percentage (approved/total × 100)
 - `dynamic_completion`: Weight-based completion (Σ layer_progress × layer_weight)
 - `weights_defined`: Indicates if custom weights have been set for this project
@@ -778,6 +829,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Notes:**
+
 - Total weight cannot exceed 100%
 - Weights can be partial (e.g., only define 70%, remaining 30% auto-distributed)
 - Weights are stored per project/layer combination
@@ -825,6 +877,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Notes:**
+
 - Only features with status `under_review` can be approved
 - Approved features are included in completion rate calculations
 - Sets `approved_at` timestamp for tracking
@@ -871,6 +924,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Notes:**
+
 - Only features with status `under_review` can be rejected
 - Rejected features return to `redo` status for correction
 - Clears `submitted_at` timestamp to allow re-submission

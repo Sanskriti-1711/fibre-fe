@@ -1,157 +1,168 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Engineer Project Details</title>
-  <link rel="stylesheet" href="../css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="../css/components.css">
-</head>
-<body class="engineer-project-details">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Engineer Project Details</title>
+    <link rel="stylesheet" href="../css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="../css/components.css" />
+  </head>
+  <body class="engineer-project-details">
+    <div class="layout">
+      <main class="content">
+        <div class="container">
+          <a class="action" href="engineer-dashboard.html">Back to My Projects</a>
+          <h1>My Projects</h1>
+          <div class="subtitle">Projects assigned to you and their features</div>
 
-<div class="layout">
-
-  <main class="content">
-    <div class="container">
-      <a class="action" href="engineer-dashboard.html">Back to My Projects</a>
-      <h1>My Projects</h1>
-      <div class="subtitle">Projects assigned to you and their features</div>
-
-      <div id="projects-container">
-        <div class="geo-status">Loading your assigned projects...</div>
-      </div>
+          <div id="projects-container">
+            <div class="geo-status">Loading your assigned projects...</div>
+          </div>
+        </div>
+      </main>
     </div>
-  </main>
-</div>
 
-<script src="../js/ftth-ui.js"></script>
-<script src="js/fiber-api.js"></script>
-<script src="js/api.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
+    <script src="../js/ftth-ui.js"></script>
+    <script src="js/fiber-api.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-  async function loadAssignments() {
-    var container = document.getElementById('projects-container');
-    try {
-      var user = window.FiberAuth.getUser();
-      var engineerId = user && user.id ? user.id : null;
+      async function loadAssignments() {
+        var container = document.getElementById('projects-container');
+        try {
+          var user = window.FiberAuth.getUser();
+          var engineerId = user && user.id ? user.id : null;
 
-      if (!engineerId) {
-        container.innerHTML = '<div class="geo-status">Please login to view your assignments.</div>';
-        return;
-      }
+          if (!engineerId) {
+            container.innerHTML = '<div class="geo-status">Please login to view your assignments.</div>';
+            return;
+          }
 
-      var assignments = await window.FiberApi.listAssignments({ engineer: engineerId });
+          var assignments = await window.FiberApi.listAssignments({ engineer: engineerId });
 
-      if (!assignments || !assignments.results || assignments.results.length === 0) {
-        container.innerHTML = '<div class="geo-status">No projects assigned to you yet.</div>';
-        return;
-      }
+          if (!assignments || !assignments.results || assignments.results.length === 0) {
+            container.innerHTML = '<div class="geo-status">No projects assigned to you yet.</div>';
+            return;
+          }
 
-      var html = '';
-      for (var i = 0; i < assignments.results.length; i++) {
-        var assignment = assignments.results[i];
-        var project = assignment.project || {};
-        var projectId = project.id || assignment.project_id || 'project-' + i;
-        var projectName = project.name || 'Unnamed Project';
-        var features = assignment.features || [];
-        var completed = features.filter(function(f) { return f.status === 'COMPLETED' || f.status === 'APPROVED'; }).length;
-        var pending = features.filter(function(f) { return f.status === 'PENDING' || f.status === 'SUBMITTED'; }).length;
-        var failed = features.filter(function(f) { return f.status === 'REJECTED' || f.status === 'FAILED'; }).length;
-        var total = features.length || assignment.total_features || 0;
-        var progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-        var dueDate = assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'N/A';
+          var html = '';
+          for (var i = 0; i < assignments.results.length; i++) {
+            var assignment = assignments.results[i];
+            var project = assignment.project || {};
+            var projectId = project.id || assignment.project_id || 'project-' + i;
+            var projectName = project.name || 'Unnamed Project';
+            var features = assignment.features || [];
+            var completed = features.filter(function (f) {
+              return f.status === 'COMPLETED' || f.status === 'APPROVED';
+            }).length;
+            var pending = features.filter(function (f) {
+              return f.status === 'PENDING' || f.status === 'SUBMITTED';
+            }).length;
+            var failed = features.filter(function (f) {
+              return f.status === 'REJECTED' || f.status === 'FAILED';
+            }).length;
+            var total = features.length || assignment.total_features || 0;
+            var progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+            var dueDate = assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : 'N/A';
 
-        html += '<div id="project-' + projectId + '" class="card">';
-        html += '<div class="project-title">' + escapeHtml(projectName) + '</div>';
-        html += '<div class="meta">Assigned: ' + total + ' features | Due: ' + dueDate + '</div>';
-        html += '<div class="progress"><span style="width:' + progress + '%"></span></div>';
-        html += '<div class="meta">Progress: ' + progress + '%</div>';
+            html += '<div id="project-' + projectId + '" class="card">';
+            html += '<div class="project-title">' + escapeHtml(projectName) + '</div>';
+            html += '<div class="meta">Assigned: ' + total + ' features | Due: ' + dueDate + '</div>';
+            html += '<div class="progress"><span style="width:' + progress + '%"></span></div>';
+            html += '<div class="meta">Progress: ' + progress + '%</div>';
 
-        html += '<div class="stat-grid">';
-        html += '<div class="stat"><strong>' + completed + '</strong>Completed</div>';
-        html += '<div class="stat"><strong>' + pending + '</strong>Pending</div>';
-        html += '<div class="stat"><strong>' + failed + '</strong>Failed</div>';
-        html += '</div>';
+            html += '<div class="stat-grid">';
+            html += '<div class="stat"><strong>' + completed + '</strong>Completed</div>';
+            html += '<div class="stat"><strong>' + pending + '</strong>Pending</div>';
+            html += '<div class="stat"><strong>' + failed + '</strong>Failed</div>';
+            html += '</div>';
 
-        html += '<div class="section-title">Features</div>';
+            html += '<div class="section-title">Features</div>';
 
-        for (var j = 0; j < features.length; j++) {
-          var feature = features[j];
-          var featureName = feature.name || feature.feature_name || 'Feature #' + (j + 1);
-          var featureType = feature.type || feature.feature_type || 'Pole';
-          var status = feature.status || 'PENDING';
-          var statusClass = status.toLowerCase() === 'completed' || status.toLowerCase() === 'approved' ? 'complete' :
-                           status.toLowerCase() === 'rejected' || status.toLowerCase() === 'failed' ? 'failed' : 'pending';
-          var statusLabel = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-          var lastUpdate = feature.updated_at || feature.last_update ? new Date(feature.updated_at || feature.last_update).toLocaleString() : 'N/A';
+            for (var j = 0; j < features.length; j++) {
+              var feature = features[j];
+              var featureName = feature.name || feature.feature_name || 'Feature #' + (j + 1);
+              var featureType = feature.type || feature.feature_type || 'Pole';
+              var status = feature.status || 'PENDING';
+              var statusClass =
+                status.toLowerCase() === 'completed' || status.toLowerCase() === 'approved'
+                  ? 'complete'
+                  : status.toLowerCase() === 'rejected' || status.toLowerCase() === 'failed'
+                    ? 'failed'
+                    : 'pending';
+              var statusLabel = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+              var lastUpdate =
+                feature.updated_at || feature.last_update
+                  ? new Date(feature.updated_at || feature.last_update).toLocaleString()
+                  : 'N/A';
 
-          html += '<button class="feature feature-link" type="button" ';
-          html += 'data-project="' + escapeHtml(projectName) + '" ';
-          html += 'data-feature="' + escapeHtml(featureName) + '" ';
-          html += 'data-type="' + escapeHtml(featureType) + '" ';
-          html += 'data-status="' + statusLabel + '">';
-          html += '<div><strong>' + escapeHtml(featureName) + '</strong>';
-          html += '<div class="meta">Last update: ' + lastUpdate + '</div></div>';
-          html += '<span class="badge ' + statusClass + '">' + statusLabel + '</span>';
-          html += '</button>';
+              html += '<button class="feature feature-link" type="button" ';
+              html += 'data-project="' + escapeHtml(projectName) + '" ';
+              html += 'data-feature="' + escapeHtml(featureName) + '" ';
+              html += 'data-type="' + escapeHtml(featureType) + '" ';
+              html += 'data-status="' + statusLabel + '">';
+              html += '<div><strong>' + escapeHtml(featureName) + '</strong>';
+              html += '<div class="meta">Last update: ' + lastUpdate + '</div></div>';
+              html += '<span class="badge ' + statusClass + '">' + statusLabel + '</span>';
+              html += '</button>';
+            }
+
+            html += '<div class="action">Select a feature above to submit an update.</div>';
+            html += '</div>';
+          }
+
+          container.innerHTML = html;
+
+          attachFeatureClickHandlers();
+          filterProjectFromUrl();
+        } catch (error) {
+          container.innerHTML = '<div class="geo-status">Error loading projects: ' + FtthUI.humanize(error) + '</div>';
         }
-
-        html += '<div class="action">Select a feature above to submit an update.</div>';
-        html += '</div>';
       }
 
-      container.innerHTML = html;
-
-      attachFeatureClickHandlers();
-      filterProjectFromUrl();
-
-    } catch (error) {
-      container.innerHTML = '<div class="geo-status">Error loading projects: ' + (FtthUI.humanize(error)) + '</div>';
-    }
-  }
-
-  function escapeHtml(text) {
-    if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  function attachFeatureClickHandlers() {
-    var featureLinks = document.querySelectorAll('.feature-link');
-    featureLinks.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var params = new URLSearchParams();
-        if (btn.dataset.project) params.set('project', btn.dataset.project);
-        if (btn.dataset.feature) params.set('feature', btn.dataset.feature);
-        if (btn.dataset.type) params.set('type', btn.dataset.type);
-        if (btn.dataset.status) params.set('status', btn.dataset.status);
-        window.location.href = 'engineer-feature-submit.html?' + params.toString();
-      });
-    });
-  }
-
-  function filterProjectFromUrl() {
-    var params = new URLSearchParams(window.location.search);
-    var project = params.get('project');
-    if (!project) return;
-    var cards = document.querySelectorAll('[id^="project-"]');
-    cards.forEach(function (card) {
-      var title = card.querySelector('.project-title');
-      if (title && title.textContent !== project) {
-        card.style.display = 'none';
+      function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
       }
-    });
-    var visibleCards = Array.from(cards).filter(function(c) { return c.style.display !== 'none'; });
-    if (visibleCards.length > 0) {
-      visibleCards[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }
 
-  loadAssignments();
-</script>
-</body>
+      function attachFeatureClickHandlers() {
+        var featureLinks = document.querySelectorAll('.feature-link');
+        featureLinks.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var params = new URLSearchParams();
+            if (btn.dataset.project) params.set('project', btn.dataset.project);
+            if (btn.dataset.feature) params.set('feature', btn.dataset.feature);
+            if (btn.dataset.type) params.set('type', btn.dataset.type);
+            if (btn.dataset.status) params.set('status', btn.dataset.status);
+            window.location.href = 'engineer-feature-submit.html?' + params.toString();
+          });
+        });
+      }
+
+      function filterProjectFromUrl() {
+        var params = new URLSearchParams(window.location.search);
+        var project = params.get('project');
+        if (!project) return;
+        var cards = document.querySelectorAll('[id^="project-"]');
+        cards.forEach(function (card) {
+          var title = card.querySelector('.project-title');
+          if (title && title.textContent !== project) {
+            card.style.display = 'none';
+          }
+        });
+        var visibleCards = Array.from(cards).filter(function (c) {
+          return c.style.display !== 'none';
+        });
+        if (visibleCards.length > 0) {
+          visibleCards[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      loadAssignments();
+    </script>
+  </body>
 </html>
-

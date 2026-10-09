@@ -1,216 +1,217 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Admin Login | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>Admin Login | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    :root {
-      --tm-red: #E31837;
-      --tm-dark: #1F2937;
-      --tm-gray: #616A75;
-      --tm-light: #F9FAFB;
-      --tm-white: #FFFFFF;
-    }
-
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    body {
-      margin: 0;
-      background: var(--tm-light);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .top-bar {
-      background: var(--tm-dark);
-      color: var(--tm-white);
-      padding: 16px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .top-bar h2 {
-      margin: 0;
-      font-size: 18px;
-      color: var(--tm-red);
-    }
-
-    .top-links a {
-      color: #D1D5DB;
-      text-decoration: none;
-      font-size: 14px;
-      margin-left: 16px;
-    }
-
-    .top-links a:hover {
-      color: var(--tm-white);
-    }
-
-    .login-wrapper {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 420px;
-      background: var(--tm-white);
-      padding: 32px;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-    }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .logo h1 {
-      color: var(--tm-red);
-      margin: 0;
-      font-size: 24px;
-      font-weight: 700;
-    }
-
-    .logo p {
-      color: var(--tm-gray);
-      font-size: 14px;
-      margin-top: 4px;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-      color: var(--tm-dark);
-      font-weight: 500;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #D1D5DB;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--tm-red);
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 12px;
-      background: var(--tm-red);
-      color: var(--tm-white);
-      border: none;
-      border-radius: 6px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-
-    .login-btn:hover {
-      opacity: 0.95;
-    }
-
-    .footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 13px;
-      color: var(--tm-gray);
-    }
-  </style>
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/components.css">
-  </head>
-<body>
-
-  <div class="top-bar">
-    <h2>Tech Mahindra</h2>
-    <div class="top-links">
-      <a href="index.html">Admin Login</a>
-      <a href="dashboard.html">Back to Dashboard</a>
-    </div>
-  </div>
-
-  <div class="login-wrapper">
-  <div class="login-card">
-    <div class="logo">
-      <h1>Tech Mahindra</h1>
-      <p>Admin Portal</p>
-    </div>
-
-    <form onsubmit="handleLogin(event)">
-      <div class="form-group">
-        <label>Email</label>
-        <input id="loginEmail" type="email" placeholder="admin@company.com" required />
-      </div>
-
-      <div class="form-group">
-        <label>Password</label>
-        <input id="loginPassword" type="password" placeholder="••••••••" required />
-      </div>
-
-      <button class="login-btn">Login</button>
-    </form>
-
-    <div id="loginError" style="display:none;margin-top:12px;color:#B91C1C;font-size:13px;"></div>
-
-    <div class="footer">
-      &copy; Tech Mahindra &middot; Internal Access
-    </div>
-  </div>
-  </div>
-<script src="js/ftth-ui.js"></script>
-<script src="js/ftth-config.js"></script>
-<script>
-  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="fiber-api.js"></script>
-<script>
-  async function handleLogin(event) {
-    event.preventDefault(); // stop form reload
-
-    const errorEl = document.getElementById("loginError");
-    errorEl.style.display = "none";
-    errorEl.textContent = "";
-
-    const email = document.getElementById("loginEmail").value.trim();
-    const password = document.getElementById("loginPassword").value;
-
-    try {
-      const response = await window.FiberApi.login(email, password);
-      const role = response && response.user && response.user.role ? response.user.role : null;
-      if (role === "ENGINEER") {
-        if (window.FiberAuth && typeof window.FiberAuth.clear === "function") {
-          window.FiberAuth.clear();
-        }
-        throw new Error("Engineer accounts must login from Engineer Login page");
+    <style>
+      :root {
+        --tm-red: #e31837;
+        --tm-dark: #1f2937;
+        --tm-gray: #616a75;
+        --tm-light: #f9fafb;
+        --tm-white: #ffffff;
       }
-      window.location.href = "dashboard.html";
-    } catch (e) {
-      errorEl.textContent = e && FtthUI.humanize(e) ? FtthUI.humanize(e) : "Login failed";
-      errorEl.style.display = "block";
-    }
-  }
-</script>
 
-</body>
+      * {
+        box-sizing: border-box;
+        font-family:
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: var(--tm-light);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .top-bar {
+        background: var(--tm-dark);
+        color: var(--tm-white);
+        padding: 16px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .top-bar h2 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--tm-red);
+      }
+
+      .top-links a {
+        color: #d1d5db;
+        text-decoration: none;
+        font-size: 14px;
+        margin-left: 16px;
+      }
+
+      .top-links a:hover {
+        color: var(--tm-white);
+      }
+
+      .login-wrapper {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .login-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--tm-white);
+        padding: 32px;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      }
+
+      .logo {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .logo h1 {
+        color: var(--tm-red);
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      .logo p {
+        color: var(--tm-gray);
+        font-size: 14px;
+        margin-top: 4px;
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        color: var(--tm-dark);
+        font-weight: 500;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--tm-red);
+      }
+
+      .login-btn {
+        width: 100%;
+        padding: 12px;
+        background: var(--tm-red);
+        color: var(--tm-white);
+        border: none;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+      }
+
+      .login-btn:hover {
+        opacity: 0.95;
+      }
+
+      .footer {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--tm-gray);
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="top-bar">
+      <h2>Tech Mahindra</h2>
+      <div class="top-links">
+        <a href="index.html">Admin Login</a>
+        <a href="dashboard.html">Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="login-wrapper">
+      <div class="login-card">
+        <div class="logo">
+          <h1>Tech Mahindra</h1>
+          <p>Admin Portal</p>
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="admin@company.com" required />
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" required />
+          </div>
+
+          <button class="login-btn">Login</button>
+        </form>
+
+        <div id="loginError" style="display: none; margin-top: 12px; color: #b91c1c; font-size: 13px"></div>
+
+        <div class="footer">&copy; Tech Mahindra &middot; Internal Access</div>
+      </div>
+    </div>
+    <script src="js/ftth-ui.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script>
+      async function handleLogin(event) {
+        event.preventDefault(); // stop form reload
+
+        const errorEl = document.getElementById('loginError');
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+          const response = await window.FiberApi.login(email, password);
+          const role = response && response.user && response.user.role ? response.user.role : null;
+          if (role === 'ENGINEER') {
+            if (window.FiberAuth && typeof window.FiberAuth.clear === 'function') {
+              window.FiberAuth.clear();
+            }
+            throw new Error('Engineer accounts must login from Engineer Login page');
+          }
+          window.location.href = 'dashboard.html';
+        } catch (e) {
+          errorEl.textContent = e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Login failed';
+          errorEl.style.display = 'block';
+        }
+      }
+    </script>
+  </body>
 </html>

@@ -1,528 +1,673 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Projects | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <title>Projects | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-<link rel="stylesheet" href="css/components.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-<div class="layout">
+      <!-- Main Content -->
+      <main class="content">
+        <div class="header">
+          <div>
+            <h1>All Projects</h1>
+            <p>FTTH-HLD, Survey and LLD projects</p>
+          </div>
+          <a class="create-btn" href="ftth-hld.html">Upload HLD</a>
+        </div>
 
-  <div id="sidebarContainer"></div>
+        <div class="table-card" style="margin-bottom: 16px">
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end">
+            <div style="min-width: 180px">
+              <label
+                for="filterKind"
+                style="font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 6px"
+                >Type</label
+              >
+              <select
+                id="filterKind"
+                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border)"
+              >
+                <option value="">All</option>
+                <option value="hld">FTTH-HLD</option>
+                <option value="survey">Survey</option>
+                <option value="lld">LLD</option>
+              </select>
+            </div>
+            <div style="min-width: 200px">
+              <label
+                for="filterStatus"
+                style="font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 6px"
+                >Status</label
+              >
+              <select
+                id="filterStatus"
+                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border)"
+              >
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="in_progress">In Progress</option>
+                <option value="queued">Queued</option>
+                <option value="running">Running</option>
+                <option value="completed">Completed</option>
+                <option value="failed">Failed</option>
+                <option value="archived">Archived</option>
+              </select>
+            </div>
+            <div style="min-width: 220px">
+              <label
+                for="filterRegion"
+                style="font-size: 12px; font-weight: 600; color: #6b7280; display: block; margin-bottom: 6px"
+                >Region</label
+              >
+              <input
+                id="filterRegion"
+                type="text"
+                placeholder="London"
+                style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border)"
+              />
+            </div>
+            <button id="applyFilters" class="create-btn" type="button">Apply Filters</button>
+            <button id="clearFilters" class="create-btn" type="button" style="background: #374151">Clear</button>
+          </div>
+        </div>
 
-  <!-- Main Content -->
-  <main class="content">
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Region</th>
+                <th>Status</th>
+                <th style="min-width: 160px">Standard</th>
+                <th style="min-width: 160px">Dynamic</th>
+                <th>Assigned To</th>
+                <th>Last Activity</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="projectsTbody"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
 
-    <div class="header">
-      <div>
-        <h1>All Projects</h1>
-        <p>FTTH-HLD, Survey and LLD projects</p>
+    <!-- Assign Engineer Modal -->
+    <div
+      id="assignEngineerModal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(17, 24, 39, 0.55);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        style="
+          background: #fff;
+          border-radius: 12px;
+          padding: 24px;
+          width: min(440px, 92vw);
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+        "
+      >
+        <h3 style="margin: 0 0 6px; font-size: 16px; color: #111827">Assign to Field Engineer</h3>
+        <p
+          id="assignProjectLabel"
+          style="margin: 0 0 16px; font-size: 13px; color: #6b7280; word-break: break-word"
+        ></p>
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px"
+          >Engineer</label
+        >
+        <select
+          id="assignEngineerSelect"
+          style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #d1d5db; margin-bottom: 16px"
+        ></select>
+        <div style="display: flex; gap: 10px; justify-content: flex-end">
+          <button
+            id="assignCancelBtn"
+            type="button"
+            style="
+              padding: 9px 16px;
+              border-radius: 6px;
+              border: 1px solid #d1d5db;
+              background: #fff;
+              color: #374151;
+              cursor: pointer;
+            "
+          >
+            Cancel
+          </button>
+          <button
+            id="assignConfirmBtn"
+            type="button"
+            style="
+              padding: 9px 16px;
+              border-radius: 6px;
+              border: none;
+              background: #e31837;
+              color: #fff;
+              cursor: pointer;
+            "
+          >
+            Assign
+          </button>
+        </div>
+        <p id="assignStatus" style="margin: 12px 0 0; font-size: 12px; color: #6b7280"></p>
       </div>
-      <a class="create-btn" href="ftth-hld.html">Upload HLD</a>
     </div>
+  </body>
+  <script src="js/ftth-ui.js"></script>
+  <script src="partials/sidebar-loader.js"></script>
+  <script src="js/ftth-config.js"></script>
+  <script>
+    window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+    window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+  </script>
+  <script src="fiber-api.js"></script>
+  <script src="js/ftth-api.js"></script>
+  <script src="js/components/progress-bar.js"></script>
+  <script src="js/components/completion-card.js"></script>
+  <script>
+    window.FiberAuth.requireLogin();
 
-    <div class="table-card" style="margin-bottom:16px;">
-      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
-        <div style="min-width:180px;">
-          <label for="filterKind" style="font-size:12px;font-weight:600;color:#6B7280;display:block;margin-bottom:6px;">Type</label>
-          <select id="filterKind" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);">
-            <option value="">All</option>
-            <option value="hld">FTTH-HLD</option>
-            <option value="survey">Survey</option>
-            <option value="lld">LLD</option>
-          </select>
-        </div>
-        <div style="min-width:200px;">
-          <label for="filterStatus" style="font-size:12px;font-weight:600;color:#6B7280;display:block;margin-bottom:6px;">Status</label>
-          <select id="filterStatus" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);">
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="draft">Draft</option>
-            <option value="in_progress">In Progress</option>
-            <option value="queued">Queued</option>
-            <option value="running">Running</option>
-            <option value="completed">Completed</option>
-            <option value="failed">Failed</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
-        <div style="min-width:220px;">
-          <label for="filterRegion" style="font-size:12px;font-weight:600;color:#6B7280;display:block;margin-bottom:6px;">Region</label>
-          <input id="filterRegion" type="text" placeholder="London" style="width:100%;padding:10px;border-radius:6px;border:1px solid var(--border);" />
-        </div>
-        <button id="applyFilters" class="create-btn" type="button">Apply Filters</button>
-        <button id="clearFilters" class="create-btn" type="button" style="background:#374151;">Clear</button>
-      </div>
-    </div>
+    function setProjectsError(message) {
+      let el = document.getElementById('projectsError');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'projectsError';
+        el.style.cssText = 'display:none;margin:0 0 14px;color:#B91C1C;font-size:13px;';
+        const header = document.querySelector('.header');
+        if (header && header.parentNode) header.parentNode.insertBefore(el, header.nextSibling);
+      }
 
-    <div class="table-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Project Name</th>
-            <th>Region</th>
-            <th>Status</th>
-            <th style="min-width: 160px;">Standard</th>
-            <th style="min-width: 160px;">Dynamic</th>
-            <th>Assigned To</th>
-            <th>Last Activity</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="projectsTbody">
-
-        </tbody>
-      </table>
-    </div>
-
-  </main>
-</div>
-
-<!-- Assign Engineer Modal -->
-<div id="assignEngineerModal" style="display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:24px;width:min(440px,92vw);box-shadow:0 20px 50px rgba(0,0,0,.25);">
-    <h3 style="margin:0 0 6px;font-size:16px;color:#111827;">Assign to Field Engineer</h3>
-    <p id="assignProjectLabel" style="margin:0 0 16px;font-size:13px;color:#6B7280;word-break:break-word;"></p>
-    <label style="font-size:12px;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Engineer</label>
-    <select id="assignEngineerSelect" style="width:100%;padding:10px;border-radius:6px;border:1px solid #D1D5DB;margin-bottom:16px;"></select>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button id="assignCancelBtn" type="button" style="padding:9px 16px;border-radius:6px;border:1px solid #D1D5DB;background:#fff;color:#374151;cursor:pointer;">Cancel</button>
-      <button id="assignConfirmBtn" type="button" style="padding:9px 16px;border-radius:6px;border:none;background:#E31837;color:#fff;cursor:pointer;">Assign</button>
-    </div>
-    <p id="assignStatus" style="margin:12px 0 0;font-size:12px;color:#6B7280;"></p>
-  </div>
-</div>
-
-</body>
-<script src="js/ftth-ui.js"></script>
-<script src="partials/sidebar-loader.js"></script>
-<script src="js/ftth-config.js"></script>
-<script>
-  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="fiber-api.js"></script>
-<script src="js/ftth-api.js"></script>
-<script src="js/components/progress-bar.js"></script>
-<script src="js/components/completion-card.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
-
-  function setProjectsError(message) {
-    let el = document.getElementById('projectsError');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'projectsError';
-      el.style.cssText = 'display:none;margin:0 0 14px;color:#B91C1C;font-size:13px;';
-      const header = document.querySelector('.header');
-      if (header && header.parentNode) header.parentNode.insertBefore(el, header.nextSibling);
+      if (!message) {
+        el.style.display = 'none';
+        el.textContent = '';
+        return;
+      }
+      el.textContent = message;
+      el.style.display = 'block';
     }
 
-    if (!message) {
-      el.style.display = 'none';
-      el.textContent = '';
-      return;
+    function pickProjectId(p) {
+      return (p && (p.uuid || p.id || p.project_id || p.project_uuid || p.pk)) || null;
     }
-    el.textContent = message;
-    el.style.display = 'block';
-  }
 
-  function pickProjectId(p) {
-    return (p && (p.uuid || p.id || p.project_id || p.project_uuid || p.pk)) || null;
-  }
-
-  function pickProjectName(p) {
-    return (p && (p.name || p.title || p.project_name)) || '-';
-  }
-
-  function pickProjectRegion(p) {
-    return (p && (p.region || p.location || p.area)) || '-';
-  }
-
-  function pickProjectStatus(p) {
-    const v = (p && (p.status || p.state)) || '';
-    if (!v) return 'In Progress';
-    return String(v).replace(/_/g, ' ').replace(/\b\w/g, function (m) { return m.toUpperCase(); });
-  }
-
-  function pickProjectCompletion(p) {
-    const v = (p && (p.completion || p.completion_percent || p.progress || p.progress_percent)) || null;
-    if (v === null || v === undefined || v === '') return '-';
-    const num = Number(v);
-    if (!isNaN(num)) return Math.round(num) + '%';
-    return String(v);
-  }
-
-  function pickProjectLastActivity(p) {
-    const v = (p && (p.last_activity || p.lastActivity || p.updated_at || p.updatedAt)) || null;
-    if (!v) return '-';
-    try {
-      const d = new Date(v);
-      if (!isNaN(d.getTime())) return d.toLocaleString();
-    } catch (_) {}
-    return String(v);
-  }
-
-  function statusClass(status) {
-    const s = String(status || '').toLowerCase();
-    if (s.includes('complete')) return 'completed';
-    if (s.includes('archive')) return 'archived';
-    return 'in-progress';
-  }
-
-  // Increments on every loadProjects() call so older in-flight loads can detect
-  // they've been superseded and bail out before mutating the DOM.
-  let currentLoadId = 0;
-
-  async function fetchAllProjects(params) {
-    // This page shows all FTTH stages (HLD pipeline runs + survey copies).
-    // The Type dropdown maps to ?kind= (hld) or ?kind=survey&stage= (survey|lld).
-    const merged = Object.assign({}, params || {});
-    if (!merged.kind) merged.kind = 'all';
-    const first = await window.FiberApi.listProjectsFiltered(merged);
-
-    if (Array.isArray(first)) return first;
-    if (!first || !Array.isArray(first.results)) return [];
-
-    // DRF-style pagination: walk `next` URLs so we don't silently drop pages 2+.
-    const all = first.results.slice();
-    let next = first.next;
-    while (next) {
-      const page = await window.FiberApi.apiFetch(next, { method: 'GET' });
-      if (!page || !Array.isArray(page.results)) break;
-      all.push.apply(all, page.results);
-      next = page.next || null;
+    function pickProjectName(p) {
+      return (p && (p.name || p.title || p.project_name)) || '-';
     }
-    return all;
-  }
 
-  function buildStandardBar(value) {
-    const standard = Number(value).toFixed(1);
-    return ''
-      + '<div style="display: flex; align-items: center; gap: 8px;">'
-      +   '<div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">'
-      +     '<div style="height: 100%; width: ' + standard + '%; background: #3B82F6; border-radius: 3px;"></div>'
-      +   '</div>'
-      +   '<span style="font-size: 11px; font-weight: 600; color: #374151; min-width: 35px;">' + standard + '%</span>'
-      + '</div>';
-  }
-
-  function buildDynamicBar(value, hasWeights) {
-    if (!hasWeights) {
-      return '<span style="font-size: 11px; color: #9CA3AF;">No weights</span>';
+    function pickProjectRegion(p) {
+      return (p && (p.region || p.location || p.area)) || '-';
     }
-    const dynamic = Number(value).toFixed(1);
-    return ''
-      + '<div style="display: flex; align-items: center; gap: 8px;">'
-      +   '<div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">'
-      +     '<div style="height: 100%; width: ' + dynamic + '%; background: #10B981; border-radius: 3px;"></div>'
-      +   '</div>'
-      +   '<span style="font-size: 11px; font-weight: 600; color: #10B981; min-width: 35px;">' + dynamic + '%</span>'
-      + '</div>';
-  }
 
-  async function loadProjects(params) {
-    setProjectsError('');
-    const tbody = document.getElementById('projectsTbody');
-    if (!tbody) return;
+    function pickProjectStatus(p) {
+      const v = (p && (p.status || p.state)) || '';
+      if (!v) return 'In Progress';
+      return String(v)
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, function (m) {
+          return m.toUpperCase();
+        });
+    }
 
-    const myLoadId = ++currentLoadId;
+    function pickProjectCompletion(p) {
+      const v = (p && (p.completion || p.completion_percent || p.progress || p.progress_percent)) || null;
+      if (v === null || v === undefined || v === '') return '-';
+      const num = Number(v);
+      if (!isNaN(num)) return Math.round(num) + '%';
+      return String(v);
+    }
 
-    let list;
-    try {
-      list = await fetchAllProjects(params);
-    } catch (e) {
+    function pickProjectLastActivity(p) {
+      const v = (p && (p.last_activity || p.lastActivity || p.updated_at || p.updatedAt)) || null;
+      if (!v) return '-';
+      try {
+        const d = new Date(v);
+        if (!isNaN(d.getTime())) return d.toLocaleString();
+      } catch (_) {}
+      return String(v);
+    }
+
+    function statusClass(status) {
+      const s = String(status || '').toLowerCase();
+      if (s.includes('complete')) return 'completed';
+      if (s.includes('archive')) return 'archived';
+      return 'in-progress';
+    }
+
+    // Increments on every loadProjects() call so older in-flight loads can detect
+    // they've been superseded and bail out before mutating the DOM.
+    let currentLoadId = 0;
+
+    async function fetchAllProjects(params) {
+      // This page shows all FTTH stages (HLD pipeline runs + survey copies).
+      // The Type dropdown maps to ?kind= (hld) or ?kind=survey&stage= (survey|lld).
+      const merged = Object.assign({}, params || {});
+      if (!merged.kind) merged.kind = 'all';
+      const first = await window.FiberApi.listProjectsFiltered(merged);
+
+      if (Array.isArray(first)) return first;
+      if (!first || !Array.isArray(first.results)) return [];
+
+      // DRF-style pagination: walk `next` URLs so we don't silently drop pages 2+.
+      const all = first.results.slice();
+      let next = first.next;
+      while (next) {
+        const page = await window.FiberApi.apiFetch(next, { method: 'GET' });
+        if (!page || !Array.isArray(page.results)) break;
+        all.push.apply(all, page.results);
+        next = page.next || null;
+      }
+      return all;
+    }
+
+    function buildStandardBar(value) {
+      const standard = Number(value).toFixed(1);
+      return (
+        '' +
+        '<div style="display: flex; align-items: center; gap: 8px;">' +
+        '<div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">' +
+        '<div style="height: 100%; width: ' +
+        standard +
+        '%; background: #3B82F6; border-radius: 3px;"></div>' +
+        '</div>' +
+        '<span style="font-size: 11px; font-weight: 600; color: #374151; min-width: 35px;">' +
+        standard +
+        '%</span>' +
+        '</div>'
+      );
+    }
+
+    function buildDynamicBar(value, hasWeights) {
+      if (!hasWeights) {
+        return '<span style="font-size: 11px; color: #9CA3AF;">No weights</span>';
+      }
+      const dynamic = Number(value).toFixed(1);
+      return (
+        '' +
+        '<div style="display: flex; align-items: center; gap: 8px;">' +
+        '<div style="flex: 1; height: 6px; background: #E5E7EB; border-radius: 3px; overflow: hidden;">' +
+        '<div style="height: 100%; width: ' +
+        dynamic +
+        '%; background: #10B981; border-radius: 3px;"></div>' +
+        '</div>' +
+        '<span style="font-size: 11px; font-weight: 600; color: #10B981; min-width: 35px;">' +
+        dynamic +
+        '%</span>' +
+        '</div>'
+      );
+    }
+
+    async function loadProjects(params) {
+      setProjectsError('');
+      const tbody = document.getElementById('projectsTbody');
+      if (!tbody) return;
+
+      const myLoadId = ++currentLoadId;
+
+      let list;
+      try {
+        list = await fetchAllProjects(params);
+      } catch (e) {
+        if (myLoadId !== currentLoadId) return;
+        setProjectsError(e && e.message ? e.message : 'Failed to load projects');
+        return;
+      }
+
       if (myLoadId !== currentLoadId) return;
-      setProjectsError(e && e.message ? e.message : 'Failed to load projects');
-      return;
-    }
 
-    if (myLoadId !== currentLoadId) return;
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">No projects found</td></tr>';
+        return;
+      }
 
-    if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="7" style="padding:16px;color:#6B7280;">No projects found</td></tr>';
-      return;
-    }
+      // Render every row immediately with placeholder completion cells so a slow
+      // (or hung) /completion/ call on one project can't keep the whole table empty.
+      tbody.innerHTML = '';
+      const rowsById = new Map();
+      const placeholder = '<span style="font-size:11px;color:#9CA3AF;">…</span>';
 
-    // Render every row immediately with placeholder completion cells so a slow
-    // (or hung) /completion/ call on one project can't keep the whole table empty.
-    tbody.innerHTML = '';
-    const rowsById = new Map();
-    const placeholder = '<span style="font-size:11px;color:#9CA3AF;">…</span>';
-
-    list.forEach(function (p) {
-      const id = pickProjectId(p);
-      const name = pickProjectName(p);
-      const region = pickProjectRegion(p);
-      const status = pickProjectStatus(p);
-      const lastActivity = pickProjectLastActivity(p);
-      // HLD pipeline runs (type='hld') render with a badge, inline progress
-      // and links to the FTTH status/results pages.
-      const stage = (p && p.stage) || (p.type === 'hld' ? 'hld' : 'survey');
-      const isHld = stage === 'hld';
-      const isLld = stage === 'lld';
-      const isHldDone = isHld && String(p.status || '').toLowerCase().indexOf('complete') !== -1;
-      const srcFtth = (p && p.source_ftth_project_id) || null;
-      // HLD -> FTTH status/results pages. LLD -> the LLD review workspace
-      // (keyed by the source HLD run). Survey -> the mobile app's Expo web
-      // build (same MapLibre views the engineer sees).
-      const link = id
-        ? (isHld
-            ? (isHldDone
-                ? 'ftth-hld-results.html?project_id=' + encodeURIComponent(id)
-                : 'ftth-hld-status.html?project_id=' + encodeURIComponent(id))
-            : (isLld && srcFtth
-                ? 'ftth-lld-review.html?project_id=' + encodeURIComponent(srcFtth)
-                : null))
-        : 'projects.html';
-      const deleteBtn = id
-        ? '<button class="action-link delete-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
-        : '';
-      const badge = isHld
-        ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
-        : (isLld
+      list.forEach(function (p) {
+        const id = pickProjectId(p);
+        const name = pickProjectName(p);
+        const region = pickProjectRegion(p);
+        const status = pickProjectStatus(p);
+        const lastActivity = pickProjectLastActivity(p);
+        // HLD pipeline runs (type='hld') render with a badge, inline progress
+        // and links to the FTTH status/results pages.
+        const stage = (p && p.stage) || (p.type === 'hld' ? 'hld' : 'survey');
+        const isHld = stage === 'hld';
+        const isLld = stage === 'lld';
+        const isHldDone =
+          isHld &&
+          String(p.status || '')
+            .toLowerCase()
+            .indexOf('complete') !== -1;
+        const srcFtth = (p && p.source_ftth_project_id) || null;
+        // HLD -> FTTH status/results pages. LLD -> the LLD review workspace
+        // (keyed by the source HLD run). Survey -> the mobile app's Expo web
+        // build (same MapLibre views the engineer sees).
+        const link = id
+          ? isHld
+            ? isHldDone
+              ? 'ftth-hld-results.html?project_id=' + encodeURIComponent(id)
+              : 'ftth-hld-status.html?project_id=' + encodeURIComponent(id)
+            : isLld && srcFtth
+              ? 'ftth-lld-review.html?project_id=' + encodeURIComponent(srcFtth)
+              : null
+          : 'projects.html';
+        const deleteBtn = id
+          ? '<button class="action-link delete-btn" data-id="' +
+            escapeHtml(id) +
+            '" data-type="' +
+            (isHld ? 'hld' : 'survey') +
+            '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
+          : '';
+        const badge = isHld
+          ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
+          : isLld
             ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#F5F3FF;color:#6D28D9;margin-right:6px;vertical-align:middle;">LLD</span> '
-            : '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#ECFDF5;color:#059669;margin-right:6px;vertical-align:middle;">Survey</span> ');
-      const stdCell = isHld ? buildStandardBar(Number(p.progress) || 0) : placeholder;
-      const dynCell = isHld
-        ? '<span style="font-size:11px;color:#9CA3AF;">' + (p.layers && p.layers.length ? p.layers.length + ' layers' : '\u2014') + '</span>'
-        : placeholder;
+            : '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#ECFDF5;color:#059669;margin-right:6px;vertical-align:middle;">Survey</span> ';
+        const stdCell = isHld ? buildStandardBar(Number(p.progress) || 0) : placeholder;
+        const dynCell = isHld
+          ? '<span style="font-size:11px;color:#9CA3AF;">' +
+            (p.layers && p.layers.length ? p.layers.length + ' layers' : '\u2014') +
+            '</span>'
+          : placeholder;
 
-      // Assigned engineer / survey copy info
-      const assignedName = (p.assigned_engineer && p.assigned_engineer.full_name) || '';
-      const assignedCell = (assignedName
-          ? '<span style="font-size:12px;color:#374151;">' + escapeHtml(assignedName) + '</span>'
-            + (isHld && p.survey_status
-              ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:' + (p.survey_status === 'active' ? '#ECFDF5' : '#FFFBEB') + ';color:' + (p.survey_status === 'active' ? '#059669' : '#B45309') + ';">Survey: ' + escapeHtml(p.survey_status) + '</span>'
+        // Assigned engineer / survey copy info
+        const assignedName = (p.assigned_engineer && p.assigned_engineer.full_name) || '';
+        const assignedCell = assignedName
+          ? '<span style="font-size:12px;color:#374151;">' +
+            escapeHtml(assignedName) +
+            '</span>' +
+            (isHld && p.survey_status
+              ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:' +
+                (p.survey_status === 'active' ? '#ECFDF5' : '#FFFBEB') +
+                ';color:' +
+                (p.survey_status === 'active' ? '#059669' : '#B45309') +
+                ';">Survey: ' +
+                escapeHtml(p.survey_status) +
+                '</span>'
               : '')
-          : '<span style="font-size:11px;color:#9CA3AF;">\u2014</span>');
-      const assignBtn = isLld
-        ? ''
-        : '<button class="action-link assign-btn" data-id="' + escapeHtml(id) + '" data-type="' + (isHld ? 'hld' : 'survey') + '" data-name="' + escapeHtml(name) + '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Assign</button>';
+          : '<span style="font-size:11px;color:#9CA3AF;">\u2014</span>';
+        const assignBtn = isLld
+          ? ''
+          : '<button class="action-link assign-btn" data-id="' +
+            escapeHtml(id) +
+            '" data-type="' +
+            (isHld ? 'hld' : 'survey') +
+            '" data-name="' +
+            escapeHtml(name) +
+            '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Assign</button>';
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = ''
-        + '<td>' + badge + escapeHtml(name) + '</td>'
-        + '<td>' + escapeHtml(region) + '</td>'
-        + '<td class="status ' + statusClass(status) + '">' + escapeHtml(status) + '</td>'
-        + '<td class="completion-standard">' + stdCell + '</td>'
-        + '<td class="completion-dynamic">' + dynCell + '</td>'
-        + '<td>' + assignedCell + '</td>'
-        + '<td>' + escapeHtml(lastActivity) + '</td>'
-        + '<td>' + (isHld
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '' +
+          '<td>' +
+          badge +
+          escapeHtml(name) +
+          '</td>' +
+          '<td>' +
+          escapeHtml(region) +
+          '</td>' +
+          '<td class="status ' +
+          statusClass(status) +
+          '">' +
+          escapeHtml(status) +
+          '</td>' +
+          '<td class="completion-standard">' +
+          stdCell +
+          '</td>' +
+          '<td class="completion-dynamic">' +
+          dynCell +
+          '</td>' +
+          '<td>' +
+          assignedCell +
+          '</td>' +
+          '<td>' +
+          escapeHtml(lastActivity) +
+          '</td>' +
+          '<td>' +
+          (isHld
             ? '<a class="action-link" href="' + link + '">View</a>'
-            : (isLld && srcFtth
-                ? '<a class="action-link" href="' + link + '">Review</a>'
-                : '<button class="action-link view-survey-btn" data-id="' + escapeHtml(id) + '" style="cursor:pointer;background:none;border:none;padding:0;font:inherit;color:inherit;">View</button>'))
-          + assignBtn + deleteBtn + '</td>';
-      tbody.appendChild(tr);
-      if (id) rowsById.set(id, tr);
-    });
-
-    bindAssignButtons();
-    // Survey View -> mobile app's Expo web build (MapLibre views) on :8081
-    const surveyMapBase = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/,'');
-    tbody.querySelectorAll('.view-survey-btn').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        const projectId = btn.getAttribute('data-id');
-        if (!projectId) return;
-        const token = (window.FiberAuth && window.FiberAuth.getAccess) ? window.FiberAuth.getAccess() : '';
-        const url = surveyMapBase + '/?token=' + encodeURIComponent(token) + '&project=' + encodeURIComponent(projectId);
-        window.open(url, '_blank', 'noopener');
+            : isLld && srcFtth
+              ? '<a class="action-link" href="' + link + '">Review</a>'
+              : '<button class="action-link view-survey-btn" data-id="' +
+                escapeHtml(id) +
+                '" style="cursor:pointer;background:none;border:none;padding:0;font:inherit;color:inherit;">View</button>') +
+          assignBtn +
+          deleteBtn +
+          '</td>';
+        tbody.appendChild(tr);
+        if (id) rowsById.set(id, tr);
       });
-    });
+
+      bindAssignButtons();
+      // Survey View -> mobile app's Expo web build (MapLibre views) on :8081
+      const surveyMapBase = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(/\/+$/, '');
+      tbody.querySelectorAll('.view-survey-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          const projectId = btn.getAttribute('data-id');
+          if (!projectId) return;
+          const token = window.FiberAuth && window.FiberAuth.getAccess ? window.FiberAuth.getAccess() : '';
+          const url =
+            surveyMapBase + '/?token=' + encodeURIComponent(token) + '&project=' + encodeURIComponent(projectId);
+          window.open(url, '_blank', 'noopener');
+        });
+      });
       tbody.querySelectorAll('.delete-btn').forEach(function (btn) {
         btn.addEventListener('click', async function (e) {
-        const projectId = e.currentTarget.getAttribute('data-id');
-        const type = e.currentTarget.getAttribute('data-type') || 'survey';
+          const projectId = e.currentTarget.getAttribute('data-id');
+          const type = e.currentTarget.getAttribute('data-type') || 'survey';
           var ok = await window.FtthUI.confirm({
             title: 'Delete this project?',
             message: 'This cannot be undone. Any survey and design work under this project goes with it.',
             confirmLabel: 'Delete',
-            danger: true
+            danger: true,
           });
           if (projectId && ok) {
             handleDeleteProject(projectId, type);
           }
+        });
       });
-    });
 
-    // Kick off all completion fetches in parallel; patch each row when its
-    // result lands. A stale load (newer click took over) is silently ignored.
-    list.forEach(function (p) {
-      if (p && p.type === 'hld') return; // HLD rows render progress inline
-      const id = pickProjectId(p);
-      if (!id) return;
-      const tr = rowsById.get(id);
-      if (!tr) return;
+      // Kick off all completion fetches in parallel; patch each row when its
+      // result lands. A stale load (newer click took over) is silently ignored.
+      list.forEach(function (p) {
+        if (p && p.type === 'hld') return; // HLD rows render progress inline
+        const id = pickProjectId(p);
+        if (!id) return;
+        const tr = rowsById.get(id);
+        if (!tr) return;
 
-      window.FiberApi.getProjectCompletion(id).then(function (completion) {
-        if (myLoadId !== currentLoadId) return;
-        const stdCell = tr.querySelector('.completion-standard');
-        const dynCell = tr.querySelector('.completion-dynamic');
-        if (!completion) {
-          if (stdCell) stdCell.textContent = '-';
-          if (dynCell) dynCell.textContent = '-';
-          return;
-        }
-        if (stdCell) stdCell.innerHTML = buildStandardBar(completion.standard_completion);
-        if (dynCell) dynCell.innerHTML = buildDynamicBar(completion.dynamic_completion, completion.weights_defined);
-      }).catch(function () {
-        if (myLoadId !== currentLoadId) return;
-        const stdCell = tr.querySelector('.completion-standard');
-        const dynCell = tr.querySelector('.completion-dynamic');
-        if (stdCell) stdCell.textContent = '-';
-        if (dynCell) dynCell.textContent = '-';
+        window.FiberApi.getProjectCompletion(id)
+          .then(function (completion) {
+            if (myLoadId !== currentLoadId) return;
+            const stdCell = tr.querySelector('.completion-standard');
+            const dynCell = tr.querySelector('.completion-dynamic');
+            if (!completion) {
+              if (stdCell) stdCell.textContent = '-';
+              if (dynCell) dynCell.textContent = '-';
+              return;
+            }
+            if (stdCell) stdCell.innerHTML = buildStandardBar(completion.standard_completion);
+            if (dynCell) dynCell.innerHTML = buildDynamicBar(completion.dynamic_completion, completion.weights_defined);
+          })
+          .catch(function () {
+            if (myLoadId !== currentLoadId) return;
+            const stdCell = tr.querySelector('.completion-standard');
+            const dynCell = tr.querySelector('.completion-dynamic');
+            if (stdCell) stdCell.textContent = '-';
+            if (dynCell) dynCell.textContent = '-';
+          });
       });
-    });
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
-  function getFilterParams() {
-    const kind = document.getElementById('filterKind');
-    const status = document.getElementById('filterStatus');
-    const region = document.getElementById('filterRegion');
-    const stageSel = kind ? kind.value : '';
-    const params = {
-      status: status ? status.value : '',
-      region: region ? region.value.trim() : ''
-    };
-    // The Type dropdown maps to HLD / Survey / LLD stage flags.
-    // 'survey' and 'lld' are both survey copies, split by stage.
-    if (stageSel === 'hld') {
-      params.kind = 'hld';
-    } else if (stageSel === 'survey') {
-      params.kind = 'survey';
-      params.stage = 'survey';
-    } else if (stageSel === 'lld') {
-      params.kind = 'survey';
-      params.stage = 'lld';
-    } else {
-      params.kind = 'all';
     }
-    return params;
-  }
 
-  const applyBtn = document.getElementById('applyFilters');
-  const clearBtn = document.getElementById('clearFilters');
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-  if (applyBtn) {
-    applyBtn.addEventListener('click', function () {
-      loadProjects(getFilterParams());
-    });
-  }
-
-  if (clearBtn) {
-    clearBtn.addEventListener('click', function () {
+    function getFilterParams() {
       const kind = document.getElementById('filterKind');
       const status = document.getElementById('filterStatus');
       const region = document.getElementById('filterRegion');
-      if (kind) kind.value = '';
-      if (status) status.value = '';
-      if (region) region.value = '';
-      loadProjects();
-    });
-  }
-
-  async function handleDeleteProject(projectId, type) {
-    try {
-      if (type === 'hld') {
-        await window.FtthApi.deleteProject(projectId);
+      const stageSel = kind ? kind.value : '';
+      const params = {
+        status: status ? status.value : '',
+        region: region ? region.value.trim() : '',
+      };
+      // The Type dropdown maps to HLD / Survey / LLD stage flags.
+      // 'survey' and 'lld' are both survey copies, split by stage.
+      if (stageSel === 'hld') {
+        params.kind = 'hld';
+      } else if (stageSel === 'survey') {
+        params.kind = 'survey';
+        params.stage = 'survey';
+      } else if (stageSel === 'lld') {
+        params.kind = 'survey';
+        params.stage = 'lld';
       } else {
-        await window.FiberApi.deleteProject(projectId);
+        params.kind = 'all';
       }
-      window.location.reload();
-    } catch (e) {
-      setProjectsError(e && e.message ? e.message : 'Failed to delete project');
+      return params;
     }
-  }
 
-  let engineersCache = [];
-  async function loadEngineersForAssign() {
-    try {
-      const data = await window.FiberApi.listEngineers();
-      const list = Array.isArray(data) ? data : ((data && data.results) || []);
-      engineersCache = list;
-    } catch (e) { engineersCache = []; }
-  }
+    const applyBtn = document.getElementById('applyFilters');
+    const clearBtn = document.getElementById('clearFilters');
 
-  let pendingAssign = null; // { id, type, name }
-  function bindAssignButtons() {
-    const modal = document.getElementById('assignEngineerModal');
-    const select = document.getElementById('assignEngineerSelect');
-    const label = document.getElementById('assignProjectLabel');
-    const statusEl = document.getElementById('assignStatus');
-    if (!modal) return;
+    if (applyBtn) {
+      applyBtn.addEventListener('click', function () {
+        loadProjects(getFilterParams());
+      });
+    }
 
-    document.querySelectorAll('.assign-btn').forEach(function (btn) {
-      if (btn.dataset.bound) return;
-      btn.dataset.bound = '1';
-      btn.addEventListener('click', function () {
-        pendingAssign = { id: btn.dataset.id, type: btn.dataset.type, name: btn.dataset.name };
-        label.textContent = (pendingAssign.name || '') + ' (' + (pendingAssign.type === 'hld' ? 'FTTH-HLD' : 'Survey') + ')';
-        statusEl.textContent = '';
-        select.innerHTML = '<option value="">Select Engineer</option>';
-        engineersCache.forEach(function (e) {
-          const opt = document.createElement('option');
-          opt.value = e.id;
-          opt.textContent = (e.full_name || e.name || e.email || 'Engineer');
-          select.appendChild(opt);
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        const kind = document.getElementById('filterKind');
+        const status = document.getElementById('filterStatus');
+        const region = document.getElementById('filterRegion');
+        if (kind) kind.value = '';
+        if (status) status.value = '';
+        if (region) region.value = '';
+        loadProjects();
+      });
+    }
+
+    async function handleDeleteProject(projectId, type) {
+      try {
+        if (type === 'hld') {
+          await window.FtthApi.deleteProject(projectId);
+        } else {
+          await window.FiberApi.deleteProject(projectId);
+        }
+        window.location.reload();
+      } catch (e) {
+        setProjectsError(e && e.message ? e.message : 'Failed to delete project');
+      }
+    }
+
+    let engineersCache = [];
+    async function loadEngineersForAssign() {
+      try {
+        const data = await window.FiberApi.listEngineers();
+        const list = Array.isArray(data) ? data : (data && data.results) || [];
+        engineersCache = list;
+      } catch (e) {
+        engineersCache = [];
+      }
+    }
+
+    let pendingAssign = null; // { id, type, name }
+    function bindAssignButtons() {
+      const modal = document.getElementById('assignEngineerModal');
+      const select = document.getElementById('assignEngineerSelect');
+      const label = document.getElementById('assignProjectLabel');
+      const statusEl = document.getElementById('assignStatus');
+      if (!modal) return;
+
+      document.querySelectorAll('.assign-btn').forEach(function (btn) {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = '1';
+        btn.addEventListener('click', function () {
+          pendingAssign = { id: btn.dataset.id, type: btn.dataset.type, name: btn.dataset.name };
+          label.textContent =
+            (pendingAssign.name || '') + ' (' + (pendingAssign.type === 'hld' ? 'FTTH-HLD' : 'Survey') + ')';
+          statusEl.textContent = '';
+          select.innerHTML = '<option value="">Select Engineer</option>';
+          engineersCache.forEach(function (e) {
+            const opt = document.createElement('option');
+            opt.value = e.id;
+            opt.textContent = e.full_name || e.name || e.email || 'Engineer';
+            select.appendChild(opt);
+          });
+          modal.style.display = 'flex';
         });
-        modal.style.display = 'flex';
+      });
+    }
+
+    function closeAssignModal() {
+      const modal = document.getElementById('assignEngineerModal');
+      if (modal) modal.style.display = 'none';
+      pendingAssign = null;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const modal = document.getElementById('assignEngineerModal');
+      if (!modal) return;
+      document.getElementById('assignCancelBtn').addEventListener('click', closeAssignModal);
+      document.getElementById('assignConfirmBtn').addEventListener('click', async function () {
+        const select = document.getElementById('assignEngineerSelect');
+        const statusEl = document.getElementById('assignStatus');
+        if (!pendingAssign || !select.value) {
+          statusEl.textContent = 'Select an engineer first.';
+          return;
+        }
+        const engineerId = select.value;
+        statusEl.textContent = 'Assigning...';
+        const confirmBtn = document.getElementById('assignConfirmBtn');
+        confirmBtn.disabled = true;
+        try {
+          if (pendingAssign.type === 'hld') {
+            await window.FiberApi.assignHldProject(pendingAssign.id, engineerId);
+          } else {
+            await window.FiberApi.createAssignment({
+              project: pendingAssign.id,
+              scope: 'project',
+              assignee: engineerId,
+            });
+          }
+          statusEl.textContent = '';
+          closeAssignModal();
+          loadProjects({});
+        } catch (e) {
+          statusEl.textContent = FtthUI.humanize(e);
+        } finally {
+          confirmBtn.disabled = false;
+        }
       });
     });
-  }
 
-  function closeAssignModal() {
-    const modal = document.getElementById('assignEngineerModal');
-    if (modal) modal.style.display = 'none';
-    pendingAssign = null;
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    const modal = document.getElementById('assignEngineerModal');
-    if (!modal) return;
-    document.getElementById('assignCancelBtn').addEventListener('click', closeAssignModal);
-    document.getElementById('assignConfirmBtn').addEventListener('click', async function () {
-      const select = document.getElementById('assignEngineerSelect');
-      const statusEl = document.getElementById('assignStatus');
-      if (!pendingAssign || !select.value) { statusEl.textContent = 'Select an engineer first.'; return; }
-      const engineerId = select.value;
-      statusEl.textContent = 'Assigning...';
-      const confirmBtn = document.getElementById('assignConfirmBtn');
-      confirmBtn.disabled = true;
-      try {
-        if (pendingAssign.type === 'hld') {
-          await window.FiberApi.assignHldProject(pendingAssign.id, engineerId);
-        } else {
-          await window.FiberApi.createAssignment({ project: pendingAssign.id, scope: 'project', assignee: engineerId });
-        }
-        statusEl.textContent = '';
-        closeAssignModal();
-        loadProjects({});
-      } catch (e) {
-        statusEl.textContent = (FtthUI.humanize(e));
-      } finally {
-        confirmBtn.disabled = false;
-      }
-    });
-  });
-
-  loadProjects({});
-  loadEngineersForAssign();
-</script>
+    loadProjects({});
+    loadEngineersForAssign();
+  </script>
 </html>

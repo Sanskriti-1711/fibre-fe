@@ -1,732 +1,806 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>HLD Outputs | Tech Mahindra</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    .ftth-projects-content {
-      max-width: 900px;
-      margin: 0 auto;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>HLD Outputs | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .ftth-projects-content {
+        max-width: 900px;
+        margin: 0 auto;
+      }
 
-    .ftth-projects-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+      .ftth-projects-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
 
-    .ftth-projects-header h1 {
-      margin: 0;
-      font-size: 22px;
-    }
+      .ftth-projects-header h1 {
+        margin: 0;
+        font-size: 22px;
+      }
 
-    .ftth-projects-header .actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+      .ftth-projects-header .actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
 
-    .ftth-refresh-btn {
-      padding: 8px 16px;
-      background: #FFFFFF;
-      color: #374151;
-      border: 1px solid #D1D5DB;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .ftth-refresh-btn:hover {
-      background: #F9FAFB;
-      border-color: #9CA3AF;
-    }
-    .ftth-refresh-btn .spin {
-      display: inline-block;
-      transition: transform 0.3s ease;
-    }
-    .ftth-refresh-btn.loading .spin {
-      animation: ftth-spin 0.6s linear infinite;
-    }
+      .ftth-refresh-btn {
+        padding: 8px 16px;
+        background: #ffffff;
+        color: #374151;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ftth-refresh-btn:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+      }
+      .ftth-refresh-btn .spin {
+        display: inline-block;
+        transition: transform 0.3s ease;
+      }
+      .ftth-refresh-btn.loading .spin {
+        animation: ftth-spin 0.6s linear infinite;
+      }
 
-    .ftth-new-btn {
-      padding: 8px 18px;
-      background: #E31837;
-      color: #FFFFFF;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .ftth-new-btn:hover {
-      background: #C41230;
-    }
+      .ftth-new-btn {
+        padding: 8px 18px;
+        background: #e31837;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ftth-new-btn:hover {
+        background: #c41230;
+      }
 
-    .ftth-projects-status {
-      font-size: 13px;
-      color: #6B7280;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .ftth-projects-status .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #10B981;
-      display: inline-block;
-      animation: ftth-pulse 2s infinite;
-    }
+      .ftth-projects-status {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ftth-projects-status .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        display: inline-block;
+        animation: ftth-pulse 2s infinite;
+      }
 
-    .ftth-table-container {
-      background: #FFFFFF;
-      border-radius: 12px;
-      border: 1px solid #E5E7EB;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      overflow-x: auto;
-    }
+      .ftth-table-container {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        overflow-x: auto;
+      }
 
-    .ftth-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
+      .ftth-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
 
-    .ftth-table th {
-      text-align: left;
-      padding: 14px 16px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #6B7280;
-      background: #F9FAFB;
-      border-bottom: 1px solid #E5E7EB;
-      white-space: nowrap;
-    }
+      .ftth-table th {
+        text-align: left;
+        padding: 14px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+      }
 
-    .ftth-table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #F3F4F6;
-      color: #374151;
-      vertical-align: middle;
-    }
+      .ftth-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: middle;
+      }
 
-    .ftth-table tr:last-child td {
-      border-bottom: none;
-    }
+      .ftth-table tr:last-child td {
+        border-bottom: none;
+      }
 
-    .ftth-table tr:hover td {
-      background: #F9FAFB;
-    }
+      .ftth-table tr:hover td {
+        background: #f9fafb;
+      }
 
-    .ftth-table .project-id-cell {
-      font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
-      font-size: 11px;
-      color: #6B7280;
-      max-width: 140px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+      .ftth-table .project-id-cell {
+        font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+        font-size: 11px;
+        color: #6b7280;
+        max-width: 140px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
 
-    .ftth-table .project-name {
-      font-weight: 600;
-      color: #1F2937;
-    }
+      .ftth-table .project-name {
+        font-weight: 600;
+        color: #1f2937;
+      }
 
-    .ftth-table .project-date {
-      font-size: 12px;
-      color: #6B7280;
-      white-space: nowrap;
-    }
+      .ftth-table .project-date {
+        font-size: 12px;
+        color: #6b7280;
+        white-space: nowrap;
+      }
 
-    .ftth-table .project-progress {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #374151;
-    }
+      .ftth-table .project-progress {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #374151;
+      }
 
-    .ftth-table .project-progress .mini-bar {
-      width: 50px;
-      height: 4px;
-      background: #E5E7EB;
-      border-radius: 2px;
-      overflow: hidden;
-    }
+      .ftth-table .project-progress .mini-bar {
+        width: 50px;
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        overflow: hidden;
+      }
 
-    .ftth-table .project-progress .mini-fill {
-      height: 100%;
-      border-radius: 2px;
-      transition: width 0.3s ease;
-    }
+      .ftth-table .project-progress .mini-fill {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+      }
 
-    .ftth-action-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 600;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      border: 1px solid transparent;
-    }
-    .ftth-action-btn:hover {
-      transform: translateY(-1px);
-    }
+      .ftth-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border: 1px solid transparent;
+      }
+      .ftth-action-btn:hover {
+        transform: translateY(-1px);
+      }
 
-    .ftth-action-status {
-      background: #EFF6FF;
-      color: #1D4ED8;
-      border-color: #BFDBFE;
-    }
-    .ftth-action-status:hover {
-      background: #DBEAFE;
-    }
+      .ftth-action-status {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+      }
+      .ftth-action-status:hover {
+        background: #dbeafe;
+      }
 
-    .ftth-action-overview {
-      background: #F5F3FF;
-      color: #6D28D9;
-      border-color: #DDD6FE;
-    }
-    .ftth-action-overview:hover {
-      background: #EDE9FE;
-    }
+      .ftth-action-overview {
+        background: #f5f3ff;
+        color: #6d28d9;
+        border-color: #ddd6fe;
+      }
+      .ftth-action-overview:hover {
+        background: #ede9fe;
+      }
 
-    .ftth-action-results {
-      background: #ECFDF5;
-      color: #065F46;
-      border-color: #A7F3D0;
-    }
-    .ftth-action-results:hover {
-      background: #D1FAE5;
-    }
+      .ftth-action-results {
+        background: #ecfdf5;
+        color: #065f46;
+        border-color: #a7f3d0;
+      }
+      .ftth-action-results:hover {
+        background: #d1fae5;
+      }
 
-    .ftth-action-download {
-      background: #FFFBEB;
-      color: #92400E;
-      border-color: #FDE68A;
-    }
-    .ftth-action-download:hover {
-      background: #FEF3C7;
-    }
+      .ftth-action-download {
+        background: #fffbeb;
+        color: #92400e;
+        border-color: #fde68a;
+      }
+      .ftth-action-download:hover {
+        background: #fef3c7;
+      }
 
-    .ftth-action-delete {
-      background: #FEF2F2;
-      color: #991B1B;
-      border-color: #FECACA;
-    }
-    .ftth-action-delete:hover {
-      background: #FEE2E2;
-    }
+      .ftth-action-delete {
+        background: #fef2f2;
+        color: #991b1b;
+        border-color: #fecaca;
+      }
+      .ftth-action-delete:hover {
+        background: #fee2e2;
+      }
 
-    /* ---- Confirmation Modal ---- */
-    .ftth-modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .ftth-modal-overlay.visible {
-      display: flex;
-    }
-    .ftth-modal {
-      background: #FFFFFF;
-      border-radius: 16px;
-      padding: 28px 32px;
-      max-width: 440px;
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      animation: ftth-modal-in 0.2s ease-out;
-    }
-    @keyframes ftth-modal-in {
-      from { opacity: 0; transform: scale(0.95) translateY(10px); }
-      to { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    .ftth-modal h3 {
-      margin: 0 0 8px;
-      font-size: 18px;
-      color: #1F2937;
-    }
-    .ftth-modal p {
-      margin: 0 0 24px;
-      font-size: 14px;
-      color: #6B7280;
-      line-height: 1.5;
-    }
-    .ftth-modal .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-    }
-    .ftth-modal .modal-btn {
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.15s ease;
-    }
-    .ftth-modal .modal-btn-cancel {
-      background: #F3F4F6;
-      color: #374151;
-      border-color: #D1D5DB;
-    }
-    .ftth-modal .modal-btn-cancel:hover {
-      background: #E5E7EB;
-    }
-    .ftth-modal .modal-btn-delete {
-      background: #DC2626;
-      color: #FFFFFF;
-    }
-    .ftth-modal .modal-btn-delete:hover {
-      background: #B91C1C;
-    }
-    .ftth-modal .modal-btn-delete:disabled {
-      background: #FCA5A5;
-      cursor: not-allowed;
-    }
+      /* ---- Confirmation Modal ---- */
+      .ftth-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .ftth-modal-overlay.visible {
+        display: flex;
+      }
+      .ftth-modal {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 28px 32px;
+        max-width: 440px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: ftth-modal-in 0.2s ease-out;
+      }
+      @keyframes ftth-modal-in {
+        from {
+          opacity: 0;
+          transform: scale(0.95) translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+      .ftth-modal h3 {
+        margin: 0 0 8px;
+        font-size: 18px;
+        color: #1f2937;
+      }
+      .ftth-modal p {
+        margin: 0 0 24px;
+        font-size: 14px;
+        color: #6b7280;
+        line-height: 1.5;
+      }
+      .ftth-modal .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .ftth-modal .modal-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
+      }
+      .ftth-modal .modal-btn-cancel {
+        background: #f3f4f6;
+        color: #374151;
+        border-color: #d1d5db;
+      }
+      .ftth-modal .modal-btn-cancel:hover {
+        background: #e5e7eb;
+      }
+      .ftth-modal .modal-btn-delete {
+        background: #dc2626;
+        color: #ffffff;
+      }
+      .ftth-modal .modal-btn-delete:hover {
+        background: #b91c1c;
+      }
+      .ftth-modal .modal-btn-delete:disabled {
+        background: #fca5a5;
+        cursor: not-allowed;
+      }
 
-    .ftth-empty {
-      text-align: center;
-      padding: 60px 20px;
-      color: #6B7280;
-    }
-    .ftth-empty .icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-    .ftth-empty h2 {
-      font-size: 18px;
-      color: #1F2937;
-      margin: 0 0 8px;
-    }
-    .ftth-empty p {
-      margin: 0 0 20px;
-      font-size: 14px;
-    }
-    .ftth-empty a {
-      color: #E31837;
-      font-weight: 700;
-      text-decoration: none;
-    }
-    .ftth-empty a:hover {
-      text-decoration: underline;
-    }
+      .ftth-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+      }
+      .ftth-empty .icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+      }
+      .ftth-empty h2 {
+        font-size: 18px;
+        color: #1f2937;
+        margin: 0 0 8px;
+      }
+      .ftth-empty p {
+        margin: 0 0 20px;
+        font-size: 14px;
+      }
+      .ftth-empty a {
+        color: #e31837;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .ftth-empty a:hover {
+        text-decoration: underline;
+      }
 
-    .ftth-error-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: #DC2626;
-    }
+      .ftth-error-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #dc2626;
+      }
 
-    .ftth-toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #1F2937;
-      color: #FFFFFF;
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 500;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
-      z-index: 1000;
-    }
-    .ftth-toast.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
+      .ftth-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #1f2937;
+        color: #ffffff;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+      .ftth-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
 
-    @keyframes ftth-spin {
-      to { transform: rotate(360deg); }
-    }
-    @keyframes ftth-pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-  </style>
-<link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/ftth.css" />
-<link rel="stylesheet" href="css/components.css">
-</head>
-<body>
+      @keyframes ftth-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes ftth-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/ftth.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
 
-<div class="layout">
-  <div id="sidebarContainer"></div>
+      <main class="content">
+        <div class="container">
+          <div class="ftth-projects-content">
+            <!-- Header -->
+            <div class="ftth-projects-header">
+              <h1>HLD Outputs</h1>
+              <div class="actions">
+                <button id="refreshBtn" class="ftth-refresh-btn" type="button">
+                  <span class="spin">&#x21bb;</span> Refresh
+                </button>
+                <a href="ftth-hld.html" class="ftth-new-btn">&#x002B; New Design</a>
+              </div>
+            </div>
 
-  <main class="content">
-    <div class="container">
-      <div class="ftth-projects-content">
+            <div class="ftth-projects-status" id="statusBar">
+              <span class="dot"></span>
+              <span id="statusText">Loading projects&hellip;</span>
+            </div>
 
-        <!-- Header -->
-        <div class="ftth-projects-header">
-          <h1>HLD Outputs</h1>
-          <div class="actions">
-            <button id="refreshBtn" class="ftth-refresh-btn" type="button">
-              <span class="spin">&#x21bb;</span> Refresh
-            </button>
-            <a href="ftth-hld.html" class="ftth-new-btn">&#x002B; New Design</a>
-          </div>
-        </div>
+            <!-- Error state -->
+            <div id="errorState" class="ftth-error-state" style="display: none">
+              <p id="errorMessage">Failed to load projects.</p>
+              <button class="ftth-refresh-btn" onclick="loadProjects()">Try Again</button>
+            </div>
 
-        <div class="ftth-projects-status" id="statusBar">
-          <span class="dot"></span>
-          <span id="statusText">Loading projects&hellip;</span>
-        </div>
+            <!-- Empty state -->
+            <div id="emptyState" class="ftth-empty" style="display: none">
+              <div class="icon">&#x1F3D7;&#xFE0F;</div>
+              <h2>No Pipeline Runs Yet</h2>
+              <p>Upload an Excel file and roads data to start the FTTH design pipeline.</p>
+              <a href="ftth-hld.html">Run Your First Design &rarr;</a>
+            </div>
 
-        <!-- Error state -->
-        <div id="errorState" class="ftth-error-state" style="display:none;">
-          <p id="errorMessage">Failed to load projects.</p>
-          <button class="ftth-refresh-btn" onclick="loadProjects()">Try Again</button>
-        </div>
-
-        <!-- Empty state -->
-        <div id="emptyState" class="ftth-empty" style="display:none;">
-          <div class="icon">&#x1F3D7;&#xFE0F;</div>
-          <h2>No Pipeline Runs Yet</h2>
-          <p>Upload an Excel file and roads data to start the FTTH design pipeline.</p>
-          <a href="ftth-hld.html">Run Your First Design &rarr;</a>
-        </div>
-
-        <!-- Table -->
-        <div id="tableContainer" class="ftth-table-container" style="display:none;">
-          <table class="ftth-table">
-            <thead>
-              <tr>
-                <th>Project</th>
-                <th>Status</th>
-                <!-- Ordered by last activity server-side (updated_at), so show
+            <!-- Table -->
+            <div id="tableContainer" class="ftth-table-container" style="display: none">
+              <table class="ftth-table">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <!-- Ordered by last activity server-side (updated_at), so show
                      that here: a run re-run in place keeps its name and
                      creation date, and reading created_at made a fresh run
                      look like the same old one. Created stays in the tooltip. -->
-                <th>Last Run</th>
-                <th>Progress</th>
-                <th>Layers</th>
-                <th style="text-align:right;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="projectsBody"></tbody>
-          </table>
+                    <th>Last Run</th>
+                    <th>Progress</th>
+                    <th>Layers</th>
+                    <th style="text-align: right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="projectsBody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
+      </main>
+    </div>
 
+    <!-- Confirmation Modal -->
+    <div id="deleteModal" class="ftth-modal-overlay">
+      <div class="ftth-modal">
+        <h3>&#x1F5D1;&#xFE0F; Delete Project</h3>
+        <p id="deleteModalText">
+          Are you sure you want to delete this project? All pipeline outputs, GeoJSON files, and database records will
+          be permanently removed.
+        </p>
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-cancel" id="deleteModalCancel" type="button">Cancel</button>
+          <button class="modal-btn modal-btn-delete" id="deleteModalConfirm" type="button">Delete</button>
+        </div>
       </div>
     </div>
-  </main>
-</div>
 
-<!-- Confirmation Modal -->
-<div id="deleteModal" class="ftth-modal-overlay">
-  <div class="ftth-modal">
-    <h3>&#x1F5D1;&#xFE0F; Delete Project</h3>
-    <p id="deleteModalText">Are you sure you want to delete this project? All pipeline outputs, GeoJSON files, and database records will be permanently removed.</p>
-    <div class="modal-actions">
-      <button class="modal-btn modal-btn-cancel" id="deleteModalCancel" type="button">Cancel</button>
-      <button class="modal-btn modal-btn-delete" id="deleteModalConfirm" type="button">Delete</button>
-    </div>
-  </div>
-</div>
+    <!-- Toast notification -->
+    <div id="toast" class="ftth-toast"></div>
 
-<!-- Toast notification -->
-<div id="toast" class="ftth-toast"></div>
+    <script src="js/ftth-ui.js"></script>
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script>
+      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="js/ftth-api.js"></script>
+    <script src="js/ftth-state.js"></script>
+    <script src="js/ftth-components.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
 
-<script src="js/ftth-ui.js"></script>
-<script src="partials/sidebar-loader.js"></script>
-<script src="js/ftth-config.js"></script>
-<script>
-  window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-  window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
-</script>
-<script src="fiber-api.js"></script>
-<script>window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';</script>
-<script src="js/ftth-api.js"></script>
-<script src="js/ftth-state.js"></script>
-<script src="js/ftth-components.js"></script>
-<script>
-  window.FiberAuth.requireLogin();
+      // ----------------------------------------------------------------
+      // DOM refs
+      // ----------------------------------------------------------------
+      const statusText = document.getElementById('statusText');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const projectsBody = document.getElementById('projectsBody');
+      const tableContainer = document.getElementById('tableContainer');
+      const emptyState = document.getElementById('emptyState');
+      const errorState = document.getElementById('errorState');
+      const errorMessage = document.getElementById('errorMessage');
+      const toast = document.getElementById('toast');
 
-  // ----------------------------------------------------------------
-  // DOM refs
-  // ----------------------------------------------------------------
-  const statusText = document.getElementById('statusText');
-  const refreshBtn = document.getElementById('refreshBtn');
-  const projectsBody = document.getElementById('projectsBody');
-  const tableContainer = document.getElementById('tableContainer');
-  const emptyState = document.getElementById('emptyState');
-  const errorState = document.getElementById('errorState');
-  const errorMessage = document.getElementById('errorMessage');
-  const toast = document.getElementById('toast');
+      let autoRefreshTimer = null;
 
-  let autoRefreshTimer = null;
+      // ----------------------------------------------------------------
+      // Helpers
+      // ----------------------------------------------------------------
 
-  // ----------------------------------------------------------------
-  // Helpers
-  // ----------------------------------------------------------------
-
-  function escHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
-  }
-
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(function () { toast.classList.remove('show'); }, 3000);
-  }
-
-  function formatDate(iso) {
-    if (!iso) return '—';
-    try {
-      var d = new Date(iso);
-      if (isNaN(d.getTime())) return '—';
-      var now = new Date();
-      var diff = Math.floor((now - d) / 1000);
-      if (diff < 60) return 'Just now';
-      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-      if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
-      return d.toLocaleDateString();
-    } catch (_) {
-      return iso.substring(0, 10);
-    }
-  }
-
-  function getStatusData(status) {
-    var s = (status || '').toLowerCase();
-    if (s === 'completed') return { label: 'Completed', color: '#10B981', bg: '#ECFDF5', textColor: '#065F46' };
-    if (s === 'running' || s === 'processing') return { label: 'Running', color: '#3B82F6', bg: '#EFF6FF', textColor: '#1D4ED8' };
-    if (s === 'failed' || s === 'error') return { label: 'Failed', color: '#EF4444', bg: '#FEF2F2', textColor: '#991B1B' };
-    if (s === 'queued' || s === 'pending') return { label: 'Queued', color: '#F59E0B', bg: '#FFFBEB', textColor: '#92400E' };
-    return { label: s || 'Unknown', color: '#6B7280', bg: '#F3F4F6', textColor: '#374151' };
-  }
-
-  function truncateId(id) {
-    if (!id) return '—';
-    return id.length > 16 ? id.substring(0, 8) + '…' + id.substring(id.length - 6) : id;
-  }
-
-  function getProgressColor(pct) {
-    pct = Number(pct) || 0;
-    if (pct >= 80) return '#10B981';
-    if (pct >= 40) return '#F59E0B';
-    return '#3B82F6';
-  }
-
-  // ----------------------------------------------------------------
-  // Load and render projects
-  // ----------------------------------------------------------------
-
-  async function loadProjects() {
-    refreshBtn.classList.add('loading');
-    statusText.textContent = 'Loading projects&hellip;';
-    errorState.style.display = 'none';
-    emptyState.style.display = 'none';
-
-    try {
-      var projects = await window.FtthApi.listProjects(100);
-
-      if (!projects || !projects.length) {
-        tableContainer.style.display = 'none';
-        emptyState.style.display = 'block';
-        statusText.textContent = 'No projects found';
-        refreshBtn.classList.remove('loading');
-        return;
+      function escHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#x27;');
       }
 
-      // Render table rows
-      projectsBody.innerHTML = '';
-      projects.forEach(function (p) {
-        var row = document.createElement('tr');
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(function () {
+          toast.classList.remove('show');
+        }, 3000);
+      }
 
-        var statusInfo = getStatusData(p.status);
-        var pct = Number(p.progress) || 0;
-        var layerCount = (p.layers && p.layers.length) ? p.layers.length : '—';
-        var projectName = p.name || truncateId(p.project_id);
+      function formatDate(iso) {
+        if (!iso) return '—';
+        try {
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return '—';
+          var now = new Date();
+          var diff = Math.floor((now - d) / 1000);
+          if (diff < 60) return 'Just now';
+          if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+          if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+          if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+          return d.toLocaleDateString();
+        } catch (_) {
+          return iso.substring(0, 10);
+        }
+      }
 
-        // Determine which action links are relevant
-        var isCompleted = p.status === 'completed';
-        var hasResultsUrl = isCompleted && p.project_id;
+      function getStatusData(status) {
+        var s = (status || '').toLowerCase();
+        if (s === 'completed') return { label: 'Completed', color: '#10B981', bg: '#ECFDF5', textColor: '#065F46' };
+        if (s === 'running' || s === 'processing')
+          return { label: 'Running', color: '#3B82F6', bg: '#EFF6FF', textColor: '#1D4ED8' };
+        if (s === 'failed' || s === 'error')
+          return { label: 'Failed', color: '#EF4444', bg: '#FEF2F2', textColor: '#991B1B' };
+        if (s === 'queued' || s === 'pending')
+          return { label: 'Queued', color: '#F59E0B', bg: '#FFFBEB', textColor: '#92400E' };
+        return { label: s || 'Unknown', color: '#6B7280', bg: '#F3F4F6', textColor: '#374151' };
+      }
 
-        row.innerHTML = ''
-          + '<td>'
-          +   '<div class="project-name">' + escHtml(projectName) + '</div>'
-          +   '<div class="project-id-cell" title="' + escHtml(p.project_id || '') + '">' + truncateId(p.project_id) + '</div>'
-          + '</td>'
-          + '<td>'
-          +   '<span class="ftth-status-badge" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;background:' + statusInfo.bg + ';color:' + statusInfo.textColor + ';border:1px solid ' + statusInfo.color + '33;">'
-          +     '<span style="width:6px;height:6px;border-radius:50%;background:' + statusInfo.color + ';' + (p.status === 'running' ? 'animation:ftth-pulse 1.5s infinite;' : '') + '"></span>'
-          +     '<span>' + statusInfo.label + '</span>'
-          +   '</span>'
-          + '</td>'
-          + '<td class="project-date" title="Created ' + escHtml(p.created_at || '') + '">' + formatDate(p.updated_at || p.created_at) + '</td>'
-          + '<td>'
-          +   '<div class="project-progress">'
-          +     '<div class="mini-bar"><div class="mini-fill" style="width:' + pct + '%;background:' + getProgressColor(pct) + ';"></div></div>'
-          +     '<span>' + pct + '%</span>'
-          +   '</div>'
-          + '</td>'
-          + '<td style="font-size:12px;font-weight:600;color:' + (layerCount === '—' ? '#9CA3AF' : '#374151') + ';">' + layerCount + '</td>'
-          + '<td style="text-align:right;">'
-          +   '<div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;">'
-          +     '<a class="ftth-action-btn ftth-action-overview" href="ftth-project-overview.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F4CB; Overview</a>'
-          +     '<a class="ftth-action-btn ftth-action-status" href="ftth-hld-status.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F50D; Status</a>'
-          +     (isCompleted
-          ? '<a class="ftth-action-btn ftth-action-results" href="ftth-hld-results.html?project_id=' + encodeURIComponent(p.project_id) + '">&#x1F5FA;&#xFE0F; Results</a>'
-          : '')
-          +     (isCompleted
-          ? '<button class="ftth-action-btn ftth-action-download" onclick="downloadSurvey(\'' + escHtml(p.project_id) + '\')">&#x1F4E5; GPKG</button>'
-          : '')
-          +     '<button class="ftth-action-btn ftth-action-delete" onclick="confirmDelete(\'' + escHtml(p.project_id) + '\', \'' + escHtml(projectName) + '\')">&#x1F5D1;&#xFE0F;</button>'
-          +   '</div>'
-          + '</td>';
+      function truncateId(id) {
+        if (!id) return '—';
+        return id.length > 16 ? id.substring(0, 8) + '…' + id.substring(id.length - 6) : id;
+      }
 
-        projectsBody.appendChild(row);
+      function getProgressColor(pct) {
+        pct = Number(pct) || 0;
+        if (pct >= 80) return '#10B981';
+        if (pct >= 40) return '#F59E0B';
+        return '#3B82F6';
+      }
+
+      // ----------------------------------------------------------------
+      // Load and render projects
+      // ----------------------------------------------------------------
+
+      async function loadProjects() {
+        refreshBtn.classList.add('loading');
+        statusText.textContent = 'Loading projects&hellip;';
+        errorState.style.display = 'none';
+        emptyState.style.display = 'none';
+
+        try {
+          var projects = await window.FtthApi.listProjects(100);
+
+          if (!projects || !projects.length) {
+            tableContainer.style.display = 'none';
+            emptyState.style.display = 'block';
+            statusText.textContent = 'No projects found';
+            refreshBtn.classList.remove('loading');
+            return;
+          }
+
+          // Render table rows
+          projectsBody.innerHTML = '';
+          projects.forEach(function (p) {
+            var row = document.createElement('tr');
+
+            var statusInfo = getStatusData(p.status);
+            var pct = Number(p.progress) || 0;
+            var layerCount = p.layers && p.layers.length ? p.layers.length : '—';
+            var projectName = p.name || truncateId(p.project_id);
+
+            // Determine which action links are relevant
+            var isCompleted = p.status === 'completed';
+            var hasResultsUrl = isCompleted && p.project_id;
+
+            row.innerHTML =
+              '' +
+              '<td>' +
+              '<div class="project-name">' +
+              escHtml(projectName) +
+              '</div>' +
+              '<div class="project-id-cell" title="' +
+              escHtml(p.project_id || '') +
+              '">' +
+              truncateId(p.project_id) +
+              '</div>' +
+              '</td>' +
+              '<td>' +
+              '<span class="ftth-status-badge" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;background:' +
+              statusInfo.bg +
+              ';color:' +
+              statusInfo.textColor +
+              ';border:1px solid ' +
+              statusInfo.color +
+              '33;">' +
+              '<span style="width:6px;height:6px;border-radius:50%;background:' +
+              statusInfo.color +
+              ';' +
+              (p.status === 'running' ? 'animation:ftth-pulse 1.5s infinite;' : '') +
+              '"></span>' +
+              '<span>' +
+              statusInfo.label +
+              '</span>' +
+              '</span>' +
+              '</td>' +
+              '<td class="project-date" title="Created ' +
+              escHtml(p.created_at || '') +
+              '">' +
+              formatDate(p.updated_at || p.created_at) +
+              '</td>' +
+              '<td>' +
+              '<div class="project-progress">' +
+              '<div class="mini-bar"><div class="mini-fill" style="width:' +
+              pct +
+              '%;background:' +
+              getProgressColor(pct) +
+              ';"></div></div>' +
+              '<span>' +
+              pct +
+              '%</span>' +
+              '</div>' +
+              '</td>' +
+              '<td style="font-size:12px;font-weight:600;color:' +
+              (layerCount === '—' ? '#9CA3AF' : '#374151') +
+              ';">' +
+              layerCount +
+              '</td>' +
+              '<td style="text-align:right;">' +
+              '<div style="display:flex;gap:4px;justify-content:flex-end;flex-wrap:wrap;">' +
+              '<a class="ftth-action-btn ftth-action-overview" href="ftth-project-overview.html?project_id=' +
+              encodeURIComponent(p.project_id) +
+              '">&#x1F4CB; Overview</a>' +
+              '<a class="ftth-action-btn ftth-action-status" href="ftth-hld-status.html?project_id=' +
+              encodeURIComponent(p.project_id) +
+              '">&#x1F50D; Status</a>' +
+              (isCompleted
+                ? '<a class="ftth-action-btn ftth-action-results" href="ftth-hld-results.html?project_id=' +
+                  encodeURIComponent(p.project_id) +
+                  '">&#x1F5FA;&#xFE0F; Results</a>'
+                : '') +
+              (isCompleted
+                ? '<button class="ftth-action-btn ftth-action-download" onclick="downloadSurvey(\'' +
+                  escHtml(p.project_id) +
+                  '\')">&#x1F4E5; GPKG</button>'
+                : '') +
+              '<button class="ftth-action-btn ftth-action-delete" onclick="confirmDelete(\'' +
+              escHtml(p.project_id) +
+              "', '" +
+              escHtml(projectName) +
+              '\')">&#x1F5D1;&#xFE0F;</button>' +
+              '</div>' +
+              '</td>';
+
+            projectsBody.appendChild(row);
+          });
+
+          tableContainer.style.display = 'block';
+          statusText.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '');
+          refreshBtn.classList.remove('loading');
+        } catch (err) {
+          console.error('Failed to load projects:', err);
+          tableContainer.style.display = 'none';
+          emptyState.style.display = 'none';
+          errorState.style.display = 'block';
+          errorMessage.textContent = 'Failed to load projects: ' + FtthUI.humanize(err);
+          statusText.textContent = 'Error loading projects';
+          refreshBtn.classList.remove('loading');
+        }
+      }
+
+      // ----------------------------------------------------------------
+      // Download survey package
+      // ----------------------------------------------------------------
+
+      function downloadSurvey(projectId) {
+        window.FtthApi.downloadSurveyPackage(projectId);
+        showToast('Downloading survey package for ' + truncateId(projectId) + '…');
+      }
+
+      // ----------------------------------------------------------------
+      // Delete project with confirmation
+      // ----------------------------------------------------------------
+
+      var deleteTargetId = null;
+      var deleteModal = document.getElementById('deleteModal');
+      var deleteModalText = document.getElementById('deleteModalText');
+      var deleteModalConfirm = document.getElementById('deleteModalConfirm');
+      var deleteModalCancel = document.getElementById('deleteModalCancel');
+
+      function confirmDelete(projectId, projectName) {
+        deleteTargetId = projectId;
+        deleteModalText.textContent =
+          'Delete "' +
+          (projectName || truncateId(projectId)) +
+          '"? All pipeline outputs, GeoJSON files, and database records will be permanently removed. This action cannot be undone.';
+        deleteModal.confirmDisabled = false;
+        deleteModalConfirm.disabled = false;
+        deleteModalConfirm.textContent = 'Delete';
+        deleteModal.classList.add('visible');
+      }
+
+      function closeDeleteModal() {
+        deleteModal.classList.remove('visible');
+        deleteTargetId = null;
+      }
+
+      deleteModalCancel.addEventListener('click', closeDeleteModal);
+      deleteModal.addEventListener('click', function (e) {
+        if (e.target === deleteModal) closeDeleteModal();
       });
 
-      tableContainer.style.display = 'block';
-      statusText.textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '');
-      refreshBtn.classList.remove('loading');
-    } catch (err) {
-      console.error('Failed to load projects:', err);
-      tableContainer.style.display = 'none';
-      emptyState.style.display = 'none';
-      errorState.style.display = 'block';
-      errorMessage.textContent = 'Failed to load projects: ' + (FtthUI.humanize(err));
-      statusText.textContent = 'Error loading projects';
-      refreshBtn.classList.remove('loading');
-    }
-  }
+      // ESC key closes modal
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && deleteModal.classList.contains('visible')) {
+          closeDeleteModal();
+        }
+      });
 
-  // ----------------------------------------------------------------
-  // Download survey package
-  // ----------------------------------------------------------------
+      deleteModalConfirm.addEventListener('click', async function () {
+        var pid = deleteTargetId;
+        if (!pid) return;
 
-  function downloadSurvey(projectId) {
-    window.FtthApi.downloadSurveyPackage(projectId);
-    showToast('Downloading survey package for ' + truncateId(projectId) + '…');
-  }
+        deleteModalConfirm.disabled = true;
+        deleteModalConfirm.textContent = 'Deleting…';
 
-  // ----------------------------------------------------------------
-  // Delete project with confirmation
-  // ----------------------------------------------------------------
+        try {
+          await window.FtthApi.deleteProject(pid);
+          closeDeleteModal();
+          showToast('Deleted project ' + truncateId(pid));
+          loadProjects(); // Refresh the list
+        } catch (err) {
+          deleteModalConfirm.disabled = false;
+          deleteModalConfirm.textContent = 'Delete';
+          showToast('Failed to delete: ' + FtthUI.humanize(err));
+        }
+      });
 
-  var deleteTargetId = null;
-  var deleteModal = document.getElementById('deleteModal');
-  var deleteModalText = document.getElementById('deleteModalText');
-  var deleteModalConfirm = document.getElementById('deleteModalConfirm');
-  var deleteModalCancel = document.getElementById('deleteModalCancel');
+      // ----------------------------------------------------------------
+      // Auto-refresh
+      // ----------------------------------------------------------------
 
-  function confirmDelete(projectId, projectName) {
-    deleteTargetId = projectId;
-    deleteModalText.textContent = 'Delete "' + (projectName || truncateId(projectId)) + '"? All pipeline outputs, GeoJSON files, and database records will be permanently removed. This action cannot be undone.';
-    deleteModal.confirmDisabled = false;
-    deleteModalConfirm.disabled = false;
-    deleteModalConfirm.textContent = 'Delete';
-    deleteModal.classList.add('visible');
-  }
+      function startAutoRefresh() {
+        stopAutoRefresh();
+        autoRefreshTimer = setInterval(loadProjects, 30000);
+      }
 
-  function closeDeleteModal() {
-    deleteModal.classList.remove('visible');
-    deleteTargetId = null;
-  }
+      function stopAutoRefresh() {
+        if (autoRefreshTimer) {
+          clearInterval(autoRefreshTimer);
+          autoRefreshTimer = null;
+        }
+      }
 
-  deleteModalCancel.addEventListener('click', closeDeleteModal);
-  deleteModal.addEventListener('click', function (e) {
-    if (e.target === deleteModal) closeDeleteModal();
-  });
+      // ----------------------------------------------------------------
+      // Event handlers
+      // ----------------------------------------------------------------
 
-  // ESC key closes modal
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && deleteModal.classList.contains('visible')) {
-      closeDeleteModal();
-    }
-  });
+      refreshBtn.addEventListener('click', function () {
+        loadProjects();
+      });
 
-  deleteModalConfirm.addEventListener('click', async function () {
-    var pid = deleteTargetId;
-    if (!pid) return;
+      // Stop auto-refresh when page is hidden
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          stopAutoRefresh();
+        } else {
+          startAutoRefresh();
+        }
+      });
 
-    deleteModalConfirm.disabled = true;
-    deleteModalConfirm.textContent = 'Deleting…';
+      // ----------------------------------------------------------------
+      // Bootstrap
+      // ----------------------------------------------------------------
 
-    try {
-      await window.FtthApi.deleteProject(pid);
-      closeDeleteModal();
-      showToast('Deleted project ' + truncateId(pid));
-      loadProjects(); // Refresh the list
-    } catch (err) {
-      deleteModalConfirm.disabled = false;
-      deleteModalConfirm.textContent = 'Delete';
-      showToast('Failed to delete: ' + (FtthUI.humanize(err)));
-    }
-  });
-
-  // ----------------------------------------------------------------
-  // Auto-refresh
-  // ----------------------------------------------------------------
-
-  function startAutoRefresh() {
-    stopAutoRefresh();
-    autoRefreshTimer = setInterval(loadProjects, 30000);
-  }
-
-  function stopAutoRefresh() {
-    if (autoRefreshTimer) {
-      clearInterval(autoRefreshTimer);
-      autoRefreshTimer = null;
-    }
-  }
-
-  // ----------------------------------------------------------------
-  // Event handlers
-  // ----------------------------------------------------------------
-
-  refreshBtn.addEventListener('click', function () {
-    loadProjects();
-  });
-
-  // Stop auto-refresh when page is hidden
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden) {
-      stopAutoRefresh();
-    } else {
+      loadProjects();
       startAutoRefresh();
-    }
-  });
-
-  // ----------------------------------------------------------------
-  // Bootstrap
-  // ----------------------------------------------------------------
-
-  loadProjects();
-  startAutoRefresh();
-</script>
-</body>
+    </script>
+  </body>
 </html>
