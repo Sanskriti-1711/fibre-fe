@@ -74,6 +74,24 @@
     return ERROR_COPY[errorKind(err)] || ERROR_COPY.default;
   }
 
+  /* Is this message platform plumbing rather than an application error?
+
+     Plumbing is anything a user cannot act on: a browser-level TypeError, a
+     bare status line with no body ("502 Bad Gateway" — what the hosting
+     platform returns when it gives up on a request, and what an API layer
+     falls back to when the reply had no JSON), or an error page's markup
+     (a proxy's 502 HTML). None of these say what actually failed. */
+  function isPlumbing(raw) {
+    return (
+      !raw ||
+      /^(failed to fetch|networkerror|load failed|fetch failed|network request failed|error loading|request failed)/i.test(
+        raw
+      ) ||
+      /^\d{3}\s+\S/.test(raw) ||
+      /^\s*</.test(raw)
+    );
+  }
+
   /* The scrub every catch block wants.
      errorMessage() answers "what should I tell them" for failures the
      platform produced. This answers "is there anything worth showing at
@@ -84,24 +102,22 @@
 
      So: sanitize the uninformative failures to shared copy, pass the
      informative ones through. Call sites stop having to know which is
-     which. */
+     which.
+
+     The server's own words win when it sent real ones, even for a failure
+     with an HTTP status: "Survey package not available: the engine no longer
+     has this run's files", or "Only SUBADMIN can assign projects.", is worth
+     more than any sentence written here. Two exceptions get the shared copy
+     instead: a dead session, whose server text is JWT jargon ("Given token
+     not valid for any token type") that hides the one action a user can take,
+     and plumbing, which carries no message at all. */
   function humanize(err) {
     var kind = errorKind(err);
     var raw = err && typeof err === 'object' ? String(err.message || '') : String(err || '');
 
-    if (kind !== 'default') return ERROR_COPY[kind] || ERROR_COPY.default;
+    var sessionJargon = kind === 'unauthorized' || kind === 'timeout' || kind === 'offline';
 
-    // No status, no meaningful kind, but there is a message. If it looks
-    // like platform plumbing rather than an application error, it is not
-    // worth a user's attention — say something actionable instead.
-    if (
-      !raw ||
-      /^(failed to fetch|networkerror|load failed|fetch failed|network request failed|error loading|request failed)/i.test(
-        raw
-      )
-    ) {
-      return ERROR_COPY.default;
-    }
+    if (sessionJargon || isPlumbing(raw)) return ERROR_COPY[kind] || ERROR_COPY.default;
     return raw;
   }
 

@@ -79,6 +79,23 @@
     }
   }
 
+  /* Attach the HTTP status to an error we are about to throw.
+
+     FtthUI.errorKind() classifies on `err.status` before it falls back to
+     message text -- that branch exists precisely so a 401 can say "sign in"
+     and a 502 can say "the service errored" instead of both arriving as
+     "Could not reach the design service. Check that the API is running."
+     Nothing ever set the property, so that branch only reached the statuses
+     whose wording happened to match the text fallback below it -- and the
+     dashboard's `failureAction` ("a 401 that already ran its token refresh
+     will fail identically forever", so it offers "Sign in again" instead of a
+     dead-end retry) could not rely on it. */
+  function withStatus(err, response) {
+    const status = response && response.status;
+    if (status) err.status = status;
+    return err;
+  }
+
   function toErrorMessage(response, body) {
     if (body && typeof body === 'object') {
       if (typeof body.detail === 'string') return body.detail;
@@ -115,7 +132,7 @@
 
     if (!response.ok) {
       clearAuth();
-      throw new Error(toErrorMessage(response, body));
+      throw withStatus(new Error(toErrorMessage(response, body)), response);
     }
 
     const current = loadAuth();
@@ -162,7 +179,7 @@
     const body = await parseBody(response);
 
     if (!response.ok) {
-      throw new Error(toErrorMessage(response, body));
+      throw withStatus(new Error(toErrorMessage(response, body)), response);
     }
 
     return body;
@@ -178,7 +195,10 @@
     const body = await parseBody(response);
 
     if (!response.ok) {
-      throw new Error(toErrorMessage(response, body));
+      // A refused login is an answer from the API, not an outage: without the
+      // status here, wrong credentials reached the user as "Could not reach the
+      // design service. Check that the API is running."
+      throw withStatus(new Error(toErrorMessage(response, body)), response);
     }
 
     saveAuth({
