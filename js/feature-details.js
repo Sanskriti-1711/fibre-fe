@@ -362,14 +362,6 @@ function addFeatureZoomControl(map, label, targetLayer) {
   );
 }
 
-async function getFeatureDetails(projectId, featureId) {
-  const pid = encodeURIComponent(projectId);
-  const fid = encodeURIComponent(featureId);
-  const path = `/api/projects/${pid}/features/${fid}/`;
-  console.log('[feature-details] Feature Details API:', path);
-  return window.FiberApi.apiFetch(path, { method: 'GET' });
-}
-
 function bindBreadcrumb(params, project, featureDetails) {
   const projectId = params.projectId;
   const layerId = params.layerId;

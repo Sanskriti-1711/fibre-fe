@@ -41,7 +41,7 @@ validate:
     - node --version
     # Syntax-check every .js file + every inline <script> block, then
     # verify every internal link and sidebar entry points to a real page.
-    - node ci/link-check.js
+    - node ci/link-check.cjs
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -64,7 +64,7 @@ bundle-check:
     - cp -r engineer public/engineer
     - cp -r docs public/docs
     - cp -r vendor public/vendor
-    - node ci/link-check.js --bundle public
+    - node ci/link-check.cjs --bundle public
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -76,7 +76,7 @@ pages:
   stage: deploy
   image: node:20-alpine
   script:
-    - node ci/link-check.js
+    - node ci/link-check.cjs
     # Build the deployable bundle: everything except git internals + CI
     - mkdir -p public
     - cp -r *.html public/
@@ -89,7 +89,7 @@ pages:
     - cp -r vendor public/vendor
     # Verify the bundle is complete and self-consistent (LLD pages + their
     # JS included, all internal links resolve inside the deployed site).
-    - node ci/link-check.js --bundle public
+    - node ci/link-check.cjs --bundle public
   artifacts:
     paths:
       - public

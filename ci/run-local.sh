@@ -16,11 +16,11 @@ FAIL=0
 step() { echo; echo "══════════════════════════════════════════════════════════"; echo "  $1"; echo "══════════════════════════════════════════════════════════"; }
 
 # ── Job 1: validate ──────────────────────────────────────────────────────
-step "JOB: validate (node ci/link-check.js)"
-if node ci/link-check.js; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
+step "JOB: validate (node ci/link-check.cjs)"
+if node ci/link-check.cjs; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 
 # ── Job 2: bundle-check ──────────────────────────────────────────────────
-step "JOB: bundle-check (build public/ + node ci/link-check.js --bundle public)"
+step "JOB: bundle-check (build public/ + node ci/link-check.cjs --bundle public)"
 rm -rf public
 mkdir -p public
 cp -r *.html public/
@@ -31,11 +31,11 @@ cp -r partials public/partials
 cp -r engineer public/engineer
 cp -r docs public/docs
 cp -r vendor public/vendor
-if node ci/link-check.js --bundle public; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
+if node ci/link-check.cjs --bundle public; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 
 # ── Job 3: pages (deploy) — same build + both checks ─────────────────────
 step "JOB: pages (build public/ + validate + bundle-check before publish)"
-if node ci/link-check.js && node ci/link-check.js --bundle public; then
+if node ci/link-check.cjs && node ci/link-check.cjs --bundle public; then
   PASS=$((PASS+1))
 else
   FAIL=$((FAIL+1))
