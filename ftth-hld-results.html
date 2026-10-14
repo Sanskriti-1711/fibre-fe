@@ -1194,6 +1194,7 @@
           });
           totalFeaturesEl.textContent = totalFeat;
           renderLayerControls(allLayers);
+          groupAerialLayers();
           renderPackages(statusData.downloads || []);
 
           // Fetch permits for this project and index them by layer + feature id
@@ -2038,6 +2039,117 @@
         });
       }
 
+      // Aerial is one construct, so it gets one row.
+      // The run serves three aerial layers — the classified drop leg
+      // (`aerial_drops`), the overhead span the pole stage builds for that leg
+      // (`aerial_spans`) and the fibre that runs on the span (`aerial_cable`).
+      // The panel listed them as three unrelated rows named after their tables,
+      // which hides what they are: one chain from the decision (drop) through
+      // the structure (span) to the fibre (cable). They are grouped under one
+      // toggle, in that order, with labels that say which is which.
+      var AERIAL_GROUP = {
+        label: 'Aerial',
+        members: ['aerial_drops', 'aerial_spans', 'aerial_cable'],
+        labels: {
+          aerial_drops: 'Aerial drop — route to the premise',
+          aerial_spans: 'Aerial span — pole to pole',
+          aerial_cable: 'Aerial cable — fibre on the span',
+        },
+      };
+
+      function aerialGroupTotal() {
+        var total = 0;
+        AERIAL_GROUP.members.forEach(function (n) {
+          var el = document.getElementById('layer-count-' + n);
+          if (el) total += parseInt(el.textContent, 10) || 0;
+        });
+        return total + ' features';
+      }
+
+      function groupAerialLayers() {
+        if (!layerControlsEl || document.getElementById('layer-group-aerial')) return false;
+        var wanted = {};
+        AERIAL_GROUP.members.forEach(function (n) {
+          wanted[n] = true;
+        });
+        var byName = {};
+        layerControlsEl.querySelectorAll('input[data-layer-name]').forEach(function (cb) {
+          if (wanted[cb.dataset.layerName]) byName[cb.dataset.layerName] = cb.closest('label');
+        });
+        var present = AERIAL_GROUP.members.filter(function (n) {
+          return !!byName[n];
+        });
+        // A run with no aerial work has nothing to group, and a lone aerial
+        // layer is already one row — neither may gain a parent that would hide
+        // layers the reader can see.
+        if (present.length < 2) return false;
+
+        var head = document.createElement('div');
+        head.id = 'layer-group-aerial';
+        head.style.cssText =
+          'display:flex;align-items:center;gap:10px;padding:12px 0 6px;font-size:13px;font-weight:700;color:#1F2937;border-bottom:1px solid #E5E7EB;';
+        var headCb = document.createElement('input');
+        headCb.type = 'checkbox';
+        headCb.checked = true;
+        headCb.title = 'Show or hide every aerial layer';
+        headCb.style.cssText = 'width:16px;height:16px;accent-color:#E31837;cursor:pointer;';
+        var headLabel = document.createElement('span');
+        headLabel.textContent = AERIAL_GROUP.label;
+        var headCount = document.createElement('span');
+        headCount.id = 'layer-count-aerial';
+        headCount.className = 'layer-count';
+        headCount.style.cssText = 'margin-left:auto;font-weight:500;color:#6B7280;font-size:12px;';
+        headCount.textContent = aerialGroupTotal();
+        head.appendChild(headCb);
+        head.appendChild(headLabel);
+        head.appendChild(headCount);
+
+        // No Table button on the group row: there is no `aerial` layer to open.
+        // Each member keeps its own table, under its own layer name.
+        layerControlsEl.insertBefore(head, byName[present[0]]);
+        var cursor = head;
+        present
+          .slice()
+          .sort(function (a, b) {
+            return AERIAL_GROUP.members.indexOf(a) - AERIAL_GROUP.members.indexOf(b);
+          })
+          .forEach(function (n) {
+            var row = byName[n];
+            // Same indent as a duct/cable tier row: a member, not a peer.
+            row.style.paddingLeft = '14px';
+            var nameEl = row.querySelector('.layer-name');
+            if (nameEl) nameEl.textContent = AERIAL_GROUP.labels[n] || n;
+            // The row's own name lives on the checkbox, so the Table button and
+            // the visibility toggle keep addressing the real layer name.
+            cursor.parentNode.insertBefore(row, cursor.nextSibling);
+            cursor = row;
+          });
+
+        var boxes = present.map(function (n) {
+          return byName[n].querySelector('input[data-layer-name]');
+        });
+        var syncHead = function () {
+          var on = boxes.filter(function (cb) {
+            return cb.checked;
+          }).length;
+          headCb.checked = on === boxes.length;
+          headCb.indeterminate = on > 0 && on < boxes.length;
+        };
+        headCb.addEventListener('change', function () {
+          boxes.forEach(function (cb) {
+            cb.checked = headCb.checked;
+            toggleLayerVisibility(cb.dataset.layerName, headCb.checked);
+          });
+        });
+        boxes.forEach(function (cb) {
+          // The row already has its own handler (it wires layer visibility);
+          // this one only keeps the group row's state honest.
+          cb.addEventListener('change', syncHead);
+        });
+        syncHead();
+        return true;
+      }
+
       // Replace a grouped layer's single row with one toggle per sublayer
       // (e.g. cables -> Feeder_Cable + Distribution_Cable).
       function expandLayerControls(groupName) {
@@ -2111,6 +2223,11 @@
       function updateToggleStatus(layerName, count) {
         var el = document.getElementById('layer-count-' + layerName.replace(/\s+/g, '-'));
         if (el) el.textContent = count + ' features';
+        // A member of the aerial group changes the group's own total.
+        var groupTotal = document.getElementById('layer-count-aerial');
+        if (groupTotal && AERIAL_GROUP.members.indexOf(layerName) !== -1) {
+          groupTotal.textContent = aerialGroupTotal();
+        }
       }
 
       function getLayerColor(name) {
