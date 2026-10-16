@@ -554,6 +554,22 @@
     return body;
   }
 
+  // The permit review email delivery log (permits/notification_views.py). Email
+  // is fire-and-forget, so this is where a failed send is visible.
+  async function apiListPermitNotifications(limit) {
+    var url = buildUrl(
+      '/api/ftth/permits/notifications/' + (limit ? '?limit=' + encodeURIComponent(limit) : '')
+    );
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   async function apiTransitionSubmission(submissionId, payload) {
     var url = buildUrl(
       '/api/ftth/permits/submissions/' + encodeURIComponent(submissionId) + '/transition/'
@@ -936,6 +952,7 @@
     listSubmissions: apiListSubmissions,
     createSubmission: apiCreateSubmission,
     transitionSubmission: apiTransitionSubmission,
+    listPermitNotifications: apiListPermitNotifications,
     draftPermit: apiDraftPermit,
     permitRequirements: apiPermitRequirements,
     extractRequirements: apiExtractRequirements,

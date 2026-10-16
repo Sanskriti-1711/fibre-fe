@@ -368,6 +368,31 @@
         font-size: 11px;
         color: #6b7280;
       }
+      .pm-notify-log {
+        padding: 4px 16px 14px;
+      }
+      .pm-notify-log .nl-row {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        padding: 7px 0;
+        border-top: 1px solid #f3f4f6;
+        font-size: 12.5px;
+        line-height: 1.5;
+      }
+      .pm-notify-log .nl-when {
+        flex: 0 0 132px;
+        color: #6b7280;
+        font-size: 11.5px;
+      }
+      .pm-notify-log .nl-subject {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .pm-notify-log .nl-err {
+        color: #b91c1c;
+      }
       .sub-act {
         padding: 5px 10px;
         border: 1px solid #d1d5db;
@@ -944,6 +969,26 @@
             </div>
 
             <!-- Status-sync poller (P20b) — cross-project + filter like expiry; mock_bezirk always, http_portal when env set -->
+            <!-- Review email (permits/notifications.py) — who is told, and proof it went out.
+                 Email is fire-and-forget, so the delivery log is the only place a failed
+                 send is visible. Read-only: it never flips a permit. -->
+            <div id="pmNotifyCard" class="pm-table-card">
+              <div class="pm-table-card-head">
+                <div>
+                  <h3>&#x1F4E7; Review email</h3>
+                  <p>
+                    Submitting applications — and every approval, rejection or re-submission after
+                    that — emails <span id="pmNotifyTo" class="pm-fid">…</span> with one-click
+                    Approve / Reject links<span id="pmNotifyState"></span>
+                  </p>
+                </div>
+                <button id="pmNotifyReload" class="btn" type="button">&#x21BB; Delivery log</button>
+              </div>
+              <div id="pmNotifyLog" class="pm-notify-log">
+                <div class="pm-empty">Loading the delivery log…</div>
+              </div>
+            </div>
+
             <div id="pmSyncCard" class="pm-table-card">
               <div class="pm-table-card-head">
                 <div>
@@ -2012,6 +2057,77 @@
         closed: { text: 'Closed', cls: 'b-gray' },
       };
 
+      // ---- Review email (permits/notifications.py) -------------------------
+      // The backend emails the reviewer on submit / approve / reject / resubmit.
+      // NOTIFIED_STATUSES mirrors permits.submissions.NOTIFY_ON_STATUS.
+      var NOTIFIED_STATUSES = ['approved', 'rejected', 'submitted'];
+
+      function notifyOutcome(note, verb, fallbackVerb) {
+        note = note || {};
+        var to = (note.recipients || []).join(', ');
+        if (!to) return 'no review email is configured, so nobody was notified.';
+        if (note.errors && note.errors.length) return 'review email failed: ' + note.errors[0];
+        return (note.sent ? verb : fallbackVerb || verb) + ' to ' + to + '.';
+      }
+
+      function transitionNotice(status, res) {
+        var label = (SUB_STATUS_META[status] || { text: status }).text;
+        if (NOTIFIED_STATUSES.indexOf(status) < 0) return 'Moved to ' + label + '.';
+        return 'Moved to ' + label + ' — ' + notifyOutcome(res && res.notification, 'emailed', 'emailing');
+      }
+
+      function renderNotifyLog(data) {
+        var to = document.getElementById('pmNotifyTo');
+        var state = document.getElementById('pmNotifyState');
+        var box = document.getElementById('pmNotifyLog');
+        var recipients = (data && data.recipients) || [];
+        if (to) to.textContent = recipients.length ? recipients.join(', ') : 'nobody';
+        if (state) {
+          state.textContent = recipients.length
+            ? ''
+            : ' — no PERMIT_NOTIFY_EMAIL is set on the backend, so nothing is emailed.';
+        }
+        if (!box) return;
+        var rows = (data && data.notifications) || [];
+        if (!rows.length) {
+          box.innerHTML =
+            '<div class="pm-empty">No emails sent yet. Submitting an application — or approving, rejecting or re-submitting one — appears here with its delivery result.</div>';
+          return;
+        }
+        box.innerHTML = rows
+          .map(function (n) {
+            var when = n.created_at ? new Date(n.created_at).toLocaleString() : '—';
+            var status = n.status === 'sent' ? '&#x2705;' : n.status === 'failed' ? '&#x26A0;&#xFE0F;' : '&#x23F8;';
+            var detail = n.status === 'failed' && n.error ? ' <span class="nl-err">' + esc(n.error) + '</span>' : '';
+            return (
+              '<div class="nl-row"><span class="nl-when">' +
+              esc(when) +
+              '</span><span class="nl-subject">' +
+              status +
+              ' ' +
+              esc(n.subject || n.kind) +
+              (n.recipients && n.recipients.length ? ' <span class="pm-fid">→ ' + esc(n.recipients.join(', ')) + '</span>' : '') +
+              detail +
+              '</span></div>'
+            );
+          })
+          .join('');
+      }
+
+      async function loadNotifyLog() {
+        var box = document.getElementById('pmNotifyLog');
+        try {
+          renderNotifyLog(await window.FtthLldApi.listPermitNotifications());
+        } catch (err) {
+          if (box) {
+            box.innerHTML =
+              '<div class="pm-empty" style="color:#B91C1C;">Could not load the delivery log: ' +
+              esc(FtthUI.humanize(err)) +
+              '</div>';
+          }
+        }
+      }
+
       function submissionActions(s) {
         var actions = [];
         if (s.status === 'submitted') actions.push(['Under Review', 'under_review']);
@@ -2862,7 +2978,8 @@
         }
 
         try {
-          await window.FtthLldApi.transitionSubmission(sid, payload);
+          var res = await window.FtthLldApi.transitionSubmission(sid, payload);
+          FtthUI.toast(transitionNotice(payload.status, res), 'success');
           load();
           loadSubmissions();
           loadExpiries();
@@ -2922,7 +3039,10 @@
         if (btn) btn.disabled = true;
         try {
           var res = await window.FtthLldApi.createSubmission({ permit_ids: ids });
-          FtthUI.toast('Created ' + res.created + ' submission(s) — tracker refreshed.', 'success');
+          FtthUI.toast(
+            'Created ' + res.created + ' submission(s) — ' + notifyOutcome(res.notification, 'sent', 'sent'),
+            'success'
+          );
           selected = {};
           updateSubmitButton();
           renderTable();
@@ -2991,6 +3111,7 @@
         loadExpiries();
         loadQa();
         loadSyncStatus();
+        loadNotifyLog();
         // keep URL in sync without reload
         var pid = currentProjectId();
         var url = new URL(window.location.href);
@@ -3117,6 +3238,11 @@
       document.getElementById('pmRefreshSubs').addEventListener('click', function () {
         loadSubmissions();
       });
+      var _pmNotifyReload = document.getElementById('pmNotifyReload');
+      if (_pmNotifyReload)
+        _pmNotifyReload.addEventListener('click', function () {
+          loadNotifyLog();
+        });
       var _pmRefreshExpiry = document.getElementById('pmRefreshExpiry');
       if (_pmRefreshExpiry)
         _pmRefreshExpiry.addEventListener('click', function () {
@@ -3711,12 +3837,14 @@
       loadExpiries();
       loadQa();
       loadSyncStatus();
+      loadNotifyLog();
       setInterval(function () {
         load();
         loadSubmissions();
         loadExpiries();
         loadQa();
         loadSyncStatus();
+        loadNotifyLog();
       }, 60000);
     </script>
   </body>
