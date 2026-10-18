@@ -977,9 +977,10 @@
                 <div>
                   <h3>&#x1F4E7; Review email</h3>
                   <p>
-                    Submitting applications — and every approval, rejection or re-submission after
-                    that — emails <span id="pmNotifyTo" class="pm-fid">…</span> with one-click
-                    Approve / Reject links<span id="pmNotifyState"></span>
+                    Submitting applications — and every approval, rejection or re-submission after that — emails
+                    <span id="pmNotifyTo" class="pm-fid">…</span> with one-click Approve / Reject links<span
+                      id="pmNotifyState"
+                    ></span>
                   </p>
                 </div>
                 <button id="pmNotifyReload" class="btn" type="button">&#x21BB; Delivery log</button>
@@ -2106,7 +2107,9 @@
               status +
               ' ' +
               esc(n.subject || n.kind) +
-              (n.recipients && n.recipients.length ? ' <span class="pm-fid">→ ' + esc(n.recipients.join(', ')) + '</span>' : '') +
+              (n.recipients && n.recipients.length
+                ? ' <span class="pm-fid">→ ' + esc(n.recipients.join(', ')) + '</span>'
+                : '') +
               detail +
               '</span></div>'
             );
