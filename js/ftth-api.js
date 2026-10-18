@@ -122,9 +122,49 @@
   }
 
   /**
+   * Turn the X-Package-* headers into a warning, or null when whole.
+   *
+   * A package ZIP missing half its contract is still a 200 with a valid
+   * archive, so these headers (and PACKAGE_REPORT.txt inside the ZIP) are the
+   * only place the gap is visible. Missing GeoPackages get their own sentence:
+   * the layers are then WGS84 GeoJSON only, which changes how the package is
+   * opened.
+   */
+  function packageWarning(headers) {
+    if (!headers || headers.get('X-Package-Complete') !== 'false') return null;
+    var missing = parseInt(headers.get('X-Package-Missing') || '0', 10) || 0;
+    var names = (headers.get('X-Package-Missing-Names') || '').split(',').filter(function (n) {
+      return !!n;
+    });
+    var noGeoPackage = names.some(function (n) {
+      return /\.gpkg$/i.test(n);
+    });
+    var msg =
+      'It downloaded, but the archive is incomplete: ' +
+      missing +
+      ' file(s) in the package contract could not be fetched, so it carries only part of the deliverable.';
+    if (noGeoPackage) {
+      msg +=
+        ' No GeoPackages are included — the layers are there as WGS84 GeoJSON only, so open the .geojson files instead of expecting .gpkg layers in QGIS.';
+    }
+    if (names.length) {
+      msg +=
+        ' First missing: ' +
+        names.slice(0, 5).join(', ') +
+        (missing > names.length ? ' …' : '') +
+        '.';
+    }
+    msg += ' PACKAGE_REPORT.txt inside the ZIP lists every missing file.';
+    return { title: 'Package is incomplete', message: msg };
+  }
+
+  /**
    * Download a file by fetching it as a blob with JWT auth, then
    * creating a temporary anchor to trigger the browser download.
    * This is necessary because <a href="..."> cannot send custom headers.
+   *
+   * The X-Package-* warning is raised after the download has started, so a
+   * partial package is never handed over silently (see packageWarning).
    */
   async function downloadBlob(url, defaultFileName) {
     var response = await authFetch(url, { method: 'GET' });
@@ -138,6 +178,7 @@
       }
       throw new Error(detail);
     }
+    var partial = packageWarning(response.headers);
     var disposition = response.headers.get('Content-Disposition') || '';
     var match = disposition.match(/filename="?([^";]+)"?/);
     var fileName = match ? match[1] : defaultFileName;
@@ -153,6 +194,15 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
     }, 200);
+    if (partial) {
+      setTimeout(function () {
+        if (window.FtthUI && typeof window.FtthUI.alert === 'function') {
+          window.FtthUI.alert(partial);
+        } else {
+          window.alert(partial.title + '\n\n' + partial.message);
+        }
+      }, 250);
+    }
   }
 
   // ------------------------------------------------------------------
