@@ -537,12 +537,16 @@ function updateActivityTimeline(activity) {
 // Actions
 
 // Where the mobile app's web build lives (served from the Expo export).
-// Override for production via: window.SURVEY_MAP_BASE_URL = 'https://...'
-// Expo web build (survey map) is served on :8081 in dev.
-const SURVEY_MAP_BASE_URL = (window.SURVEY_MAP_BASE_URL || 'http://localhost:8081').replace(
-  /\/+$/,
-  ''
-);
+// Resolution mirrors js/ftth-config.js, so the link opens a host the engineer
+// actually has: localhost :8081 only on a local dev machine, the deployed
+// Render service everywhere else. Override with window.SURVEY_MAP_BASE_URL.
+const SURVEY_LOCAL_HOST_RE = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/;
+const SURVEY_MAP_BASE_URL = (
+  window.SURVEY_MAP_BASE_URL ||
+  (SURVEY_LOCAL_HOST_RE.test(window.location.hostname)
+    ? 'http://localhost:8081'
+    : 'https://fibre-survey-web.onrender.com')
+).replace(/\/+$/, '');
 
 function viewAssignmentDetails(id) {
   const assignment = assignmentsData.find((a) => String(a.id) === String(id));
