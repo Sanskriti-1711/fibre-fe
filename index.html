@@ -177,6 +177,8 @@
 
         <div id="loginError" style="display: none; margin-top: 12px; color: #b91c1c; font-size: 13px"></div>
 
+        <div id="loginNext" style="display: none; margin-top: 12px; color: #374151; font-size: 13px"></div>
+
         <div class="footer">&copy; Tech Mahindra &middot; Internal Access</div>
       </div>
     </div>
@@ -187,6 +189,19 @@
     </script>
     <script src="fiber-api.js"></script>
     <script>
+      // Arrived here from a protected page (typically the "Open in tracker"
+      // link in a permit email) — say so, rather than showing a bare login box
+      // whose destination the reviewer has to remember.
+      (function () {
+        var raw = new URLSearchParams(window.location.search).get('next') || '';
+        var el = document.getElementById('loginNext');
+        if (!raw || !el) return;
+        el.textContent =
+          'Sign in to continue to ' +
+          (raw.indexOf('ftth-permits') !== -1 ? 'the permit tracker.' : 'the page you asked for.');
+        el.style.display = 'block';
+      })();
+
       async function handleLogin(event) {
         event.preventDefault(); // stop form reload
 
@@ -206,7 +221,8 @@
             }
             throw new Error('Engineer accounts must login from Engineer Login page');
           }
-          window.location.href = 'dashboard.html';
+          window.location.href =
+            window.FiberAuth && window.FiberAuth.nextAfterLogin ? window.FiberAuth.nextAfterLogin() : 'dashboard.html';
         } catch (e) {
           errorEl.textContent = e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Login failed';
           errorEl.style.display = 'block';

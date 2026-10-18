@@ -527,9 +527,32 @@
       const a = loadAuth();
       return Boolean(a && (a.access || a.refresh));
     },
+    // The emailed "Open in tracker" link is a deep link into a protected page,
+    // and a bare redirect to index.html threw the destination away: the
+    // reviewer signed in and landed on the dashboard, not on the submission
+    // the mail was about. `next` carries it through the login page.
+    loginTarget: function () {
+      var here = window.location.pathname + window.location.search + window.location.hash;
+      return 'index.html?next=' + encodeURIComponent(here);
+    },
+    // Where a successful login should land. Same-origin paths only, so a
+    // crafted `next` cannot turn the login page into an open redirect.
+    nextAfterLogin: function () {
+      var fallback = 'dashboard.html';
+      var raw = new URLSearchParams(window.location.search).get('next') || '';
+      if (!raw) return fallback;
+      try {
+        var target = new URL(raw, window.location.href);
+        if (target.origin !== window.location.origin) return fallback;
+        if (target.pathname.slice(-'index.html'.length) === 'index.html') return fallback;
+        return target.pathname + target.search + target.hash;
+      } catch (e) {
+        return fallback;
+      }
+    },
     requireLogin: function () {
       if (!FiberAuth.isLoggedIn()) {
-        window.location.href = 'index.html';
+        window.location.href = FiberAuth.loginTarget();
       }
     },
   };
