@@ -679,12 +679,13 @@
     <script src="partials/sidebar-loader.js"></script>
     <script src="js/ftth-config.js"></script>
     <script>
-      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
-      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+      // Always use the hosted backend API (not a local Django on :8000).
+      window.FIBER_BASE_URL = 'https://fibre-backend-wml3.onrender.com';
+      window.FTTH_BASE_URL = 'https://fibre-backend-wml3.onrender.com';
     </script>
     <script src="fiber-api.js"></script>
     <script>
-      window.FTTH_BASE_URL = window.FTTH_BASE_URL || 'http://localhost:8000';
+      window.FTTH_BASE_URL = 'https://fibre-backend-wml3.onrender.com';
     </script>
     <script src="js/ftth-api.js"></script>
     <script src="js/ftth-components.js"></script>
@@ -934,6 +935,12 @@
           case 422:
             return msg; // the engine's message already says what to do
           case 502:
+            // The engine says what failed (which OSM service, which exception).
+            // Show that; the generic network text is only the fallback for a 502
+            // that arrived with no detail at all, such as a proxy error page.
+            if (err && err.body && typeof err.body === 'object' && err.body.detail) {
+              return msg;
+            }
             return (
               'The OpenStreetMap services could not be reached. That is a network ' +
               'problem, not an unknown area — try again in a moment.'
