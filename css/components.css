@@ -1682,7 +1682,7 @@ div:has(> table) > table {
   .action-link,
   .nav a,
   .nav-toggle-btn,
-  /* Upload HLD is an <a class="create-btn">: the tag selectors above miss it,
+  /* Create project is an <a class="create-btn">: the tag selectors above miss it,
      and it is the primary action on projects.html. */
   .create-btn,
   input[type="button"],

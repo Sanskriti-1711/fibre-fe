@@ -834,7 +834,7 @@
         '<div class="panel-state panel-state--empty">' +
         '<p class="panel-state__title">No runs yet</p>' +
         '<p class="panel-state__body">Upload an HLD area to start the pipeline. Every run will appear here.</p>' +
-        '<a class="panel-state__action" href="ftth-hld.html">Upload HLD →</a></div>';
+        '<a class="panel-state__action" href="ftth-hld.html">Create project →</a></div>';
       return;
     }
     $('activityHint').textContent = events.length + ' events';

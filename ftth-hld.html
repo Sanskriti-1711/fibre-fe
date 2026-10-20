@@ -430,8 +430,8 @@
           <!-- Header -->
           <div class="header">
             <div>
-              <h1>FTTH High-Level Design</h1>
-              <p>Upload project data to run the automated fiber network design pipeline</p>
+              <h1>Create project</h1>
+              <p>Choose an area or upload project data to run the automated fiber network design pipeline</p>
             </div>
           </div>
           <!-- Error banner -->
@@ -1640,7 +1640,16 @@
       // ----------------------------------------------------------------
       async function loadCountries() {
         try {
-          const list = await FtthApi.getCountries();
+          let list = await FtthApi.getCountries();
+          if (!list.length) {
+            // The gateway answers with an empty list when it could not reach the
+            // engine, and its most common reason is a sleeping engine instance
+            // that is still booting. One retry after a pause turns that into a
+            // slow load instead of a dropdown that stays empty and says nothing.
+            await new Promise(function (resolve) { setTimeout(resolve, 5000); });
+            list = await FtthApi.getCountries();
+          }
+          if (!list.length) throw new Error('empty country list');
           list.forEach(function (entry) {
             const opt = document.createElement('option');
             opt.value = entry.code;
