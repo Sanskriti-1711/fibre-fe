@@ -1646,7 +1646,9 @@
             // engine, and its most common reason is a sleeping engine instance
             // that is still booting. One retry after a pause turns that into a
             // slow load instead of a dropdown that stays empty and says nothing.
-            await new Promise(function (resolve) { setTimeout(resolve, 5000); });
+            await new Promise(function (resolve) {
+              setTimeout(resolve, 5000);
+            });
             list = await FtthApi.getCountries();
           }
           if (!list.length) throw new Error('empty country list');
