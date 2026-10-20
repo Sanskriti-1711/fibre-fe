@@ -1660,6 +1660,11 @@
         /* ── state ────────────────────────────────────────────────────── */
         var state = { hld: null, queue: null, runs: null, total: null, permits: null, allProjects: null };
         var health = { hld: 'idle', queue: 'idle', runs: 'idle', permits: 'idle', total: 'idle' };
+        /* The endpoints this page actually probes. Every loader also stores its last
+     error under `<key>Err`, and those keys are not services: counting
+     Object.keys(health) made the header read "All 9 services responding" for
+     five endpoints (it would have read ten had loadRuns ever run). */
+        var HEALTH_KEYS = ['hld', 'queue', 'runs', 'permits', 'total'];
         var loading = false;
 
         function countUp(el, target, suffix) {
@@ -1801,10 +1806,20 @@
           var hldDone = hld.filter(function (p) {
             return String(p.status || '').indexOf('complete') !== -1;
           }).length;
-          var hldBusy = hld.length - hldDone;
+          /* Everything that is not `completed` is not automatically "in progress".
+       Ten failed runs were reported as "10 in progress" with a LIVE badge
+       directly above a donut that marked the same ten as Failed 28 %. The
+       rail is the line an operator reads first, and it sent them to wait
+       instead of to investigate. */
+          var hldFailed = hld.filter(function (p) {
+            return String(p.status || '').indexOf('fail') !== -1;
+          }).length;
+          var hldBusy = hld.length - hldDone - hldFailed;
           stageValue('hld', 'hldCount', String(hld.length));
           $('hldSub').textContent = hld.length
-            ? hldDone + ' completed · ' + hldBusy + ' in progress'
+            ? [hldDone + ' completed', hldFailed ? hldFailed + ' failed' : '', hldBusy ? hldBusy + ' in progress' : '']
+                .filter(Boolean)
+                .join(' · ')
             : 'No HLD runs yet — upload one to start';
           stageBadge('hld', 'hldBadge', hldBusy ? 'LIVE' : 'IDLE', 'IDLE');
 
@@ -1839,7 +1854,9 @@
           var olderSum = older.reduce(function (a, b) {
             return a + b;
           }, 0);
-          if (olderSum === 0) return { dir: recentSum > 0 ? 'up' : 'flat', pct: olderSum === 0 ? 0 : 100 };
+          /* No prior-week activity means there is no percentage to quote: "up
+       from zero" printed "▲ 0 %", which reads as no change. */
+          if (olderSum === 0) return { dir: recentSum > 0 ? 'up' : 'flat', pct: null };
           var pct = Math.round(((recentSum - olderSum) / olderSum) * 100);
           if (pct > 5) return { dir: 'up', pct: pct };
           if (pct < -5) return { dir: 'down', pct: Math.abs(pct) };
@@ -1851,15 +1868,17 @@
           if (!el) return;
           var trend = computeTrend(series);
           var icon = trend.dir === 'up' ? '▲' : trend.dir === 'down' ? '▼' : '●';
-          var text = trend.dir === 'flat' ? label : icon + ' ' + trend.pct + '% vs last week';
-          el.innerHTML =
-            '<span class="kpi-trend ' +
-            trend.dir +
-            '"><span class="trend-icon" aria-hidden="true">' +
-            icon +
-            '</span>' +
-            esc(text) +
-            '</span>';
+          var text =
+            trend.dir === 'flat'
+              ? label
+              : trend.pct === null
+                ? icon + ' vs last week'
+                : icon + ' ' + trend.pct + '% vs last week';
+          /* One glyph, in the text: the separate `.trend-icon` span repeated the
+       arrow the text already carried, so every chip read "▲▲ 133 %" on
+       screen while the aria-hidden span hid the duplicate from a screen
+       reader. No CSS targets `.trend-icon`, so nothing depended on it. */
+          el.innerHTML = '<span class="kpi-trend ' + trend.dir + '">' + esc(text) + '</span>';
         }
 
         function kpiValue(healthKey, id, noteId, value, note, trendId, trendColor, series) {
@@ -1916,8 +1935,12 @@
             'latest: ' + (runs[0]?.lld_version || 'V?'),
             'trendLld',
             '#7C3AED',
-            runs.map(function (r) {
-              return 1;
+            /* A real 14-day series. This used to pass `runs.map(() => 1)`, so
+         computeTrend split ten 1s into 7 recent / 3 older buckets by array
+         length and printed "▲ 133 % vs last week" — a number with no relation
+         to when the runs happened. */
+            dailySeries(runs, function (r) {
+              return r.run_date;
             })
           );
 
@@ -2287,10 +2310,10 @@
         function renderStatus() {
           var el = $('heroStatus'),
             txt = $('heroStatusText');
-          var failed = Object.keys(health).filter(function (k) {
+          var failed = HEALTH_KEYS.filter(function (k) {
             return health[k] === 'fail';
           });
-          var total = Object.keys(health).length;
+          var total = HEALTH_KEYS.length;
           el.className = 'dash-status';
 
           if (failed.length === 0) {
@@ -2356,7 +2379,7 @@
           btn.classList.add('is-busy');
           btn.disabled = true;
 
-          await Promise.all([loadHld(), loadQueue(), loadPermits(), loadTotal()]);
+          await Promise.all([loadHld(), loadQueue(), loadRuns(), loadPermits(), loadTotal()]);
 
           try {
             renderRail();
@@ -2371,15 +2394,17 @@
             FtthUI.toast('The dashboard could not draw its figures. Try refreshing.', 'error');
           }
 
-          var failed = Object.keys(health).filter(function (k) {
+          var failed = HEALTH_KEYS.filter(function (k) {
             return health[k] === 'fail';
           });
           if (failed.length) {
             FtthUI.toast(
-              failed.length === Object.keys(health).length
+              failed.length === HEALTH_KEYS.length
                 ? 'Design service unreachable — the figures below could not be loaded.'
                 : failed.length +
-                    ' of 4 services unreachable: ' +
+                    ' of ' +
+                    HEALTH_KEYS.length +
+                    ' services unreachable: ' +
                     failed
                       .map(function (k) {
                         return ENDPOINT_LABEL[k];
