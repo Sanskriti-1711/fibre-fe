@@ -1797,15 +1797,50 @@
         }
       }
 
+      /** "3m 12s" — a wait you can read at a glance. */
+      function formatFetchElapsed(seconds) {
+        if (seconds == null || seconds < 0) return '';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        if (!mins) return secs + 's';
+        return mins + 'm ' + (secs < 10 ? '0' + secs : secs) + 's';
+      }
+
+      /**
+       * The groups downloading right now, minus the one the label already names.
+       * "Downloading buildings and addresses — buildings, addresses" just stutters.
+       */
+      function describeInFlight(names, label) {
+        if (!names || !names.length) return '';
+        const spoken = String(label || '').toLowerCase();
+        const rest = names.filter(function (name) {
+          return name && spoken.indexOf(String(name).toLowerCase()) === -1;
+        });
+        if (!rest.length) return '';
+        const shown = rest.slice(0, 3);
+        const more = rest.length - shown.length;
+        return shown.join(', ') + (more > 0 ? ' +' + more + ' more' : '');
+      }
+
       function describeAreaFetch(state) {
         if (!state) return 'Fetching OpenStreetMap data for this area…';
         if (state.state === 'ready' || state.source === 'cache') return '';
         const label = state.label || 'Downloading OpenStreetMap data for this area';
-        const groups = state.groups_total ? ' (' + state.groups_done + ' of ' + state.groups_total + ' groups)' : '';
-        const elapsed =
-          state.elapsed_s != null && state.elapsed_s >= 60 ? ' — ' + Math.floor(state.elapsed_s / 60) + ' min in' : '';
-        const note = ' A large area can take 10-16 minutes the first time.';
-        return label + groups + elapsed + '.' + note;
+        // Seven groups are fetched at the same time, so a done-count alone sat
+        // at "0 of 7 groups" for minutes while the buildings query worked and
+        // looked hung. Naming what is in flight says the difference between
+        // slow and stuck, and the elapsed clock proves it is moving.
+        const inFlight = describeInFlight(state.in_flight, label);
+        const what = inFlight ? ' — also ' + inFlight : '';
+        const groups = state.groups_total
+          ? ' (' + state.groups_done + ' of ' + state.groups_total + ' groups done)'
+          : '';
+        const elapsed = formatFetchElapsed(state.elapsed_s);
+        const age = elapsed ? ', ' + elapsed + ' in' : '';
+        // The estimate only helps before anything has landed; once groups are
+        // completing, the count is the better answer.
+        const note = state.groups_done ? '' : ' A large area can take 10-16 minutes the first time.';
+        return label + what + groups + age + '.' + note;
       }
 
       function startAreaFetchPoll(bbox) {
