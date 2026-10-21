@@ -515,10 +515,16 @@
   overflow: hidden;
 }
 
+/* The detail drawer lives inside this pane and parks off its right edge.
+   Without clipping it does not disappear: it slides over the side pane, is
+   painted white-on-white, and silently swallows the clicks meant for the
+   readiness actions (Create Approved Survey Version / Run LLD). Clipping the
+   pane is what makes "off-canvas" actually mean off-canvas. */
 .lld-map-pane {
   flex: 1;
   position: relative;
   min-width: 0;
+  overflow: hidden;
 }
 
 .lld-map-pane #map {
@@ -1121,6 +1127,11 @@
    ------------------------------------------------------------------ */
 .lld-detail-drawer {
   position: absolute;
+
+  /* Belt and braces with the pane's overflow: a closed drawer is also inert,
+     so it can never take a tap it is not showing content for. */
+  visibility: hidden;
+  pointer-events: none;
   top: 0;
   right: 0;
   bottom: 0;
@@ -1139,6 +1150,8 @@
 
 .lld-detail-drawer.open {
   transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .lld-drawer-header {

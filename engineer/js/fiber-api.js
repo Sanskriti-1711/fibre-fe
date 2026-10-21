@@ -377,6 +377,41 @@
     return apiFetch(path, { method: 'GET' });
   }
 
+  // Notifications APIs — the engineer's own inbox. The backend scopes every
+  // response to the caller, so no engineer id is ever sent.
+  async function listNotifications(params) {
+    const queryParams = params || {};
+    const query = Object.keys(queryParams)
+      .filter(
+        (k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== ''
+      )
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
+      .join('&');
+    const path = query ? `/api/notifications/?${query}` : '/api/notifications/';
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function getNotificationSummary() {
+    return apiFetch('/api/notifications/summary/', { method: 'GET' });
+  }
+
+  async function markNotificationRead(notificationId) {
+    const id = encodeURIComponent(notificationId);
+    return apiFetch(`/api/notifications/${id}/read/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+  }
+
+  async function markAllNotificationsRead() {
+    return apiFetch('/api/notifications/read-all/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+  }
+
   async function updateFeatureFieldData(featureId, payload) {
     const id = encodeURIComponent(featureId);
     return apiFetch(`/api/features/${id}/field-measurements/`, {
@@ -487,6 +522,10 @@
     getAssignmentsSummary,
     getEngineerActivity,
     getEngineerStats,
+    listNotifications,
+    getNotificationSummary,
+    markNotificationRead,
+    markAllNotificationsRead,
     updateFeatureFieldData,
     submitFeatureForReview,
     // Completion APIs

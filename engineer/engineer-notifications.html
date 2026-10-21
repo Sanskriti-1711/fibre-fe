@@ -7,19 +7,145 @@
     <link rel="stylesheet" href="../css/tokens.css" />
     <link rel="stylesheet" href="css/main.css" />
     <link rel="stylesheet" href="../css/components.css" />
+    <link rel="stylesheet" href="notifications.css" />
+    <style>
+      /* The engineer shell is repeated inline on every page in this portal;
+         this page keeps the same top bar and bottom nav so moving between
+         screens does not restyle the frame. */
+      :root {
+        --tm-red: #e31837;
+        --dark: #1f2937;
+        --gray: #616a75;
+        --light: #f9fafb;
+        --white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background: var(--light);
+        color: var(--dark);
+      }
+
+      .top-bar {
+        position: sticky;
+        top: 0;
+        z-index: 1100;
+        background: var(--dark);
+        color: var(--white);
+        padding: 14px 16px;
+      }
+
+      .top-bar .brand {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--tm-red);
+        letter-spacing: 0.2px;
+      }
+
+      /* The sticky bar is outside .layout, so the layout must not claim the
+         full viewport height or the page always scrolls by the bar's height
+         and the first heading slides underneath it. */
+      .layout {
+        min-height: calc(100vh - 64px);
+      }
+
+      main.content {
+        padding: 0;
+      }
+
+      .container {
+        padding: 16px;
+        max-width: 640px;
+        margin: auto;
+      }
+
+      h1 {
+        font-size: 20px;
+        margin: 4px 0 16px;
+      }
+
+      .mobile-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 64px;
+        background: var(--white);
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding: 8px 10px;
+        z-index: 1000;
+      }
+
+      .mobile-nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gray);
+        min-width: 64px;
+        text-decoration: none;
+        position: relative;
+      }
+
+      .mobile-nav a svg {
+        width: 22px;
+        height: 22px;
+        stroke: currentColor;
+      }
+
+      .mobile-nav a.active {
+        color: var(--tm-red);
+      }
+
+      @media (min-width: 601px) {
+        .mobile-nav {
+          display: none;
+        }
+      }
+
+      /* Clear the fixed bottom nav only where it is actually shown. */
+      @media (max-width: 600px) {
+        .container {
+          padding-bottom: 96px;
+        }
+      }
+    </style>
   </head>
   <body class="engineer-notifications">
+    <!-- The bar sits outside .layout so it spans the viewport the way the
+         other engineer screens do, instead of inheriting .content padding. -->
+    <header class="top-bar" role="banner">
+      <h2 class="brand">Tech Mahindra</h2>
+    </header>
+
     <div class="layout">
       <main class="content">
-        <header class="top-bar" role="banner">
-          <h2 class="brand">Tech Mahindra</h2>
-        </header>
-
         <div class="container">
-          <h1>Notifications</h1>
+          <div class="inbox-head">
+            <h1>Notifications</h1>
+            <span class="inbox-head__count" id="inboxCount" aria-live="polite"></span>
+          </div>
 
+          <!-- Filters, list, empty and error states are drawn by
+               js/notifications.js so the badge and this page never disagree
+               about what is unread. -->
           <div id="notifications-container">
-            <div class="geo-status">Loading notifications...</div>
+            <div class="inbox-skeleton"></div>
           </div>
         </div>
 
@@ -32,7 +158,7 @@
             </svg>
             Dashboard
           </a>
-          <a href="engineer-notifications.html" aria-label="Notifications">
+          <a href="engineer-notifications.html" class="active" aria-label="Notifications" aria-current="page">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -61,72 +187,9 @@
     <script src="../js/ftth-ui.js"></script>
     <script src="js/fiber-api.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/notifications.js"></script>
     <script>
       window.FiberAuth.requireLogin();
-
-      async function loadNotifications() {
-        var container = document.getElementById('notifications-container');
-        try {
-          var user = window.FiberAuth.getUser();
-          var engineerId = user && user.id ? user.id : null;
-
-          if (!engineerId) {
-            container.innerHTML = '<div class="geo-status">Please login to view notifications.</div>';
-            return;
-          }
-
-          var activity = await window.FiberApi.getEngineerActivity(engineerId, { limit: 20 });
-
-          if (!activity || !activity.results || activity.results.length === 0) {
-            container.innerHTML = '<div class="geo-status">No notifications yet.</div>';
-            return;
-          }
-
-          var html = '';
-          for (var i = 0; i < activity.results.length; i++) {
-            var item = activity.results[i];
-            var title = item.title || item.action || 'Notification';
-            var message = item.message || item.description || '';
-            var time = item.created_at || item.timestamp || item.time;
-            var timeDisplay = time ? formatTime(time) : 'Recently';
-
-            html += '<div class="notification">';
-            html += '<strong>' + escapeHtml(title) + '</strong><br/>';
-            if (message) html += escapeHtml(message);
-            html += '<div class="time">' + timeDisplay + '</div>';
-            html += '</div>';
-          }
-
-          container.innerHTML = html;
-        } catch (error) {
-          container.innerHTML =
-            '<div class="geo-status">Error loading notifications: ' + FtthUI.humanize(error) + '</div>';
-        }
-      }
-
-      function escapeHtml(text) {
-        if (!text) return '';
-        var div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      function formatTime(timestamp) {
-        try {
-          var date = new Date(timestamp);
-          var now = new Date();
-          var diff = Math.floor((now - date) / 1000);
-
-          if (diff < 60) return 'Just now';
-          if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
-          if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
-          if (diff < 172800) return 'Yesterday';
-
-          return date.toLocaleDateString();
-        } catch (e) {
-          return timestamp || 'Unknown';
-        }
-      }
 
       function handleLogout(e) {
         if (e) e.preventDefault();
@@ -134,7 +197,9 @@
         window.location.href = 'index.html';
       }
 
-      loadNotifications();
+      /* The module owns the list *and* the "N unread" label, so the two can
+         never drift apart after a mark-read. */
+      window.EngineerInbox.render(document.getElementById('notifications-container'));
     </script>
   </body>
 </html>

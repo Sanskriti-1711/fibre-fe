@@ -43,6 +43,30 @@
     return '';
   }
 
+  /* The bell lives in the sidebar partial, so its styling and behaviour ride
+     along with the sidebar instead of being added to every page's <head>.
+     Loading them here keeps the 30 pages that draw the sidebar unchanged. */
+  function loadNotificationAssets(base) {
+    var cssHref = base + 'css/notifications.css';
+    var jsSrc = base + 'js/notifications.js';
+
+    if (!document.querySelector('link[data-notifications]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = cssHref;
+      link.setAttribute('data-notifications', 'css');
+      document.head.appendChild(link);
+    }
+
+    if (!document.querySelector('script[data-notifications]')) {
+      var script = document.createElement('script');
+      script.src = jsSrc;
+      script.defer = true;
+      script.setAttribute('data-notifications', 'js');
+      document.body.appendChild(script);
+    }
+  }
+
   function injectSidebar() {
     const sidebarContainer = document.getElementById('sidebarContainer');
     if (!sidebarContainer) {
@@ -62,6 +86,7 @@
         sidebarContainer.innerHTML = html;
         setActiveNavItem();
         initDrawer();
+        loadNotificationAssets(base);
       })
       .catch(function (err) {
         console.error('Error loading sidebar:', err);

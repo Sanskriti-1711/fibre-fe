@@ -1,0 +1,351 @@
+/* ══════════════════════════════════════════════════════════════════
+   engineer/notifications.css — the field engineer's inbox.
+
+   The engineer shell is a phone-first column with a dark sticky top bar,
+   so the bell is an on-dark square in that bar and the badge count also
+   rides on the Notifications tab of the bottom nav. Nothing here touches
+   the planner pages; they use css/notifications.css.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* The bar grows a second child: brand (or back button) on the left, bell on
+   the right. Pages that already laid it out as flex keep their own rules. */
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.top-bar .notif-bell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+  text-decoration: none;
+  transition:
+    background var(--transition),
+    border-color var(--transition);
+}
+
+.top-bar .notif-bell:hover {
+  background: rgb(255 255 255 / 18%);
+  border-color: rgb(255 255 255 / 34%);
+}
+
+.top-bar .notif-bell:focus-visible {
+  outline: 2px solid var(--focus-on-dark);
+  outline-offset: 2px;
+}
+
+.top-bar .notif-bell svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Sits outside the 18px glyph, not on top of it: a badge pinned inside the
+   button covers most of the bell and reads as a broken icon. */
+.notif-bell__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: #fff;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  line-height: 17px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--dark, #374151);
+}
+
+.top-bar .notif-bell {
+  position: relative;
+}
+
+.mobile-nav a .notif-nav-badge {
+  position: absolute;
+  top: -2px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--brand);
+  color: #fff;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  line-height: 17px;
+}
+
+[hidden].notif-bell__badge,
+.mobile-nav a .notif-nav-badge[hidden] {
+  display: none;
+}
+
+/* ── Inbox page ───────────────────────────────────────────────────── */
+
+.inbox-head {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.inbox-head h1 {
+  margin: 0;
+  flex: 1 1 auto;
+}
+
+.inbox-head__count {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  font-weight: var(--weight-medium);
+}
+
+.inbox-filters {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.inbox-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.inbox-filter {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--muted-strong);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.inbox-filter__count {
+  margin-left: 4px;
+  font-family: var(--font-data);
+  font-size: var(--text-xs);
+  opacity: 0.85;
+}
+
+.inbox-filter[aria-pressed='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.inbox-filter:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.inbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.inbox-item {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.inbox-item:hover {
+  border-color: var(--line-strong);
+}
+
+.inbox-item:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.inbox-item[data-severity='success'] {
+  border-left-color: var(--success);
+}
+
+.inbox-item[data-severity='warning'] {
+  border-left-color: var(--warning);
+}
+
+.inbox-item[data-severity='critical'] {
+  border-left-color: var(--danger);
+}
+
+.inbox-item[data-severity='info'] {
+  border-left-color: var(--info);
+}
+
+.inbox-item[data-read='false'] {
+  background: var(--brand-soft);
+}
+
+.inbox-item__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: currentcolor;
+  color: var(--line-strong);
+}
+
+.inbox-item[data-severity='success'] .inbox-item__dot {
+  color: var(--success);
+}
+
+.inbox-item[data-severity='warning'] .inbox-item__dot {
+  color: var(--warning);
+}
+
+.inbox-item[data-severity='critical'] .inbox-item__dot {
+  color: var(--danger);
+}
+
+.inbox-item[data-severity='info'] .inbox-item__dot {
+  color: var(--info);
+}
+
+.inbox-item[data-read='true'] .inbox-item__dot {
+  color: transparent;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.inbox-item__title {
+  margin: 0;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.inbox-item[data-read='false'] .inbox-item__title {
+  font-weight: var(--weight-bold);
+}
+
+.inbox-item__body {
+  margin: 4px 0 0;
+  font-size: var(--text-sm);
+  color: var(--muted-strong);
+  line-height: 1.45;
+}
+
+.inbox-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.inbox-item__kind {
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--muted-strong);
+}
+
+.inbox-item__time {
+  margin-left: auto;
+  font-family: var(--font-data);
+}
+
+.inbox-empty {
+  padding: var(--space-8) var(--space-5);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  background: var(--surface);
+}
+
+.inbox-empty h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-md);
+  color: var(--ink);
+}
+
+.inbox-empty p {
+  margin: 0 auto;
+  max-width: 32ch;
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.inbox-empty--error {
+  border-color: var(--danger-line);
+  background: var(--danger-soft);
+}
+
+.inbox-empty--error h3 {
+  color: var(--danger-deep);
+}
+
+.inbox-skeleton {
+  height: 76px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, #eef0f3 25%, #f7f8fa 50%, #eef0f3 75%);
+  background-size: 200% 100%;
+  animation: inbox-shimmer 1.2s linear infinite;
+}
+
+@keyframes inbox-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.inbox-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inbox-skeleton {
+    animation: none;
+  }
+}

@@ -1,6 +1,31 @@
 <aside class="sidebar" id="sharedSidebar">
   <div class="sidebar__bar">
     <h2>Tech Mahindra</h2>
+    <button
+      type="button"
+      class="notif-bell"
+      id="notifBell"
+      aria-label="Notifications"
+      aria-haspopup="dialog"
+      aria-expanded="false"
+      aria-controls="notifPanel"
+      data-state="idle"
+      hidden
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.9"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+      <span class="notif-bell__badge" id="notifBadge" hidden></span>
+    </button>
     <button type="button" class="nav-toggle-btn" id="navToggleBtn" aria-expanded="false" aria-controls="sharedNav">
       <span class="nav-toggle-icon" aria-hidden="true"></span>
       <span class="nav-toggle-text">Menu</span>
@@ -35,6 +60,50 @@
     </div>
   </nav>
 </aside>
+
+<!-- Notification inbox. One dialog for the whole app: the bell lives in the
+     sidebar, so the panel opens from the left edge it belongs to. Everything
+     below the header is rendered by js/notifications.js. -->
+<div
+  class="notif-panel"
+  id="notifPanel"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="notifPanelTitle"
+  tabindex="-1"
+  hidden
+>
+  <div class="notif-panel__head">
+    <div>
+      <h2 class="notif-panel__title" id="notifPanelTitle">Notifications</h2>
+      <p class="notif-panel__sub" id="notifPanelSub">Everything waiting on you</p>
+    </div>
+    <button type="button" class="notif-panel__close" id="notifClose" aria-label="Close notifications">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.2"
+        stroke-linecap="round"
+        aria-hidden="true"
+      >
+        <path d="M18 6 6 18" />
+        <path d="m6 6 12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="notif-filters" id="notifFilters" role="group" aria-label="Filter notifications"></div>
+
+  <ul class="notif-list" id="notifList" aria-live="polite" aria-busy="true"></ul>
+
+  <div class="notif-panel__foot">
+    <button type="button" class="btn btn-outline btn-sm" id="notifMarkAll">Mark all read</button>
+    <span class="notif-panel__foot-note" id="notifFootNote"></span>
+  </div>
+</div>
+<div class="notif-scrim" id="notifScrim" hidden></div>
+
 <!-- Scrim: a real tap target that closes the drawer. Separate from .sidebar
      so it can span the viewport while the drawer sits above it. -->
 <div class="nav-scrim" id="navScrim" hidden></div>
