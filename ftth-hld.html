@@ -1229,9 +1229,14 @@
         // question. A 257,127-premise area is reviewable (and now shows its
         // narrowing chips) but cannot be run, so the button says so instead of
         // starting a run the engine will refuse halfway.
-        const canRun = data.can_run !== false && !!p.count;
+        // A partial preview cannot start a run either: `can_run` is computed from
+        // the rows already stored, and the run would be built from the complete
+        // area once it arrives -- a different design from the one on screen.
+        const canRun = data.can_run !== false && !!p.count && !data.partial;
         areaRunBtn.disabled = !canRun;
-        if (!p.count) {
+        if (data.partial) {
+          areaRunBtnText.textContent = 'Waiting for this area’s OSM data…';
+        } else if (!p.count) {
           areaRunBtnText.textContent = 'Nothing found in this area';
         } else if (!canRun) {
           areaRunBtnText.textContent =
@@ -1248,6 +1253,9 @@
       let reviewLayers = {};
       let reviewPremises = [];
       let reviewObjects = [];
+      // True when the engine answered from a download that is still running: the
+      // layers are a prefix of the area's data and every total in them will grow.
+      let objectsPartial = false;
 
       function escapeHtml(value) {
         return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) {
@@ -1404,19 +1412,23 @@
         const hhTotal = filtered.reduce(function (sum, f) {
           return sum + (Number((f.properties || {}).households) || 0);
         }, 0);
-        const hhNote = hhTotal ? ' carrying ' + hhTotal.toLocaleString() + ' household(s)' : '';
+        // Households FIRST. "15,495 building objects carrying 41,519 households"
+        // reads as a count of buildings, and a building is only the unit the
+        // points are drawn as -- the figure the cable sizing and the BOQ are
+        // computed from is the household total. It leads; the building count is
+        // kept beside it so the rows still say what a row is.
         if (status)
           status.textContent =
-            'Showing ' +
+            (hhTotal ? hhTotal.toLocaleString() + ' household(s) across ' : 'No household counts in ') +
+            filtered.length.toLocaleString() +
+            ' building object(s)' +
+            ' — showing ' +
             shown.length +
-            ' of ' +
-            filtered.length +
-            ' building objects' +
-            hhNote +
+            (filtered.length > shown.length ? ' (first 1,000 shown)' : '') +
             ', ' +
             cols.length +
             ' attributes each' +
-            (filtered.length > shown.length ? ' (first 1,000 shown)' : '') +
+            (objectsPartial ? ' · this area is still downloading, so the total will grow.' : '') +
             '.';
       }
 
@@ -1576,6 +1588,7 @@
             }
             if (layer === 'objects') {
               reviewObjects = geojson.features || [];
+              objectsPartial = geojson.partial === true;
               renderObjectTable();
             }
             updateLayerStatuses();
@@ -1843,10 +1856,30 @@
         return label + what + groups + age + '.' + note;
       }
 
+      /**
+       * The download finished while the page was showing a partial view: re-read
+       * the counts and reload the layers, so a planner who arrived early ends up
+       * looking at the same page as one who arrived late.  Before this, the page
+       * either blocked on the whole download or never refreshed at all.
+       */
+      async function refreshAreaAfterFetch() {
+        if (!areaRequestState) return;
+        try {
+          const preview = await FtthApi.resolveArea(areaRequestState, false);
+          renderPreview(preview);
+          areaProgress.textContent = '';
+        } catch (err) {
+          areaProgress.textContent = 'Could not re-read the area after its download finished: ' + areaErrorMessage(err);
+        }
+      }
+
       function startAreaFetchPoll(bbox) {
         stopAreaFetchPoll();
         areaFetchPoll = setInterval(async function () {
-          if (areaBusy === false || !areaRequestState) {
+          // Still poll after `findArea` returns: a partial preview is a page the
+          // planner is now USING, and it must fill itself in when the rest of the
+          // area lands.  Only a new area (which clears areaRequestState) stops it.
+          if (!areaRequestState) {
             stopAreaFetchPoll();
             return;
           }
@@ -1855,6 +1888,7 @@
           if (text) areaProgress.textContent = text;
           if (state && (state.state === 'failed' || state.state === 'ready')) {
             stopAreaFetchPoll();
+            if (state.state === 'ready') refreshAreaAfterFetch();
           }
         }, 4000);
       }
@@ -1908,7 +1942,13 @@
           const preview = await FtthApi.resolveArea(request, false);
           stopAreaFetchPoll();
           renderPreview(preview);
-          areaProgress.textContent = '';
+          // A partial answer is shown rather than waited for: the object points
+          // that are already stored can be reviewed now, and the poll above
+          // refills the page when the rest of the area arrives.
+          areaProgress.textContent = preview.partial
+            ? 'Showing the part of this area already downloaded — the rest is still arriving.'
+            : '';
+          if (preview.partial) startAreaFetchPoll(boundary.bbox);
         } catch (err) {
           stopAreaFetchPoll();
           areaProgress.textContent = '';
