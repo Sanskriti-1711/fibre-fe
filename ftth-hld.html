@@ -1149,9 +1149,15 @@
           );
         }
         if (source === 'selection') {
+          const of = data.selection_of || data.boundary_name || 'this area';
+          const size =
+            data.selection_km2 != null && data.parent_area_km2 != null
+              ? ' (' + data.selection_km2 + ' km\u00b2 of ' + data.parent_area_km2 + ' km\u00b2)'
+              : '';
           return (
             'Boundary: the section you drew inside ' +
-            (data.selection_of || data.boundary_name || 'this area') +
+            of +
+            size +
             ' \u2014 not a published boundary of its own, so its size, premise ' +
             'count and design are the drawn area\u2019s.'
           );
@@ -1712,10 +1718,10 @@
             (alreadySmallest
               ? 'This area is already the postcode sector, and no finer boundary ' +
                 'than a sector is published, so a postcode inside it resolves back ' +
-                'to this same area. Design a share of it instead.'
+                'to this same area. Use \u201cTake a section\u201d above to design a share of it.'
               : 'No smaller boundary is loaded for this country, so a postcode or ' +
-                'district here resolves back to this same area. Design a share of ' +
-                'it instead.') +
+                'district here resolves back to this same area. Use ' +
+                '\u201cTake a section\u201d above to design a share of it.') +
             '</div>';
         }
 
