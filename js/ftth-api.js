@@ -608,6 +608,13 @@
           out[key] = String(value).trim();
         }
       });
+      // The drawn section is geometry, not a string, and it has to survive here:
+      // this whitelist silently dropped it, so a run started from a section
+      // designed the whole area while the page had shown the section's counts.
+      var polygon = request.polygon;
+      if (polygon && typeof polygon === 'object' && polygon.type === 'Polygon') {
+        out.polygon = polygon;
+      }
       return out;
     }
     var text = String(request === undefined || request === null ? '' : request).trim();
@@ -694,7 +701,10 @@
       var fd = new FormData();
       Object.keys(payload).forEach(function (key) {
         if (payload[key] !== undefined && payload[key] !== null) {
-          fd.append(key, payload[key]);
+          // A form field can only carry text, and the section is GeoJSON; the
+          // engine's selection parser accepts either shape.
+          var value = payload[key];
+          fd.append(key, typeof value === 'object' ? JSON.stringify(value) : value);
         }
       });
       fd.append('brownfield', brownfieldFile);
