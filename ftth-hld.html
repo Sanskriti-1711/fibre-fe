@@ -1835,9 +1835,50 @@
         return shown.join(', ') + (more > 0 ? ' +' + more + ' more' : '');
       }
 
+      /**
+       * A failed download in words a planner can act on.
+       *
+       * The engine records WHY it stopped, and the page used to drop that on the
+       * floor -- it said "The area download failed (7 of 7 groups done)" and
+       * nothing else, which reads as a mystery rather than as "the public OSM
+       * servers are busy, nothing was saved, try again".  The engine's own
+       * wording is kept for anything this does not recognise, so an unexpected
+       * failure is still reported honestly instead of being flattened.
+       */
+      function describeFetchFailure(state) {
+        const elapsed = formatFetchElapsed(state.elapsed_s);
+        const took = elapsed ? ' after ' + elapsed : '';
+        const error = String(state.error || '');
+        if (/no elements/i.test(error)) {
+          return (
+            'The area download failed' +
+            took +
+            ': OpenStreetMap’s public query servers returned nothing for this area ' +
+            '(they are busy or rate-limiting). Nothing was saved, so this area is ' +
+            'still not downloaded — try again in a few minutes.'
+          );
+        }
+        if (/timed out|timeout/i.test(error)) {
+          return (
+            'The area download failed' +
+            took +
+            ': OpenStreetMap’s servers did not answer in time. Nothing was saved — ' +
+            'try again, or narrow the area.'
+          );
+        }
+        return (
+          'The area download failed' +
+          took +
+          ': ' +
+          (error || 'no reason was reported.') +
+          ' Nothing was saved, so this area can be downloaded again.'
+        );
+      }
+
       function describeAreaFetch(state) {
         if (!state) return 'Fetching OpenStreetMap data for this area…';
         if (state.state === 'ready' || state.source === 'cache') return '';
+        if (state.state === 'failed') return describeFetchFailure(state);
         const label = state.label || 'Downloading OpenStreetMap data for this area';
         // Seven groups are fetched at the same time, so a done-count alone sat
         // at "0 of 7 groups" for minutes while the buildings query worked and
@@ -1888,7 +1929,14 @@
           if (text) areaProgress.textContent = text;
           if (state && (state.state === 'failed' || state.state === 'ready')) {
             stopAreaFetchPoll();
-            if (state.state === 'ready') refreshAreaAfterFetch();
+            if (state.state === 'ready') {
+              refreshAreaAfterFetch();
+            } else {
+              // The run button said "waiting for the data"; after a failure that
+              // is no longer true, and the button has to say what to do instead.
+              areaRunBtn.disabled = true;
+              areaRunBtnText.textContent = 'Download failed — try again';
+            }
           }
         }, 4000);
       }
