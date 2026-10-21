@@ -276,7 +276,9 @@
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        transition: background 0.15s ease, border-color 0.15s ease;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease;
       }
 
       .ftth-section-btn:hover {
@@ -1253,8 +1255,7 @@
       }
 
       function boxFromSelection() {
-        const ring =
-          areaSelection && areaSelection.coordinates && areaSelection.coordinates[0];
+        const ring = areaSelection && areaSelection.coordinates && areaSelection.coordinates[0];
         if (!ring || !ring.length) return null;
         let w = Infinity;
         let s = Infinity;
@@ -1369,7 +1370,11 @@
         if (sectionEditing) {
           const share =
             areaParentKm2 && areaParentKm2 > 0
-              ? ' \u00b7 ' + (Math.min(100, (km2 / areaParentKm2) * 100)).toFixed(0) + '% of ' + areaParentKm2 + ' km\u00b2'
+              ? ' \u00b7 ' +
+                Math.min(100, (km2 / areaParentKm2) * 100).toFixed(0) +
+                '% of ' +
+                areaParentKm2 +
+                ' km\u00b2'
               : '';
           host.innerHTML =
             km2 >= SECTION_MIN_KM2
@@ -1482,7 +1487,12 @@
           let box;
           if (sectionDrag.mode === 'new') {
             const a = sectionDrag.start;
-            box = [Math.min(a[0], point[0]), Math.min(a[1], point[1]), Math.max(a[0], point[0]), Math.max(a[1], point[1])];
+            box = [
+              Math.min(a[0], point[0]),
+              Math.min(a[1], point[1]),
+              Math.max(a[0], point[0]),
+              Math.max(a[1], point[1]),
+            ];
           } else {
             box = sectionBox.slice();
             const corner = sectionDrag.corner;
@@ -1590,8 +1600,7 @@
         sectionBox = null;
         setSectionEditing(false);
         paintSection();
-        document.getElementById('areaSectionHint').textContent =
-          'Designing the whole area again.';
+        document.getElementById('areaSectionHint').textContent = 'Designing the whole area again.';
         findArea({ keepSelection: true });
       }
 
