@@ -256,6 +256,90 @@
         margin-bottom: 8px;
       }
 
+      /* Taking a section of an area: the controls sit under the boundary they
+         act on, in the same slate/grey language as the rest of the step. */
+      .ftth-section-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding-left: 36px;
+        margin-bottom: 8px;
+      }
+
+      .ftth-section-btn {
+        padding: 8px 14px;
+        background: #ffffff;
+        color: #1f2937;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+
+      .ftth-section-btn:hover {
+        background: #f3f4f6;
+        border-color: #9ca3af;
+      }
+
+      .ftth-section-btn:focus-visible {
+        outline: 2px solid #1f2937;
+        outline-offset: 2px;
+      }
+
+      .ftth-section-btn.primary {
+        background: #1f2937;
+        color: #ffffff;
+        border-color: #1f2937;
+      }
+
+      .ftth-section-btn.primary:hover {
+        background: #111827;
+      }
+
+      .ftth-section-btn.quiet {
+        border-color: transparent;
+        background: transparent;
+        color: #6b7280;
+        text-decoration: underline;
+      }
+
+      .ftth-section-hint,
+      .ftth-section-readout {
+        font-size: 12px;
+        color: #6b7280;
+      }
+
+      /* The size and the instruction are about the map, not about the buttons
+         beside them, so each takes its own line under the row. */
+      .ftth-section-hint,
+      .ftth-section-readout {
+        flex-basis: 100%;
+      }
+
+      .ftth-section-readout:empty {
+        display: none;
+      }
+
+      .ftth-section-bar.editing .ftth-section-hint {
+        margin-top: -2px;
+      }
+
+      .ftth-section-readout strong {
+        color: #111827;
+      }
+
+      .ftth-section-bar.editing #areaSectionHint {
+        color: #1f2937;
+        font-weight: 600;
+      }
+
+      #areaMap.is-editing canvas {
+        cursor: crosshair;
+      }
+
       .ftth-preview-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -511,6 +595,22 @@
               </div>
               <div id="areaMap"></div>
               <div class="ftth-boundary-meta" id="areaBoundaryMeta"></div>
+              <!-- Design a share of the area: a box drawn on the map replaces the
+                   resolved boundary for the preview and the run. -->
+              <div class="ftth-section-bar" id="areaSectionBar">
+                <button type="button" class="ftth-section-btn" id="areaSectionEdit">Take a section</button>
+                <div id="areaSectionActions" style="display: none; gap: 8px; flex-wrap: wrap; align-items: center">
+                  <button type="button" class="ftth-section-btn primary" id="areaSectionApply">Use this section</button>
+                  <button type="button" class="ftth-section-btn" id="areaSectionHalf">Halve it</button>
+                  <button type="button" class="ftth-section-btn" id="areaSectionQuarter">Quarter it</button>
+                  <button type="button" class="ftth-section-btn" id="areaSectionCancel">Cancel</button>
+                  <button type="button" class="ftth-section-btn quiet" id="areaSectionWhole">Use the whole area</button>
+                </div>
+                <div class="ftth-section-readout" id="areaSectionReadout"></div>
+                <span class="ftth-section-hint" id="areaSectionHint">
+                  Design a share of this area — smaller areas run faster and stay inside the engine's memory.
+                </span>
+              </div>
             </div>
 
             <!-- Step 3: what the design will be built from -->
@@ -1013,6 +1113,14 @@
           // postcode sector -- was labelled "bounding box, not a polygon" directly
           // above the line naming the real polygon it came from.
           (data.polygon_source === 'bbox' ? ' — <span style="color:#92400E">bounding box, not a polygon</span>' : '');
+
+        // The whole area's size is what a section is a share OF.  When the engine
+        // answers about a section it reports the section's size, so the parent's
+        // is remembered from the answer that was about the whole area.
+        if (data.polygon_source !== 'selection' && data.area_km2 != null) {
+          areaParentKm2 = data.area_km2;
+        }
+        syncSectionUi();
       }
 
       /**
@@ -1040,6 +1148,14 @@
             '. The design area is that administrative area, not the postcode.'
           );
         }
+        if (source === 'selection') {
+          return (
+            'Boundary: the section you drew inside ' +
+            (data.selection_of || data.boundary_name || 'this area') +
+            ' \u2014 not a published boundary of its own, so its size, premise ' +
+            'count and design are the drawn area\u2019s.'
+          );
+        }
         if (source === 'bbox') {
           return (
             'Boundary: no polygon could be found, so the bounding box was used — ' +
@@ -1065,6 +1181,11 @@
             basemap: 'streets',
             onLoad: function () {
               drawBoundary();
+              // Section layers and the drag handlers live on the map instance,
+              // so they are wired once its style is ready.
+              ensureSectionLayers();
+              paintSection();
+              wireSectionMapHandlers();
             },
           });
           // Live pointer position, so a boundary coordinate can be read off the
@@ -1074,6 +1195,407 @@
           }
         } else {
           drawBoundary();
+        }
+      }
+
+      // ---------------------------------------------------------------------
+      // A section of the area, drawn on the map
+      // ---------------------------------------------------------------------
+      // A postcode is not always the design area: often the job is an estate, one
+      // side of a trunk road, or simply the part that fits what the engine can
+      // run. Before this the only way to say so was to hunt for a smaller
+      // published boundary that happened to line up with what the planner meant.
+      //
+      // The box drawn here is sent as a GeoJSON polygon with the preview and the
+      // run, and the engine designs exactly it -- which also keeps the run small
+      // enough for the instance's memory.
+      const SECTION_SOURCE = 'area-section';
+      const SECTION_FILL = 'area-section-fill';
+      const SECTION_OUTLINE = 'area-section-outline';
+      const SECTION_HANDLES = 'area-section-handles';
+      // The engine refuses anything below this; matching it here means the page
+      // says so while the planner is still dragging, not after a round trip.
+      const SECTION_MIN_KM2 = 0.005;
+
+      let areaSelection = null; // the applied section, as a GeoJSON Polygon
+      let areaParentKm2 = null; // the whole area's size, for the "41% of" line
+      let sectionBox = null; // [w, s, e, n] being edited
+      let sectionEditing = false;
+      let sectionDrag = null;
+
+      function emptyFeatureCollection() {
+        return { type: 'FeatureCollection', features: [] };
+      }
+
+      function sectionPolygonFromBox(box) {
+        const w = box[0];
+        const s = box[1];
+        const e = box[2];
+        const n = box[3];
+        return {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [w, s],
+              [e, s],
+              [e, n],
+              [w, n],
+              [w, s],
+            ],
+          ],
+        };
+      }
+
+      function boxFromSelection() {
+        const ring =
+          areaSelection && areaSelection.coordinates && areaSelection.coordinates[0];
+        if (!ring || !ring.length) return null;
+        let w = Infinity;
+        let s = Infinity;
+        let e = -Infinity;
+        let n = -Infinity;
+        ring.forEach(function (point) {
+          w = Math.min(w, point[0]);
+          e = Math.max(e, point[0]);
+          s = Math.min(s, point[1]);
+          n = Math.max(n, point[1]);
+        });
+        return isFinite(w) && e > w && n > s ? [w, s, e, n] : null;
+      }
+
+      /** Area of a lng/lat box in km², for the readout while dragging. */
+      function sectionBoxKm2(box) {
+        if (!box) return 0;
+        const lat = (((box[1] + box[3]) / 2) * Math.PI) / 180;
+        const width = (box[2] - box[0]) * 111.32 * Math.cos(lat);
+        const height = (box[3] - box[1]) * 110.57;
+        return Math.abs(width * height);
+      }
+
+      function sectionHandles() {
+        if (!sectionBox) return emptyFeatureCollection();
+        const w = sectionBox[0];
+        const s = sectionBox[1];
+        const e = sectionBox[2];
+        const n = sectionBox[3];
+        const corners = [
+          [w, s],
+          [e, s],
+          [e, n],
+          [w, n],
+        ];
+        return {
+          type: 'FeatureCollection',
+          features: corners.map(function (point, index) {
+            return {
+              type: 'Feature',
+              properties: { corner: index },
+              geometry: { type: 'Point', coordinates: point },
+            };
+          }),
+        };
+      }
+
+      function sectionShape() {
+        // Only while editing.  Once applied, the engine's own answer about the
+        // section becomes the boundary layer, so drawing it twice would put two
+        // outlines on the same line and make one look like a mistake.
+        if (!sectionEditing || !sectionBox) return emptyFeatureCollection();
+        return {
+          type: 'FeatureCollection',
+          features: [
+            {
+              type: 'Feature',
+              properties: { kind: 'section' },
+              geometry: sectionPolygonFromBox(sectionBox),
+            },
+          ],
+        };
+      }
+
+      function ensureSectionLayers() {
+        if (!areaMap || !areaMap.isStyleLoaded()) return false;
+        if (!areaMap.getSource(SECTION_SOURCE)) {
+          areaMap.addSource(SECTION_SOURCE, { type: 'geojson', data: emptyFeatureCollection() });
+          areaMap.addLayer({
+            id: SECTION_FILL,
+            type: 'fill',
+            source: SECTION_SOURCE,
+            paint: { 'fill-color': '#1f2937', 'fill-opacity': 0.1 },
+          });
+          areaMap.addLayer({
+            id: SECTION_OUTLINE,
+            type: 'line',
+            source: SECTION_SOURCE,
+            layout: { 'line-join': 'round' },
+            paint: { 'line-color': '#1f2937', 'line-width': 2, 'line-dasharray': [3, 2] },
+          });
+        }
+        if (!areaMap.getSource(SECTION_HANDLES)) {
+          areaMap.addSource(SECTION_HANDLES, { type: 'geojson', data: emptyFeatureCollection() });
+          areaMap.addLayer({
+            id: SECTION_HANDLES,
+            type: 'circle',
+            source: SECTION_HANDLES,
+            paint: {
+              'circle-radius': 7,
+              'circle-color': '#ffffff',
+              'circle-stroke-color': '#1f2937',
+              'circle-stroke-width': 2,
+            },
+          });
+        }
+        return true;
+      }
+
+      function paintSection() {
+        if (!ensureSectionLayers()) return;
+        const shape = areaMap.getSource(SECTION_SOURCE);
+        if (shape) shape.setData(sectionShape());
+        const handles = areaMap.getSource(SECTION_HANDLES);
+        if (handles) handles.setData(sectionEditing && sectionBox ? sectionHandles() : emptyFeatureCollection());
+      }
+
+      function renderSectionReadout() {
+        const host = document.getElementById('areaSectionReadout');
+        if (!host) return;
+        const km2 = sectionEditing ? sectionBoxKm2(sectionBox) : 0;
+        if (sectionEditing) {
+          const share =
+            areaParentKm2 && areaParentKm2 > 0
+              ? ' \u00b7 ' + (Math.min(100, (km2 / areaParentKm2) * 100)).toFixed(0) + '% of ' + areaParentKm2 + ' km\u00b2'
+              : '';
+          host.innerHTML =
+            km2 >= SECTION_MIN_KM2
+              ? '<strong>Section ' + km2.toFixed(3) + ' km\u00b2</strong>' + share
+              : km2 === 0
+                ? 'Drag a box on the map to choose the part to design. The dotted line is the area you started from.'
+                : '<strong>Too small (' +
+                  km2.toFixed(4) +
+                  ' km\u00b2)</strong> \u2014 draw at least ' +
+                  SECTION_MIN_KM2 +
+                  ' km\u00b2.';
+          return;
+        }
+        if (areaSelection) {
+          host.innerHTML =
+            'Designing a section of this area (' +
+            (areaParentKm2 ? areaParentKm2 + ' km\u00b2 in all' : 'the area') +
+            '). The totals below are for the section only.';
+          return;
+        }
+        host.innerHTML = '';
+      }
+
+      function setSectionEditing(on) {
+        sectionEditing = !!on;
+        const actions = document.getElementById('areaSectionActions');
+        const editBtn = document.getElementById('areaSectionEdit');
+        const bar = document.getElementById('areaSectionBar');
+        const mapEl = document.getElementById('areaMap');
+        if (actions) actions.style.display = sectionEditing ? 'flex' : 'none';
+        if (editBtn) editBtn.style.display = sectionEditing ? 'none' : '';
+        if (bar) bar.classList.toggle('editing', sectionEditing);
+        if (mapEl) mapEl.classList.toggle('is-editing', sectionEditing);
+        if (areaMap) {
+          try {
+            // Panning and the corner handles both start with a drag on the map;
+            // while editing, the drag belongs to the section.
+            if (sectionEditing) {
+              areaMap.dragPan.disable();
+              areaMap.boxZoom.disable();
+              areaMap.dragRotate.disable();
+              areaMap.doubleClickZoom.disable();
+            } else {
+              areaMap.dragPan.enable();
+              areaMap.boxZoom.enable();
+              areaMap.dragRotate.enable();
+              areaMap.doubleClickZoom.enable();
+            }
+          } catch (_) {
+            /* a map without those handlers is not a reason to fail the step */
+          }
+        }
+        if (sectionEditing) {
+          // Start from the section already applied, or from nothing: the whole
+          // boundary stays visible underneath as context.
+          sectionBox = sectionBox || boxFromSelection();
+        } else {
+          sectionDrag = null;
+        }
+        paintSection();
+        renderSectionReadout();
+      }
+
+      function sectionBoxAt(lngLat) {
+        return [lngLat.lng, lngLat.lat];
+      }
+
+      function onSectionDown(event) {
+        if (!sectionEditing || sectionDrag) return;
+        // A press that lands on a handle or inside the box belongs to those, not
+        // to a new box.  MapLibre does not promise which handler runs first, so
+        // the hit test is done here rather than relying on ordering.
+        try {
+          const hits = areaMap.queryRenderedFeatures(event.point, {
+            layers: [SECTION_HANDLES, SECTION_FILL].filter(function (id) {
+              return !!areaMap.getLayer(id);
+            }),
+          });
+          if (hits && hits.length) return;
+        } catch (_) {
+          /* a style without the layers has nothing to hit */
+        }
+        sectionDrag = { mode: 'new', start: sectionBoxAt(event.lngLat) };
+        sectionBox = null;
+        paintSection();
+      }
+
+      function onSectionHandleDown(event) {
+        if (!sectionEditing || !sectionBox || !event.features || !event.features.length) return;
+        const corner = Number(event.features[0].properties && event.features[0].properties.corner);
+        if (!isFinite(corner)) return;
+        if (event.originalEvent) event.originalEvent.stopPropagation();
+        sectionDrag = { mode: 'corner', corner: corner };
+      }
+
+      function onSectionFillDown(event) {
+        if (!sectionEditing || !sectionBox || sectionDrag) return;
+        if (event.originalEvent) event.originalEvent.stopPropagation();
+        sectionDrag = {
+          mode: 'move',
+          start: sectionBoxAt(event.lngLat),
+          origin: sectionBox.slice(),
+        };
+      }
+
+      function onSectionMove(event) {
+        if (!sectionEditing || !sectionDrag) return;
+        const point = sectionBoxAt(event.lngLat);
+        if (sectionDrag.mode === 'new' || sectionDrag.mode === 'corner') {
+          let box;
+          if (sectionDrag.mode === 'new') {
+            const a = sectionDrag.start;
+            box = [Math.min(a[0], point[0]), Math.min(a[1], point[1]), Math.max(a[0], point[0]), Math.max(a[1], point[1])];
+          } else {
+            box = sectionBox.slice();
+            const corner = sectionDrag.corner;
+            if (corner === 0) {
+              box[0] = Math.min(point[0], box[2]);
+              box[1] = Math.min(point[1], box[3]);
+            } else if (corner === 1) {
+              box[2] = Math.max(point[0], box[0]);
+              box[1] = Math.min(point[1], box[3]);
+            } else if (corner === 2) {
+              box[2] = Math.max(point[0], box[0]);
+              box[3] = Math.max(point[1], box[1]);
+            } else {
+              box[0] = Math.min(point[0], box[2]);
+              box[3] = Math.max(point[1], box[1]);
+            }
+          }
+          sectionBox = box;
+        } else if (sectionDrag.mode === 'move') {
+          const dx = point[0] - sectionDrag.start[0];
+          const dy = point[1] - sectionDrag.start[1];
+          const origin = sectionDrag.origin;
+          sectionBox = [origin[0] + dx, origin[1] + dy, origin[2] + dx, origin[3] + dy];
+        }
+        paintSection();
+        renderSectionReadout();
+      }
+
+      function onSectionUp() {
+        if (!sectionDrag) return;
+        sectionDrag = null;
+        // A single click with no drag leaves a zero-size box: drop it rather
+        // than leaving handles that cannot be grabbed.
+        if (sectionBox && sectionBoxKm2(sectionBox) <= 0) sectionBox = null;
+        paintSection();
+        renderSectionReadout();
+      }
+
+      /** "Halve it" / "Quarter it": the same centre, a smaller box. */
+      function scaleSection(factor) {
+        if (!sectionEditing) {
+          const start = sectionBox || boxFromSelection();
+          if (!start) {
+            document.getElementById('areaSectionHint').textContent =
+              'Draw a box on the map first \u2014 then it can be halved or quartered.';
+            return;
+          }
+          sectionBox = start;
+          setSectionEditing(true);
+        }
+        if (!sectionBox) return;
+        const cx = (sectionBox[0] + sectionBox[2]) / 2;
+        const cy = (sectionBox[1] + sectionBox[3]) / 2;
+        const halfW = ((sectionBox[2] - sectionBox[0]) * factor) / 2;
+        const halfH = ((sectionBox[3] - sectionBox[1]) * factor) / 2;
+        sectionBox = [cx - halfW, cy - halfH, cx + halfW, cy + halfH];
+        paintSection();
+        renderSectionReadout();
+      }
+
+      function wireSectionMapHandlers() {
+        if (!areaMap) return;
+        areaMap.on('mousedown', onSectionDown);
+        areaMap.on('mousemove', onSectionMove);
+        areaMap.on('mouseup', onSectionUp);
+        areaMap.on('mousedown', SECTION_HANDLES, onSectionHandleDown);
+        areaMap.on('mousedown', SECTION_FILL, onSectionFillDown);
+        areaMap.on('mouseenter', SECTION_HANDLES, function () {
+          if (sectionEditing) areaMap.getCanvas().style.cursor = 'grab';
+        });
+        areaMap.on('mouseleave', SECTION_HANDLES, function () {
+          if (sectionEditing) areaMap.getCanvas().style.cursor = '';
+        });
+        window.addEventListener('mouseup', onSectionUp);
+        document.addEventListener('keydown', function (event) {
+          if (event.key === 'Escape' && sectionEditing) {
+            sectionBox = null;
+            setSectionEditing(false);
+            document.getElementById('areaSectionHint').textContent =
+              'Section cancelled \u2014 the whole area is still selected.';
+          }
+        });
+      }
+
+      function applySection() {
+        if (!sectionBox) {
+          document.getElementById('areaSectionHint').textContent =
+            'Draw a box on the map first \u2014 drag from one corner to the other.';
+          return;
+        }
+        const km2 = sectionBoxKm2(sectionBox);
+        if (km2 < SECTION_MIN_KM2) {
+          renderSectionReadout();
+          return;
+        }
+        areaSelection = sectionPolygonFromBox(sectionBox);
+        setSectionEditing(false);
+        document.getElementById('areaSectionHint').textContent =
+          'Section applied \u2014 the counts and the run are for this part only.';
+        findArea({ keepSelection: true });
+      }
+
+      function clearSection() {
+        areaSelection = null;
+        sectionBox = null;
+        setSectionEditing(false);
+        paintSection();
+        document.getElementById('areaSectionHint').textContent =
+          'Designing the whole area again.';
+        findArea({ keepSelection: true });
+      }
+
+      function syncSectionUi() {
+        renderSectionReadout();
+        paintSection();
+        if (!sectionEditing) {
+          document.getElementById('areaSectionEdit').textContent = areaSelection
+            ? 'Adjust the section'
+            : 'Take a section';
         }
       }
 
@@ -1776,12 +2298,18 @@
 
       /** The structured fields, exactly as the API expects them. */
       function areaRequest() {
-        return {
+        const request = {
           country: areaCountrySelect.value,
           city: areaCityInput.value.trim(),
           postcode: areaPostcodeInput.value.trim(),
           area_name: areaNameInput.value.trim(),
         };
+        // The section drawn on the map travels with every call about this area
+        // -- preview, layer review and the run -- so they all describe the SAME
+        // geometry.  Without it the run would design the whole area while the
+        // page showed the counts of a section.
+        if (areaSelection) request.polygon = areaSelection;
+        return request;
       }
 
       function areaLocator(request) {
@@ -1941,7 +2469,18 @@
         }, 4000);
       }
 
-      async function findArea() {
+      async function findArea(options) {
+        // A new search means a new area, and a section of the old one would be a
+        // claim about a place the planner no longer has on screen.  The calls
+        // that re-preview the SAME area (applying or clearing a section) pass
+        // keepSelection.
+        const keepSelection = !!(options && options.keepSelection);
+        if (!keepSelection) {
+          areaSelection = null;
+          sectionBox = null;
+          setSectionEditing(false);
+          syncSectionUi();
+        }
         const request = areaRequest();
         if (!request.country) {
           showError(
@@ -2011,11 +2550,49 @@
         }
       }
 
-      findAreaBtn.addEventListener('click', findArea);
+      findAreaBtn.addEventListener('click', function () {
+        findArea();
+      });
+
+      // Section controls.  "Take a section" starts a drag on the map; the three
+      // buttons beside it act on the box that drag leaves behind.
+      document.getElementById('areaSectionEdit').addEventListener('click', function () {
+        if (!pendingBoundary) {
+          document.getElementById('areaSectionHint').textContent =
+            'Find an area first \u2014 there is nothing on the map to take a section of yet.';
+          return;
+        }
+        setSectionEditing(true);
+        document.getElementById('areaSectionHint').textContent = sectionBox
+          ? 'Drag a corner to resize, or the box to move it.'
+          : 'Drag on the map from one corner of the part you want to design.';
+      });
+      document.getElementById('areaSectionApply').addEventListener('click', applySection);
+      document.getElementById('areaSectionHalf').addEventListener('click', function () {
+        scaleSection(0.5);
+      });
+      document.getElementById('areaSectionQuarter').addEventListener('click', function () {
+        scaleSection(0.25);
+      });
+      document.getElementById('areaSectionCancel').addEventListener('click', function () {
+        sectionBox = null;
+        setSectionEditing(false);
+        document.getElementById('areaSectionHint').textContent = areaSelection
+          ? 'Section unchanged \u2014 the counts below are still for the section.'
+          : 'Section cancelled \u2014 the whole area is still selected.';
+      });
+      document.getElementById('areaSectionWhole').addEventListener('click', clearSection);
       loadCountries();
 
       areaRunBtn.addEventListener('click', async function () {
         if (!areaPreviewData || areaBusy) return;
+        if (sectionEditing) {
+          // The box on screen is not the area the preview counted; running now
+          // would design something the planner has not seen the numbers for.
+          document.getElementById('areaSectionHint').textContent =
+            'Press \u201cUse this section\u201d first \u2014 the run designs the area the counts describe.';
+          return;
+        }
         hideError();
         areaBusy = true;
         areaRunBtn.classList.add('loading');
