@@ -621,6 +621,10 @@
                 <div class="value" id="totalFeatures">0</div>
                 <div class="label">Features</div>
               </div>
+              <div class="ftth-summary-item">
+                <div class="value" id="surveyChangeCount">0</div>
+                <div class="label">Survey changes</div>
+              </div>
             </div>
           </div>
 
@@ -714,6 +718,7 @@
       var layerControlsEl = document.getElementById('layerControls');
       var layerCountEl = document.getElementById('layerCount');
       var totalFeaturesEl = document.getElementById('totalFeatures');
+      var surveyChangeCountEl = document.getElementById('surveyChangeCount');
       var layerBadgeEl = document.getElementById('layerBadge');
       var validationBoxEl = document.getElementById('validationBox');
       var downloadBtn = document.getElementById('downloadBtn');
@@ -762,6 +767,19 @@
       function colorFor(name) {
         return LLD_COLORS[name] || { fill: '#616A75', outline: '#374151', opacity: 0.5 };
       }
+
+      // ── Approved survey changes ──────────────────────────────────────────
+      // The engine stamps every design feature that came from the Approved
+      // Survey Version with `change_id` and `approved: true`; rejected edits are
+      // never written to the output. Collect those features while the layers
+      // load and repeat their geometry in amber on top of the design, so the LLD
+      // map itself answers "where did the survey change this network?" — the
+      // HLD-vs-survey comparison lives on the review page.
+      var SURVEY_CHANGE_COLOR = '#F59E0B';
+      var SURVEY_CHANGE_OUTLINE = '#B45309';
+      var SURVEY_CHANGE_OVERLAY = 'lld-survey-changes';
+      var surveyChangeFeatures = [];
+      var surveyChangeIds = {};
 
       function renderPermitLegend(counts) {
         var badge = document.getElementById('permitBadge');
@@ -899,6 +917,7 @@
           try {
             window.FtthMap.applyZOrder(map);
           } catch (_e) {}
+          renderSurveyChanges();
           setTimeout(function () {
             try {
               window.FtthMap.fitToLayers(map, 50);
@@ -964,6 +983,13 @@
               if (fid && layerPermits[fid]) props.permit_status = layerPermits[fid];
             });
           }
+
+          (geojson.features || []).forEach(function (f) {
+            var props = f.properties || {};
+            if (!props.change_id) return;
+            surveyChangeFeatures.push(f);
+            surveyChangeIds[props.change_id] = 1;
+          });
 
           window.FtthMap.addGeoJSONLayer(map, 'lld-' + name, geojson, {
             fillColor: c.fill,
@@ -1034,6 +1060,122 @@
 
       function toggleLayer(name, visible) {
         window.FtthMap.setLayerVisible(map, 'lld-' + name, visible);
+      }
+
+      /**
+       * Highlight the approved survey changes on the LLD output.
+       *
+       * Every feature the engine stamped with `change_id` is a design feature
+       * that came from the Approved Survey Version (rejected edits are never
+       * written to the output). One amber overlay repeats those geometries on
+       * top of the design, so the map answers "where did the survey change this
+       * network?" without going back to the review page. It is a reading aid:
+       * the toggle hides the highlight only, never the design underneath.
+       */
+      function renderSurveyChanges() {
+        var count = surveyChangeFeatures.length;
+        var ids = Object.keys(surveyChangeIds).length;
+        if (surveyChangeCountEl) surveyChangeCountEl.textContent = count;
+        if (!map || !count) return;
+
+        window.FtthMap.addGeoJSONLayer(
+          map,
+          SURVEY_CHANGE_OVERLAY,
+          { type: 'FeatureCollection', features: surveyChangeFeatures },
+          {
+            fillColor: SURVEY_CHANGE_COLOR,
+            outlineColor: SURVEY_CHANGE_OUTLINE,
+            fillOpacity: 0.35,
+            popupMaxFields: 20,
+            visible: true,
+          }
+        );
+        // The helper keys widths/radii off its own palette, which has no entry
+        // for a viewer-only overlay — set the highlight weight explicitly and
+        // lift the overlay above the design layers applyZOrder() just stacked.
+        ['ftth-fill-', 'ftth-outline-', 'ftth-points-'].forEach(function (prefix) {
+          var id = prefix + SURVEY_CHANGE_OVERLAY;
+          var layer = map.getLayer(id);
+          if (!layer) return;
+          try {
+            if (layer.type === 'line') {
+              map.setPaintProperty(id, 'line-color', SURVEY_CHANGE_COLOR);
+              map.setPaintProperty(id, 'line-width', 9);
+              map.setPaintProperty(id, 'line-opacity', 0.95);
+            } else if (layer.type === 'circle') {
+              // MapLibre's circle layer also drops a marker on every vertex of
+              // a LineString, which turned the overlay into a dotted line; keep
+              // the marker for real point features (a new chamber, a moved pole).
+              map.setFilter(id, ['==', ['geometry-type'], 'Point']);
+              map.setPaintProperty(id, 'circle-color', SURVEY_CHANGE_COLOR);
+              map.setPaintProperty(id, 'circle-radius', 9);
+              map.setPaintProperty(id, 'circle-stroke-color', SURVEY_CHANGE_OUTLINE);
+              map.setPaintProperty(id, 'circle-stroke-width', 2);
+              map.setPaintProperty(id, 'circle-opacity', 1);
+            } else if (layer.type === 'fill') {
+              map.setPaintProperty(id, 'fill-color', SURVEY_CHANGE_COLOR);
+              map.setPaintProperty(id, 'fill-opacity', 0.35);
+            }
+            map.moveLayer(id);
+          } catch (_e) {}
+        });
+        renderSurveyChangeToggle(ids);
+        renderSurveyChangeLegend(count, ids);
+      }
+
+      /** Pinned toggle at the top of the Layers list for the amber overlay. */
+      function renderSurveyChangeToggle(ids) {
+        var existing = document.getElementById('surveyChangeToggleRow');
+        if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+        var row = document.createElement('label');
+        row.className = 'ftth-layer-toggle';
+        row.id = 'surveyChangeToggleRow';
+        row.style.background = '#FFFBEB';
+        row.title = 'Approved survey changes (' + ids + ') — highlighted in amber';
+        var cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = true;
+        cb.style.cssText = 'width:16px;height:16px;accent-color:#B45309;cursor:pointer;';
+        cb.addEventListener('change', function () {
+          window.FtthMap.setLayerVisible(map, SURVEY_CHANGE_OVERLAY, cb.checked);
+        });
+        var dot = document.createElement('span');
+        dot.className = 'ftth-layer-color-dot';
+        dot.style.background = SURVEY_CHANGE_COLOR;
+        var ns = document.createElement('span');
+        ns.className = 'layer-name';
+        ns.textContent = 'survey changes';
+        var cs = document.createElement('span');
+        cs.className = 'layer-count';
+        cs.textContent = ids + (ids === 1 ? ' change' : ' changes');
+        row.appendChild(cb);
+        row.appendChild(dot);
+        row.appendChild(ns);
+        row.appendChild(cs);
+        layerControlsEl.insertBefore(row, layerControlsEl.firstChild);
+      }
+
+      /** Legend entry, so the amber stroke is not an unexplained colour. */
+      function renderSurveyChangeLegend(count, ids) {
+        var el = document.getElementById('mapLegend');
+        if (!el || el.querySelector('.survey-change-legend')) return;
+        var label =
+          ids +
+          (ids === 1 ? ' approved change' : ' approved changes') +
+          ' (' +
+          count +
+          (count === 1 ? ' feature)' : ' features)');
+        el.insertAdjacentHTML(
+          'beforeend',
+          '<div class="ftth-legend-group survey-change-legend"><div class="ftth-legend-title">Approved survey</div>' +
+            '<div class="ftth-legend-row"><span class="ftth-legend-swatch">' +
+            '<svg width="26" height="12" viewBox="0 0 26 12"><line x1="1" y1="6" x2="25" y2="6" stroke="' +
+            SURVEY_CHANGE_COLOR +
+            '" stroke-width="8" stroke-linecap="round"/></svg>' +
+            '</span><span class="ftth-legend-label">' +
+            label +
+            '</span></div></div>'
+        );
       }
 
       // ─────────────────────────────────────────────────────────────────────

@@ -1202,9 +1202,19 @@
       });
       fillLayerId = lineBuckets[0].id; // the primary id for click handling
     } else if (hasLine) {
+      // `opts.lineWidth` wins: callers that already pass a per-layer weight
+      // (the LLD viewer: trench 3, feeder cable 4.5, ducts 3–4.5) were having
+      // it ignored, so every viewer layer drew at the generic 3 px and the
+      // trench > duct > cable hierarchy was invisible.
+      var lineWidth =
+        opts.lineWidth !== undefined
+          ? Number(opts.lineWidth) || 3
+          : palette.lineWidth !== undefined
+            ? palette.lineWidth
+            : 3;
       var linePaint = {
         'line-color': fillColor,
-        'line-width': palette.lineWidth !== undefined ? palette.lineWidth : 3,
+        'line-width': lineWidth,
         'line-opacity': clamp01(fillOpacity + 0.2),
       };
       if (permitMatch) {
