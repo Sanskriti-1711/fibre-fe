@@ -943,18 +943,25 @@
         var total = summary.total_features != null ? summary.total_features : '—';
         var cont = summary.continuity_issues != null ? summary.continuity_issues : '—';
         var attr = summary.attribute_issues != null ? summary.attribute_issues : '—';
-        var clean = cont === 0 && attr === 0;
+        // Drop coverage is part of the engine's validation (a premise with no
+        // serving drop duct is unserved), so the panel cannot call the run OK
+        // while it reports one — that was the whole point of the check.
+        var drop = summary.drop_issues != null ? summary.drop_issues : '—';
+        var clean = cont === 0 && attr === 0 && drop === 0;
         validationBoxEl.innerHTML =
           '<div class="' +
           (clean ? 'ok' : 'warn') +
           '">' +
-          (clean ? '&#x2713; Path continuity &amp; attributes OK' : '&#x26A0;&#xFE0F; Issues detected') +
+          (clean ? '&#x2713; Path continuity, drop coverage &amp; attributes OK' : '&#x26A0;&#xFE0F; Issues detected') +
           '</div>' +
           '<div style="margin-top:6px;">Features: <strong>' +
           escapeHtml(String(total)) +
           '</strong></div>' +
           '<div>Continuity issues: <strong>' +
           escapeHtml(String(cont)) +
+          '</strong></div>' +
+          '<div>Drop issues: <strong>' +
+          escapeHtml(String(drop)) +
           '</strong></div>' +
           '<div>Attribute issues: <strong>' +
           escapeHtml(String(attr)) +
