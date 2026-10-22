@@ -201,6 +201,25 @@
     return body;
   }
 
+  async function apiDeleteRun(projectId, lldVersion) {
+    var url = buildUrl(
+      API_PREFIX +
+        '/projects/' +
+        encodeURIComponent(projectId) +
+        '/runs/' +
+        encodeURIComponent(lldVersion) +
+        '/'
+    );
+    var response = await authFetch(url, { method: 'DELETE' });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   async function apiGetRunStatus(projectId, lldVersion) {
     var url = buildUrl(
       API_PREFIX +
@@ -888,6 +907,9 @@
   function getRunStatus(projectId, lldVersion) {
     return apiGetRunStatus(projectId, lldVersion);
   }
+  function deleteRun(projectId, lldVersion) {
+    return apiDeleteRun(projectId, lldVersion);
+  }
   function getRunLayer(projectId, lldVersion, layer) {
     return apiGetRunLayer(projectId, lldVersion, layer);
   }
@@ -934,6 +956,7 @@
     listVersions: listVersions,
     diffVersions: diffVersions,
     getRunStatus: getRunStatus,
+    deleteRun: deleteRun,
     getRunLayer: getRunLayer,
     downloadRunZip: downloadRunZip,
     getProject: getProject,
