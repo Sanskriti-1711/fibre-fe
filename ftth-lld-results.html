@@ -138,6 +138,85 @@
         flex-shrink: 0;
       }
 
+      /* Per-change list: one row per approved survey change on the map. */
+      .ftth-change-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .ftth-change-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        width: 100%;
+        padding: 7px 9px;
+        font: inherit;
+        text-align: left;
+        color: inherit;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .ftth-change-row:hover {
+        background: #fffbeb;
+        border-color: #fde68a;
+      }
+
+      .ftth-change-row:focus-visible {
+        outline: 2px solid #b45309;
+        outline-offset: 1px;
+      }
+
+      .ftth-change-row.is-active {
+        background: #fef3c7;
+        border-color: #b45309;
+      }
+
+      .ftth-change-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #f59e0b;
+        margin-top: 5px;
+        flex-shrink: 0;
+      }
+
+      .ftth-change-main {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .ftth-change-title {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .ftth-change-title code {
+        font-size: 10px;
+        font-weight: 500;
+        color: #92400e;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 4px;
+        padding: 0 4px;
+      }
+
+      .ftth-change-detail {
+        margin-top: 1px;
+        font-size: 11px;
+        color: #616a75;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       .ftth-empty-state {
         text-align: center;
         padding: 40px 20px;
@@ -639,6 +718,15 @@
           </div>
 
           <div class="ftth-side-pane-section">
+            <h3>Survey changes <span class="badge" id="surveyChangesBadge">0</span></h3>
+            <div class="ftth-change-list" id="surveyChangeList">
+              <div class="ftth-empty-state" style="padding: 12px 0">
+                <p style="font-size: 12px; margin: 0">Loading changes\u2026</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="ftth-side-pane-section">
             <h3>Permits <span class="badge" id="permitBadge">0</span></h3>
             <div class="ftth-permit-legend" id="permitLegend"></div>
           </div>
@@ -719,6 +807,8 @@
       var layerCountEl = document.getElementById('layerCount');
       var totalFeaturesEl = document.getElementById('totalFeatures');
       var surveyChangeCountEl = document.getElementById('surveyChangeCount');
+      var surveyChangeListEl = document.getElementById('surveyChangeList');
+      var surveyChangesBadgeEl = document.getElementById('surveyChangesBadge');
       var layerBadgeEl = document.getElementById('layerBadge');
       var validationBoxEl = document.getElementById('validationBox');
       var downloadBtn = document.getElementById('downloadBtn');
@@ -780,6 +870,9 @@
       var SURVEY_CHANGE_OVERLAY = 'lld-survey-changes';
       var surveyChangeFeatures = [];
       var surveyChangeIds = {};
+      // change_id -> { changeId, layer, features[] }, so the side pane can list
+      // one row per approved change rather than one per output feature.
+      var surveyChangeEntries = {};
 
       function renderPermitLegend(counts) {
         var badge = document.getElementById('permitBadge');
@@ -996,6 +1089,17 @@
             if (!props.change_id) return;
             surveyChangeFeatures.push(f);
             surveyChangeIds[props.change_id] = 1;
+            var entry = surveyChangeEntries[props.change_id];
+            if (!entry) {
+              entry = surveyChangeEntries[props.change_id] = {
+                changeId: props.change_id,
+                // `props.layer` is the engine's normalized layer name; fall back
+                // to the layer we asked for when a feature predates the stamp.
+                layer: props.layer || name,
+                features: [],
+              };
+            }
+            entry.features.push(f);
           });
 
           window.FtthMap.addGeoJSONLayer(map, 'lld-' + name, geojson, {
@@ -1083,6 +1187,7 @@
         var count = surveyChangeFeatures.length;
         var ids = Object.keys(surveyChangeIds).length;
         if (surveyChangeCountEl) surveyChangeCountEl.textContent = count;
+        renderSurveyChangeList();
         if (!map || !count) return;
 
         window.FtthMap.addGeoJSONLayer(
@@ -1186,6 +1291,143 @@
       }
 
       // ─────────────────────────────────────────────────────────────────────
+      // Per-change list: the amber overlay answers "where", this list answers
+      // "which change is that, and what did it do". One row per approved survey
+      // change; clicking it zooms to the change, highlights only that geometry
+      // and opens its attribute table in the inspector.
+      // ─────────────────────────────────────────────────────────────────────
+      function renderSurveyChangeList() {
+        if (!surveyChangeListEl) return;
+        var entries = Object.keys(surveyChangeEntries)
+          .map(function (id) {
+            return surveyChangeEntries[id];
+          })
+          .sort(function (a, b) {
+            if (a.layer !== b.layer) return a.layer < b.layer ? -1 : 1;
+            return a.changeId < b.changeId ? -1 : 1;
+          });
+        if (surveyChangesBadgeEl) surveyChangesBadgeEl.textContent = entries.length;
+        surveyChangeListEl.innerHTML = '';
+        if (!entries.length) {
+          surveyChangeListEl.innerHTML =
+            '<div class="ftth-empty-state" style="padding:12px 0">' +
+            '<p style="font-size:12px;margin:0">No approved survey changes in this run.</p></div>';
+          return;
+        }
+        entries.forEach(function (entry) {
+          var row = document.createElement('button');
+          row.type = 'button';
+          row.className = 'ftth-change-row';
+          row.setAttribute('data-change-id', entry.changeId);
+          row.title = 'Zoom to this change and show its attributes (' + entry.changeId + ')';
+
+          var dot = document.createElement('span');
+          dot.className = 'ftth-change-dot';
+
+          var main = document.createElement('span');
+          main.className = 'ftth-change-main';
+
+          var title = document.createElement('span');
+          title.className = 'ftth-change-title';
+          var name = document.createElement('span');
+          name.textContent = entry.layer + (entry.features.length > 1 ? ' ×' + entry.features.length : '');
+          var code = document.createElement('code');
+          code.textContent = entry.changeId.slice(0, 8);
+          title.appendChild(name);
+          title.appendChild(code);
+
+          var detail = document.createElement('span');
+          detail.className = 'ftth-change-detail';
+          detail.textContent = describeSurveyChange(entry);
+
+          main.appendChild(title);
+          main.appendChild(detail);
+          row.appendChild(dot);
+          row.appendChild(main);
+          row.addEventListener('click', function () {
+            selectSurveyChange(entry, row);
+          });
+          surveyChangeListEl.appendChild(row);
+        });
+      }
+
+      /**
+       * One-line summary of a change, built from whichever attributes its layer
+       * actually carries (a trench has no cable type, a chamber has no length).
+       */
+      function describeSurveyChange(entry) {
+        var props = (entry.features[0] || {}).properties || {};
+        var bits = [];
+        var addr = props.ADDR_ID || props.addr_id || props.label || props.Housenumber;
+        if (addr) {
+          // A trench can serve many addresses; name the first and count the rest
+          // rather than pushing a 100-character list into a 300 px row.
+          var addrs = String(addr).split(',');
+          bits.push(addrs.length > 1 ? addrs[0] + ' +' + (addrs.length - 1) : addrs[0]);
+        }
+        if (props.CABLE_TYPE) bits.push(props.CABLE_TYPE + ' cable');
+        else if (props.DUCT_TYPE) bits.push(props.DUCT_TYPE + ' duct');
+        else if (props.trench_type) bits.push(props.trench_type + ' trench');
+        if (props.cover_type) bits.push(props.cover_type + ' cover');
+        if (props.capacity_total) bits.push(props.capacity_total + '-way');
+        var length = props.LENGTH_M != null ? props.LENGTH_M : props.length_m;
+        if (length !== null && length !== undefined && length !== '') {
+          bits.push(Number(length).toFixed(1) + ' m');
+        }
+        if (props.FIBER_COUNT) bits.push(props.FIBER_COUNT + 'F');
+        if (!bits.length) {
+          bits.push(entry.features.length === 1 ? 'no attributes recorded' : entry.features.length + ' features');
+        }
+        return bits.join(' · ');
+      }
+
+      /** Bounds of one change's geometry (point or line, single or multi-part). */
+      function surveyChangeBounds(features) {
+        if (typeof maplibregl === 'undefined') return null;
+        var bounds = new maplibregl.LngLatBounds();
+        var has = false;
+        function walk(coords) {
+          if (!coords) return;
+          if (typeof coords[0] === 'number') {
+            bounds.extend(coords);
+            has = true;
+            return;
+          }
+          coords.forEach(walk);
+        }
+        features.forEach(function (f) {
+          if (f.geometry) walk(f.geometry.coordinates);
+        });
+        return has ? bounds : null;
+      }
+
+      /** Zoom to one change, highlight just it, and open its attributes. */
+      function selectSurveyChange(entry, row) {
+        if (surveyChangeListEl) {
+          Array.prototype.forEach.call(surveyChangeListEl.querySelectorAll('.ftth-change-row'), function (r) {
+            var on = r === row;
+            r.classList.toggle('is-active', on);
+            if (on) r.setAttribute('aria-current', 'true');
+            else r.removeAttribute('aria-current');
+          });
+        }
+        var features = entry.features || [];
+        if (!map || !features.length) return;
+        if (window.FtthMap.highlightFeature) window.FtthMap.highlightFeature(map, features);
+        var bounds = surveyChangeBounds(features);
+        if (bounds) {
+          var sw = bounds.getSouthWest();
+          var ne = bounds.getNorthEast();
+          if (Math.abs(ne.lng - sw.lng) < 1e-9 && Math.abs(ne.lat - sw.lat) < 1e-9) {
+            map.easeTo({ center: [sw.lng, sw.lat], zoom: 18, duration: 700 });
+          } else {
+            map.fitBounds(bounds, { padding: 80, maxZoom: 18, duration: 700 });
+          }
+        }
+        showInspector(features[0], entry.layer);
+      }
+
+      // ─────────────────────────────────────────────────────────────────────
       // Identify / highlight tool: click any LLD output component to highlight
       // it and view the COMPLETE attribute table (shared FtthMap helpers).
       // ─────────────────────────────────────────────────────────────────────
@@ -1231,6 +1473,14 @@
       function clearInspector() {
         if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
         inspectorPanel.style.display = 'none';
+        // Clearing the selection also releases the change-list row, so the list
+        // never claims a change is selected when nothing is highlighted.
+        if (surveyChangeListEl) {
+          Array.prototype.forEach.call(surveyChangeListEl.querySelectorAll('.ftth-change-row.is-active'), function (r) {
+            r.classList.remove('is-active');
+            r.removeAttribute('aria-current');
+          });
+        }
       }
 
       if (identifyBtn) {
