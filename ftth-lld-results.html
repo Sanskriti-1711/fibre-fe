@@ -950,7 +950,20 @@
         try {
           var status = await window.FtthLldApi.getRunStatus(projectId, lldVersion);
           var layers = (status && status.layers) || [];
-          renderValidation(status && status.validation);
+          var runState = (status && status.status) || '';
+          var runProgress = status && typeof status.progress === 'number' ? status.progress : 0;
+          if (runState === 'running') {
+            /* A cold QGIS worker holds a fresh run at 0 % for minutes. Nothing
+               is missing and nothing failed: say what the run is doing instead
+               of leaving the validation panel reading "No validation data"
+               (which looks like a verdict). */
+            validationBoxEl.innerHTML =
+              '<span class="warn">Validation runs when the design completes \u2014 this run is at ' +
+              runProgress +
+              '%.</span>';
+          } else {
+            renderValidation(status && status.validation);
+          }
 
           // Fetch permits for this project and index them by layer + feature id so
           // segments can be coloured by their worst permit status.
@@ -995,7 +1008,11 @@
           if (!layers.length) {
             mapLoadingEl.style.display = 'none';
             layerControlsEl.innerHTML =
-              '<div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>No output layers for this run yet.</p></div>';
+              runState === 'running'
+                ? '<div class="ftth-empty-state"><div class="icon">&#x23F3;</div><p>Design in progress (' +
+                  runProgress +
+                  '%). The engine is running the pipeline \u2014 layers appear here when it completes.</p></div>'
+                : '<div class="ftth-empty-state"><div class="icon">&#x1F5FA;&#xFE0F;</div><p>No output layers for this run yet.</p></div>';
             return;
           }
 
@@ -1019,8 +1036,15 @@
           mapLoadingEl.style.display = 'none';
         } catch (err) {
           console.error('Failed to load LLD data:', err);
+          if (err && err.status === 404) {
+            /* A run that exists but has no output yet is not a failure: the
+               engine may still be building it (or it was never started). */
+            mapLoadingEl.innerHTML =
+              '<div style="text-align:center;"><p style="color:#616A75;font-size:14px;">This run has no output yet \u2014 it appears here when the engine finishes it.</p></div>';
+            return;
+          }
           mapLoadingEl.innerHTML =
-            '<div style="text-align:center;"><p style="color:#B91C1C;font-size:14px;">Failed to load LLD output: ' +
+            '<div style="text-align:center;"><p style="color:#B91C1C;font-size:14px;">Could not load the LLD output: ' +
             escapeHtml(FtthUI.humanize(err)) +
             '</p></div>';
         }

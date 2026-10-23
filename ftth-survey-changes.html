@@ -776,7 +776,14 @@
             if (go) runProjectLld(projectId, 'replan');
             return;
           }
-          showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + FtthUI.humanize(err));
+          /* A run that is already in progress is not a failed run: the engine
+             may be waiting minutes for the QGIS worker, and saying "failed"
+             here reads as if the design died. */
+          if (err && err.status === 409) {
+            showToast('A run is already in progress for this project.', 'info');
+            return;
+          }
+          showToast((isReplan ? 'Full re-plan could not start: ' : 'LLD could not start: ') + FtthUI.humanize(err));
         }
       }
 

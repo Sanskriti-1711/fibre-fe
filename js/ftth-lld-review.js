@@ -1472,9 +1472,16 @@
             confirmLabel: 'Run full re-plan',
           });
           if (go) setTimeout(() => startLld('replan'), 0);
+        } else if (err && err.status === 409) {
+          /* Already running is not a failed run: the engine may be waiting
+             minutes for the QGIS worker before the design starts. */
+          await window.FtthUI.alert({
+            title: 'A run is already in progress',
+            message: 'This project already has an LLD run in flight. Watch it on LLD Versions.',
+          });
         } else {
           await window.FtthUI.alert({
-            title: 'Run ' + verb + ' failed',
+            title: 'Run ' + verb + ' could not start',
             message: explain(err),
           });
         }
