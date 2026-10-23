@@ -1458,10 +1458,26 @@
           '" style="display:inline-block;padding:9px 18px;background:#047857;color:#FFF;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View LLD Versions →</a></div>';
         btn.querySelector('.btn-label').textContent = label;
       } catch (err) {
-        await window.FtthUI.alert({
-          title: 'Run ' + verb + ' failed',
-          message: explain(err),
-        });
+        /* Verify cannot build a trench the survey created — there is nothing
+           in the frozen design to relay onto it, so the design has to be
+           routed over the new civil work. Offer the mode that can. */
+        if (err && err.requiresReplan) {
+          const go = await window.FtthUI.confirm({
+            title: 'A full re-plan is required',
+            message: err.message,
+            lines: [
+              'The survey adds new civil work, and only a re-plan routes ducts and cables over it.',
+              'Takes 10–40 minutes; the page can be closed while it runs.',
+            ],
+            confirmLabel: 'Run full re-plan',
+          });
+          if (go) setTimeout(() => startLld('replan'), 0);
+        } else {
+          await window.FtthUI.alert({
+            title: 'Run ' + verb + ' failed',
+            message: explain(err),
+          });
+        }
         btn.querySelector('.btn-label').textContent =
           mode === 'replan' ? 'Full re-plan' : 'Run LLD on ' + approvedVersion;
       } finally {

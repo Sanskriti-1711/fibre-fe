@@ -167,7 +167,14 @@
     var body = JSON.stringify(mode ? { mode: mode } : {});
     var response = await authFetch(url, { method: 'POST', body: body });
     var bodyParsed = await parseBody(response);
-    if (!response.ok) throw new Error((bodyParsed && bodyParsed.detail) || response.statusText);
+    if (!response.ok) {
+      var err = new Error((bodyParsed && bodyParsed.detail) || response.statusText);
+      err.status = response.status;
+      /* A 409 means verify cannot build this change and the caller has to run
+         the full re-plan instead (e.g. a trench the survey created). */
+      err.requiresReplan = !!(bodyParsed && bodyParsed.requires_replan);
+      throw err;
+    }
     return bodyParsed;
   }
 

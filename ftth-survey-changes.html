@@ -762,12 +762,21 @@
             window.location.href = 'ftth-lld-versions.html?project_id=' + encodeURIComponent(projectId);
           }, 800);
         } catch (err) {
-          showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + FtthUI.humanize(err));
           all.forEach(function (b) {
             b.disabled = false;
             if (b.dataset.mode === 'verify') b.textContent = '&#x25B6; Run LLD';
             if (b.dataset.mode === 'replan') b.textContent = '&#x1F504; Full re-plan';
           });
+          if (err && err.requiresReplan) {
+            const go = await window.FtthUI.confirm({
+              title: 'A full re-plan is required',
+              message: err.message,
+              confirmLabel: 'Run full re-plan',
+            });
+            if (go) runProjectLld(projectId, 'replan');
+            return;
+          }
+          showToast((isReplan ? 'Full re-plan failed: ' : 'Run LLD failed: ') + FtthUI.humanize(err));
         }
       }
 
