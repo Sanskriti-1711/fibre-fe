@@ -77,7 +77,36 @@
     projectIdEl.textContent = projectId;
 
     await refresh();
-    pollTimer = setInterval(refresh, 2000); // picks up "running" LLD runs finishing
+    schedulePoll();
+
+    // The run list is the page's only record of what exists: a run deleted on
+    // the LLD Outputs page must leave this table too. Coming back to a tab
+    // (or out of the browser's back/forward cache) restores the DOM as it was
+    // left, so re-read instead of trusting it.
+    window.addEventListener('pageshow', (event) => {
+      if (event.persisted) refresh();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refresh();
+    });
+  }
+
+  // A run in flight needs a fast poll so its progress bar moves; an idle page
+  // still polls, slowly, because runs started or deleted elsewhere must show
+  // up here without a manual reload.
+  const RUNNING_POLL_MS = 2000;
+  const IDLE_POLL_MS = 15000;
+
+  function schedulePoll() {
+    if (pollTimer) clearTimeout(pollTimer);
+    const anyRunning = !!data && (data.runs || []).some((r) => r.status === 'running');
+    pollTimer = setTimeout(
+      async () => {
+        await refresh();
+        schedulePoll();
+      },
+      anyRunning ? RUNNING_POLL_MS : IDLE_POLL_MS
+    );
   }
 
   async function refresh() {
@@ -175,12 +204,8 @@
     // ---- Cross-run diff card ----
     renderDiffControls(runs);
 
-    // If the latest run is still running, keep polling; otherwise we can idle.
-    const anyRunning = runs.some((r) => r.status === 'running');
-    if (!anyRunning && pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
+    // Fast while a run is in flight, slow once the list settles.
+    schedulePoll();
   }
 
   // ------------------------------------------------------------------
