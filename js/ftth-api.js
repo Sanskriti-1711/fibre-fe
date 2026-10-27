@@ -209,13 +209,18 @@
   // Public API
   // ------------------------------------------------------------------
 
-  async function runPipeline(excelFile, roadsFile, name, polyMethod, brownfieldFile, osmLayers) {
+  async function runPipeline(excelFile, roadsFile, name, polyMethod, brownfieldFile, osmLayers, useBrownfield) {
     var fd = new FormData();
     fd.append('excel', excelFile);
     fd.append('roads', roadsFile);
     if (brownfieldFile) fd.append('brownfield', brownfieldFile);
     if (name) fd.append('name', name);
     if (polyMethod !== undefined) fd.append('poly_method', String(polyMethod));
+    // Existing infrastructure on/off. Sent only when the caller decided: an
+    // absent flag keeps the server's default (reuse ON).
+    if (useBrownfield !== undefined && useBrownfield !== null) {
+      fd.append('use_brownfield', useBrownfield ? 'true' : 'false');
+    }
 
     // Optional OSM reference layers (railways / waterways / water / landuse /
     // natural). Stored with the project for future routing-constraint use.
@@ -689,11 +694,15 @@
    * writes the same two input files a manual upload would, and runs the
    * unchanged pipeline on them. Returns the new project id.
    */
-  async function runFromArea(request, name, polyMethod, brownfieldFile) {
+  async function runFromArea(request, name, polyMethod, brownfieldFile, useBrownfield) {
     var url = buildUrl(API_PREFIX + '/run-from-area/');
     var payload = areaFields(request);
     if (name) payload.name = name;
     if (polyMethod !== undefined) payload.poly_method = polyMethod;
+    // Existing infrastructure on/off, decided on the run form.
+    if (useBrownfield !== undefined && useBrownfield !== null) {
+      payload.use_brownfield = !!useBrownfield;
+    }
     var response;
     if (brownfieldFile) {
       // A brownfield archive is a file, so the request has to be multipart.

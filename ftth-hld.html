@@ -639,6 +639,26 @@
                 network
               </p>
               <div id="areaBrownfieldDropzone"></div>
+              <label
+                style="
+                  display: flex;
+                  gap: 10px;
+                  align-items: flex-start;
+                  padding: 10px 0 0 36px;
+                  font-size: 13px;
+                  color: #374151;
+                  cursor: pointer;
+                "
+              >
+                <input id="areaUseBrownfield" type="checkbox" checked style="margin-top: 3px" />
+                <span>
+                  <strong>Reuse existing infrastructure</strong>
+                  <span style="display: block; color: #6b7280; margin-top: 2px">
+                    Reuses the archive above <em>and</em> this project's previously published network. Turn it off
+                    to design every duct and trench fresh — a re-run with it on follows the design it is replacing.
+                  </span>
+                </span>
+              </label>
             </div>
 
             <!-- Step 5: project name -->
@@ -703,6 +723,26 @@
                 network
               </p>
               <div id="brownfieldDropzone"></div>
+              <label
+                style="
+                  display: flex;
+                  gap: 10px;
+                  align-items: flex-start;
+                  padding: 10px 0 0 36px;
+                  font-size: 13px;
+                  color: #374151;
+                  cursor: pointer;
+                "
+              >
+                <input id="useBrownfield" type="checkbox" checked style="margin-top: 3px" />
+                <span>
+                  <strong>Reuse existing infrastructure</strong>
+                  <span style="display: block; color: #6b7280; margin-top: 2px">
+                    Off designs every duct and trench fresh, ignoring both the archive and this project's previously
+                    published network.
+                  </span>
+                </span>
+              </label>
             </div>
 
             <!-- Step 4: OSM reference layers (optional) -->
@@ -945,13 +985,21 @@
         const projectName = projectNameInput.value.trim() || null;
 
         try {
-          const result = await FtthApi.runPipeline(excelFile, roadsFile, projectName, undefined, brownfieldFile, {
-            railwaysFile: railwaysFile,
-            waterwaysFile: waterwaysFile,
-            waterFile: waterFile,
-            landuseFile: landuseFile,
-            naturalFile: naturalFile,
-          });
+          const result = await FtthApi.runPipeline(
+            excelFile,
+            roadsFile,
+            projectName,
+            undefined,
+            brownfieldFile,
+            {
+              railwaysFile: railwaysFile,
+              waterwaysFile: waterwaysFile,
+              waterFile: waterFile,
+              landuseFile: landuseFile,
+              naturalFile: naturalFile,
+            },
+            document.getElementById('useBrownfield').checked
+          );
           const projectId = result && (result.project_id || result.id);
           if (!projectId) {
             throw new Error('Backend did not return a project ID.');
@@ -2617,7 +2665,13 @@
         const projectName = (document.getElementById('areaProjectName').value || '').trim() || null;
 
         try {
-          const result = await FtthApi.runFromArea(areaRequestState, projectName, undefined, areaBrownfieldFile);
+          const result = await FtthApi.runFromArea(
+            areaRequestState,
+            projectName,
+            undefined,
+            areaBrownfieldFile,
+            document.getElementById('areaUseBrownfield').checked
+          );
           const projectId = result && (result.project_id || result.id);
           if (!projectId) throw new Error('Backend did not return a project ID.');
           try {
