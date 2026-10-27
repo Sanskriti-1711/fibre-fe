@@ -209,7 +209,15 @@
   // Public API
   // ------------------------------------------------------------------
 
-  async function runPipeline(excelFile, roadsFile, name, polyMethod, brownfieldFile, osmLayers, useBrownfield) {
+  async function runPipeline(
+    excelFile,
+    roadsFile,
+    name,
+    polyMethod,
+    brownfieldFile,
+    osmLayers,
+    useBrownfield
+  ) {
     var fd = new FormData();
     fd.append('excel', excelFile);
     fd.append('roads', roadsFile);
