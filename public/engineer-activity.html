@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Engineer Activity | Tech Mahindra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body class="engineer-activity-admin">
+
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="spinner"></div>
+</div>
+
+<div class="layout">
+  <div id="sidebarContainer"></div>
+
+  <main class="content">
+    <div class="container">
+      <!-- Engineer Selector Header -->
+      <div class="header">
+        <div>
+          <h1 id="engineerName">Engineer Activity</h1>
+          <p id="engineerSubtitle">Select an engineer to view their activity</p>
+        </div>
+        <div class="header-controls">
+          <select id="engineerSelect" class="engineer-select">
+            <option value="">Select Engineer...</option>
+          </select>
+          <button id="refreshBtn" class="btn btn-secondary">Refresh</button>
+        </div>
+      </div>
+      <!-- No Engineer Selected State -->
+      <div id="noSelectionState" class="empty-state-large">
+        <p>Select an engineer from the dropdown above to view their activity</p>
+      </div>
+      <!-- Global Error -->
+      <div id="errorMessage" class="error-banner" style="display:none;"></div>
+
+      <!-- Engineer Selected Content -->
+      <div id="activityContent" class="activity-content" style="display:none;">
+
+        <!-- Activity Overview -->
+        <div class="section activity-overview-section">
+          <div class="activity-overview-header">
+            <div>
+              <h2>Activity Overview</h2>
+              <p class="section-subtitle">Real-time project and assignment metrics</p>
+            </div>
+            <div class="overview-metrics">
+              <div class="overview-metric-item">
+                <div class="overview-metric-value" id="statProjects">0</div>
+                <div class="overview-metric-label">PROJECTS</div>
+              </div>
+              <div class="overview-metric-divider"></div>
+              <div class="overview-metric-item">
+                <div class="overview-metric-value" id="statLayers">0</div>
+                <div class="overview-metric-label">LAYERS</div>
+              </div>
+              <div class="overview-metric-divider"></div>
+              <div class="overview-metric-item">
+                <div class="overview-metric-value" id="statFeatures">0</div>
+                <div class="overview-metric-label">FEATURES</div>
+              </div>
+            </div>
+          </div>
+          <hr class="activity-divider">
+          <div class="status-metrics-row">
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusAssigned">0</div>
+              <div class="status-metric-label"><span class="status-dot assigned"></span>ASSIGNED</div>
+            </div>
+            <div class="status-metric-divider"></div>
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusReview">0</div>
+              <div class="status-metric-label"><span class="status-dot review"></span>UNDER REVIEW</div>
+            </div>
+            <div class="status-metric-divider"></div>
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusApproved">0</div>
+              <div class="status-metric-label"><span class="status-dot approved"></span>APPROVED</div>
+            </div>
+            <div class="status-metric-divider"></div>
+            <div class="status-metric-item">
+              <div class="status-metric-value" id="statusRedo">0</div>
+              <div class="status-metric-label"><span class="status-dot redo"></span>REDO</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignments Section -->
+        <div class="section assignments-section">
+              <div class="section-header">
+                <h3>Assignments</h3>
+                <div class="filters">
+                  <select id="filterProject">
+                    <option value="">All Projects</option>
+                  </select>
+                  <select id="filterScope">
+                    <option value="">All Scopes</option>
+                    <option value="project">Project</option>
+                    <option value="layer">Layer</option>
+                    <option value="feature">Feature</option>
+                  </select>
+                  <select id="filterStatus">
+                    <option value="">All Statuses</option>
+                    <option value="ASSIGNED">Assigned</option>
+                    <option value="UNDER_REVIEW">Under Review</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="REDO">Redo</option>
+                  </select>
+                  <input type="text" id="searchAssignments" placeholder="Search by project, feature ID, or layer..." />
+                </div>
+              </div>
+              <div id="assignmentsTable" class="assignments-table-wrapper">
+                <table class="assignments-table">
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Scope</th>
+                      <th>Status</th>
+                      <th>Assigned Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="assignmentsTbody">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Field Work Modal -->
+<div id="fieldWorkModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Field Work - Feature <span id="modalFeatureId"></span></h3>
+      <button class="modal-close" id="closeModal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Field Measurements (JSON)</label>
+        <textarea id="fieldMeasurements" rows="6" placeholder='{"length": 100, "depth": 2.5, ...}'></textarea>
+      </div>
+      <div class="form-group">
+        <label>Comparison Notes</label>
+        <textarea id="comparisonNotes" rows="4" placeholder="Add comparison notes..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Properties</label>
+        <div id="propertiesEditor" class="properties-editor"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="saveFieldWork" class="btn btn-primary">Save Changes</button>
+      <button id="submitForReview" class="btn btn-success">Submit for Review</button>
+    </div>
+  </div>
+</div>
+
+<script src="fiber-api.js"></script>
+<script src="partials/sidebar-loader.js"></script><script src="js/ftth-ui.js"></script>
+
+<script src="js/engineer-activity.js"></script>
+</body>
+</html>

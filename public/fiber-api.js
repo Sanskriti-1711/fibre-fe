@@ -1,0 +1,607 @@
+(function () {
+  // Auto-detect local dev — only activates on localhost (Zeabur unaffected)
+  if (!window.FIBER_BASE_URL) {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      window.FIBER_BASE_URL = 'http://localhost:8000';
+    }
+  }
+
+  const BASE_URL = (window.FIBER_BASE_URL || 'https://fibre-backend-wml3.onrender.com').replace(
+    /\/+$/,
+    ''
+  );
+  const STORAGE_KEY = 'fiber_auth';
+
+  function buildUrl(path) {
+    if (!path) return BASE_URL;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (!path.startsWith('/')) return `${BASE_URL}/${path}`;
+    return `${BASE_URL}${path}`;
+  }
+
+  function loadAuth() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { access: null, refresh: null, user: null };
+      const parsed = JSON.parse(raw);
+      return {
+        access: parsed && parsed.access ? parsed.access : null,
+        refresh: parsed && parsed.refresh ? parsed.refresh : null,
+        user: parsed && parsed.user ? parsed.user : null,
+      };
+    } catch (_) {
+      return { access: null, refresh: null, user: null };
+    }
+  }
+
+  function saveAuth(next) {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        access: next && next.access ? next.access : null,
+        refresh: next && next.refresh ? next.refresh : null,
+        user: next && next.user ? next.user : null,
+      })
+    );
+  }
+
+  function clearAuth() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  function getAccess() {
+    return loadAuth().access;
+  }
+
+  function getRefresh() {
+    return loadAuth().refresh;
+  }
+
+  function getUser() {
+    return loadAuth().user;
+  }
+
+  async function parseBody(response) {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      try {
+        return await response.json();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    try {
+      return await response.text();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /* Attach the HTTP status to an error we are about to throw.
+
+     FtthUI.errorKind() classifies on `err.status` before it falls back to
+     message text -- that branch exists precisely so a 401 can say "sign in"
+     and a 502 can say "the service errored" instead of both arriving as
+     "Could not reach the design service. Check that the API is running."
+     Nothing ever set the property, so that branch only reached the statuses
+     whose wording happened to match the text fallback below it -- and the
+     dashboard's `failureAction` ("a 401 that already ran its token refresh
+     will fail identically forever", so it offers "Sign in again" instead of a
+     dead-end retry) could not rely on it. */
+  function withStatus(err, response) {
+    const status = response && response.status;
+    if (status) err.status = status;
+    return err;
+  }
+
+  function toErrorMessage(response, body) {
+    if (body && typeof body === 'object') {
+      if (typeof body.detail === 'string') return body.detail;
+      if (typeof body.message === 'string') return body.message;
+
+      const firstKey = Object.keys(body)[0];
+      if (firstKey) {
+        const val = body[firstKey];
+        if (Array.isArray(val) && typeof val[0] === 'string') return val[0];
+        if (typeof val === 'string') return val;
+      }
+    }
+
+    if (typeof body === 'string' && body.trim()) return body;
+    return `${response.status} ${response.statusText}`;
+  }
+
+  async function rawFetch(path, options) {
+    const url = buildUrl(path);
+    return fetch(url, options);
+  }
+
+  async function refreshAccessToken() {
+    const refresh = getRefresh();
+    if (!refresh) throw new Error('No refresh token available');
+
+    const response = await rawFetch('/api/users/token/refresh/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh }),
+    });
+
+    const body = await parseBody(response);
+
+    if (!response.ok) {
+      clearAuth();
+      throw withStatus(new Error(toErrorMessage(response, body)), response);
+    }
+
+    const current = loadAuth();
+    saveAuth({
+      access: body && body.access ? body.access : current.access,
+      refresh: body && body.refresh ? body.refresh : current.refresh,
+      user: current.user,
+    });
+
+    return loadAuth().access;
+  }
+
+  async function apiFetch(path, options, _hasRetried) {
+    const headers = new Headers((options && options.headers) || {});
+    const access = getAccess();
+
+    if (access) {
+      headers.set('Authorization', `Bearer ${access}`);
+    }
+
+    if (!headers.has('Content-Type') && options && options.body) {
+      if (!(options.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json');
+      }
+    }
+
+    const response = await rawFetch(path, { ...options, headers });
+
+    if (response.status === 401) {
+      const refresh = getRefresh();
+      if (refresh && !_hasRetried) {
+        try {
+          await refreshAccessToken();
+          return apiFetch(path, options, true);
+        } catch (_) {
+          clearAuth();
+          throw new Error('Session expired. Please login again.');
+        }
+      }
+    }
+
+    if (response.status === 204) return null;
+
+    const body = await parseBody(response);
+
+    if (!response.ok) {
+      throw withStatus(new Error(toErrorMessage(response, body)), response);
+    }
+
+    return body;
+  }
+
+  async function login(email, password) {
+    const response = await rawFetch('/api/users/login/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const body = await parseBody(response);
+
+    if (!response.ok) {
+      // A refused login is an answer from the API, not an outage: without the
+      // status here, wrong credentials reached the user as "Could not reach the
+      // design service. Check that the API is running."
+      throw withStatus(new Error(toErrorMessage(response, body)), response);
+    }
+
+    saveAuth({
+      access: body && body.access ? body.access : null,
+      refresh: body && body.refresh ? body.refresh : null,
+      user: body && body.user ? body.user : null,
+    });
+
+    return body;
+  }
+
+  async function listEngineers() {
+    return apiFetch('/api/users/engineers/', { method: 'GET' });
+  }
+
+  async function listProjects() {
+    return apiFetch('/api/projects/', { method: 'GET' });
+  }
+
+  async function listProjectLatest(params) {
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/projects/latest/?${query}` : '/api/projects/latest/';
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function listProjectsFiltered(params) {
+    if (!params || typeof params !== 'object') {
+      return listProjects();
+    }
+    const query = Object.keys(params)
+      .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+      .join('&');
+    const path = query ? `/api/projects/?${query}` : '/api/projects/';
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function getProject(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/`, { method: 'GET' });
+  }
+
+  async function createProject(payload) {
+    return apiFetch('/api/projects/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async function deleteProject(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/`, { method: 'DELETE' });
+  }
+
+  async function createEngineer(email, password, role, fullName) {
+    return apiFetch('/api/users/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, role: role || 'ENGINEER', full_name: fullName }),
+    });
+  }
+
+  async function deleteEngineer(engineerUuid) {
+    const id = encodeURIComponent(engineerUuid);
+    return apiFetch(`/api/users/${id}/`, { method: 'DELETE' });
+  }
+  async function uploadGpkg(projectId, file) {
+    const id = encodeURIComponent(projectId);
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiFetch(`/api/projects/${id}/import/upload/`, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async function listProjectLayers(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/layers/`, { method: 'GET' });
+  }
+
+  async function getProjectLayerDetails(projectId, layerId) {
+    const id = encodeURIComponent(projectId);
+    const lid = encodeURIComponent(layerId);
+    return apiFetch(`/api/projects/${id}/layers/${lid}/`, { method: 'GET' });
+  }
+
+  async function getFeature(projectId, featureId) {
+    const pid = encodeURIComponent(projectId);
+    const fid = encodeURIComponent(featureId);
+    return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: 'GET' });
+  }
+
+  async function discoverLayers(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/import/discover/`, { method: 'POST' });
+  }
+
+  async function importLayers(projectId, selectedLayers) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/import/import/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selected_layers: selectedLayers }),
+    });
+  }
+
+  async function listJobs(params) {
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/assignments/jobs/?${query}` : '/api/assignments/jobs/';
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function listAssignments(params) {
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/assignments/?${query}` : '/api/assignments/';
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function createAssignment(payload) {
+    return apiFetch('/api/assignments/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  // Assign a completed HLD run to one or more field engineers for the survey.
+  // The backend creates the Survey copy (auto-imported survey package) +
+  // one project-scope job per engineer. Accepts a single id or an array.
+  async function assignHldProject(projectId, engineerIds) {
+    const ids = Array.isArray(engineerIds) ? engineerIds : [engineerIds];
+    return apiFetch(`/api/ftth/hld/projects/${encodeURIComponent(projectId)}/assign/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ engineer_ids: ids }),
+    });
+  }
+
+  // Engineer (or subadmin) accepts an assigned Survey copy → status active.
+  async function acceptSurveyProject(projectId) {
+    return apiFetch(`/api/projects/${encodeURIComponent(projectId)}/accept/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+  }
+
+  async function getAssignment(assignmentId) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, { method: 'GET' });
+  }
+
+  async function updateAssignment(assignmentId, payload) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async function deleteAssignment(assignmentId) {
+    const id = encodeURIComponent(assignmentId);
+    return apiFetch(`/api/assignments/${id}/`, { method: 'DELETE' });
+  }
+
+  async function getAssignmentsSummary(params) {
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/assignments/summary/?${query}` : '/api/assignments/summary/';
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  // Engineer Activity APIs
+  async function getEngineerActivity(engineerId, params) {
+    const queryParams = { engineer: engineerId, ...params };
+    const query = Object.keys(queryParams)
+      .filter(
+        (k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== ''
+      )
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
+      .join('&');
+    const path = query ? `/api/engineer/activity/?${query}` : `/api/engineer/activity/`;
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function getEngineerStats(engineerId, params) {
+    const queryParams = { engineer: engineerId, ...params };
+    const query = Object.keys(queryParams)
+      .filter(
+        (k) => queryParams[k] !== undefined && queryParams[k] !== null && queryParams[k] !== ''
+      )
+      .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(queryParams[k])}`)
+      .join('&');
+    const path = query ? `/api/engineer/stats/?${query}` : `/api/engineer/stats/`;
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function updateFeatureFieldData(featureId, payload) {
+    const id = encodeURIComponent(featureId);
+    return apiFetch(`/api/features/${id}/field-measurements/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
+  async function submitFeatureForReview(featureId) {
+    const id = encodeURIComponent(featureId);
+    return apiFetch(`/api/features/${id}/submit/`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+  }
+
+  // Completion Rate APIs
+  async function getProjectCompletion(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/completion/`, { method: 'GET' });
+  }
+
+  async function getLayerWeights(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/layers/weights/`, { method: 'GET' });
+  }
+
+  async function updateLayerWeights(projectId, weights) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/layers/weights/`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weights }),
+    });
+  }
+
+  // Feature Workflow APIs
+  async function submitFeatures(featureIds, engineerId) {
+    return apiFetch(`/api/features/submit/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feature_ids: featureIds, engineer: engineerId }),
+    });
+  }
+
+  async function approveFeatures(featureIds, reviewerId, notes) {
+    return apiFetch(`/api/features/approve/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ feature_ids: featureIds, reviewer: reviewerId, notes }),
+    });
+  }
+
+  async function rejectFeatures(featureIds, reviewerId, rejectionReason) {
+    return apiFetch(`/api/features/reject/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        feature_ids: featureIds,
+        reviewer: reviewerId,
+        rejection_reason: rejectionReason,
+      }),
+    });
+  }
+
+  // ── Survey Changes (SurveyFeature) APIs ─────────────────────────────
+  async function listSurveyChanges(params) {
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query ? `/api/survey/survey-features/?${query}` : '/api/survey/survey-features/';
+    return apiFetch(path, { method: 'GET' });
+  }
+
+  async function approveSurveyChange(featureId, notes) {
+    return apiFetch(`/api/survey/survey-features/${featureId}/approval/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision: 'approve', notes: notes || '' }),
+    });
+  }
+
+  async function redoSurveyChange(featureId, notes) {
+    return apiFetch(`/api/survey/survey-features/${featureId}/approval/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision: 'redo', notes: notes || '' }),
+    });
+  }
+
+  const FiberAuth = {
+    getAccess,
+    getRefresh,
+    getUser,
+    clear: clearAuth,
+    isLoggedIn: function () {
+      const a = loadAuth();
+      return Boolean(a && (a.access || a.refresh));
+    },
+    // The emailed "Open in tracker" link is a deep link into a protected page,
+    // and a bare redirect to index.html threw the destination away: the
+    // reviewer signed in and landed on the dashboard, not on the submission
+    // the mail was about. `next` carries it through the login page.
+    loginTarget: function () {
+      var here = window.location.pathname + window.location.search + window.location.hash;
+      return 'index.html?next=' + encodeURIComponent(here);
+    },
+    // Where a successful login should land. Same-origin paths only, so a
+    // crafted `next` cannot turn the login page into an open redirect.
+    nextAfterLogin: function () {
+      var fallback = 'dashboard.html';
+      var raw = new URLSearchParams(window.location.search).get('next') || '';
+      if (!raw) return fallback;
+      try {
+        var target = new URL(raw, window.location.href);
+        if (target.origin !== window.location.origin) return fallback;
+        if (target.pathname.slice(-'index.html'.length) === 'index.html') return fallback;
+        return target.pathname + target.search + target.hash;
+      } catch (e) {
+        return fallback;
+      }
+    },
+    requireLogin: function () {
+      if (!FiberAuth.isLoggedIn()) {
+        window.location.href = FiberAuth.loginTarget();
+      }
+    },
+  };
+
+  window.FiberApi = {
+    login,
+    refreshAccessToken,
+    rawFetch,
+    listEngineers,
+    assignHldProject,
+    acceptSurveyProject,
+    listProjects,
+    listProjectLatest,
+    listProjectsFiltered,
+    getProject,
+    createProject,
+    createEngineer,
+    deleteEngineer,
+    deleteProject,
+    uploadGpkg,
+    listProjectLayers,
+    getProjectLayerDetails,
+    getFeature,
+    discoverLayers,
+    importLayers,
+    listJobs,
+    listAssignments,
+    createAssignment,
+    getAssignment,
+    updateAssignment,
+    deleteAssignment,
+    getAssignmentsSummary,
+    getEngineerActivity,
+    getEngineerStats,
+    updateFeatureFieldData,
+    submitFeatureForReview,
+    // Completion APIs
+    getProjectCompletion,
+    getLayerWeights,
+    updateLayerWeights,
+    // Feature Workflow APIs
+    submitFeatures,
+    approveFeatures,
+    rejectFeatures,
+    listSurveyChanges,
+    approveSurveyChange,
+    redoSurveyChange,
+    apiFetch,
+  };
+
+  window.FiberAuth = FiberAuth;
+})();
