@@ -1,0 +1,1178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Approval Queue | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      .aq-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .aq-head h1 {
+        margin: 0;
+        font-size: 22px;
+      }
+      .aq-head .sub {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #6b7280;
+      }
+
+      .aq-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .aq-btn:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+      }
+      .aq-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .aq-btn.primary {
+        background: #e31837;
+        border-color: #e31837;
+        color: #ffffff;
+      }
+      .aq-btn.primary:hover {
+        background: #c4142f;
+        border-color: #c4142f;
+      }
+      .aq-btn.approve {
+        background: #10b981;
+        border-color: #10b981;
+        color: #ffffff;
+      }
+      .aq-btn.approve:hover {
+        background: #059669;
+        border-color: #059669;
+      }
+      .aq-btn.redo {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: #ffffff;
+      }
+      .aq-btn.redo:hover {
+        background: #d97706;
+        border-color: #d97706;
+      }
+      .aq-btn.sm {
+        padding: 5px 10px;
+        font-size: 12px;
+        border-radius: 6px;
+      }
+
+      .aq-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+      }
+      .aq-filters label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 6px;
+      }
+      .aq-filters select,
+      .aq-filters input {
+        padding: 9px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        font-size: 13px;
+        min-width: 170px;
+        background: #ffffff;
+        color: #1f2937;
+      }
+
+      .aq-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 14px 20px;
+        margin-bottom: 16px;
+      }
+      .aq-stat span {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+      .aq-stat strong {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .aq-stat.under-review strong {
+        color: #f59e0b;
+      }
+      .aq-stat.approved strong {
+        color: #10b981;
+      }
+      .aq-stat.redo strong {
+        color: #ef4444;
+      }
+
+      .aq-bulk {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+      }
+      .aq-bulk.visible {
+        display: flex;
+      }
+      .aq-bulk .spacer {
+        margin-left: auto;
+      }
+
+      .aq-table-card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow-x: auto;
+      }
+      .aq-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .aq-table th {
+        text-align: left;
+        padding: 12px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+      }
+      .aq-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: middle;
+      }
+      .aq-table tr:last-child td {
+        border-bottom: none;
+      }
+      .aq-table tbody tr:hover td {
+        background: #f9fafb;
+      }
+      .aq-table input[type='checkbox'] {
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+      }
+
+      .aq-feature-name {
+        font-weight: 600;
+        color: #1f2937;
+      }
+      .aq-mono {
+        font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+        font-size: 11px;
+        color: #9ca3af;
+      }
+      .aq-muted {
+        color: #9ca3af;
+      }
+
+      .aq-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .aq-badge .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .aq-badge.under_review {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fde68a;
+      }
+      .aq-badge.approved {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+      }
+      .aq-badge.redo {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+      }
+      .aq-badge.pending,
+      .aq-badge.assigned {
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+      }
+
+      .aq-empty {
+        text-align: center;
+        padding: 56px 20px;
+        color: #6b7280;
+        font-size: 14px;
+      }
+      .aq-empty strong {
+        display: block;
+        font-size: 16px;
+        color: #1f2937;
+        margin-bottom: 6px;
+      }
+
+      /* Modal shared by review / decision */
+      .aq-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .aq-overlay.visible {
+        display: flex;
+      }
+      .aq-modal {
+        background: #ffffff;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 760px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      .aq-modal header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 22px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .aq-modal header h3 {
+        margin: 0;
+        font-size: 17px;
+      }
+      .aq-modal header .aq-mono {
+        display: block;
+        margin-top: 3px;
+      }
+      .aq-modal .body {
+        padding: 18px 22px;
+        overflow-y: auto;
+      }
+      .aq-modal footer {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        padding: 14px 22px;
+        border-top: 1px solid #e5e7eb;
+      }
+      .aq-close {
+        background: none;
+        border: none;
+        font-size: 22px;
+        line-height: 1;
+        color: #6b7280;
+        cursor: pointer;
+      }
+      .aq-close:hover {
+        color: #1f2937;
+      }
+
+      .aq-cmp {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-bottom: 18px;
+      }
+      .aq-cmp th {
+        text-align: left;
+        padding: 8px 10px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .aq-cmp td {
+        padding: 8px 10px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+      }
+      .aq-cmp td.label {
+        font-weight: 600;
+        color: #1f2937;
+      }
+      .aq-cmp td.diff {
+        color: #b45309;
+        font-weight: 600;
+      }
+
+      .aq-section-title {
+        margin: 0 0 8px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+
+      .aq-photo {
+        display: inline-block;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 6px;
+      }
+      .aq-photo img {
+        display: block;
+        max-width: 100%;
+        max-height: 220px;
+      }
+
+      .aq-note-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 6px;
+      }
+      .aq-note {
+        width: 100%;
+        min-height: 84px;
+        resize: vertical;
+        padding: 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: inherit;
+        box-sizing: border-box;
+      }
+      .aq-error {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13px;
+        margin-bottom: 14px;
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+
+      <main class="content">
+        <div class="container">
+          <div class="aq-head">
+            <div>
+              <h1>Approval Queue</h1>
+              <p class="sub">
+                Engineer submissions waiting on a decision. Approving a feature counts it toward supervision
+                completion; requesting a redo sends it back with your note.
+              </p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center">
+              <a id="mapReviewLink" class="aq-btn" href="project-map-review.html">Open map review</a>
+              <button id="refreshBtn" class="aq-btn" type="button">&#x21bb; Refresh</button>
+            </div>
+          </div>
+
+          <div id="errorState" class="aq-error"></div>
+
+          <div class="aq-filters">
+            <div>
+              <label for="filterProject">Project</label>
+              <select id="filterProject">
+                <option value="">All projects</option>
+              </select>
+            </div>
+            <div>
+              <label for="filterStatus">Status</label>
+              <select id="filterStatus">
+                <option value="under_review" selected>Pending review</option>
+                <option value="redo">Redo requested</option>
+                <option value="approved">Approved</option>
+                <option value="">All statuses</option>
+              </select>
+            </div>
+            <div>
+              <label for="filterSearch">Search</label>
+              <input id="filterSearch" type="search" placeholder="Layer, engineer or feature id" />
+            </div>
+          </div>
+
+          <div class="aq-stats">
+            <div class="aq-stat under-review">
+              <span>Pending review</span>
+              <strong id="statUnderReview">0</strong>
+            </div>
+            <div class="aq-stat approved">
+              <span>Approved</span>
+              <strong id="statApproved">0</strong>
+            </div>
+            <div class="aq-stat redo">
+              <span>Redo</span>
+              <strong id="statRedo">0</strong>
+            </div>
+            <div class="aq-stat">
+              <span>Features loaded</span>
+              <strong id="statTotal">0</strong>
+            </div>
+          </div>
+
+          <div id="bulkBar" class="aq-bulk">
+            <span><span id="selectedCount">0</span> selected</span>
+            <span class="spacer"></span>
+            <button id="bulkApproveBtn" class="aq-btn approve sm" type="button">Approve selected</button>
+            <button id="bulkRedoBtn" class="aq-btn redo sm" type="button">Request redo</button>
+            <button id="bulkClearBtn" class="aq-btn sm" type="button">Clear selection</button>
+          </div>
+
+          <div class="aq-table-card">
+            <table class="aq-table">
+              <thead>
+                <tr>
+                  <th style="width: 36px"><input type="checkbox" id="selectAll" aria-label="Select all" /></th>
+                  <th>Feature</th>
+                  <th>Project</th>
+                  <th>As-built</th>
+                  <th>Submitted</th>
+                  <th style="width: 130px">Status</th>
+                  <th style="width: 190px; text-align: right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="rowsBody">
+                <tr>
+                  <td colspan="7" class="aq-empty">Loading approval queue…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Review one feature: planned vs as-built + decision -->
+    <div id="reviewOverlay" class="aq-overlay">
+      <div class="aq-modal" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+        <header>
+          <div>
+            <h3 id="reviewTitle">Feature review</h3>
+            <span class="aq-mono" id="reviewSubtitle"></span>
+          </div>
+          <button class="aq-close" type="button" id="reviewClose" aria-label="Close">&times;</button>
+        </header>
+        <div class="body" id="reviewBody"></div>
+        <footer id="reviewFooter"></footer>
+      </div>
+    </div>
+
+    <!-- Redo reason -->
+    <div id="redoOverlay" class="aq-overlay">
+      <div class="aq-modal" style="max-width: 520px" role="dialog" aria-modal="true" aria-labelledby="redoTitle">
+        <header>
+          <h3 id="redoTitle">Request redo</h3>
+          <button class="aq-close" type="button" id="redoClose" aria-label="Close">&times;</button>
+        </header>
+        <div class="body">
+          <p style="margin: 0 0 14px; font-size: 13px; color: #6b7280">
+            Tell the engineer what needs correcting. The note is stored on the feature and shown to them.
+          </p>
+          <label class="aq-note-label" for="redoReason">Reason</label>
+          <textarea id="redoReason" class="aq-note" placeholder="e.g. Span offset ~3 m from the design alignment"></textarea>
+        </div>
+        <footer>
+          <button class="aq-btn" type="button" id="redoCancel">Cancel</button>
+          <button class="aq-btn redo" type="button" id="redoConfirm">Send back to engineer</button>
+        </footer>
+      </div>
+    </div>
+
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
+
+      var STATUS_LABELS = {
+        pending: 'Pending',
+        assigned: 'Assigned',
+        under_review: 'Under review',
+        approved: 'Approved',
+        redo: 'Redo',
+      };
+
+      // Every feature fetched so far, flattened:
+      // { project, layer, feature }
+      var rows = [];
+      var selected = new Set();
+      var loadedProjects = [];
+      var reviewRow = null; // row open in the review modal
+      var redoTargets = []; // feature ids awaiting a reason
+
+      var rowsBody = document.getElementById('rowsBody');
+      var errorState = document.getElementById('errorState');
+      var bulkBar = document.getElementById('bulkBar');
+      var selectAll = document.getElementById('selectAll');
+      var filterProject = document.getElementById('filterProject');
+      var filterStatus = document.getElementById('filterStatus');
+      var filterSearch = document.getElementById('filterSearch');
+      var mapReviewLink = document.getElementById('mapReviewLink');
+
+      // The map review is project-scoped, so the link follows the project
+      // filter instead of always opening the first project.
+      function syncMapReviewLink() {
+        mapReviewLink.href =
+          'project-map-review.html' +
+          (filterProject.value
+            ? '?project_id=' + encodeURIComponent(filterProject.value)
+            : '');
+      }
+
+      function esc(value) {
+        return String(value === undefined || value === null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function shortId(id) {
+        var s = String(id || '');
+        return s.length > 14 ? s.slice(0, 8) + '…' + s.slice(-4) : s;
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        var d = new Date(value);
+        return isNaN(d.getTime()) ? '—' : d.toLocaleString();
+      }
+
+      function currentUser() {
+        var user = window.FiberAuth.getUser();
+        return (user && (user.id || user.uuid)) || null;
+      }
+
+      function showError(message) {
+        if (!message) {
+          errorState.style.display = 'none';
+          errorState.textContent = '';
+          return;
+        }
+        errorState.style.display = 'block';
+        errorState.textContent = message;
+      }
+
+      function toast(message, kind) {
+        if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
+          window.FtthUI.toast(message, kind);
+        } else {
+          console.log(message);
+        }
+      }
+
+      // field_measurements is {key: {value, unit}} in the field app and a flat
+      // {key: value} map in older rows; read both.
+      function measurementValue(entry) {
+        if (entry && typeof entry === 'object' && 'value' in entry) {
+          var unit = entry.unit ? ' ' + entry.unit : '';
+          return String(entry.value) + unit;
+        }
+        return entry === undefined || entry === null || entry === '' ? '—' : String(entry);
+      }
+
+      function measurementKeys(feature) {
+        var out = [];
+        var schema = feature.field_schema;
+        if (schema && typeof schema === 'object') {
+          Object.keys(schema).forEach(function (k) {
+            if (!out.includes(k)) out.push(k);
+          });
+        }
+        Object.keys(feature.properties || {}).forEach(function (k) {
+          if (!out.includes(k)) out.push(k);
+        });
+        Object.keys(feature.field_measurements || {}).forEach(function (k) {
+          if (!out.includes(k)) out.push(k);
+        });
+        return out;
+      }
+
+      function asBuiltSummary(feature) {
+        var measurements = feature.field_measurements || {};
+        var keys = Object.keys(measurements);
+        if (!keys.length) return '<span class="aq-muted">Not recorded</span>';
+        return (
+          '<span class="aq-mono">' +
+          esc(
+            keys
+              .slice(0, 3)
+              .map(function (k) {
+                return k + ': ' + measurementValue(measurements[k]);
+              })
+              .join(' · ')
+          ) +
+          '</span>'
+        );
+      }
+
+      function badge(status) {
+        var s = String(status || '').toLowerCase();
+        return (
+          '<span class="aq-badge ' +
+          esc(s) +
+          '"><span class="dot"></span>' +
+          esc(STATUS_LABELS[s] || s || 'Unknown') +
+          '</span>'
+        );
+      }
+
+      function featureParam(row) {
+        return (
+          'feature-details.html?project_id=' +
+          encodeURIComponent(row.project.id) +
+          '&layer_id=' +
+          encodeURIComponent(row.layer.id) +
+          '&feature_id=' +
+          encodeURIComponent(row.feature.id)
+        );
+      }
+
+      function auditParam(row) {
+        return (
+          'audit-detail.html?project_id=' +
+          encodeURIComponent(row.project.id) +
+          '&layer_id=' +
+          encodeURIComponent(row.layer.id) +
+          '&feature_id=' +
+          encodeURIComponent(row.feature.id)
+        );
+      }
+
+      // ── Loading ────────────────────────────────────────────────────────
+
+      async function loadProjects() {
+        var data = await window.FiberApi.listProjects();
+        loadedProjects = Array.isArray(data) ? data : (data && data.results) || [];
+
+        filterProject.innerHTML = '<option value="">All projects</option>';
+        loadedProjects.forEach(function (p) {
+          var id = p.id || p.uuid || p.pk;
+          if (!id) return;
+          var opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = p.name || 'Unnamed project';
+          filterProject.appendChild(opt);
+        });
+      }
+
+      async function loadRows() {
+        rows = [];
+        selected.clear();
+        var projects = loadedProjects;
+
+        if (filterProject.value) {
+          projects = projects.filter(function (p) {
+            return (p.id || p.uuid || p.pk) === filterProject.value;
+          });
+        }
+
+        for (var i = 0; i < projects.length; i++) {
+          var project = projects[i];
+          var projectId = project.id || project.uuid || project.pk;
+          if (!projectId) continue;
+
+          var layerResponse = await window.FiberApi.listProjectLayers(projectId);
+          var layers = (layerResponse && layerResponse.layers) || [];
+
+          for (var j = 0; j < layers.length; j++) {
+            var layer = layers[j];
+            var counts = layer.status_counts || {};
+            var hasStatuses = Object.keys(counts).some(function (k) {
+              return counts[k] > 0;
+            });
+            if (!hasStatuses) continue;
+
+            var detail = await window.FiberApi.getProjectLayerDetails(projectId, layer.layer_id);
+            var features = (detail && detail.features) || [];
+            features.forEach(function (feature) {
+              rows.push({
+                project: { id: projectId, name: project.name || 'Unnamed project' },
+                layer: { id: layer.layer_id, name: layer.layer_name || layer.layer_id },
+                feature: feature,
+              });
+            });
+          }
+        }
+      }
+
+      function visibleRows() {
+        var status = filterStatus.value;
+        var term = filterSearch.value.trim().toLowerCase();
+        return rows.filter(function (row) {
+          if (status && row.feature.status !== status) return false;
+          if (!term) return true;
+          var haystack = [
+            row.layer.name,
+            row.layer.id,
+            row.project.name,
+            row.feature.id,
+            JSON.stringify(row.feature.properties || {}),
+          ]
+            .join(' ')
+            .toLowerCase();
+          return haystack.indexOf(term) !== -1;
+        });
+      }
+
+      function renderStats() {
+        var counts = { under_review: 0, approved: 0, redo: 0 };
+        rows.forEach(function (row) {
+          if (counts[row.feature.status] !== undefined) counts[row.feature.status] += 1;
+        });
+        document.getElementById('statUnderReview').textContent = counts.under_review;
+        document.getElementById('statApproved').textContent = counts.approved;
+        document.getElementById('statRedo').textContent = counts.redo;
+        document.getElementById('statTotal').textContent = rows.length;
+      }
+
+      function renderRows() {
+        var list = visibleRows();
+        renderStats();
+        syncBulkBar();
+
+        if (!list.length) {
+          var emptyText =
+            rows.length === 0
+              ? '<strong>Nothing to review</strong>No features have been imported for the selected project yet.'
+              : '<strong>Queue is clear</strong>No features match these filters.';
+          rowsBody.innerHTML = '<tr><td colspan="7" class="aq-empty">' + emptyText + '</td></tr>';
+          selectAll.checked = false;
+          selectAll.indeterminate = false;
+          return;
+        }
+
+        rowsBody.innerHTML = list
+          .map(function (row) {
+            var f = row.feature;
+            var canDecide = f.status === 'under_review';
+            return (
+              '<tr>' +
+              '<td><input type="checkbox" data-select="' +
+              esc(f.id) +
+              '"' +
+              (selected.has(f.id) ? ' checked' : '') +
+              (canDecide ? '' : ' disabled') +
+              ' aria-label="Select feature" /></td>' +
+              '<td>' +
+              '<div class="aq-feature-name">' +
+              esc(row.layer.name) +
+              '</div>' +
+              '<div class="aq-mono" title="' +
+              esc(f.id) +
+              '">' +
+              esc(shortId(f.id)) +
+              '</div>' +
+              '</td>' +
+              '<td>' +
+              esc(row.project.name) +
+              '</td>' +
+              '<td>' +
+              asBuiltSummary(f) +
+              '</td>' +
+              '<td>' +
+              esc(formatDate(f.updated_at)) +
+              '</td>' +
+              '<td>' +
+              badge(f.status) +
+              '</td>' +
+              '<td style="text-align:right">' +
+              '<button class="aq-btn sm" type="button" data-review="' +
+              esc(f.id) +
+              '">Review</button> ' +
+              (canDecide
+                ? '<button class="aq-btn approve sm" type="button" data-approve="' +
+                  esc(f.id) +
+                  '">Approve</button> ' +
+                  '<button class="aq-btn redo sm" type="button" data-redo="' +
+                  esc(f.id) +
+                  '">Redo</button>'
+                : '') +
+              '</td>' +
+              '</tr>'
+            );
+          })
+          .join('');
+
+        var selectable = list.filter(function (row) {
+          return row.feature.status === 'under_review';
+        });
+        selectAll.checked = selectable.length > 0 && selectable.every(function (row) {
+          return selected.has(row.feature.id);
+        });
+        selectAll.indeterminate =
+          !selectAll.checked &&
+          selectable.some(function (row) {
+            return selected.has(row.feature.id);
+          });
+      }
+
+      function syncBulkBar() {
+        document.getElementById('selectedCount').textContent = selected.size;
+        bulkBar.classList.toggle('visible', selected.size > 0);
+      }
+
+      async function reload() {
+        var refreshBtn = document.getElementById('refreshBtn');
+        refreshBtn.disabled = true;
+        showError('');
+        try {
+          await loadProjects();
+          syncMapReviewLink();
+          await loadRows();
+          renderRows();
+        } catch (err) {
+          showError('Failed to load the approval queue: ' + (err && err.message ? err.message : err));
+          rowsBody.innerHTML = '<tr><td colspan="7" class="aq-empty">Could not load features.</td></tr>';
+        } finally {
+          refreshBtn.disabled = false;
+        }
+      }
+
+      // ── Decisions ──────────────────────────────────────────────────────
+
+      async function approve(featureIds) {
+        if (!featureIds.length) return;
+        try {
+          await window.FiberApi.approveFeatures(featureIds, currentUser(), '');
+          featureIds.forEach(function (id) {
+            selected.delete(id);
+          });
+          toast(featureIds.length + ' feature(s) approved', 'success');
+          await refreshRowsOnly();
+        } catch (err) {
+          toast('Approve failed: ' + (err && err.message ? err.message : err), 'error');
+        }
+      }
+
+      async function reject(featureIds, reason) {
+        try {
+          await window.FiberApi.rejectFeatures(featureIds, currentUser(), reason);
+          featureIds.forEach(function (id) {
+            selected.delete(id);
+          });
+          toast(featureIds.length + ' feature(s) sent back for redo', 'success');
+          await refreshRowsOnly();
+        } catch (err) {
+          toast('Redo request failed: ' + (err && err.message ? err.message : err), 'error');
+        }
+      }
+
+      // Re-read just the feature list from the API so the row shows the new
+      // status rather than a locally patched one.
+      async function refreshRowsOnly() {
+        try {
+          await loadRows();
+          renderRows();
+        } catch (err) {
+          showError('Feature saved, but the queue could not be refreshed: ' + err.message);
+        }
+      }
+
+      // ── Review modal ───────────────────────────────────────────────────
+
+      function openReview(featureId) {
+        reviewRow = rows.filter(function (row) {
+          return row.feature.id === featureId;
+        })[0];
+        if (!reviewRow) return;
+
+        var f = reviewRow.feature;
+        document.getElementById('reviewTitle').textContent =
+          reviewRow.layer.name + ' · ' + reviewRow.project.name;
+        document.getElementById('reviewSubtitle').textContent = f.id;
+
+        var measurements = f.field_measurements || {};
+        var comparison = measurementKeys(f)
+          .filter(function (key) {
+            return key in (f.properties || {}) || key in measurements;
+          })
+          .map(function (key) {
+            var planned = f.properties ? f.properties[key] : undefined;
+            var asBuilt = key in measurements ? measurementValue(measurements[key]) : '—';
+            var plannedText =
+              planned === undefined || planned === null || planned === ''
+                ? '—'
+                : String(planned);
+            var differs =
+              key in measurements &&
+              asBuilt !== '—' &&
+              String(asBuilt).replace(/\s+\S+$/, '') !== plannedText;
+            return (
+              '<tr>' +
+              '<td class="label">' +
+              esc(key) +
+              '</td>' +
+              '<td>' +
+              esc(plannedText) +
+              '</td>' +
+              '<td class="' +
+              (differs ? 'diff' : '') +
+              '">' +
+              esc(asBuilt) +
+              '</td>' +
+              '</tr>'
+            );
+          })
+          .join('');
+
+        var body =
+          '<p class="aq-section-title">Planned vs as-built</p>' +
+          (comparison
+            ? '<table class="aq-cmp"><thead><tr><th>Field</th><th>Planned</th><th>As-built</th></tr></thead><tbody>' +
+              comparison +
+              '</tbody></table>'
+            : '<p class="aq-muted" style="font-size:13px">No measured fields recorded for this feature.</p>') +
+          '<p class="aq-section-title">Status</p>' +
+          '<p style="margin:0 0 16px">' +
+          badge(f.status) +
+          '<span class="aq-muted" style="font-size:12px;margin-left:10px">Updated ' +
+          esc(formatDate(f.updated_at)) +
+          '</span></p>';
+
+        if (f.comparison_notes) {
+          body +=
+            '<p class="aq-section-title">Reviewer note</p>' +
+            '<p style="margin:0 0 16px;font-size:13px;color:#374151">' +
+            esc(f.comparison_notes) +
+            '</p>';
+        }
+
+        if (f.photo_url) {
+          body +=
+            '<p class="aq-section-title">Field photo</p>' +
+            '<a class="aq-photo" href="' +
+            esc(f.photo_url) +
+            '" target="_blank" rel="noopener"><img src="' +
+            esc(f.photo_url) +
+            '" alt="Field photo" /></a>';
+        }
+
+        body +=
+          '<p style="margin:18px 0 0">' +
+          '<a href="' +
+          auditParam(reviewRow) +
+          '" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none">Full audit review &rarr;</a>' +
+          '<a href="' +
+          featureParam(reviewRow) +
+          '" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none;margin-left:18px">Open on the map &rarr;</a>' +
+          '</p>';
+
+        document.getElementById('reviewBody').innerHTML = body;
+
+        var footer = document.getElementById('reviewFooter');
+        if (f.status === 'under_review') {
+          footer.innerHTML =
+            '<button class="aq-btn" type="button" id="reviewDismiss">Close</button>' +
+            '<button class="aq-btn redo" type="button" id="reviewRedo">Request redo</button>' +
+            '<button class="aq-btn approve" type="button" id="reviewApprove">Approve</button>';
+          document.getElementById('reviewDismiss').addEventListener('click', closeReview);
+          document.getElementById('reviewApprove').addEventListener('click', async function () {
+            closeReview();
+            await approve([f.id]);
+          });
+          document.getElementById('reviewRedo').addEventListener('click', function () {
+            closeReview();
+            openRedo([f.id]);
+          });
+        } else {
+          footer.innerHTML = '<button class="aq-btn" type="button" id="reviewDismiss">Close</button>';
+          document.getElementById('reviewDismiss').addEventListener('click', closeReview);
+        }
+
+        document.getElementById('reviewOverlay').classList.add('visible');
+      }
+
+      function closeReview() {
+        document.getElementById('reviewOverlay').classList.remove('visible');
+        reviewRow = null;
+      }
+
+      // ── Redo modal ─────────────────────────────────────────────────────
+
+      function openRedo(featureIds) {
+        redoTargets = featureIds.slice();
+        document.getElementById('redoReason').value = '';
+        document.getElementById('redoConfirm').disabled = false;
+        document.getElementById('redoReason').placeholder =
+          featureIds.length > 1
+            ? 'e.g. All spans in this batch sit more than 2 m off the design alignment'
+            : 'e.g. Span offset ~3 m from the design alignment';
+        document.getElementById('redoOverlay').classList.add('visible');
+        document.getElementById('redoReason').focus();
+      }
+
+      function closeRedo() {
+        document.getElementById('redoOverlay').classList.remove('visible');
+        redoTargets = [];
+      }
+
+      async function confirmRedo() {
+        var reason = document.getElementById('redoReason').value.trim();
+        if (!reason) {
+          toast('A reason is required so the engineer knows what to fix', 'error');
+          return;
+        }
+        if (!redoTargets.length) return;
+        var targets = redoTargets.slice();
+        var btn = document.getElementById('redoConfirm');
+        btn.disabled = true;
+        closeRedo();
+        await reject(targets, reason);
+      }
+
+      // ── Wiring ─────────────────────────────────────────────────────────
+
+      document.getElementById('refreshBtn').addEventListener('click', function () {
+        reload();
+      });
+
+      filterProject.addEventListener('change', function () {
+        reload();
+      });
+      filterStatus.addEventListener('change', function () {
+        selected.clear();
+        renderRows();
+      });
+      filterSearch.addEventListener('input', renderRows);
+
+      selectAll.addEventListener('change', function () {
+        visibleRows().forEach(function (row) {
+          if (row.feature.status !== 'under_review') return;
+          if (selectAll.checked) selected.add(row.feature.id);
+          else selected.delete(row.feature.id);
+        });
+        renderRows();
+      });
+
+      rowsBody.addEventListener('change', function (event) {
+        var input = event.target.closest ? event.target.closest('input[data-select]') : null;
+        if (!input) return;
+        var id = input.getAttribute('data-select');
+        if (input.checked) selected.add(id);
+        else selected.delete(id);
+        syncBulkBar();
+      });
+
+      rowsBody.addEventListener('click', function (event) {
+        var target = event.target.closest ? event.target.closest('button') : null;
+        if (!target) return;
+
+        var reviewId = target.getAttribute('data-review');
+        if (reviewId) {
+          openReview(reviewId);
+          return;
+        }
+        var approveId = target.getAttribute('data-approve');
+        if (approveId) {
+          approve([approveId]);
+          return;
+        }
+        var redoId = target.getAttribute('data-redo');
+        if (redoId) openRedo([redoId]);
+      });
+
+      document.getElementById('bulkApproveBtn').addEventListener('click', function () {
+        approve(Array.from(selected));
+      });
+      document.getElementById('bulkRedoBtn').addEventListener('click', function () {
+        if (!selected.size) return;
+        openRedo(Array.from(selected));
+      });
+      document.getElementById('bulkClearBtn').addEventListener('click', function () {
+        selected.clear();
+        renderRows();
+      });
+
+      document.getElementById('reviewClose').addEventListener('click', closeReview);
+      document.getElementById('reviewOverlay').addEventListener('click', function (event) {
+        if (event.target === this) closeReview();
+      });
+      document.getElementById('redoClose').addEventListener('click', closeRedo);
+      document.getElementById('redoCancel').addEventListener('click', closeRedo);
+      document.getElementById('redoConfirm').addEventListener('click', confirmRedo);
+      document.getElementById('redoOverlay').addEventListener('click', function (event) {
+        if (event.target === this) closeRedo();
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+        if (document.getElementById('redoOverlay').classList.contains('visible')) closeRedo();
+        else if (document.getElementById('reviewOverlay').classList.contains('visible')) closeReview();
+      });
+
+      reload();
+    </script>
+  </body>
+</html>

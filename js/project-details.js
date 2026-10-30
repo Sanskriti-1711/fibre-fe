@@ -75,12 +75,15 @@ async function fetchProjectDetails(projectId) {
 
 // Fetch project map data from API (Django-backed; survey packages live in
 // the Django DB, not in the external import microservice).
+//
+// apiFetch, not rawFetch: /map-data/ is authenticated, and rawFetch sends no
+// Authorization header, so the map came back as a silent 401 and the page
+// rendered its "no layers" state. apiFetch attaches the JWT and parses the
+// body the caller reads (`layers`, `geojson`, `features`).
 async function fetchProjectMapData(projectId) {
-  const response = await window.FiberApi.rawFetch(
-    `/api/projects/${encodeURIComponent(projectId)}/map-data/`,
-    { method: 'GET' }
-  );
-  return response;
+  return window.FiberApi.apiFetch(`/api/projects/${encodeURIComponent(projectId)}/map-data/`, {
+    method: 'GET',
+  });
 }
 
 // Convert completion percentage to integer
