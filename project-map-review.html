@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Map review | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      #reviewMap {
+        height: 520px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #e5e7eb;
+      }
+
+      .mr-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 4px;
+      }
+      .mr-head h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .mr-sub {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #616a75;
+      }
+      .mr-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: flex-end;
+      }
+      .mr-controls label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 5px;
+      }
+      .mr-controls select {
+        min-width: 240px;
+        padding: 9px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 7px;
+        font-size: 13px;
+        background: #ffffff;
+        color: #1f2937;
+      }
+
+      .mr-kpis {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+        margin: 16px 0 18px;
+      }
+      .mr-kpi {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 14px 16px;
+      }
+      .mr-kpi .label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: 6px;
+      }
+      .mr-kpi .value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1f2937;
+        font-variant-numeric: tabular-nums;
+      }
+      .mr-kpi .hint {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #9ca3af;
+      }
+
+      .mr-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        padding: 12px 14px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 16px;
+        font-size: 12px;
+        color: #4b5563;
+      }
+      .mr-legend .swatch {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .mr-legend i {
+        width: 18px;
+        height: 4px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+      .mr-legend .spacer {
+        margin-left: auto;
+      }
+      .mr-legend .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .mr-layers {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .mr-layers table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .mr-layers th {
+        text-align: left;
+        padding: 11px 14px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+        background: #f9fafb;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
+      }
+      .mr-layers td {
+        padding: 11px 14px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: middle;
+      }
+      .mr-layers tr:last-child td {
+        border-bottom: none;
+      }
+      .mr-layers input[type='checkbox'] {
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+      }
+      .mr-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 150px;
+      }
+      .mr-bar .track {
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+      .mr-bar .fill {
+        height: 100%;
+        background: #10b981;
+        border-radius: 3px;
+      }
+      .mr-bar .pct {
+        font-size: 11px;
+        font-weight: 700;
+        color: #374151;
+        min-width: 42px;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .mr-muted {
+        color: #9ca3af;
+      }
+      .mr-mono {
+        font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+        font-size: 11px;
+        color: #9ca3af;
+      }
+
+      .mr-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+        font-size: 14px;
+      }
+      .mr-empty strong {
+        display: block;
+        font-size: 17px;
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+      .mr-empty a {
+        color: #e31837;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .mr-error {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13px;
+        margin-bottom: 14px;
+      }
+
+      .mr-popup {
+        font-size: 12px;
+        color: #1f2937;
+        line-height: 1.5;
+      }
+      .mr-popup strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 3px;
+      }
+      .mr-popup .pop-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        margin: 4px 0 6px;
+      }
+      .mr-popup .pop-status i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .mr-popup a {
+        display: inline-block;
+        margin-top: 4px;
+        color: #e31837;
+        font-weight: 700;
+        text-decoration: none;
+      }
+    </style>
+
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css" />
+    <script src="vendor/maplibre/maplibre-gl.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body class="map-review">
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+
+      <main class="content">
+        <div class="container">
+          <div id="errorState" class="mr-error"></div>
+
+          <div class="mr-head">
+            <div>
+              <h1>Map review</h1>
+              <p class="mr-sub" id="pageSubtitle">
+                The design baseline and what has actually been signed off, on one map.
+              </p>
+            </div>
+            <div class="mr-controls">
+              <div>
+                <label for="projectSelect">Project</label>
+                <select id="projectSelect">
+                  <option value="">Loading projects…</option>
+                </select>
+              </div>
+              <button id="refreshBtn" class="btn btn-secondary" type="button">Refresh</button>
+            </div>
+          </div>
+
+          <div id="reviewBody" style="display: none">
+            <div class="mr-kpis">
+              <div class="mr-kpi">
+                <span class="label">Approved</span>
+                <div class="value" id="kpiStandard">—</div>
+                <div class="hint" id="kpiStandardHint">of all mapped features</div>
+              </div>
+              <div class="mr-kpi">
+                <span class="label">Weighted</span>
+                <div class="value" id="kpiWeighted">—</div>
+                <div class="hint" id="kpiWeightedHint">layer-weighted completion</div>
+              </div>
+              <div class="mr-kpi">
+                <span class="label">Features</span>
+                <div class="value" id="kpiFeatures">—</div>
+                <div class="hint" id="kpiFeaturesHint">on the map</div>
+              </div>
+              <div class="mr-kpi">
+                <span class="label">Layers</span>
+                <div class="value" id="kpiLayers">—</div>
+                <div class="hint">design layers in this project</div>
+              </div>
+            </div>
+
+            <div class="mr-legend">
+              <span class="swatch"><i style="background: #94a3b8"></i>Design baseline</span>
+              <span class="swatch"><i style="background: #10b981"></i>Approved</span>
+              <span class="swatch"><i style="background: #f59e0b"></i>Under review</span>
+              <span class="swatch"><i style="background: #ef4444"></i>Redo</span>
+              <span class="swatch"><i style="background: #3b82f6"></i>Assigned</span>
+              <span class="swatch"><i style="background: #9ca3af"></i>Pending</span>
+              <span class="spacer"></span>
+              <label class="toggle" for="showBaseline">
+                <input type="checkbox" id="showBaseline" checked />
+                Show design baseline
+              </label>
+            </div>
+
+            <div class="card" style="padding: 12px">
+              <div id="reviewMap" aria-label="Planned and as-built feature map"></div>
+              <p class="mr-sub" style="margin: 10px 0 0">
+                Lines and points are coloured by the engineer's verification status; the grey underlay is the
+                design geometry from the imported package. Click a feature to open its audit review.
+              </p>
+            </div>
+
+            <div class="card" style="margin-top: 16px; padding: 0">
+              <div class="mr-layers">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width: 42px">Show</th>
+                      <th>Layer</th>
+                      <th>Geometry</th>
+                      <th style="width: 220px">Approved</th>
+                      <th style="width: 120px">Features</th>
+                    </tr>
+                  </thead>
+                  <tbody id="layerRows">
+                    <tr>
+                      <td colspan="5" class="mr-empty" style="padding: 22px">Loading layers…</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="emptyState" class="mr-empty" style="display: none">
+            <strong>No supervision project to review</strong>
+            A map review needs a project with imported features.
+            <p style="margin-top: 14px">
+              <a href="project-create.html">Create a supervision project</a> &nbsp;·&nbsp;
+              <a href="gpkg-upload.html">Import a GeoPackage</a>
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
+
+      // ── Status model ──────────────────────────────────────────────────
+      // The five values the backend stores; the map must not invent a sixth
+      // (docs/subprojects/FieldSupervision/INTEGRATION_PLAN.md, Stage 3.5).
+      var STATUS = {
+        approved: { label: 'Approved', color: '#10b981', bg: '#ecfdf5', fg: '#065f46' },
+        under_review: { label: 'Under review', color: '#f59e0b', bg: '#fffbeb', fg: '#b45309' },
+        redo: { label: 'Redo', color: '#ef4444', bg: '#fef2f2', fg: '#991b1b' },
+        assigned: { label: 'Assigned', color: '#3b82f6', bg: '#eff6ff', fg: '#1d4ed8' },
+        pending: { label: 'Pending', color: '#9ca3af', bg: '#f3f4f6', fg: '#4b5563' },
+      };
+
+      function statusOf(value) {
+        return STATUS[String(value || '').toLowerCase()] || STATUS.pending;
+      }
+
+      function statusColorExpression() {
+        return [
+          'match',
+          ['get', 'status'],
+          'approved',
+          STATUS.approved.color,
+          'under_review',
+          STATUS.under_review.color,
+          'redo',
+          STATUS.redo.color,
+          'assigned',
+          STATUS.assigned.color,
+          STATUS.pending.color,
+        ];
+      }
+
+      var params = new URLSearchParams(window.location.search);
+      var projectId = params.get('project_id') || params.get('project') || '';
+      var map = null;
+      var popup = null;
+      var layerGroups = []; // { name, sourceId, ids: [], clickable: [] }
+      var completionByLayer = {}; // layer_name -> completion row
+      var busy = false;
+
+      var errorState = document.getElementById('errorState');
+      var projectSelect = document.getElementById('projectSelect');
+      var reviewBody = document.getElementById('reviewBody');
+      var emptyState = document.getElementById('emptyState');
+
+      function esc(value) {
+        return String(value === undefined || value === null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function showError(message) {
+        if (!message) {
+          errorState.style.display = 'none';
+          errorState.textContent = '';
+          return;
+        }
+        errorState.style.display = 'block';
+        errorState.textContent = message;
+      }
+
+      function toast(message, kind) {
+        if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
+          window.FtthUI.toast(message, kind);
+        } else {
+          console.log(message);
+        }
+      }
+
+      function pickId(p) {
+        return (p && (p.id || p.uuid || p.project_uuid || p.pk)) || '';
+      }
+
+      // ── Map ───────────────────────────────────────────────────────────
+
+      function initMap() {
+        if (map || typeof maplibregl === 'undefined') return map;
+        map = new maplibregl.Map({
+          container: 'reviewMap',
+          style: {
+            version: 8,
+            sources: {
+              osm: {
+                type: 'raster',
+                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution:
+                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              },
+            },
+            layers: [{ id: 'basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 }],
+          },
+          center: [0, 0],
+          zoom: 2,
+        });
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
+        map.addControl(new maplibregl.AttributionControl({ compact: true }));
+        popup = new maplibregl.Popup({ closeButton: true, maxWidth: '280px' });
+
+        // A click anywhere resolves against the status layers only: the grey
+        // design underlay is not a target, or every click would open the
+        // baseline instead of the feature the reviewer meant.
+        map.on('click', function (event) {
+          if (!map || !layerGroups.length) return;
+          var clickable = [];
+          layerGroups.forEach(function (group) {
+            clickable = clickable.concat(group.clickable);
+          });
+          if (!clickable.length) return;
+          var hits = map.queryRenderedFeatures(event.point, { layers: clickable });
+          if (!hits.length) return;
+          openPopup(hits[0], event.lngLat);
+        });
+        return map;
+      }
+
+      function clearLayers() {
+        if (!map) return;
+        layerGroups.forEach(function (group) {
+          group.ids.forEach(function (id) {
+            if (map.getLayer(id)) map.removeLayer(id);
+          });
+          if (map.getSource(group.sourceId)) map.removeSource(group.sourceId);
+        });
+        layerGroups = [];
+        if (popup) popup.remove();
+      }
+
+      function addLayerGroup(layerInfo, featureCollection) {
+        var sourceId = 'mr-' + layerInfo.name.replace(/[^A-Za-z0-9_-]/g, '_');
+        map.addSource(sourceId, { type: 'geojson', data: featureCollection });
+
+        var ids = [];
+        var clickable = [];
+
+        var designId = sourceId + '-design';
+        map.addLayer({
+          id: designId,
+          type: 'line',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'LineString'],
+          paint: { 'line-color': '#94a3b8', 'line-width': 6, 'line-opacity': 0.45 },
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+        });
+        ids.push(designId);
+
+        var designPointId = sourceId + '-design-point';
+        map.addLayer({
+          id: designPointId,
+          type: 'circle',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: {
+            'circle-color': '#94a3b8',
+            'circle-radius': 9,
+            'circle-opacity': 0.35,
+          },
+        });
+        ids.push(designPointId);
+
+        var fillId = sourceId + '-fill';
+        map.addLayer({
+          id: fillId,
+          type: 'fill',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'Polygon'],
+          paint: { 'fill-color': statusColorExpression(), 'fill-opacity': 0.25 },
+        });
+        ids.push(fillId);
+        clickable.push(fillId);
+
+        var lineId = sourceId + '-line';
+        map.addLayer({
+          id: lineId,
+          type: 'line',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'LineString'],
+          paint: { 'line-color': statusColorExpression(), 'line-width': 3, 'line-opacity': 0.95 },
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+        });
+        ids.push(lineId);
+        clickable.push(lineId);
+
+        var pointId = sourceId + '-point';
+        map.addLayer({
+          id: pointId,
+          type: 'circle',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: {
+            'circle-color': statusColorExpression(),
+            'circle-radius': 6,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+          },
+        });
+        ids.push(pointId);
+        clickable.push(pointId);
+
+        layerGroups.push({ name: layerInfo.name, sourceId: sourceId, ids: ids, clickable: clickable });
+      }
+
+      function walkCoords(coords, visit) {
+        if (!Array.isArray(coords)) return;
+        if (typeof coords[0] === 'number') {
+          visit(coords);
+          return;
+        }
+        coords.forEach(function (child) {
+          walkCoords(child, visit);
+        });
+      }
+
+      function boundsOf(features) {
+        var bounds = new maplibregl.LngLatBounds();
+        var any = false;
+        (features || []).forEach(function (f) {
+          if (!f || !f.geometry || !f.geometry.coordinates) return;
+          walkCoords(f.geometry.coordinates, function (point) {
+            if (point.length >= 2) {
+              bounds.extend([point[0], point[1]]);
+              any = true;
+            }
+          });
+        });
+        return any ? bounds : null;
+      }
+
+      function openPopup(hit, lngLat) {
+        var props = hit.properties || {};
+        var status = statusOf(props.status);
+        var id = props.feature_id || props.id || '';
+        var layer = props.layer || '';
+        var auditUrl =
+          'audit-detail.html?project_id=' +
+          encodeURIComponent(projectId) +
+          (layer ? '&layer_id=' + encodeURIComponent(layer) : '') +
+          '&feature_id=' +
+          encodeURIComponent(id);
+
+        popup
+          .setLngLat(lngLat)
+          .setHTML(
+            '<div class="mr-popup">' +
+              '<strong>' +
+              esc(layer || 'Feature') +
+              '</strong>' +
+              '<span class="mr-mono">' +
+              esc(id) +
+              '</span>' +
+              '<div class="pop-status" style="background:' +
+              status.bg +
+              ';color:' +
+              status.fg +
+              '"><i></i>' +
+              esc(status.label) +
+              '</div>' +
+              '<a href="' +
+              esc(auditUrl) +
+              '">Audit review &rarr;</a>' +
+              '</div>'
+          )
+          .addTo(map);
+      }
+
+      // ── Rendering ─────────────────────────────────────────────────────
+
+      function renderKpis(completion, mapData) {
+        var total = (mapData.features || []).length;
+        var standard = completion && typeof completion.standard_completion === 'number'
+          ? completion.standard_completion
+          : null;
+        var weighted = completion && typeof completion.dynamic_completion === 'number'
+          ? completion.dynamic_completion
+          : null;
+        var approved = completion && typeof completion.approved_features === 'number'
+          ? completion.approved_features
+          : null;
+
+        document.getElementById('kpiStandard').textContent =
+          standard === null ? '—' : Math.round(standard) + '%';
+        document.getElementById('kpiStandardHint').textContent =
+          approved === null || !completion.total_features
+            ? 'of all mapped features'
+            : approved + ' of ' + completion.total_features + ' approved';
+
+        // Weighted completion only means something once the project defines
+        // layer weights; without them every layer takes an equal share and the
+        // number is just the standard one in disguise.
+        document.getElementById('kpiWeighted').textContent =
+          weighted === null ? '—' : Math.round(weighted) + '%';
+        document.getElementById('kpiWeightedHint').textContent = completion && completion.weights_defined
+          ? 'layer-weighted completion'
+          : 'no layer weights defined yet';
+
+        document.getElementById('kpiFeatures').textContent = total;
+        document.getElementById('kpiFeaturesHint').textContent =
+          (completion && completion.total_features) || total ? 'on the map' : 'nothing imported';
+        document.getElementById('kpiLayers').textContent = (mapData.layers || []).length;
+      }
+
+      function renderLayerRows(mapData) {
+        var rows = (mapData.layers || []).map(function (layer, index) {
+          var completion = completionByLayer[layer.name] || null;
+          var approved = completion ? completion.approved_features : null;
+          var total = completion ? completion.total_features : null;
+          var pct = completion && typeof completion.progress_percentage === 'number'
+            ? completion.progress_percentage
+            : null;
+
+          var bar =
+            pct === null
+              ? '<span class="mr-muted">No features</span>'
+              : '<div class="mr-bar">' +
+                '<div class="track"><div class="fill" style="width:' +
+                Math.max(0, Math.min(100, pct)) +
+                '%"></div></div>' +
+                '<span class="pct">' +
+                Math.round(pct) +
+                '%</span>' +
+                '</div>';
+
+          return (
+            '<tr>' +
+            '<td><input type="checkbox" checked data-layer-index="' +
+            index +
+            '" aria-label="Show ' +
+            esc(layer.name) +
+            '" /></td>' +
+            '<td>' + esc(layer.name) + '</td>' +
+            '<td class="mr-muted">' + esc(layer.type || '—') + '</td>' +
+            '<td>' + bar + '</td>' +
+            '<td>' + (total === null ? '<span class="mr-muted">—</span>' : approved + ' / ' + total) + '</td>' +
+            '</tr>'
+          );
+        });
+
+        var body = document.getElementById('layerRows');
+        body.innerHTML = rows.length
+          ? rows.join('')
+          : '<tr><td colspan="5" class="mr-empty" style="padding: 22px">This project has no layers with geometry.</td></tr>';
+
+        body.querySelectorAll('input[data-layer-index]').forEach(function (checkbox) {
+          checkbox.addEventListener('change', function () {
+            var group = layerGroups[Number(checkbox.getAttribute('data-layer-index'))];
+            if (!group || !map) return;
+            var visibility = checkbox.checked ? 'visible' : 'none';
+            group.ids.forEach(function (id) {
+              if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visibility);
+            });
+            // The design underlay is controlled by the global toggle, not by a
+            // layer checkbox: hiding a layer must hide both of its renderings.
+            if (!checkbox.checked) {
+              group.ids.slice(0, 2).forEach(function (id) {
+                if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
+              });
+            } else {
+              applyBaselineToggle();
+            }
+          });
+        });
+      }
+
+      function applyBaselineToggle() {
+        if (!map) return;
+        var visible = document.getElementById('showBaseline').checked;
+        layerGroups.forEach(function (group) {
+          group.ids.slice(0, 2).forEach(function (id) {
+            if (!map.getLayer(id)) return;
+            map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+          });
+        });
+      }
+
+      function drawMap(mapData) {
+        var m = initMap();
+        if (!m) return;
+
+        var draw = function () {
+          clearLayers();
+          var layers = mapData.layers || [];
+          var geojson = mapData.geojson || {};
+
+          layers.forEach(function (layer) {
+            var collection = geojson[layer.name] || { type: 'FeatureCollection', features: [] };
+            addLayerGroup(layer, collection);
+          });
+
+          applyBaselineToggle();
+
+          var bounds = boundsOf(mapData.features || []);
+          if (bounds) m.fitBounds(bounds, { padding: 48, maxZoom: 17, duration: 0 });
+        };
+
+        if (m.loaded()) draw();
+        else m.once('load', draw);
+      }
+
+      // ── Loading ───────────────────────────────────────────────────────
+
+      async function loadProjects() {
+        var data = await window.FiberApi.listProjects();
+        var projects = Array.isArray(data) ? data : (data && data.results) || [];
+
+        projectSelect.innerHTML = '';
+        if (!projects.length) {
+          emptyState.style.display = 'block';
+          reviewBody.style.display = 'none';
+          document.getElementById('pageSubtitle').textContent =
+            'No projects yet — import a design package first.';
+          return;
+        }
+
+        projects.forEach(function (project) {
+          var option = document.createElement('option');
+          option.value = pickId(project);
+          option.textContent = project.name || 'Unnamed project';
+          projectSelect.appendChild(option);
+        });
+
+        if (projectId && projects.some(function (p) { return pickId(p) === projectId; })) {
+          projectSelect.value = projectId;
+        } else {
+          projectId = pickId(projects[0]);
+          projectSelect.value = projectId;
+        }
+      }
+
+      async function loadProject() {
+        if (!projectId) {
+          emptyState.style.display = 'block';
+          reviewBody.style.display = 'none';
+          return;
+        }
+        await loadProjectData(projectId);
+      }
+
+      async function loadProjectData(id) {
+        showError('');
+        busy = true;
+        projectSelect.disabled = true;
+
+        try {
+          var responses = await Promise.all([
+            window.FiberApi.getProject(id),
+            // apiFetch attaches the JWT; /map-data/ answers 401 without it.
+            window.FiberApi.apiFetch('/api/projects/' + encodeURIComponent(id) + '/map-data/', {
+              method: 'GET',
+            }),
+            window.FiberApi.getProjectCompletion(id).catch(function () {
+              return null;
+            }),
+          ]);
+
+          var project = responses[0] || {};
+          var mapData = responses[1] || {};
+          var completion = responses[2];
+
+          completionByLayer = {};
+          ((completion && completion.layers) || []).forEach(function (row) {
+            completionByLayer[row.layer_name] = row;
+          });
+
+          document.getElementById('pageSubtitle').textContent =
+            (project.name || 'Project') + ' · design baseline against as-built status';
+
+          reviewBody.style.display = 'block';
+          emptyState.style.display = 'none';
+
+          renderKpis(completion, mapData);
+          drawMap(mapData);
+          renderLayerRows(mapData);
+        } catch (err) {
+          showError(
+            'Could not load this project map: ' + (err && err.message ? err.message : String(err))
+          );
+          reviewBody.style.display = 'none';
+        } finally {
+          busy = false;
+          projectSelect.disabled = false;
+        }
+      }
+
+      // ── Wiring ────────────────────────────────────────────────────────
+
+      projectSelect.addEventListener('change', function () {
+        if (busy || !projectSelect.value) return;
+        projectId = projectSelect.value;
+        var url = new URL(window.location.href);
+        url.searchParams.set('project_id', projectId);
+        window.history.replaceState({}, '', url);
+        loadProject();
+      });
+
+      document.getElementById('refreshBtn').addEventListener('click', function () {
+        if (busy) return;
+        if (!projectId) {
+          loadProjects().then(loadProject);
+          return;
+        }
+        loadProjectData(projectId);
+      });
+
+      document.getElementById('showBaseline').addEventListener('change', applyBaselineToggle);
+
+      (async function boot() {
+        try {
+          await loadProjects();
+          await loadProject();
+        } catch (err) {
+          showError('Could not load projects: ' + (err && err.message ? err.message : String(err)));
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -350,6 +350,21 @@
       if (projectId) {
         document.getElementById('projectInfo').classList.remove('hidden');
         document.getElementById('projectIdDisplay').textContent = 'Project ID: ' + projectId;
+
+        // Opened from an LLD run: name the baseline so the file being
+        // uploaded is understood as as-built data for that design.
+        const lldVersion = new URLSearchParams(window.location.search).get('lld_version');
+        if (lldVersion) {
+          const baseline = document.createElement('p');
+          baseline.style.margin = '4px 0 0';
+          baseline.style.fontSize = '13px';
+          baseline.style.color = 'var(--tm-gray)';
+          baseline.textContent =
+            'Planned baseline: LLD ' +
+            lldVersion +
+            ' — read-only. Supervision records what was built beside it.';
+          document.getElementById('projectInfo').appendChild(baseline);
+        }
       } else {
         showStatus('uploadStatus', 'No project ID provided. Please create a project first.', true);
         document.getElementById('uploadBtn').disabled = true;
@@ -508,7 +523,8 @@
         await window.FiberApi.importLayers(projectId, selectedLayers);
         showStatus('importStatus', `Successfully imported ${selectedLayers.length} layer(s).`, false);
         setTimeout(() => {
-          window.location.href = 'projects.html';
+          window.location.href =
+            'project-details.html?project_id=' + encodeURIComponent(projectId);
         }, 1500);
       } catch (e) {
         showStatus('importStatus', e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Failed to import layers.', true);

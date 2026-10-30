@@ -140,6 +140,29 @@
         margin-top: 4px;
       }
 
+      .baseline {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 20px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1e3a8a;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .baseline[hidden] {
+        display: none;
+      }
+
+      .baseline strong {
+        font-weight: 700;
+      }
+
       .submit-btn {
         display: block;
         margin-left: auto;
@@ -165,6 +188,11 @@
         <div class="container">
           <h1>Create New Project</h1>
           <p>Define project details</p>
+
+          <div id="baselineNotice" class="baseline" hidden>
+            <strong id="baselineTitle">Starting from an LLD run</strong>
+            <span id="baselineDetail"></span>
+          </div>
 
           <form onsubmit="handleCreateProject(event)">
             <div class="form-group">
@@ -204,6 +232,48 @@
   <script>
     window.FiberAuth.requireLogin();
 
+    // Set when the page is opened from LLD Outputs ("Open supervision").
+    // The run is the planned baseline: the source project is recorded as
+    // source_ftth_project_id, and the version is shown here and on the
+    // upload step so nobody loses track of which design is being supervised.
+    var sourceParams = new URLSearchParams(window.location.search);
+    var sourceProjectId = sourceParams.get('source_project_id') || '';
+    var sourceLldVersion = sourceParams.get('lld_version') || '';
+    var sourceLldRunId = sourceParams.get('source_lld_run_id') || '';
+
+    function initBaseline() {
+      if (!sourceLldRunId && !sourceLldVersion) return;
+
+      document.getElementById('baselineNotice').hidden = false;
+      document.getElementById('baselineTitle').textContent = sourceLldVersion
+        ? 'Starting from LLD ' + sourceLldVersion
+        : 'Starting from an LLD run';
+      document.getElementById('baselineDetail').textContent =
+        'The planned geometry in this run is the read-only baseline — supervision records what was built beside it and never edits the design.';
+
+      var nameEl = document.getElementById('projectName');
+      var descEl = document.getElementById('projectDescription');
+      if (nameEl && !nameEl.value) {
+        nameEl.value =
+          sourceParams.get('project_name') ||
+          (sourceLldVersion ? 'Supervision ' + sourceLldVersion : '');
+      }
+      if (descEl && !descEl.value) {
+        descEl.value = sourceLldVersion
+          ? 'Construction supervision against ' + sourceLldVersion + '.'
+          : 'Construction supervision.';
+      }
+    }
+
+    initBaseline();
+
+    function carryQuery() {
+      var params = new URLSearchParams();
+      if (sourceLldVersion) params.set('lld_version', sourceLldVersion);
+      if (sourceLldRunId) params.set('source_lld_run_id', sourceLldRunId);
+      return params.toString();
+    }
+
     function setCreateProjectMsg(text, isError) {
       const el = document.getElementById('createProjectMsg');
       if (!el) return;
@@ -240,6 +310,12 @@
         region: region,
       };
 
+      // Existing Project field, so the supervision project keeps a real link
+      // back to the FTTH project whose LLD run it is checking.
+      if (sourceProjectId) {
+        payload.source_ftth_project_id = sourceProjectId;
+      }
+
       try {
         const created = await window.FiberApi.createProject(payload);
         setCreateProjectMsg('Project created successfully.', false);
@@ -249,7 +325,11 @@
 
         const newId = created && (created.uuid || created.id || created.project_uuid || created.pk);
         if (newId) {
-          window.location.href = 'gpkg-upload.html?project_id=' + encodeURIComponent(newId);
+          const carry = carryQuery();
+          window.location.href =
+            'gpkg-upload.html?project_id=' +
+            encodeURIComponent(newId) +
+            (carry ? '&' + carry : '');
         }
       } catch (e) {
         setCreateProjectMsg(e && e.message ? e.message : 'Failed to create project.', true);

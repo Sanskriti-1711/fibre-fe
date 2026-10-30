@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Audit review | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      #auditMap {
+        height: 400px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #e5e7eb;
+      }
+
+      .ad-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .ad-head h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .ad-sub {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #616a75;
+      }
+      .ad-crumbs {
+        margin: 4px 0 14px;
+        font-size: 13px;
+        color: #616a75;
+      }
+      .ad-crumbs a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .ad-crumbs a:hover {
+        color: #374151;
+        text-decoration: underline;
+      }
+
+      .ad-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        border: 1px solid transparent;
+      }
+      .ad-pill .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .ad-map-caption {
+        margin: 8px 0 0;
+        font-size: 12px;
+        color: #616a75;
+        line-height: 1.5;
+      }
+      .ad-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #4b5563;
+      }
+      .ad-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .ad-legend i {
+        width: 16px;
+        height: 4px;
+        border-radius: 2px;
+        display: inline-block;
+      }
+
+      .ad-photo-box {
+        min-height: 220px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f3f4f6;
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        overflow: hidden;
+        padding: 10px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .ad-photo-box img {
+        max-width: 100%;
+        max-height: 320px;
+        object-fit: contain;
+        display: block;
+      }
+
+      .ad-meta {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        margin-top: 12px;
+      }
+      .ad-meta td {
+        padding: 7px 0;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: top;
+      }
+      .ad-meta td:first-child {
+        width: 42%;
+        color: #6b7280;
+        font-weight: 600;
+      }
+      .ad-meta tr:last-child td {
+        border-bottom: none;
+      }
+
+      .ad-cmp {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .ad-cmp th {
+        text-align: left;
+        padding: 10px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .ad-cmp td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+      }
+      .ad-cmp td.field {
+        font-weight: 600;
+        color: #1f2937;
+      }
+      .ad-cmp tr:last-child td {
+        border-bottom: none;
+      }
+      .ad-cmp .delta {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+      .ad-cmp .delta.far {
+        color: #b45309;
+      }
+      .ad-cmp .delta.exact {
+        color: #047857;
+      }
+      .ad-muted {
+        color: #9ca3af;
+      }
+
+      .ad-note-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin: 0 0 6px;
+      }
+      .ad-note {
+        width: 100%;
+        min-height: 86px;
+        resize: vertical;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: inherit;
+        box-sizing: border-box;
+        color: #1f2937;
+      }
+      .ad-note:disabled {
+        background: #f9fafb;
+        color: #6b7280;
+      }
+      .ad-note-hint {
+        margin: 6px 0 0;
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.5;
+      }
+
+      .ad-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 14px;
+      }
+      .ad-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ad-btn:hover:not(:disabled) {
+        background: #f9fafb;
+      }
+      .ad-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .ad-btn.approve {
+        background: #10b981;
+        border-color: #10b981;
+        color: #ffffff;
+      }
+      .ad-btn.approve:hover:not(:disabled) {
+        background: #059669;
+        border-color: #059669;
+      }
+      .ad-btn.redo {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: #ffffff;
+      }
+      .ad-btn.redo:hover:not(:disabled) {
+        background: #d97706;
+        border-color: #d97706;
+      }
+      .ad-hint {
+        margin: 10px 0 0;
+        font-size: 12px;
+        color: #b45309;
+      }
+
+      .ad-prior-note {
+        margin: 0 0 14px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        color: #92400e;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .ad-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6b7280;
+        font-size: 14px;
+      }
+      .ad-empty strong {
+        display: block;
+        font-size: 17px;
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+      .ad-empty a {
+        color: #e31837;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .ad-error {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css" />
+    <script src="vendor/maplibre/maplibre-gl.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body class="audit-detail">
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+
+      <main class="content">
+        <div class="container">
+          <div id="errorState" class="ad-error"></div>
+
+          <div id="pageBody">
+            <div class="ad-crumbs" id="crumbs">
+              <a href="projects.html">All projects</a> <span>/</span>
+              <a id="crumbProject" href="projects.html">Project</a> <span>/</span>
+              <a id="crumbLayer" href="projects.html">Layer</a> <span>/</span>
+              <span id="crumbFeature">Feature</span>
+            </div>
+
+            <div class="ad-head">
+              <div>
+                <h1 id="auditTitle">Audit review</h1>
+                <p class="ad-sub" id="auditSubtitle">Loading feature…</p>
+              </div>
+              <div id="statusPill" class="ad-pill" style="display: none"></div>
+            </div>
+
+            <div class="grid" style="margin-top: 18px">
+              <div class="card">
+                <h3>Planned geometry (design)</h3>
+                <div id="auditMap" aria-label="Feature geometry map"></div>
+                <div class="ad-legend">
+                  <span><i style="background: #e31837"></i>This feature</span>
+                  <span><i style="background: #9ca3af"></i>Same layer, other features</span>
+                </div>
+                <p class="ad-map-caption" id="mapCaption">
+                  The alignment drawn here is the design baseline from the imported package. As-built evidence is
+                  recorded beside it — this page never edits the geometry.
+                </p>
+              </div>
+
+              <div class="card">
+                <h3>Field evidence</h3>
+                <div id="photoBox" class="ad-photo-box">No field photo uploaded</div>
+                <table class="ad-meta">
+                  <tr>
+                    <td>Layer</td>
+                    <td id="metaLayer">—</td>
+                  </tr>
+                  <tr>
+                    <td>Feature id</td>
+                    <td id="metaFeature" style="font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 11px">
+                      —
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Geometry</td>
+                    <td id="metaGeometry">—</td>
+                  </tr>
+                  <tr>
+                    <td>Last updated</td>
+                    <td id="metaUpdated">—</td>
+                  </tr>
+                  <tr>
+                    <td>Last geometry edit</td>
+                    <td id="metaEdited">—</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
+              <h3>Planned vs as-built</h3>
+              <table class="ad-cmp">
+                <thead>
+                  <tr>
+                    <th style="width: 40%">Field</th>
+                    <th style="width: 28%">Planned</th>
+                    <th style="width: 22%">As-built</th>
+                    <th style="width: 10%">Δ</th>
+                  </tr>
+                </thead>
+                <tbody id="comparisonBody">
+                  <tr>
+                    <td colspan="4" class="ad-empty" style="padding: 24px">Loading measurements…</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="ad-map-caption" id="comparisonCaption"></p>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
+              <h3>Decision</h3>
+              <div id="priorNote"></div>
+              <label class="ad-note-label" for="decisionNote">Review note</label>
+              <textarea
+                id="decisionNote"
+                class="ad-note"
+                placeholder="What did you check, and what does the engineer need to fix?"
+              ></textarea>
+              <p class="ad-note-hint" id="noteHint">
+                A redo note is stored on the feature and shown to the engineer. Notes sent with an approval are not
+                persisted yet — the backend has no approval-notes column (integration gap G5).
+              </p>
+              <div class="ad-actions">
+                <button id="approveBtn" class="ad-btn approve" type="button" disabled>Approve</button>
+                <button id="redoBtn" class="ad-btn redo" type="button" disabled>Request redo</button>
+                <a class="ad-btn" id="mapReviewLink" href="project-map-review.html">Project map review</a>
+                <a class="ad-btn" id="queueLink" href="project-approval-que.html">Back to approval queue</a>
+              </div>
+              <p class="ad-hint" id="decisionHint" style="display: none"></p>
+            </div>
+          </div>
+
+          <div id="emptyState" class="ad-empty" style="display: none">
+            <strong>No feature selected</strong>
+            Open this page from the approval queue or a feature, not directly.
+            <p style="margin-top: 14px">
+              <a href="project-approval-que.html">Approval queue</a> &nbsp;·&nbsp;
+              <a href="projects.html">All projects</a>
+            </p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
+    <script>
+      window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
+    </script>
+    <script src="fiber-api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
+
+      var params = new URLSearchParams(window.location.search);
+      var projectId = params.get('project_id') || params.get('proj_id') || params.get('project');
+      var featureId = params.get('feature_id') || params.get('fid') || params.get('id');
+      var layerIdParam = params.get('layer_id') || params.get('layer') || '';
+
+      var STATUS_STYLE = {
+        pending: { label: 'Pending', bg: '#f3f4f6', fg: '#4b5563', border: '#e5e7eb', map: '#6b7280' },
+        assigned: { label: 'Assigned', bg: '#eff6ff', fg: '#1d4ed8', border: '#bfdbfe', map: '#3b82f6' },
+        under_review: { label: 'Under review', bg: '#fffbeb', fg: '#b45309', border: '#fde68a', map: '#f59e0b' },
+        approved: { label: 'Approved', bg: '#ecfdf5', fg: '#065f46', border: '#a7f3d0', map: '#10b981' },
+        redo: { label: 'Redo', bg: '#fef2f2', fg: '#991b1b', border: '#fecaca', map: '#ef4444' },
+      };
+
+      var map = null;
+      var feature = null;
+      var layerId = layerIdParam;
+      var busy = false;
+
+      var errorState = document.getElementById('errorState');
+
+      function esc(value) {
+        return String(value === undefined || value === null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function shortId(id) {
+        var s = String(id || '');
+        return s.length > 16 ? s.slice(0, 8) + '…' + s.slice(-4) : s;
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        var d = new Date(value);
+        return isNaN(d.getTime()) ? '—' : d.toLocaleString();
+      }
+
+      function currentUserId() {
+        var user = window.FiberAuth.getUser();
+        return (user && (user.id || user.uuid)) || null;
+      }
+
+      function toast(message, kind) {
+        if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
+          window.FtthUI.toast(message, kind);
+        } else {
+          console.log(message);
+        }
+      }
+
+      function showError(message) {
+        if (!message) {
+          errorState.style.display = 'none';
+          errorState.textContent = '';
+          return;
+        }
+        errorState.style.display = 'block';
+        errorState.textContent = message;
+      }
+
+      // ── Map ────────────────────────────────────────────────────────────
+
+      function initMap() {
+        if (map || typeof maplibregl === 'undefined') return map;
+        map = new maplibregl.Map({
+          container: 'auditMap',
+          style: {
+            version: 8,
+            sources: {
+              osm: {
+                type: 'raster',
+                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution:
+                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              },
+            },
+            layers: [{ id: 'basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 }],
+          },
+          center: [0, 0],
+          zoom: 2,
+        });
+        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        map.addControl(new maplibregl.AttributionControl({ compact: true }));
+        return map;
+      }
+
+      // One source can hold points, lines and polygons; each layer filters to
+      // the geometry family it can draw, so a mixed layer never warns.
+      function addGeometryLayers(sourceId, color, options) {
+        var opts = options || {};
+        var opacity = opts.opacity === undefined ? 1 : opts.opacity;
+        if (map.getLayer(sourceId + '-fill')) map.removeLayer(sourceId + '-fill');
+        if (map.getLayer(sourceId + '-line')) map.removeLayer(sourceId + '-line');
+        if (map.getLayer(sourceId + '-point')) map.removeLayer(sourceId + '-point');
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
+
+        map.addSource(sourceId, { type: 'geojson', data: opts.data || { type: 'FeatureCollection', features: [] } });
+        map.addLayer({
+          id: sourceId + '-fill',
+          type: 'fill',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'Polygon'],
+          paint: { 'fill-color': color, 'fill-opacity': 0.25 * opacity },
+        });
+        map.addLayer({
+          id: sourceId + '-line',
+          type: 'line',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'LineString'],
+          paint: { 'line-color': color, 'line-width': opts.width || 3, 'line-opacity': opacity },
+        });
+        map.addLayer({
+          id: sourceId + '-point',
+          type: 'circle',
+          source: sourceId,
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: {
+            'circle-color': color,
+            'circle-radius': opts.radius || 6,
+            'circle-opacity': opacity,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+          },
+        });
+      }
+
+      function walkCoords(coords, visit) {
+        if (!Array.isArray(coords)) return;
+        if (typeof coords[0] === 'number') {
+          visit(coords);
+          return;
+        }
+        coords.forEach(function (child) {
+          walkCoords(child, visit);
+        });
+      }
+
+      function boundsOf(features) {
+        var b = new maplibregl.LngLatBounds();
+        var any = false;
+        (features || []).forEach(function (f) {
+          if (!f || !f.geometry || !f.geometry.coordinates) return;
+          walkCoords(f.geometry.coordinates, function (point) {
+            if (point.length >= 2) {
+              b.extend([point[0], point[1]]);
+              any = true;
+            }
+          });
+        });
+        return any ? b : null;
+      }
+
+      function drawFeature(contextFeatures) {
+        var m = initMap();
+        if (!m || !feature) return;
+
+        var draw = function () {
+          var statusColor = (STATUS_STYLE[feature.status] || STATUS_STYLE.pending).map;
+          addGeometryLayers(
+            'context-layer',
+            '#9ca3af',
+            { data: { type: 'FeatureCollection', features: contextFeatures || [] }, opacity: 0.85, width: 2, radius: 4 }
+          );
+          addGeometryLayers(
+            'feature-layer',
+            statusColor,
+            { data: { type: 'FeatureCollection', features: [currentGeoJson()] }, opacity: 1, width: 4, radius: 7 }
+          );
+
+          var bounds = boundsOf([currentGeoJson()].concat(contextFeatures || []));
+          if (bounds) {
+            m.fitBounds(bounds, { padding: 48, maxZoom: 17, duration: 0 });
+          }
+        };
+
+        if (m.loaded()) draw();
+        else m.once('load', draw);
+      }
+
+      function currentGeoJson() {
+        return {
+          type: 'Feature',
+          geometry: feature.geometry || null,
+          properties: feature.properties || {},
+        };
+      }
+
+      // Neighbouring features of the same layer give the feature context on
+      // the ground. Failure here is cosmetic, so it never blocks the audit.
+      async function loadContext() {
+        try {
+          // apiFetch, not rawFetch: /map-data/ requires the JWT, and rawFetch
+          // does not add it — the neighbouring features silently vanished.
+          var body = await window.FiberApi.apiFetch(
+            '/api/projects/' + encodeURIComponent(projectId) + '/map-data/',
+            { method: 'GET' }
+          );
+          var layerName = feature.layer_name;
+          var context = ((body && body.features) || []).filter(function (f) {
+            var props = f.properties || {};
+            return props.layer === layerName && props.feature_id !== feature.id;
+          });
+          drawFeature(context);
+        } catch (err) {
+          drawFeature([]);
+        }
+      }
+
+      // ── Comparison ─────────────────────────────────────────────────────
+
+      function measurementValue(entry) {
+        if (entry && typeof entry === 'object' && 'value' in entry) {
+          var unit = entry.unit ? ' ' + entry.unit : '';
+          return String(entry.value) + unit;
+        }
+        if (entry === undefined || entry === null || entry === '') return '—';
+        if (typeof entry === 'object') return JSON.stringify(entry);
+        return String(entry);
+      }
+
+      function comparableKeys() {
+        var keys = [];
+        var add = function (k) {
+          if (!keys.includes(k)) keys.push(k);
+        };
+        var schema = feature.field_schema;
+        if (schema && typeof schema === 'object') Object.keys(schema).forEach(add);
+        Object.keys(feature.properties || {}).forEach(add);
+        Object.keys(feature.field_measurements || {}).forEach(add);
+        return keys.filter(function (k) {
+          return k !== 'id' && k !== 'feature_id' && k !== 'layer' && k !== 'status';
+        });
+      }
+
+      function numeric(value) {
+        if (typeof value === 'number') return value;
+        var match = String(value === undefined || value === null ? '' : value)
+          .replace(',', '.')
+          .match(/-?\d+(?:\.\d+)?/);
+        return match ? parseFloat(match[0]) : null;
+      }
+
+      function unitOf(entry) {
+        return entry && typeof entry === 'object' && entry.unit ? String(entry.unit) : '';
+      }
+
+      function deltaCell(planned, asBuiltEntry, hasAsBuilt) {
+        if (!hasAsBuilt) return '<span class="ad-muted">—</span>';
+        var a = numeric(planned);
+        var b = numeric(measurementValue(asBuiltEntry));
+        if (a === null || b === null) return '<span class="ad-muted">—</span>';
+        var diff = b - a;
+        var unit = unitOf(asBuiltEntry);
+        var text = (diff > 0 ? '+' : '') + (Math.abs(diff) < 0.005 ? '0' : diff.toFixed(2)) + (unit ? ' ' + unit : '');
+        var cls = Math.abs(diff) < 0.005 ? 'exact' : 'far';
+        return '<span class="delta ' + cls + '">' + esc(text) + '</span>';
+      }
+
+      function renderComparison() {
+        var props = feature.properties || {};
+        var measured = feature.field_measurements || {};
+        var keys = comparableKeys();
+
+        if (!keys.length) {
+          document.getElementById('comparisonBody').innerHTML =
+            '<tr><td colspan="4" class="ad-empty" style="padding: 24px">This feature carries no attributes to compare.</td></tr>';
+          document.getElementById('comparisonCaption').textContent = '';
+          return;
+        }
+
+        var rows = keys.map(function (key) {
+          var planned = props[key];
+          var plannedText =
+            planned === undefined || planned === null || planned === ''
+              ? '—'
+              : typeof planned === 'object'
+                ? JSON.stringify(planned)
+                : String(planned);
+          var hasAsBuilt = key in measured;
+          var asBuiltText = hasAsBuilt ? measurementValue(measured[key]) : '—';
+          var asBuiltClass = hasAsBuilt ? '' : 'ad-muted';
+          return (
+            '<tr>' +
+            '<td class="field">' +
+            esc(key) +
+            '</td>' +
+            '<td>' +
+            esc(plannedText) +
+            '</td>' +
+            '<td class="' +
+            asBuiltClass +
+            '">' +
+            esc(asBuiltText) +
+            '</td>' +
+            '<td>' +
+            deltaCell(planned, measured[key], hasAsBuilt) +
+            '</td>' +
+            '</tr>'
+          );
+        });
+
+        document.getElementById('comparisonBody').innerHTML = rows.join('');
+
+        var measuredCount = Object.keys(measured).length;
+        document.getElementById('comparisonCaption').textContent = measuredCount
+          ? measuredCount +
+            ' field(s) recorded by the engineer. Δ is as-built minus planned; amber means the two differ.'
+          : 'The engineer has not recorded any measurements for this feature yet.';
+      }
+
+      // ── Header, evidence, decision state ───────────────────────────────
+
+      function renderPill() {
+        var style = STATUS_STYLE[feature.status] || STATUS_STYLE.pending;
+        var pill = document.getElementById('statusPill');
+        pill.style.display = 'inline-flex';
+        pill.style.background = style.bg;
+        pill.style.color = style.fg;
+        pill.style.borderColor = style.border;
+        pill.innerHTML = '<span class="dot"></span>' + esc(style.label);
+      }
+
+      function renderPhoto() {
+        var box = document.getElementById('photoBox');
+        if (feature.photo_url) {
+          box.style.background = '#ffffff';
+          box.style.borderStyle = 'solid';
+          box.innerHTML =
+            '<a href="' +
+            esc(feature.photo_url) +
+            '" target="_blank" rel="noopener" style="display:block"><img src="' +
+            esc(feature.photo_url) +
+            '" alt="Field photo for this feature" /></a>';
+        } else {
+          box.style.background = '#f3f4f6';
+          box.style.borderStyle = 'dashed';
+          box.innerHTML =
+            'No field photo uploaded yet.<br />The engineer attaches one from the field app; multi-photo evidence arrives with the gallery (gap G4).';
+        }
+      }
+
+      function geometrySummary() {
+        var geom = feature.geometry;
+        if (!geom || !geom.type) return 'Not stored';
+        var count = 0;
+        walkCoords(geom.coordinates || [], function () {
+          count += 1;
+        });
+        var unit = geom.type.indexOf('Point') !== -1 ? 'point' : 'vertex';
+        return geom.type + ' · ' + count + ' ' + unit + (count === 1 ? '' : 's');
+      }
+
+      function renderMeta() {
+        document.getElementById('metaLayer').textContent = feature.layer_name || layerId || '—';
+        document.getElementById('metaFeature').textContent = feature.id;
+        document.getElementById('metaGeometry').textContent = geometrySummary();
+        document.getElementById('metaUpdated').textContent = formatDate(feature.updated_at);
+        document.getElementById('metaEdited').textContent = feature.edited_at
+          ? formatDate(feature.edited_at)
+          : 'Never edited — still the imported design geometry';
+      }
+
+      function renderPriorNote() {
+        var host = document.getElementById('priorNote');
+        if (feature.comparison_notes) {
+          host.innerHTML =
+            '<div class="ad-prior-note"><strong>Previous reviewer note</strong><br />' +
+            esc(feature.comparison_notes) +
+            '</div>';
+        } else {
+          host.innerHTML = '';
+        }
+      }
+
+      function renderDecision() {
+        var canDecide = feature.status === 'under_review';
+        var approveBtn = document.getElementById('approveBtn');
+        var redoBtn = document.getElementById('redoBtn');
+        var noteEl = document.getElementById('decisionNote');
+        var hint = document.getElementById('decisionHint');
+
+        approveBtn.disabled = !canDecide || busy;
+        redoBtn.disabled = !canDecide || busy;
+        noteEl.disabled = !canDecide || busy;
+
+        if (canDecide) {
+          hint.style.display = 'none';
+        } else {
+          hint.style.display = 'block';
+          hint.textContent =
+            feature.status === 'approved'
+              ? 'This feature is approved. Its evidence is locked; a later revision happens in the design stages, not here.'
+              : feature.status === 'redo'
+                ? 'Sent back for redo — the engineer re-submits before another decision can be made.'
+                : 'A decision becomes available once the engineer submits this feature for review (now: ' +
+                  ((STATUS_STYLE[feature.status] || STATUS_STYLE.pending).label) +
+                  ').';
+        }
+      }
+
+      function renderHeader(detail) {
+        var layerName = feature.layer_name || layerId || 'Feature';
+        document.getElementById('auditTitle').textContent = 'Audit review — ' + layerName;
+        document.getElementById('auditSubtitle').textContent =
+          shortId(feature.id) + (detail && detail.layer_source ? ' · source: ' + detail.layer_source : '');
+
+        document.getElementById('crumbProject').textContent = 'Project';
+        document.getElementById('crumbProject').href =
+          'project-details.html?project_id=' + encodeURIComponent(projectId);
+        document.getElementById('crumbLayer').textContent = layerName;
+        document.getElementById('crumbLayer').href =
+          'layer-details.html?project_id=' +
+          encodeURIComponent(projectId) +
+          '&layer_id=' +
+          encodeURIComponent(feature.layer_id || layerId);
+        document.getElementById('crumbFeature').textContent = shortId(feature.id);
+      }
+
+      document.getElementById('queueLink').href =
+        'project-approval-que.html' + (projectId ? '?project=' + encodeURIComponent(projectId) : '');
+      document.getElementById('mapReviewLink').href =
+        'project-map-review.html' + (projectId ? '?project_id=' + encodeURIComponent(projectId) : '');
+
+      // ── Load + decisions ───────────────────────────────────────────────
+
+      async function load() {
+        if (!projectId || !featureId) {
+          document.getElementById('pageBody').style.display = 'none';
+          document.getElementById('emptyState').style.display = 'block';
+          return;
+        }
+
+        showError('');
+        try {
+          var detail = await window.FiberApi.getFeature(projectId, featureId);
+          feature = detail.feature;
+          layerId = feature.layer_id || layerIdParam;
+
+          renderHeader(detail);
+          renderPill();
+          renderPhoto();
+          renderMeta();
+          renderComparison();
+          renderPriorNote();
+          renderDecision();
+          drawFeature([]);
+          loadContext();
+        } catch (err) {
+          showError(
+            'Could not load this feature: ' + (err && err.message ? err.message : String(err))
+          );
+          document.getElementById('pageBody').style.display = 'none';
+        }
+      }
+
+      async function refreshFeature() {
+        var detail = await window.FiberApi.getFeature(projectId, featureId);
+        feature = detail.feature;
+        renderHeader(detail);
+        renderPill();
+        renderPhoto();
+        renderMeta();
+        renderComparison();
+        renderPriorNote();
+        renderDecision();
+        drawFeature([]);
+        loadContext();
+      }
+
+      async function decide(action) {
+        if (!feature || feature.status !== 'under_review' || busy) return;
+
+        var note = document.getElementById('decisionNote').value.trim();
+        if (action === 'redo' && !note) {
+          toast('Add a note so the engineer knows what to fix', 'error');
+          document.getElementById('decisionNote').focus();
+          return;
+        }
+
+        busy = true;
+        renderDecision();
+
+        try {
+          if (action === 'approve') {
+            await window.FiberApi.approveFeatures([feature.id], currentUserId(), note);
+          } else {
+            await window.FiberApi.rejectFeatures([feature.id], currentUserId(), note);
+          }
+          document.getElementById('decisionNote').value = '';
+          toast(action === 'approve' ? 'Feature approved' : 'Feature sent back for redo', 'success');
+          await refreshFeature();
+        } catch (err) {
+          toast(
+            (action === 'approve' ? 'Approve' : 'Redo request') +
+              ' failed: ' +
+              (err && err.message ? err.message : String(err)),
+            'error'
+          );
+        } finally {
+          busy = false;
+          renderDecision();
+        }
+      }
+
+      document.getElementById('approveBtn').addEventListener('click', function () {
+        decide('approve');
+      });
+      document.getElementById('redoBtn').addEventListener('click', function () {
+        decide('redo');
+      });
+
+      load();
+    </script>
+  </body>
+</html>

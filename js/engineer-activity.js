@@ -152,19 +152,25 @@ async function loadEngineerActivity(engineerId) {
     const assignments = await window.FiberApi.listAssignments({ assignee: engineerId });
     assignmentsData = Array.isArray(assignments) ? assignments : assignments?.results || [];
 
-    // Load stats if available
-    let stats = {};
+    // Feature lifecycle for this engineer. `/stats/` is the only endpoint that
+    // knows how many *features* are assigned, so the KPI row and the status
+    // breakdown come from it: a project-scope job carries 10 features but is a
+    // single job, which is why the job list alone reads as "1 feature".
+    let stats = null;
     try {
-      stats = (await window.FiberApi.getAssignmentsSummary({ assignee: engineerId })) || {};
+      stats = await window.FiberApi.getEngineerStats(engineerId);
     } catch (_) {
-      // Stats endpoint may not exist yet
+      // Endpoint unavailable: the cards fall back to the job list below.
     }
 
-    // Load activity timeline if available
+    // Load activity timeline if available. `/api/engineer/activity/` answers
+    // `{activities: [...]}`, not a DRF page, so read that key first.
     let activity = [];
     try {
       const activityData = await window.FiberApi.getEngineerActivity(engineerId);
-      activity = Array.isArray(activityData) ? activityData : activityData?.results || [];
+      activity = Array.isArray(activityData)
+        ? activityData
+        : activityData?.activities || activityData?.results || [];
     } catch (_) {
       // Activity endpoint may not exist yet
     }
@@ -179,31 +185,41 @@ async function loadEngineerActivity(engineerId) {
 
 // Dashboard Updates
 function updateDashboard(stats, activity) {
-  updateKPICards(stats);
-  updateStatusBreakdown();
+  updateKPICards(stats, activity || []);
+  updateStatusBreakdown(stats);
   updateAssignmentsTable();
   updateProjectFilter();
 }
 
-function updateKPICards(stats) {
-  // Calculate from assignments data
-  const projects = new Set();
-  const layers = new Set();
-  let featureCount = 0;
+function updateKPICards(stats, activity) {
+  const overall = (stats && stats.overall) || null;
+  const breakdown = (stats && stats.project_breakdown) || [];
 
+  // Fallback for a backend without /stats/: count distinct projects in the jobs.
+  const jobProjects = new Set();
   assignmentsData.forEach((a) => {
-    if (a.project) projects.add(a.project.id || a.project);
-    if (a.layer) layers.add(a.layer.id || a.layer);
-    if (a.scope === 'FEATURE') featureCount++;
+    const id = a.project?.id || a.project;
+    if (id) jobProjects.add(String(id));
   });
 
-  document.getElementById('statProjects').textContent = stats.total_projects || projects.size || 0;
-  document.getElementById('statLayers').textContent = stats.total_layers || layers.size || 0;
-  document.getElementById('statFeatures').textContent =
-    stats.total_features || featureCount || assignmentsData.length || 0;
+  // Layers touched in the period. The stats payload has no per-layer rollup, so
+  // read the layer names the activity feed already carries.
+  const layers = new Set();
+  activity.forEach((item) => {
+    if (item.feature && item.feature.layer_name) layers.add(item.feature.layer_name);
+  });
+
+  const projectCount = breakdown.length || (stats && stats.total_projects) || jobProjects.size;
+  const featureCount = overall
+    ? overall.total
+    : (stats && stats.total_features) || assignmentsData.length;
+
+  document.getElementById('statProjects').textContent = projectCount || 0;
+  document.getElementById('statLayers').textContent = layers.size || (stats && stats.total_layers) || 0;
+  document.getElementById('statFeatures').textContent = featureCount || 0;
 }
 
-function updateStatusBreakdown() {
+function updateStatusBreakdown(stats) {
   const counts = {
     ASSIGNED: 0,
     UNDER_REVIEW: 0,
@@ -211,12 +227,23 @@ function updateStatusBreakdown() {
     REDO: 0,
   };
 
-  assignmentsData.forEach((a) => {
-    const status = a.status || 'ASSIGNED';
-    if (counts.hasOwnProperty(status)) {
-      counts[status]++;
-    }
-  });
+  const overall = (stats && stats.overall) || null;
+
+  if (overall) {
+    // The four tiles are the field lifecycle and must add up to the feature
+    // total, so "Assigned" is the work still to do — pending rows included.
+    counts.ASSIGNED = (overall.assigned || 0) + (overall.pending || 0);
+    counts.UNDER_REVIEW = overall.under_review || 0;
+    counts.APPROVED = overall.approved || 0;
+    counts.REDO = overall.redo || 0;
+  } else {
+    assignmentsData.forEach((a) => {
+      const status = a.status || 'ASSIGNED';
+      if (counts.hasOwnProperty(status)) {
+        counts[status]++;
+      }
+    });
+  }
 
   document.getElementById('statusAssigned').textContent = counts.ASSIGNED;
   document.getElementById('statusReview').textContent = counts.UNDER_REVIEW;

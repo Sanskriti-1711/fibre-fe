@@ -203,6 +203,14 @@
       .lld-action-btn.view:hover {
         background: #e0e7ff;
       }
+      .lld-action-btn.supervise {
+        border-color: #fcd5ce;
+        color: #9f1239;
+        background: #fff1f2;
+      }
+      .lld-action-btn.supervise:hover {
+        background: #ffe4e6;
+      }
       .lld-action-btn.delete {
         border-color: #fecaca;
         color: #991b1b;
@@ -514,6 +522,22 @@
         }
       }
 
+      // A completed run is the planned baseline supervision is checked
+      // against, so the handoff carries the run identity forward: the source
+      // platform project (persisted as source_ftth_project_id) and the LLD
+      // version (shown as the baseline on the next two pages).
+      function superviseHref(run) {
+        var params = new URLSearchParams();
+        params.set('source_lld_run_id', String(run.project_id) + ':' + String(run.lld_version));
+        params.set('source_project_id', run.project_id);
+        params.set('lld_version', run.lld_version);
+        params.set(
+          'project_name',
+          (run.project_name || 'Project') + ' — Supervision ' + run.lld_version
+        );
+        return 'project-create.html?' + params.toString();
+      }
+
       async function loadRuns(silent) {
         if (!silent) {
           refreshBtn.classList.add('loading');
@@ -569,6 +593,11 @@
               layerCount +
               '</td>' +
               '<td style="text-align:right;">' +
+              (completed
+                ? '<a class="lld-action-btn supervise" href="' +
+                  superviseHref(r) +
+                  '">&#x1F6E0;&#xFE0F; Open supervision</a>'
+                : '') +
               (completed
                 ? '<a class="lld-action-btn view" href="ftth-lld-results.html?project_id=' +
                   encodeURIComponent(r.project_id) +

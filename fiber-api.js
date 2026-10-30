@@ -1,11 +1,29 @@
 (function () {
-  // Auto-detect local dev — only activates on localhost (Zeabur unaffected)
-  if (!window.FIBER_BASE_URL) {
+  /* API base resolution. Three cases, in order:
+
+     1. The page is served BY the API itself. dev/start.sh runs Django on
+        :8000 and Django serves fiber-fe from the same process, so the browser
+        only ever needs one port. Same origin is then the right base whatever
+        hostname was used: to CORS, localhost and 127.0.0.1 are different
+        origins, so a page opened at 127.0.0.1:8000 must not call
+        localhost:8000.
+     2. Another localhost port (the plain `python -m http.server` frontend,
+        still useful for a copy of the pages): the API sits on :8000 beside it.
+     3. Anything else is the hosted frontend (GitLab Pages) and keeps calling
+        the deployed backend.
+
+     This runs after any page-level `window.FIBER_BASE_URL = ...` block, so
+     case 1 wins over a hardcoded localhost:8000 in the page. */
+  (function () {
     const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') {
+    const isLocal = host === 'localhost' || host === '127.0.0.1';
+    if (isLocal && window.location.port === '8000') {
+      window.FIBER_BASE_URL = window.location.origin;
+      window.FTTH_BASE_URL = window.location.origin;
+    } else if (isLocal && !window.FIBER_BASE_URL) {
       window.FIBER_BASE_URL = 'http://localhost:8000';
     }
-  }
+  })();
 
   const BASE_URL = (window.FIBER_BASE_URL || 'https://fibre-backend-wml3.onrender.com').replace(
     /\/+$/,
