@@ -314,6 +314,10 @@
 
             <div class="mr-legend">
               <span class="swatch"><i style="background: #94a3b8"></i>Design baseline</span>
+              <span class="swatch">
+                <i style="background: repeating-linear-gradient(90deg, #b45309 0 4px, transparent 4px 7px)"></i>
+                As-built
+              </span>
               <span class="swatch"><i style="background: #10b981"></i>Approved</span>
               <span class="swatch"><i style="background: #f59e0b"></i>Under review</span>
               <span class="swatch"><i style="background: #ef4444"></i>Redo</span>
@@ -324,13 +328,18 @@
                 <input type="checkbox" id="showBaseline" checked />
                 Show design baseline
               </label>
+              <label class="toggle" for="showAsBuilt">
+                <input type="checkbox" id="showAsBuilt" checked />
+                Show as-built
+              </label>
             </div>
 
             <div class="card" style="padding: 12px">
               <div id="reviewMap" aria-label="Planned and as-built feature map"></div>
               <p class="mr-sub" style="margin: 10px 0 0">
                 Lines and points are coloured by the engineer's verification status; the grey underlay is the
-                design geometry from the imported package. Click a feature to open its audit review.
+                design geometry from the imported package, and the dashed amber line is where the crew recorded
+                the span as laid. Click a feature to open its audit review.
               </p>
             </div>
 
@@ -521,12 +530,15 @@
             if (map.getLayer(id)) map.removeLayer(id);
           });
           if (map.getSource(group.sourceId)) map.removeSource(group.sourceId);
+          if (map.getSource(group.sourceId + '-asbuilt')) {
+            map.removeSource(group.sourceId + '-asbuilt');
+          }
         });
         layerGroups = [];
         if (popup) popup.remove();
       }
 
-      function addLayerGroup(layerInfo, featureCollection) {
+      function addLayerGroup(layerInfo, featureCollection, asBuiltCollection) {
         var sourceId = 'mr-' + layerInfo.name.replace(/[^A-Za-z0-9_-]/g, '_');
         map.addSource(sourceId, { type: 'geojson', data: featureCollection });
 
@@ -597,11 +609,57 @@
         ids.push(pointId);
         clickable.push(pointId);
 
+        // As-built geometry lives in its own source and is drawn as a dashed
+        // amber overline. Separate source, not a colour override on the design
+        // line: the review has to see both at once, and removing one must not
+        // take the other with it. Deliberately not clickable — the popup
+        // resolves to the feature whose status the reviewer is judging.
+        var asBuiltIds = [];
+        var laidFeatures = (asBuiltCollection && asBuiltCollection.features) || [];
+        if (laidFeatures.length) {
+          var laidSourceId = sourceId + '-asbuilt';
+          map.addSource(laidSourceId, { type: 'geojson', data: asBuiltCollection });
+
+          var laidLineId = laidSourceId + '-line';
+          map.addLayer({
+            id: laidLineId,
+            type: 'line',
+            source: laidSourceId,
+            filter: ['==', ['geometry-type'], 'LineString'],
+            paint: {
+              'line-color': '#b45309',
+              'line-width': 4,
+              'line-opacity': 0.95,
+              'line-dasharray': [2, 2],
+            },
+            layout: { 'line-cap': 'butt', 'line-join': 'round' },
+          });
+          asBuiltIds.push(laidLineId);
+
+          var laidPointId = laidSourceId + '-point';
+          map.addLayer({
+            id: laidPointId,
+            type: 'circle',
+            source: laidSourceId,
+            filter: ['==', ['geometry-type'], 'Point'],
+            paint: {
+              'circle-color': '#b45309',
+              'circle-radius': 5,
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#ffffff',
+            },
+          });
+          asBuiltIds.push(laidPointId);
+
+          ids = ids.concat(asBuiltIds);
+        }
+
         layerGroups.push({
           name: layerInfo.name,
           sourceId: sourceId,
           ids: ids,
           clickable: clickable,
+          asBuiltIds: asBuiltIds,
           visible: true,
         });
       }
@@ -759,10 +817,34 @@
               map.setLayoutProperty(id, 'visibility', checkbox.checked ? 'visible' : 'none');
             });
             // Then let the shared "show design baseline" toggle have its say.
-            if (checkbox.checked) applyBaselineToggle();
+            if (checkbox.checked) {
+              applyBaselineToggle();
+              applyAsBuiltToggle();
+            }
           });
         });
       }
+
+      function applyAsBuiltToggle() {
+        if (!map) return;
+        var box = document.getElementById('showAsBuilt');
+        var visible = !box || box.checked;
+        layerGroups.forEach(function (group) {
+          (group.asBuiltIds || []).forEach(function (id) {
+            if (!map.getLayer(id)) return;
+            var show = visible && group.visible !== false;
+            map.setLayoutProperty(id, 'visibility', show ? 'visible' : 'none');
+          });
+        });
+      }
+
+      // Wired at the definition site rather than in a wire-up block: drawMap can
+      // run again on every project switch, and a registration there would add a
+      // second listener each time.
+      (function wireAsBuiltToggle() {
+        var box = document.getElementById('showAsBuilt');
+        if (box) box.addEventListener('change', applyAsBuiltToggle);
+      })();
 
       function applyBaselineToggle() {
         if (!map) return;
@@ -789,7 +871,11 @@
 
           layers.forEach(function (layer) {
             var collection = geojson[layer.name] || { type: 'FeatureCollection', features: [] };
-            addLayerGroup(layer, collection);
+            addLayerGroup(
+              layer,
+              collection,
+              (mapData.as_built_geojson || {})[layer.name]
+            );
           });
 
           applyBaselineToggle();
