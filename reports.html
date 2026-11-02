@@ -241,6 +241,28 @@
         color: var(--tm-gray);
       }
 
+      /* Where the laid figure came from — the amber matches the as-built
+         overlay on the map review, so the number and the drawing agree. */
+      .src-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: help;
+      }
+
+      .src-laid {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .src-reading {
+        background: #e0e7ff;
+        color: #3730a3;
+      }
+
       .btn.project {
         background: var(--tm-dark);
         color: #fff;
@@ -674,6 +696,33 @@
         );
       }
 
+      // A layer total computed from drawn geometry and one summed from typed
+      // numbers are different evidence: the first is where the span went, the
+      // second is what someone said it was. Old submissions only have readings,
+      // so the table must be able to say which one it is showing.
+      function asBuiltSource(source, length) {
+        var laid =
+          length && typeof length.laid_features === 'number' ? length.laid_features : null;
+        var measured =
+          length && typeof length.measured_features === 'number' ? length.measured_features : null;
+
+        if (source === 'geometry') {
+          return (
+            '<span class="src-badge src-laid" title="Length measured from the as-built line drawn on the map' +
+            (laid ? ' — ' + laid + ' feature' + (laid === 1 ? '' : 's') + ' with drawn geometry' : '') +
+            '">Laid geometry</span>'
+          );
+        }
+        if (source === 'measurements') {
+          return (
+            '<span class="src-badge src-reading" title="Length summed from the engineer\u2019s length readings' +
+            (measured ? ' — ' + measured + ' feature' + (measured === 1 ? '' : 's') + ' measured' : '') +
+            '">Length readings</span>'
+          );
+        }
+        return '<span class="report-muted" title="Nothing has been laid or measured on this layer yet">—</span>';
+      }
+
       function reportTable(headers, rows) {
         var head = headers
           .map(function (h) {
@@ -793,6 +842,9 @@
             '<td class="num">' +
             num(length.as_built_m, 1) +
             '</td>' +
+            '<td>' +
+            asBuiltSource(length.as_built_source, length) +
+            '</td>' +
             '<td class="num">' +
             deltaHtml(length.delta_m, 'm') +
             '</td>' +
@@ -849,6 +901,7 @@
               { label: 'Approved', num: true },
               { label: 'Planned (m)', num: true },
               { label: 'As-built (m)', num: true },
+              { label: 'As-built source' },
               { label: 'Δ (m)', num: true },
               { label: 'Δ %', num: true },
             ],
