@@ -9,7 +9,8 @@
     "format:check": "prettier --check \"**/*.{html,js,css,json,md}\"",
     "lint:js": "eslint . --ext .js",
     "lint:css": "stylelint \"**/*.css\"",
-    "ci:check": "npm run lint"
+    "ci:check": "npm run lint",
+    "ci:hygiene": "node ci/no-tracked-ignored.cjs"
   },
   "devDependencies": {
     "eslint": "^9.9.0",
