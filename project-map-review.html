@@ -83,7 +83,7 @@
       .mr-kpi .hint {
         margin-top: 4px;
         font-size: 12px;
-        color: #9ca3af;
+        color: #6b7280;
       }
 
       .mr-legend {
@@ -185,12 +185,12 @@
         font-variant-numeric: tabular-nums;
       }
       .mr-muted {
-        color: #9ca3af;
+        color: #6b7280;
       }
       .mr-mono {
         font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
         font-size: 11px;
-        color: #9ca3af;
+        color: #6b7280;
       }
 
       .mr-empty {
@@ -360,7 +360,7 @@
             <strong>No supervision project to review</strong>
             A map review needs a project with imported features.
             <p style="margin-top: 14px">
-              <a href="project-create.html">Create a supervision project</a> &nbsp;·&nbsp;
+              <a href="ftth-hld.html">Create a project</a> &nbsp;·&nbsp;
               <a href="gpkg-upload.html">Import a GeoPackage</a>
             </p>
           </div>
@@ -457,20 +457,26 @@
 
       function initMap() {
         if (map || typeof maplibregl === 'undefined') return map;
+        // CARTO light — the same basemap `js/ftth-map.js` ships as its "Light"
+        // style. The OSM tile server answers 403 ("not following the tile usage
+        // policy") to browser tile requests, which painted the map with
+        // "Access blocked" images behind the geometry.
         map = new maplibregl.Map({
           container: 'reviewMap',
           style: {
             version: 8,
             sources: {
-              osm: {
+              'carto-light': {
                 type: 'raster',
-                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'],
                 tileSize: 256,
                 attribution:
-                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                  '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>',
               },
             },
-            layers: [{ id: 'basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 }],
+            layers: [
+              { id: 'basemap', type: 'raster', source: 'carto-light', minzoom: 0, maxzoom: 20 },
+            ],
           },
           center: [0, 0],
           zoom: 2,
@@ -479,6 +485,15 @@
         map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
         map.addControl(new maplibregl.AttributionControl({ compact: true }));
         popup = new maplibregl.Popup({ closeButton: true, maxWidth: '280px' });
+
+        // The canvas is only as big as the card it sits in, and that card
+        // changes width when the nav drawer opens. MapLibre tracks the window,
+        // not the container, so resize whenever the container does.
+        if (typeof ResizeObserver !== 'undefined') {
+          new ResizeObserver(function () {
+            if (map) map.resize();
+          }).observe(document.getElementById('reviewMap'));
+        }
 
         // A click anywhere resolves against the status layers only: the grey
         // design underlay is not a target, or every click would open the
@@ -580,7 +595,13 @@
         ids.push(pointId);
         clickable.push(pointId);
 
-        layerGroups.push({ name: layerInfo.name, sourceId: sourceId, ids: ids, clickable: clickable });
+        layerGroups.push({
+          name: layerInfo.name,
+          sourceId: sourceId,
+          ids: ids,
+          clickable: clickable,
+          visible: true,
+        });
       }
 
       function walkCoords(coords, visit) {
@@ -727,19 +748,16 @@
           checkbox.addEventListener('change', function () {
             var group = layerGroups[Number(checkbox.getAttribute('data-layer-index'))];
             if (!group || !map) return;
-            var visibility = checkbox.checked ? 'visible' : 'none';
+            group.visible = checkbox.checked;
+            // A layer's five renderings move together: the two design
+            // underlays and the coloured status fills/lines/points. Restoring
+            // only the design half left a re-shown layer colourless for good.
             group.ids.forEach(function (id) {
-              if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visibility);
+              if (!map.getLayer(id)) return;
+              map.setLayoutProperty(id, 'visibility', checkbox.checked ? 'visible' : 'none');
             });
-            // The design underlay is controlled by the global toggle, not by a
-            // layer checkbox: hiding a layer must hide both of its renderings.
-            if (!checkbox.checked) {
-              group.ids.slice(0, 2).forEach(function (id) {
-                if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
-              });
-            } else {
-              applyBaselineToggle();
-            }
+            // Then let the shared "show design baseline" toggle have its say.
+            if (checkbox.checked) applyBaselineToggle();
           });
         });
       }
@@ -748,6 +766,9 @@
         if (!map) return;
         var visible = document.getElementById('showBaseline').checked;
         layerGroups.forEach(function (group) {
+          // A layer its checkbox has hidden stays hidden; this toggle must not
+          // bring half of it back.
+          if (group.visible === false) return;
           group.ids.slice(0, 2).forEach(function (id) {
             if (!map.getLayer(id)) return;
             map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');

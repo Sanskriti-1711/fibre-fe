@@ -163,7 +163,7 @@
       }
       .pm-stat .hint {
         font-size: 11px;
-        color: #9ca3af;
+        color: #6b7280;
         margin-top: 6px;
         line-height: 1.3;
       }
@@ -359,7 +359,7 @@
       .pm-empty {
         padding: 28px;
         text-align: center;
-        color: #9ca3af;
+        color: #6b7280;
         font-size: 13px;
         line-height: 1.5;
       }
@@ -577,7 +577,7 @@
       }
       .pm-guide > summary .pm-guide-caret {
         margin-left: auto;
-        color: #9ca3af;
+        color: #6b7280;
         font-size: 12px;
         transition: transform 0.15s ease;
       }
@@ -673,7 +673,7 @@
               <select id="pmProject">
                 <option value="">All projects</option>
               </select>
-              <span id="pmUpdated" class="mono" style="color: #9ca3af">—</span>
+              <span id="pmUpdated" class="mono" style="color: #6b7280">—</span>
             </div>
           </div>
 
@@ -2667,7 +2667,7 @@
               '<div class=\"pm-callout info\" style=\"margin:0 0 8px;\"><span>ℹ</span><span><strong>http_portal disabled</strong> — set <code>PERMITS_PORTAL_URL</code> (+ token) on the backend to enable.</span></div>';
         }
         html +=
-          '<div class=\"mono\" style=\"color:#9CA3AF;\">Cross-project by default — the Project picker filters polling to one project (like expiry).</div>';
+          '<div class=\"mono\" style=\"color:#6b7280;\">Cross-project by default — the Project picker filters polling to one project (like expiry).</div>';
         body.innerHTML = html;
       }
       async function doPollSync(dryRun) {
@@ -3644,8 +3644,8 @@
           .map(function (d) {
             var when = d.created_at ? new Date(d.created_at).toLocaleString() : '';
             var badge = d.is_ai_generated
-              ? '<span class="pm-badge b-ai" style="padding:1px 6px; font-size:10px;">AI</span>'
-              : '<span class="pm-badge b-det" style="padding:1px 6px; font-size:10px;">Template</span>';
+              ? '<span class="pm-badge b-ai" style="padding:1px 6px; font-size:11px;">AI</span>'
+              : '<span class="pm-badge b-det" style="padding:1px 6px; font-size:11px;">Template</span>';
             var rev = d.reviewed ? ' · ✓ reviewed' : '';
             var preview =
               esc((d.content || '').slice(0, 110).replace(/\s+/g, ' ')) + ((d.content || '').length > 110 ? '…' : '');
@@ -3660,7 +3660,7 @@
               meta +
               '</strong>' +
               badge +
-              '<span style="color:#9CA3AF;">' +
+              '<span style="color:#6b7280;">' +
               esc(when) +
               rev +
               '</span></div>' +

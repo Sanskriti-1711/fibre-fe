@@ -95,7 +95,7 @@
       }
 
       .ftth-project-name-input::placeholder {
-        color: #9ca3af;
+        color: #6b7280;
       }
 
       /* --- area mode --- */
@@ -178,7 +178,7 @@
       .ftth-field-label em {
         font-style: normal;
         font-weight: 400;
-        color: #9ca3af;
+        color: #6b7280;
       }
 
       .ftth-field-input {
@@ -687,6 +687,17 @@
 
           <!-- ============ Upload mode (unchanged) ============ -->
           <div class="ftth-upload-content" id="uploadContent" style="display: none">
+            <div style="margin-bottom: 16px">
+              <label for="projectType" style="display: block; font-weight: 600; margin-bottom: 6px">Project type</label>
+              <select id="projectType" style="width: 100%; padding: 8px 10px">
+                <option value="hld">New HLD project</option>
+                <option value="supervision">New Supervision project</option>
+              </select>
+            </div>
+            <div id="supervisionFrameWrap" style="display: none">
+              <iframe id="supervisionFrame" title="New supervision project" style="width: 100%; height: 720px; border: 0"></iframe>
+            </div>
+            <div id="hldSteps">
             <!-- Step 1: Excel file -->
             <div class="ftth-step">
               <div class="ftth-step-title">
@@ -812,6 +823,7 @@
               <span class="spinner"></span>
               <span id="runBtnText">Run Design Pipeline</span>
             </button>
+            </div>
           </div>
         </div>
       </main>
@@ -1033,6 +1045,19 @@
 
       const areaModeEl = document.getElementById('areaMode');
       const uploadContentEl = document.getElementById('uploadContent');
+      const projectTypeEl = document.getElementById('projectType');
+      const hldStepsEl = document.getElementById('hldSteps');
+      const supervisionFrameWrapEl = document.getElementById('supervisionFrameWrap');
+
+      projectTypeEl.addEventListener('change', function () {
+        const isSupervision = projectTypeEl.value === 'supervision';
+        hldStepsEl.style.display = isSupervision ? 'none' : 'block';
+        supervisionFrameWrapEl.style.display = isSupervision ? 'block' : 'none';
+        const frame = document.getElementById('supervisionFrame');
+        if (isSupervision && !frame.getAttribute('src')) {
+          frame.setAttribute('src', 'project-create.html');
+        }
+      });
       const modeAreaBtn = document.getElementById('modeAreaBtn');
       const modeUploadBtn = document.getElementById('modeUploadBtn');
       const areaCountrySelect = document.getElementById('areaCountry');
@@ -2297,7 +2322,7 @@
             const note =
               item.kind === 'city'
                 ? ''
-                : ' <span style="color:#9CA3AF">(' + escapeHtml(item.addresstype || 'place') + ')</span>';
+                : ' <span style="color:#6b7280">(' + escapeHtml(item.addresstype || 'place') + ')</span>';
             return (
               '<button type="button" data-suggest-index="' +
               i +

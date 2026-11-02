@@ -3,6 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <title>Create Project | Tech Mahindra</title>
+    <script>
+      // This form is the "New Supervision project" branch of the Create project
+      // page, where it renders inside an iframe. There it is a step of that
+      // page, so it drops its own sidebar chrome instead of showing a second one.
+      if (window.self !== window.top) document.documentElement.classList.add('embed');
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
@@ -29,6 +35,19 @@
         margin: 0;
         background: var(--tm-light);
         color: var(--tm-dark);
+      }
+
+      /* Embedded in Create project: no sidebar, no page background seam. */
+      .embed #sidebarContainer {
+        display: none !important;
+      }
+      .embed .content {
+        margin-left: 0 !important;
+        flex: 1 1 auto;
+      }
+      .embed .container > h1,
+      .embed .container > p {
+        display: none;
       }
 
       .layout {
@@ -326,7 +345,9 @@
         const newId = created && (created.uuid || created.id || created.project_uuid || created.pk);
         if (newId) {
           const carry = carryQuery();
-          window.location.href =
+          // Embedded in the HLD page's iframe: move the whole page, not just the frame.
+          const target = window.top || window;
+          target.location.href =
             'gpkg-upload.html?project_id=' +
             encodeURIComponent(newId) +
             (carry ? '&' + carry : '');

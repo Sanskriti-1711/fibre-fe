@@ -168,7 +168,7 @@
         font-size: 13px;
       }
       .ov-member .role {
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         color: #6b7280;
@@ -232,7 +232,7 @@
         width: 64px;
         font-weight: 700;
         text-transform: uppercase;
-        font-size: 10px;
+        font-size: 11px;
         letter-spacing: 0.04em;
         flex-shrink: 0;
       }
@@ -302,7 +302,7 @@
             <div class="ov-card">
               <div class="ov-card-head"><h2>&#x1F465; Team</h2></div>
               <div class="ov-card-body">
-                <div class="ov-team" id="ovTeam"><span style="color: #9ca3af; font-size: 13px">—</span></div>
+                <div class="ov-team" id="ovTeam"><span style="color: #6b7280; font-size: 13px">—</span></div>
                 <div id="ovTeamManage" style="margin-top: 14px"></div>
               </div>
             </div>
@@ -361,7 +361,7 @@
                   </button>
                 </span>
               </div>
-              <div class="ov-card-body" id="ovPermits"><span style="color: #9ca3af; font-size: 13px">—</span></div>
+              <div class="ov-card-body" id="ovPermits"><span style="color: #6b7280; font-size: 13px">—</span></div>
             </div>
 
             <!-- Timeline -->
@@ -474,7 +474,7 @@
         el.innerHTML =
           members && members.length
             ? members.map(memberChip).join('')
-            : '<span style="color:#9CA3AF;font-size:13px;">No team members recorded.</span>';
+            : '<span style="color:#6b7280;font-size:13px;">No team members recorded.</span>';
         Array.prototype.forEach.call(el.querySelectorAll('.ov-rm'), function (btn) {
           btn.addEventListener('click', function () {
             removeMember(btn.getAttribute('data-member'));
@@ -592,7 +592,7 @@
           '">&#x1F5FA;&#xFE0F; HLD Results</a>' +
           '<a class="create-btn" href="ftth-survey-changes.html?project_id=' +
           encodeURIComponent(d.project_id) +
-          '" style="background:#374151;">LLD Approval Queue</a>' +
+          '" style="background:#374151;">Survey approval Queue</a>' +
           '<a class="create-btn" href="ftth-lld-outputs.html" style="background:#374151;">LLD Outputs</a>';
 
         // Stats
@@ -654,7 +654,7 @@
         var layers = d.layers || [];
         var layersBody = document.getElementById('ovLayers');
         if (!layers.length) {
-          layersBody.innerHTML = '<tr><td colspan="4" style="color:#9CA3AF;">No layers.</td></tr>';
+          layersBody.innerHTML = '<tr><td colspan="4" style="color:#6b7280;">No layers.</td></tr>';
         } else {
           layersBody.innerHTML = layers
             .map(function (l) {
@@ -704,7 +704,7 @@
         var events = d.events || [];
         var tl = document.getElementById('ovTimeline');
         if (!events.length) {
-          tl.innerHTML = '<li style="color:#9CA3AF;">No timeline events recorded yet.</li>';
+          tl.innerHTML = '<li style="color:#6b7280;">No timeline events recorded yet.</li>';
         } else {
           tl.innerHTML = events
             .map(function (e) {
@@ -791,7 +791,7 @@
         var analyzeBtn = document.getElementById('ovPermitAnalyze');
         var pkgBtn = document.getElementById('ovPermitPackage');
         if (!bodyEl) return;
-        bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Loading permits…</span>';
+        bodyEl.innerHTML = '<span style="color:#6b7280;font-size:13px;">Loading permits…</span>';
         if (analyzeBtn) analyzeBtn.disabled = true;
         try {
           var d = await window.FtthLldApi.getProjectPermits(projectId);
@@ -905,7 +905,7 @@
                 rows +
                 '</tbody></table>' +
                 (groups.length > 8
-                  ? '<div style="font-size:12px;color:#9CA3AF;margin-top:8px;">Showing first 8 of ' +
+                  ? '<div style="font-size:12px;color:#6b7280;margin-top:8px;">Showing first 8 of ' +
                     groups.length +
                     ' permit groups (' +
                     total +
@@ -946,7 +946,7 @@
 
       async function runPermitAnalysis() {
         var bodyEl = document.getElementById('ovPermits');
-        if (bodyEl) bodyEl.innerHTML = '<span style="color:#9CA3AF;font-size:13px;">Running permit analysis…</span>';
+        if (bodyEl) bodyEl.innerHTML = '<span style="color:#6b7280;font-size:13px;">Running permit analysis…</span>';
         try {
           await window.FtthLldApi.runPermitAnalysis(projectId);
           await renderPermits();

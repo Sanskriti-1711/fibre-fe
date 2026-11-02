@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>LLD Approval Queue | Tech Mahindra</title>
+    <title>Survey approval Queue | Tech Mahindra</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
@@ -131,7 +131,7 @@
       }
       .run-lld-btn:disabled {
         background: #d1d5db;
-        color: #9ca3af;
+        color: #6b7280;
         cursor: not-allowed;
       }
 
@@ -149,7 +149,7 @@
       }
       .project-run-actions .replan-btn:disabled {
         background: #d1d5db;
-        color: #9ca3af;
+        color: #6b7280;
         cursor: not-allowed;
       }
 
@@ -343,7 +343,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 600;
         color: #6b7280;
       }
@@ -396,7 +396,7 @@
             <!-- Header -->
             <div class="survey-changes-header">
               <div>
-                <h1>LLD Approval Queue</h1>
+                <h1>Approval queue</h1>
                 <p style="margin: 4px 0 0; font-size: 13px; color: #6b7280">
                   Review survey modifications, grouped by project, before LLD generation
                 </p>
@@ -407,6 +407,14 @@
                 </button>
               </div>
             </div>
+
+            <div class="aq-tabs" role="tablist" style="display: flex; gap: 4px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px">
+              <button id="tabSurvey" class="aq-tab" type="button" role="tab" aria-selected="true" data-tab="survey" style="padding: 10px 14px; border: 0; border-bottom: 2px solid #e31837; background: none; font-weight: 600; color: #111827; cursor: pointer">Survey changes</button>
+              <button id="tabFeatures" class="aq-tab" type="button" role="tab" aria-selected="false" data-tab="features" style="padding: 10px 14px; border: 0; border-bottom: 2px solid transparent; background: none; font-weight: 600; color: #6b7280; cursor: pointer">Supervision approval</button>
+            </div>
+
+            <!-- Supervision approval (embedded queue page) -->
+            <iframe id="featureFrame" title="Supervision approval" src="about:blank" style="display: none; width: 100%; min-height: 80vh; border: 0"></iframe>
 
             <!-- Projects container (one block per project) -->
             <div id="projectsContainer">
@@ -440,6 +448,30 @@
       window.FiberAuth.requireLogin();
 
       const refreshBtn = document.getElementById('refreshBtn');
+
+      function showTab(name) {
+        const isFeatures = name === 'features';
+        const frame = document.getElementById('featureFrame');
+        if (isFeatures && frame.getAttribute('src') === 'about:blank') {
+          frame.setAttribute('src', 'project-approval-que.html?embed=1');
+        }
+        frame.style.display = isFeatures ? 'block' : 'none';
+        document.getElementById('projectsContainer').style.display = isFeatures ? 'none' : '';
+        document.getElementById('emptyState').style.display = 'none';
+        document.querySelectorAll('.aq-tab').forEach(function (tab) {
+          const active = tab.dataset.tab === name;
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+          tab.style.borderBottomColor = active ? '#e31837' : 'transparent';
+          tab.style.color = active ? '#111827' : '#6b7280';
+        });
+      }
+      document.querySelectorAll('.aq-tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          showTab(tab.dataset.tab);
+          history.replaceState(null, '', tab.dataset.tab === 'features' ? '#features' : '#survey');
+        });
+      });
+      if (location.hash === '#features') showTab('features');
       const projectsContainer = document.getElementById('projectsContainer');
       const emptyState = document.getElementById('emptyState');
       const toast = document.getElementById('toast');

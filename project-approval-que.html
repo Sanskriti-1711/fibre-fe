@@ -3,9 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <title>Approval Queue | Tech Mahindra</title>
+    <script>
+      // Opened directly, this page is merged into the Approval queue page as a tab.
+      if (new URLSearchParams(location.search).get('embed') === '1') {
+        document.documentElement.classList.add('embed');
+      } else {
+        location.replace('ftth-survey-changes.html#features');
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <style>
+      .embed #sidebarContainer,
+      .embed .aq-head {
+        display: none !important;
+      }
+      .embed .layout {
+        display: block !important;
+      }
+      .embed .content {
+        margin-left: 0 !important;
+      }
       .aq-head {
         display: flex;
         align-items: flex-start;
@@ -174,7 +192,7 @@
       }
       .aq-table th {
         text-align: left;
-        padding: 12px 14px;
+        padding: 10px 8px;
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.05em;
@@ -185,10 +203,19 @@
         white-space: nowrap;
       }
       .aq-table td {
-        padding: 12px 14px;
+        padding: 10px 8px;
         border-bottom: 1px solid #f3f4f6;
         color: #374151;
         vertical-align: middle;
+        overflow-wrap: anywhere;
+      }
+
+      /* components.css floors every `div:has(> table) > table` at 720px so that
+         wide tables scroll on tablets. This card is ~662px inside the embedded
+         Approval queue tab, so that floor was what pushed the Actions column out
+         of view. The cells wrap, so the table can follow the card instead. */
+      .aq-table-card > .aq-table {
+        min-width: 0;
       }
       .aq-table tr:last-child td {
         border-bottom: none;
@@ -202,6 +229,22 @@
         cursor: pointer;
       }
 
+      /* The row actions wrap instead of pushing the table wider than its card.
+         Before this, the three buttons held the table at 720px inside a 662px
+         card, which is what produced the horizontal scrollbar (and the clipped
+         Approve / Redo buttons) in the embedded Approval queue tab. */
+      .aq-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: flex-end;
+      }
+      /* Slightly tighter than .aq-btn.sm so Review / Approve / Redo stay on one
+         line in the ~184px of content the Actions column gets at this width. */
+      .aq-actions .aq-btn {
+        padding: 5px 8px;
+      }
+
       .aq-feature-name {
         font-weight: 600;
         color: #1f2937;
@@ -209,10 +252,10 @@
       .aq-mono {
         font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
         font-size: 11px;
-        color: #9ca3af;
+        color: #6b7280;
       }
       .aq-muted {
-        color: #9ca3af;
+        color: #6b7280;
       }
 
       .aq-badge {
@@ -495,7 +538,7 @@
                   <th>As-built</th>
                   <th>Submitted</th>
                   <th style="width: 130px">Status</th>
-                  <th style="width: 190px; text-align: right">Actions</th>
+                  <th style="width: 200px; text-align: right">Actions</th>
                 </tr>
               </thead>
               <tbody id="rowsBody">
@@ -848,7 +891,7 @@
               '<td>' +
               badge(f.status) +
               '</td>' +
-              '<td style="text-align:right">' +
+              '<td><div class="aq-actions">' +
               '<button class="aq-btn sm" type="button" data-review="' +
               esc(f.id) +
               '">Review</button> ' +
@@ -860,7 +903,7 @@
                   esc(f.id) +
                   '">Redo</button>'
                 : '') +
-              '</td>' +
+              '</div></td>' +
               '</tr>'
             );
           })

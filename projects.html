@@ -293,7 +293,7 @@
 
     function buildDynamicBar(value, hasWeights) {
       if (!hasWeights) {
-        return '<span style="font-size: 11px; color: #9CA3AF;">No weights</span>';
+        return '<span style="font-size: 11px; color: #6b7280;">No weights</span>';
       }
       const dynamic = Number(value).toFixed(1);
       return (
@@ -338,7 +338,7 @@
       // (or hung) /completion/ call on one project can't keep the whole table empty.
       tbody.innerHTML = '';
       const rowsById = new Map();
-      const placeholder = '<span style="font-size:11px;color:#9CA3AF;">…</span>';
+      const placeholder = '<span style="font-size:11px;color:#6b7280;">…</span>';
 
       list.forEach(function (p) {
         const id = pickProjectId(p);
@@ -377,13 +377,13 @@
             '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
           : '';
         const badge = isHld
-          ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
+          ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
           : isLld
-            ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#F5F3FF;color:#6D28D9;margin-right:6px;vertical-align:middle;">LLD</span> '
-            : '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:#ECFDF5;color:#059669;margin-right:6px;vertical-align:middle;">Survey</span> ';
+            ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;background:#F5F3FF;color:#6D28D9;margin-right:6px;vertical-align:middle;">LLD</span> '
+            : '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;background:#ECFDF5;color:#059669;margin-right:6px;vertical-align:middle;">Survey</span> ';
         const stdCell = isHld ? buildStandardBar(Number(p.progress) || 0) : placeholder;
         const dynCell = isHld
-          ? '<span style="font-size:11px;color:#9CA3AF;">' +
+          ? '<span style="font-size:11px;color:#6b7280;">' +
             (p.layers && p.layers.length ? p.layers.length + ' layers' : '\u2014') +
             '</span>'
           : placeholder;
@@ -395,7 +395,7 @@
             escapeHtml(assignedName) +
             '</span>' +
             (isHld && p.survey_status
-              ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700;background:' +
+              ? ' <span style="display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;background:' +
                 (p.survey_status === 'active' ? '#ECFDF5' : '#FFFBEB') +
                 ';color:' +
                 (p.survey_status === 'active' ? '#059669' : '#B45309') +
@@ -403,7 +403,7 @@
                 escapeHtml(p.survey_status) +
                 '</span>'
               : '')
-          : '<span style="font-size:11px;color:#9CA3AF;">\u2014</span>';
+          : '<span style="font-size:11px;color:#6b7280;">\u2014</span>';
         const assignBtn = isLld
           ? ''
           : '<button class="action-link assign-btn" data-id="' +
