@@ -569,6 +569,59 @@
     });
   }
 
+  // ── Stage 8: reporting ─────────────────────────────────────────────
+
+  async function getProjectAsBuiltReport(projectId) {
+    return apiFetch(`/api/projects/${encodeURIComponent(projectId)}/as-built-report/`, {
+      method: 'GET',
+    });
+  }
+
+  async function getDashboardSummary(tz) {
+    const query = tz ? `?tz=${encodeURIComponent(tz)}` : '';
+    return apiFetch(`/api/dashboard/summary/${query}`, { method: 'GET' });
+  }
+
+  /* A download keeps the server's Content-Disposition filename, and a plain
+     <a href> cannot carry the JWT — so fetch through the authenticated path,
+     read the exposed filename, and hand the blob to a temporary link. */
+  async function downloadProjectExport(projectId) {
+    const path = `/api/projects/${encodeURIComponent(projectId)}/export/`;
+
+    const send = async () => {
+      const headers = new Headers();
+      const access = getAccess();
+      if (access) headers.set('Authorization', `Bearer ${access}`);
+      return rawFetch(path, { method: 'GET', headers });
+    };
+
+    let response = await send();
+    if (response.status === 401 && getRefresh()) {
+      await refreshAccessToken();
+      response = await send();
+    }
+
+    if (!response.ok) {
+      const body = await parseBody(response);
+      throw withStatus(new Error(toErrorMessage(response, body)), response);
+    }
+
+    const disposition = response.headers.get('content-disposition') || '';
+    const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
+    const filename = match ? decodeURIComponent(match[1]) : 'project-export.xlsx';
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    return filename;
+  }
+
   const FiberAuth = {
     getAccess,
     getRefresh,
@@ -651,6 +704,9 @@
     rejectFeatures,
     getFeatureDecisions,
     getProjectDecisions,
+    getProjectAsBuiltReport,
+    getDashboardSummary,
+    downloadProjectExport,
     listSurveyChanges,
     approveSurveyChange,
     redoSurveyChange,

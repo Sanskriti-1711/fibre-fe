@@ -686,20 +686,37 @@
         return entry === undefined || entry === null || entry === '' ? '—' : String(entry);
       }
 
+      // A layer's field_schema is an ordered array of {key,label,order,unit} for
+      // every LLD-derived layer, but a plain key->meta object for older GPKG
+      // imports. Object.keys() on the array returned "0".."n" instead of field
+      // names, so the review table skipped those fields and lost the order.
+      function schemaKeys(schema) {
+        if (Array.isArray(schema)) {
+          return schema
+            .slice()
+            .sort(function (a, b) {
+              var oa = a && a.order != null ? a.order : 0;
+              var ob = b && b.order != null ? b.order : 0;
+              return oa - ob;
+            })
+            .map(function (entry) {
+              if (!entry) return null;
+              return typeof entry === 'object' ? entry.key || entry.name || null : String(entry);
+            })
+            .filter(Boolean);
+        }
+        if (schema && typeof schema === 'object') return Object.keys(schema);
+        return [];
+      }
+
       function measurementKeys(feature) {
         var out = [];
-        var schema = feature.field_schema;
-        if (schema && typeof schema === 'object') {
-          Object.keys(schema).forEach(function (k) {
-            if (!out.includes(k)) out.push(k);
-          });
-        }
-        Object.keys(feature.properties || {}).forEach(function (k) {
-          if (!out.includes(k)) out.push(k);
-        });
-        Object.keys(feature.field_measurements || {}).forEach(function (k) {
-          if (!out.includes(k)) out.push(k);
-        });
+        var push = function (k) {
+          if (k && !out.includes(k)) out.push(k);
+        };
+        schemaKeys(feature.field_schema).forEach(push);
+        Object.keys(feature.properties || {}).forEach(push);
+        Object.keys(feature.field_measurements || {}).forEach(push);
         return out;
       }
 

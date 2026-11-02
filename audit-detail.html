@@ -761,8 +761,19 @@
         schemaKeys(feature.field_schema).forEach(add);
         Object.keys(feature.properties || {}).forEach(add);
         Object.keys(feature.field_measurements || {}).forEach(add);
+
+        var props = feature.properties || {};
+        var measured = feature.field_measurements || {};
+        var hasValue = function (entry) {
+          return entry !== undefined && entry !== null && entry !== '';
+        };
         return keys.filter(function (k) {
-          return k !== 'id' && k !== 'feature_id' && k !== 'layer' && k !== 'status';
+          if (k === 'id' || k === 'feature_id' || k === 'layer' || k === 'status') {
+            return false;
+          }
+          // A field the design left empty and nobody measured has nothing to
+          // compare; it used to render as a row of three dashes.
+          return hasValue(props[k]) || hasValue(measured[k]);
         });
       }
 
@@ -783,7 +794,10 @@
         var a = numeric(planned);
         var b = numeric(measurementValue(asBuiltEntry));
         if (a === null || b === null) return '<span class="ad-muted">—</span>';
-        var diff = b - a;
+        // planned − as-built, the same direction the decision record stores
+        // (`deviation.fields[].delta`, projects/services/deviation.py) so the
+        // live table and the history card can never disagree in sign.
+        var diff = a - b;
         var unit = unitOf(asBuiltEntry);
         var text = (diff > 0 ? '+' : '') + (Math.abs(diff) < 0.005 ? '0' : diff.toFixed(2)) + (unit ? ' ' + unit : '');
         var cls = Math.abs(diff) < 0.005 ? 'exact' : 'far';
@@ -838,7 +852,7 @@
         var measuredCount = Object.keys(measured).length;
         document.getElementById('comparisonCaption').textContent = measuredCount
           ? measuredCount +
-            ' field(s) recorded by the engineer. Δ is as-built minus planned; amber means the two differ.'
+            ' field(s) recorded by the engineer. Δ is planned minus as-built; amber means the two differ.'
           : 'The engineer has not recorded any measurements for this feature yet.';
       }
 
@@ -949,13 +963,28 @@
       // The record carries its own snapshot of the comparison, taken at decision
       // time — the live table above can move afterwards (a redo, a new reading),
       // this one has to keep saying what the reviewer actually signed.
+      // The stored snapshot carries delta as planned - as_built (a shortfall
+      // reads positive). The live table above defines Δ as as-built - planned,
+      // so derive it the same way here instead of letting one page show
+      // +3.40 m and the other -3.40 m for the same field.
+      function signedDelta(row) {
+        var planned = row && row.planned;
+        var asBuilt = row && row.as_built;
+        if (planned !== null && planned !== undefined && asBuilt !== null && asBuilt !== undefined) {
+          var p = Number(planned);
+          var a = Number(asBuilt);
+          if (isFinite(p) && isFinite(a)) return a - p;
+        }
+        return Number(row && row.delta);
+      }
+
       function deviationRows(deviation) {
         var fields = (deviation && deviation.fields) || [];
         if (!fields.length) return '';
 
         var rows = fields.map(function (row) {
           var unit = row.unit ? ' ' + row.unit : '';
-          var diff = Number(row.delta);
+          var diff = signedDelta(row);
           var diffText =
             (diff > 0 ? '+' : '') +
             (Math.abs(diff) < 0.005 ? '0' : esc(diff.toFixed(2))) +

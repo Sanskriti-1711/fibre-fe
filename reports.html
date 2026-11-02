@@ -180,6 +180,71 @@
       .status.ok {
         color: #047857;
       }
+
+      /* ── Planned vs as-built + BOQ reconciliation (Stage 8) ──────────── */
+      .report-card {
+        margin-top: 28px;
+        padding: 20px;
+        background: var(--tm-white);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+      }
+
+      .report-card h2 {
+        margin: 0 0 4px;
+        font-size: 17px;
+      }
+
+      .report-card h3 {
+        margin: 26px 0 8px;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--tm-gray);
+      }
+
+      .report-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        overflow-x: auto;
+      }
+
+      .report-table th,
+      .report-table td {
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+      }
+
+      .report-table th {
+        background: var(--tm-light);
+        font-weight: 600;
+      }
+
+      .report-table .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .report-table .delta-far {
+        color: #b45309;
+        font-weight: 600;
+      }
+
+      .report-table .delta-exact {
+        color: #047857;
+      }
+
+      .report-muted {
+        font-size: 13px;
+        color: var(--tm-gray);
+      }
+
+      .btn.project {
+        background: var(--tm-dark);
+        color: #fff;
+      }
     </style>
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/main.css" />
@@ -218,6 +283,19 @@
           <div class="actions">
             <button type="button" class="btn csv" id="exportCsvBtn" disabled>Export CSV</button>
             <span class="status" id="status"></span>
+          </div>
+
+          <div class="report-card" id="asBuiltCard" hidden>
+            <h2>Planned vs as-built</h2>
+            <p class="report-muted" id="asBuiltLead"></p>
+            <div class="actions">
+              <button type="button" class="btn project" id="exportProjectBtn">
+                Export project workbook (.xlsx)
+              </button>
+              <span class="status" id="projectStatus"></span>
+            </div>
+            <div id="asBuiltBody"></div>
+            <div id="boqBody"></div>
           </div>
         </div>
       </main>
@@ -537,6 +615,7 @@
       projectSelect.addEventListener('change', function () {
         setStatus('');
         loadLayers(projectSelect.value);
+        loadAsBuilt(projectSelect.value);
       });
 
       layerSelect.addEventListener('change', function () {
@@ -546,6 +625,293 @@
       });
 
       exportBtn.addEventListener('click', exportCsv);
+
+      // ── Stage 8: planned vs as-built, BOQ reconciliation, workbook export ──
+
+      var asBuiltCard = document.getElementById('asBuiltCard');
+      var asBuiltLead = document.getElementById('asBuiltLead');
+      var asBuiltBody = document.getElementById('asBuiltBody');
+      var boqBody = document.getElementById('boqBody');
+      var projectExportBtn = document.getElementById('exportProjectBtn');
+      var projectStatusEl = document.getElementById('projectStatus');
+
+      function setProjectStatus(msg, kind) {
+        projectStatusEl.textContent = msg || '';
+        projectStatusEl.className = 'status' + (kind ? ' ' + kind : '');
+      }
+
+      function escHtml(value) {
+        return String(value === undefined || value === null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function num(value, digits) {
+        if (value === null || value === undefined) return '—';
+        var n = Number(value);
+        if (!isFinite(n)) return '—';
+        return n.toLocaleString(undefined, {
+          maximumFractionDigits: digits === undefined ? 2 : digits,
+        });
+      }
+
+      // Same direction as the decision record and the audit view: planned minus
+      // as-built, so a shortfall reads negative everywhere.
+      function deltaHtml(value, unit) {
+        if (value === null || value === undefined) return '<span class="report-muted">—</span>';
+        var n = Number(value);
+        var cls = Math.abs(n) < 0.005 ? 'delta-exact' : 'delta-far';
+        return (
+          '<span class="' +
+          cls +
+          '">' +
+          (n > 0 ? '+' : '') +
+          num(n) +
+          (unit ? ' ' + unit : '') +
+          '</span>'
+        );
+      }
+
+      function reportTable(headers, rows) {
+        var head = headers
+          .map(function (h) {
+            return '<th' + (h.num ? ' class="num"' : '') + '>' + escHtml(h.label) + '</th>';
+          })
+          .join('');
+        return (
+          '<table class="report-table"><thead><tr>' +
+          head +
+          '</tr></thead><tbody>' +
+          rows.join('') +
+          '</tbody></table>'
+        );
+      }
+
+      function renderBoq(boq) {
+        if (!boq.available) {
+          boqBody.innerHTML =
+            '<h3>BOQ reconciliation</h3><p class="report-muted">' +
+            escHtml(boq.reason || 'No BOQ snapshot for this project.') +
+            '</p>';
+          return;
+        }
+
+        var length = boq.length || {};
+        var sectionRows = (boq.sections || []).map(function (section) {
+          var names = (section.layers || [])
+            .map(function (layer) {
+              return layer.layer_name || layer.layer_id;
+            })
+            .join(', ');
+          return (
+            '<tr>' +
+            '<td>' +
+            escHtml(section.section) +
+            '</td>' +
+            '<td class="num">' +
+            num(section.boq_metres, 1) +
+            '</td>' +
+            '<td>' +
+            (names ? escHtml(names) : '<span class="report-muted">no supervision layer</span>') +
+            '</td>' +
+            '<td class="num">' +
+            (names ? num(section.planned_m, 1) : '—') +
+            '</td>' +
+            '<td class="num">' +
+            (names ? num(section.as_built_m, 1) : '—') +
+            '</td>' +
+            '<td class="num">' +
+            deltaHtml(section.delta_m, 'm') +
+            '</td>' +
+            '</tr>'
+          );
+        });
+
+        boqBody.innerHTML =
+          '<h3>BOQ reconciliation</h3>' +
+          '<p class="report-muted">' +
+          num(length.boq_m, 1) +
+          ' m priced in the BOQ · ' +
+          num(length.as_built_m, 1) +
+          ' m recorded as laid · Δ ' +
+          deltaHtml(length.delta_vs_as_built_m, 'm') +
+          (length.delta_pct === null || length.delta_pct === undefined
+            ? ''
+            : ' (' + deltaHtml(length.delta_pct, '%') + ')') +
+          '</p>' +
+          reportTable(
+            [
+              { label: 'BOQ section' },
+              { label: 'Priced (m)', num: true },
+              { label: 'Matched layer' },
+              { label: 'Planned (m)', num: true },
+              { label: 'As-built (m)', num: true },
+              { label: 'Δ (m)', num: true },
+            ],
+            sectionRows
+          );
+      }
+
+      function renderAsBuilt(report) {
+        var layers = (report && report.layers) || [];
+        if (!layers.length) {
+          asBuiltBody.innerHTML =
+            '<p class="report-muted">This project has no imported features yet, so there is nothing to compare.</p>';
+          boqBody.innerHTML = '';
+          return;
+        }
+
+        var totals = report.totals || {};
+        asBuiltLead.textContent =
+          num(totals.features, 0) +
+          ' features · ' +
+          num(totals.completion_percentage, 1) +
+          '% approved · ' +
+          num(totals.planned_length_m, 1) +
+          ' m designed vs ' +
+          num(totals.as_built_length_m, 1) +
+          ' m recorded as laid';
+
+        var layerRows = layers.map(function (layer) {
+          var length = layer.length || {};
+          return (
+            '<tr>' +
+            '<td>' +
+            escHtml(layer.layer_name || layer.layer_id) +
+            '</td>' +
+            '<td class="num">' +
+            num(layer.feature_count, 0) +
+            '</td>' +
+            '<td class="num">' +
+            num((layer.status_counts || {}).approved, 0) +
+            '</td>' +
+            '<td class="num">' +
+            num(length.planned_m, 1) +
+            '</td>' +
+            '<td class="num">' +
+            num(length.as_built_m, 1) +
+            '</td>' +
+            '<td class="num">' +
+            deltaHtml(length.delta_m, 'm') +
+            '</td>' +
+            '<td class="num">' +
+            deltaHtml(length.delta_pct, '%') +
+            '</td>' +
+            '</tr>'
+          );
+        });
+
+        var fieldRows = [];
+        layers.forEach(function (layer) {
+          (layer.fields || []).forEach(function (field) {
+            if (field.planned_total === null && field.as_built_total === null) return;
+            fieldRows.push(
+              '<tr>' +
+                '<td>' +
+                escHtml(layer.layer_name || layer.layer_id) +
+                '</td>' +
+                '<td>' +
+                escHtml(field.key) +
+                '</td>' +
+                '<td>' +
+                escHtml(field.unit || '') +
+                '</td>' +
+                '<td class="num">' +
+                num(field.planned_total) +
+                '</td>' +
+                '<td class="num">' +
+                num(field.as_built_total) +
+                '</td>' +
+                '<td class="num">' +
+                deltaHtml(field.delta, '') +
+                '</td>' +
+                '<td class="num">' +
+                num(field.measured_features, 0) +
+                '/' +
+                num(field.planned_features, 0) +
+                '</td>' +
+                '<td class="num">' +
+                num(field.outside_features, 0) +
+                '</td>' +
+                '</tr>'
+            );
+          });
+        });
+
+        asBuiltBody.innerHTML =
+          '<h3>Per layer</h3>' +
+          reportTable(
+            [
+              { label: 'Layer' },
+              { label: 'Features', num: true },
+              { label: 'Approved', num: true },
+              { label: 'Planned (m)', num: true },
+              { label: 'As-built (m)', num: true },
+              { label: 'Δ (m)', num: true },
+              { label: 'Δ %', num: true },
+            ],
+            layerRows
+          ) +
+          (fieldRows.length
+            ? '<h3>Measured fields</h3>' +
+              reportTable(
+                [
+                  { label: 'Layer' },
+                  { label: 'Field' },
+                  { label: 'Unit' },
+                  { label: 'Planned', num: true },
+                  { label: 'As-built', num: true },
+                  { label: 'Δ', num: true },
+                  { label: 'Measured', num: true },
+                  { label: 'Outside tolerance', num: true },
+                ],
+                fieldRows
+              )
+            : '<p class="report-muted">No numeric attribute has been measured yet, so only lengths can be compared.</p>');
+
+        renderBoq(report.boq || {});
+      }
+
+      async function loadAsBuilt(projectId) {
+        if (!projectId) {
+          asBuiltCard.hidden = true;
+          return;
+        }
+        asBuiltCard.hidden = false;
+        asBuiltLead.textContent = '';
+        asBuiltBody.innerHTML = '<p class="report-muted">Loading the as-built report…</p>';
+        boqBody.innerHTML = '';
+        setProjectStatus('');
+        try {
+          renderAsBuilt(await window.FiberApi.getProjectAsBuiltReport(projectId));
+        } catch (err) {
+          asBuiltBody.innerHTML = '';
+          boqBody.innerHTML = '';
+          setProjectStatus(
+            'Could not load the as-built report: ' + ((err && err.message) || err),
+            'error'
+          );
+        }
+      }
+
+      projectExportBtn.addEventListener('click', async function () {
+        var projectId = projectSelect.value;
+        if (!projectId) {
+          setProjectStatus('Select a project first.', 'error');
+          return;
+        }
+        projectExportBtn.disabled = true;
+        setProjectStatus('Building the workbook…');
+        try {
+          setProjectStatus('Downloaded ' + (await window.FiberApi.downloadProjectExport(projectId)), 'ok');
+        } catch (err) {
+          setProjectStatus('Export failed: ' + ((err && err.message) || err), 'error');
+        } finally {
+          projectExportBtn.disabled = false;
+        }
+      });
 
       loadProjects();
     </script>

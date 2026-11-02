@@ -207,6 +207,21 @@
         margin-bottom: 24px;
       }
 
+      /* The supervision KPI is the fifth card: auto-fit keeps one row of cards
+     wide enough for the label instead of wrapping a lone card. `.dash-kpis`
+     is doubled so this wins whatever order the base rule is declared in. */
+      .dash-kpis.dash-kpis {
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      }
+
+      .dash-kpi.kpi-supervision {
+        border-top: 3px solid #b45309;
+      }
+
+      .dash-kpi.kpi-supervision .kpi-icon {
+        color: #b45309;
+      }
+
       .dash-stage {
         position: relative;
 
@@ -1290,6 +1305,18 @@
 
         <!-- ══════ KPI grid ══════ -->
         <div class="dash-kpis">
+          <a class="dash-kpi kpi-supervision" href="projects-completion.html">
+            <div class="kpi-top">
+              <span class="kpi-label">Supervision</span>
+              <span class="kpi-icon">🛠️</span>
+            </div>
+            <div class="kpi-bottom">
+              <div>
+                <div class="kpi-value" id="kpiSupervision">–</div>
+                <div class="kpi-note" id="kpiSupervisionNote">loading…</div>
+              </div>
+            </div>
+          </a>
           <a class="dash-kpi kpi-survey" href="ftth-survey-changes.html">
             <div class="kpi-top">
               <span class="kpi-label">Pending Reviews</span>
@@ -2371,6 +2398,40 @@
           FtthUI.describeCanvas($('sparkPermit'), 'Permit groups per project.');
         }
 
+        /* ── supervision (Stage 8: /api/dashboard/summary/) ────────────── */
+        var supervisionSummary = null;
+
+        async function loadSummary() {
+          try {
+            supervisionSummary = await window.FiberApi.getDashboardSummary(
+              Intl.DateTimeFormat().resolvedOptions().timeZone
+            );
+          } catch (_) {
+            supervisionSummary = null;
+          }
+        }
+
+        function renderSupervision() {
+          var value = $('kpiSupervision');
+          var note = $('kpiSupervisionNote');
+          if (!supervisionSummary) {
+            value.textContent = '–';
+            note.textContent = 'summary unavailable';
+            return;
+          }
+          var features = supervisionSummary.features || {};
+          var engineers = supervisionSummary.engineers || {};
+          var approved = features.approved || 0;
+          var total = features.total || 0;
+          value.textContent = (supervisionSummary.overall_completion || 0) + '%';
+          note.textContent =
+            approved +
+            ' of ' +
+            total +
+            ' approved' +
+            (engineers.active_today ? ' · ' + engineers.active_today + ' crew active today' : '');
+        }
+
         /* ── master loader ────────────────────────────────────────────── */
         async function loadAll() {
           if (loading) return;
@@ -2379,7 +2440,14 @@
           btn.classList.add('is-busy');
           btn.disabled = true;
 
-          await Promise.all([loadHld(), loadQueue(), loadRuns(), loadPermits(), loadTotal()]);
+          await Promise.all([
+            loadHld(),
+            loadQueue(),
+            loadRuns(),
+            loadPermits(),
+            loadTotal(),
+            loadSummary(),
+          ]);
 
           try {
             renderRail();
@@ -2388,6 +2456,7 @@
             renderQueueTable($('queueSearch').value.trim());
             renderTimeline();
             renderStatus();
+            renderSupervision();
             describeCharts();
           } catch (renderErr) {
             console.error('Dashboard render failed:', renderErr);
