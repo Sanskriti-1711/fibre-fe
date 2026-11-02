@@ -519,6 +519,27 @@
     });
   }
 
+  // ── Supervision decisions (append-only approval evidence) ───────────
+  async function getFeatureDecisions(featureId) {
+    const id = encodeURIComponent(featureId);
+    return apiFetch(`/api/features/${id}/decisions/`, { method: 'GET' });
+  }
+
+  async function getProjectDecisions(projectId, params) {
+    const id = encodeURIComponent(projectId);
+    const query =
+      params && typeof params === 'object'
+        ? Object.keys(params)
+            .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+            .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(params[k])}`)
+            .join('&')
+        : '';
+    const path = query
+      ? `/api/projects/${id}/decisions/?${query}`
+      : `/api/projects/${id}/decisions/`;
+    return apiFetch(path, { method: 'GET' });
+  }
+
   // ── Survey Changes (SurveyFeature) APIs ─────────────────────────────
   async function listSurveyChanges(params) {
     const query =
@@ -628,6 +649,8 @@
     submitFeatures,
     approveFeatures,
     rejectFeatures,
+    getFeatureDecisions,
+    getProjectDecisions,
     listSurveyChanges,
     approveSurveyChange,
     redoSurveyChange,

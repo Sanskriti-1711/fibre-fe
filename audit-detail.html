@@ -265,6 +265,64 @@
         line-height: 1.5;
       }
 
+      .ad-dec {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 12px;
+      }
+      .ad-dec-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .ad-dec-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 11px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #e5e7eb;
+        background: #f3f4f6;
+        color: #374151;
+      }
+      .ad-dec-badge.deviation {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #b45309;
+      }
+      .ad-dec-badge.as-designed {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: #065f46;
+      }
+      .ad-dec-badge.redo {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+      }
+      .ad-dec-when {
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .ad-dec-reason {
+        margin: 10px 0 0;
+        font-size: 13px;
+        line-height: 1.55;
+        color: #374151;
+      }
+      .ad-dec-tol {
+        margin: 8px 0 0;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .ad-dec .ad-cmp {
+        margin-top: 10px;
+      }
+
       .ad-empty {
         text-align: center;
         padding: 60px 20px;
@@ -389,6 +447,18 @@
             </div>
 
             <div class="card" style="margin-top: 18px">
+              <h3>Decision history</h3>
+              <p class="ad-map-caption" style="margin-top: 0">
+                Every time a reviewer accepted this feature outside its layer's tolerance, with the comparison as it
+                stood at that moment. Append-only — re-approving after a redo adds the next record rather than
+                replacing this one.
+              </p>
+              <div id="decisionHistory">
+                <p class="ad-muted" style="margin: 0">Loading…</p>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
               <h3>Decision</h3>
               <div id="priorNote"></div>
               <label class="ad-note-label" for="decisionNote">Review note</label>
@@ -398,8 +468,9 @@
                 placeholder="What did you check, and what does the engineer need to fix?"
               ></textarea>
               <p class="ad-note-hint" id="noteHint">
-                A redo note is stored on the feature and shown to the engineer. Notes sent with an approval are not
-                persisted yet — the backend has no approval-notes column (integration gap G5).
+                A redo note is stored on the feature and shown to the engineer. An approval note is kept with the
+                decision: if the readings fall outside the layer's tolerance, it is written to the decision history
+                above, along with the planned and as-built values behind it.
               </p>
               <div class="ad-actions">
                 <button id="approveBtn" class="ad-btn approve" type="button" disabled>Approve</button>
@@ -836,6 +907,135 @@
         }
       }
 
+      // ── Decision history (append-only evidence) ────────────────────────
+
+      var DECISION_STYLE = {
+        approved_with_deviation: { label: 'Approved with deviation', cls: 'deviation' },
+        approved: { label: 'Approved as designed', cls: 'as-designed' },
+        redo: { label: 'Sent back for rework', cls: 'redo' },
+      };
+
+      function numberText(value) {
+        var n = Number(value);
+        if (!isFinite(n)) return String(value === undefined || value === null ? '—' : value);
+        return String(Math.round(n * 1000) / 1000);
+      }
+
+      // The record carries its own snapshot of the comparison, taken at decision
+      // time — the live table above can move afterwards (a redo, a new reading),
+      // this one has to keep saying what the reviewer actually signed.
+      function deviationRows(deviation) {
+        var fields = (deviation && deviation.fields) || [];
+        if (!fields.length) return '';
+
+        var rows = fields.map(function (row) {
+          var unit = row.unit ? ' ' + row.unit : '';
+          var diff = Number(row.delta);
+          var diffText =
+            (diff > 0 ? '+' : '') +
+            (Math.abs(diff) < 0.005 ? '0' : esc(diff.toFixed(2))) +
+            esc(unit);
+          return (
+            '<tr>' +
+            '<td class="field">' +
+            esc(row.key) +
+            '</td>' +
+            '<td>' +
+            esc(numberText(row.planned)) +
+            esc(unit) +
+            '</td>' +
+            '<td>' +
+            esc(numberText(row.as_built)) +
+            esc(unit) +
+            '</td>' +
+            '<td><span class="delta ' +
+            (row.within_tolerance ? 'exact' : 'far') +
+            '">' +
+            diffText +
+            '</span></td>' +
+            '</tr>'
+          );
+        });
+
+        return (
+          '<table class="ad-cmp">' +
+          '<thead><tr>' +
+          '<th style="width: 40%">Field</th>' +
+          '<th style="width: 26%">Planned</th>' +
+          '<th style="width: 24%">As-built</th>' +
+          '<th style="width: 10%">Δ</th>' +
+          '</tr></thead><tbody>' +
+          rows.join('') +
+          '</tbody></table>'
+        );
+      }
+
+      function renderHistory(records) {
+        var host = document.getElementById('decisionHistory');
+
+        if (!records.length) {
+          host.innerHTML =
+            '<p class="ad-muted" style="margin: 0">No decisions recorded yet. A record appears here when a ' +
+            'reviewer accepts work outside the layer\'s tolerance — approved-as-designed never writes one.</p>';
+          return;
+        }
+
+        host.innerHTML = records
+          .map(function (record) {
+            var style = DECISION_STYLE[record.decision] || {
+              label: record.decision,
+              cls: '',
+            };
+            var deviation = record.deviation || {};
+            var outside = Number(deviation.outside_tolerance || 0);
+            var tolerance = Number(deviation.tolerance || 0);
+            var toleranceText = tolerance ? ' · tolerance ' + numberText(tolerance) : '';
+
+            return (
+              '<div class="ad-dec">' +
+              '<div class="ad-dec-head">' +
+              '<span class="ad-dec-badge ' +
+              esc(style.cls) +
+              '">' +
+              esc(style.label) +
+              '</span>' +
+              '<span class="ad-dec-when">' +
+              esc(formatDate(record.created_at)) +
+              ' · ' +
+              esc(record.reviewer || 'reviewer unknown') +
+              '</span>' +
+              '</div>' +
+              (record.reason ? '<p class="ad-dec-reason">' + esc(record.reason) + '</p>' : '') +
+              '<p class="ad-dec-tol">' +
+              (outside
+                ? esc(outside) + ' field(s) outside the tolerance'
+                : 'Inside the tolerance') +
+              esc(toleranceText) +
+              ' · layer ' +
+              esc(record.layer_name || record.layer_id || '—') +
+              '</p>' +
+              deviationRows(deviation) +
+              '</div>'
+            );
+          })
+          .join('');
+      }
+
+      async function loadDecisionHistory() {
+        var host = document.getElementById('decisionHistory');
+        try {
+          var body = await window.FiberApi.getFeatureDecisions(feature.id);
+          renderHistory((body && body.results) || []);
+        } catch (err) {
+          // Evidence, not the page: a failure here must not hide the comparison
+          // or the decision buttons.
+          host.innerHTML =
+            '<p class="ad-muted" style="margin: 0">Could not load decision history: ' +
+            esc(err && err.message ? err.message : String(err)) +
+            '</p>';
+        }
+      }
+
       function renderHeader(detail) {
         var layerName = feature.layer_name || layerId || 'Feature';
         document.getElementById('auditTitle').textContent = 'Audit review — ' + layerName;
@@ -881,6 +1081,7 @@
           renderComparison();
           renderPriorNote();
           renderDecision();
+          loadDecisionHistory();
           drawFeature([]);
           loadContext();
         } catch (err) {
