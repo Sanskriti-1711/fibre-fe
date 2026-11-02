@@ -727,13 +727,38 @@
         return String(entry);
       }
 
+      // A layer's field_schema has two shapes: an ordered array of
+      // {key,label,order,unit} entries (every LLD-derived layer — the handoff
+      // derives it from the LLD attribute schema) and a plain key->meta object
+      // (older GPKG imports). Object.keys() on the array returned "0".."40", so
+      // the table rendered a block of empty numeric rows above the real
+      // attributes. Read the key off each entry instead, in schema order.
+      function schemaKeys(schema) {
+        if (Array.isArray(schema)) {
+          return schema
+            .slice()
+            .sort(function (a, b) {
+              var oa = a && a.order != null ? a.order : 0;
+              var ob = b && b.order != null ? b.order : 0;
+              return oa - ob;
+            })
+            .map(function (entry) {
+              if (!entry) return null;
+              return typeof entry === 'object' ? entry.key || entry.name || null : String(entry);
+            })
+            .filter(Boolean);
+        }
+        if (schema && typeof schema === 'object') return Object.keys(schema);
+        return [];
+      }
+
       function comparableKeys() {
         var keys = [];
         var add = function (k) {
-          if (!keys.includes(k)) keys.push(k);
+          if (!k || keys.includes(k)) return;
+          keys.push(k);
         };
-        var schema = feature.field_schema;
-        if (schema && typeof schema === 'object') Object.keys(schema).forEach(add);
+        schemaKeys(feature.field_schema).forEach(add);
         Object.keys(feature.properties || {}).forEach(add);
         Object.keys(feature.field_measurements || {}).forEach(add);
         return keys.filter(function (k) {
