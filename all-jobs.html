@@ -36,19 +36,19 @@
           <div class="stats">
             <div class="stat-card total">
               <div class="stat-value" id="statTotal">0</div>
-              <div class="stat-label">Total Jobs Assigned</div>
+              <div class="stat-label">Total Jobs</div>
             </div>
             <div class="stat-card pending">
               <div class="stat-value" id="statUnderReview">0</div>
-              <div class="stat-label">Under Review</div>
+              <div class="stat-label">Features Under Review</div>
             </div>
             <div class="stat-card completed">
               <div class="stat-value" id="statApproved">0</div>
-              <div class="stat-label">Approved</div>
+              <div class="stat-label">Features Approved</div>
             </div>
             <div class="stat-card inprogress">
               <div class="stat-value" id="statRedo">0</div>
-              <div class="stat-label">Redo</div>
+              <div class="stat-label">Features Redo</div>
             </div>
           </div>
 
@@ -260,7 +260,9 @@
           totalJobsCount = response.count || allJobs.length;
           // Update stats from response if available
           if (response.stats) {
-            updateStatsFromResponse(response.stats);
+            // The card is "Total Jobs", so it takes the job count: `stats`
+            // counts the features those jobs cover, not the jobs themselves.
+            updateStatsFromResponse(response.stats, totalJobsCount);
           }
           renderJobs();
           renderPagination(totalJobsCount);
@@ -274,8 +276,8 @@
       }
 
       // Update stats cards from API response stats
-      function updateStatsFromResponse(stats) {
-        document.getElementById('statTotal').textContent = stats.assigned || 0;
+      function updateStatsFromResponse(stats, jobCount) {
+        document.getElementById('statTotal').textContent = jobCount || 0;
         document.getElementById('statUnderReview').textContent = stats.under_review || 0;
         document.getElementById('statApproved').textContent = stats.approved || 0;
         document.getElementById('statRedo').textContent = stats.redo || 0;
