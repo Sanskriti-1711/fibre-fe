@@ -968,17 +968,18 @@
       // The record carries its own snapshot of the comparison, taken at decision
       // time — the live table above can move afterwards (a redo, a new reading),
       // this one has to keep saying what the reviewer actually signed.
-      // The stored snapshot carries delta as planned - as_built (a shortfall
-      // reads positive). The live table above defines Δ as as-built - planned,
-      // so derive it the same way here instead of letting one page show
-      // +3.40 m and the other -3.40 m for the same field.
+      // Δ is planned − as-built everywhere on this page (deltaCell above, the
+      // backend's stored `deviation.fields[].delta`, and the caption), so the
+      // history card derives the same direction — a shortfall reads positive —
+      // instead of letting one section show +3.40 m and the other −3.40 m for
+      // the same field.
       function signedDelta(row) {
         var planned = row && row.planned;
         var asBuilt = row && row.as_built;
         if (planned !== null && planned !== undefined && asBuilt !== null && asBuilt !== undefined) {
           var p = Number(planned);
           var a = Number(asBuilt);
-          if (isFinite(p) && isFinite(a)) return a - p;
+          if (isFinite(p) && isFinite(a)) return p - a;
         }
         return Number(row && row.delta);
       }
