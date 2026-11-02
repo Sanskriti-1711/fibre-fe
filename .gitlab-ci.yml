@@ -40,6 +40,9 @@ lint:
 hygiene:
   stage: lint
   image: node:20-alpine
+  before_script:
+    # node:20-alpine ships without git; the check shells out to `git ls-files`.
+    - apk add --no-cache git > /dev/null
   script:
     - node ci/no-tracked-ignored.cjs
   rules:
