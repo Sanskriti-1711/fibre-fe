@@ -11,3 +11,7 @@ node_modules/
 /extract_*.js
 /clean_runs.js
 /temp_queue.js
+
+# npm cache written by `npm ci --cache .npm`; never a source file, and it
+# must not ride into the Pages bundle.
+.npm/
