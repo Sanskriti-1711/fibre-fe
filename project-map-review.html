@@ -337,9 +337,9 @@
             <div class="card" style="padding: 12px">
               <div id="reviewMap" aria-label="Planned and as-built feature map"></div>
               <p class="mr-sub" style="margin: 10px 0 0">
-                Lines and points are coloured by the engineer's verification status; the grey underlay is the
-                design geometry from the imported package, and the dashed amber line is where the crew recorded
-                the span as laid. Click a feature to open its audit review.
+                Lines and points are coloured by the engineer's verification status; the grey underlay is the design
+                geometry from the imported package, and the dashed amber line is where the crew recorded the span as
+                laid. Click a feature to open its audit review.
               </p>
             </div>
 
@@ -481,13 +481,10 @@
                 type: 'raster',
                 tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
                 tileSize: 256,
-                attribution:
-                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
               },
             },
-            layers: [
-              { id: 'basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 },
-            ],
+            layers: [{ id: 'basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 }],
           },
           center: [0, 0],
           zoom: 2,
@@ -731,18 +728,14 @@
 
       function renderKpis(completion, mapData) {
         var total = (mapData.features || []).length;
-        var standard = completion && typeof completion.standard_completion === 'number'
-          ? completion.standard_completion
-          : null;
-        var weighted = completion && typeof completion.dynamic_completion === 'number'
-          ? completion.dynamic_completion
-          : null;
-        var approved = completion && typeof completion.approved_features === 'number'
-          ? completion.approved_features
-          : null;
+        var standard =
+          completion && typeof completion.standard_completion === 'number' ? completion.standard_completion : null;
+        var weighted =
+          completion && typeof completion.dynamic_completion === 'number' ? completion.dynamic_completion : null;
+        var approved =
+          completion && typeof completion.approved_features === 'number' ? completion.approved_features : null;
 
-        document.getElementById('kpiStandard').textContent =
-          standard === null ? '—' : Math.round(standard) + '%';
+        document.getElementById('kpiStandard').textContent = standard === null ? '—' : Math.round(standard) + '%';
         document.getElementById('kpiStandardHint').textContent =
           approved === null || !completion.total_features
             ? 'of all mapped features'
@@ -751,11 +744,9 @@
         // Weighted completion only means something once the project defines
         // layer weights; without them every layer takes an equal share and the
         // number is just the standard one in disguise.
-        document.getElementById('kpiWeighted').textContent =
-          weighted === null ? '—' : Math.round(weighted) + '%';
-        document.getElementById('kpiWeightedHint').textContent = completion && completion.weights_defined
-          ? 'layer-weighted completion'
-          : 'no layer weights defined yet';
+        document.getElementById('kpiWeighted').textContent = weighted === null ? '—' : Math.round(weighted) + '%';
+        document.getElementById('kpiWeightedHint').textContent =
+          completion && completion.weights_defined ? 'layer-weighted completion' : 'no layer weights defined yet';
 
         document.getElementById('kpiFeatures').textContent = total;
         document.getElementById('kpiFeaturesHint').textContent =
@@ -768,9 +759,8 @@
           var completion = completionByLayer[layer.name] || null;
           var approved = completion ? completion.approved_features : null;
           var total = completion ? completion.total_features : null;
-          var pct = completion && typeof completion.progress_percentage === 'number'
-            ? completion.progress_percentage
-            : null;
+          var pct =
+            completion && typeof completion.progress_percentage === 'number' ? completion.progress_percentage : null;
 
           var bar =
             pct === null
@@ -791,10 +781,18 @@
             '" aria-label="Show ' +
             esc(layer.name) +
             '" /></td>' +
-            '<td>' + esc(layer.name) + '</td>' +
-            '<td class="mr-muted">' + esc(layer.type || '—') + '</td>' +
-            '<td>' + bar + '</td>' +
-            '<td>' + (total === null ? '<span class="mr-muted">—</span>' : approved + ' / ' + total) + '</td>' +
+            '<td>' +
+            esc(layer.name) +
+            '</td>' +
+            '<td class="mr-muted">' +
+            esc(layer.type || '—') +
+            '</td>' +
+            '<td>' +
+            bar +
+            '</td>' +
+            '<td>' +
+            (total === null ? '<span class="mr-muted">—</span>' : approved + ' / ' + total) +
+            '</td>' +
             '</tr>'
           );
         });
@@ -871,11 +869,7 @@
 
           layers.forEach(function (layer) {
             var collection = geojson[layer.name] || { type: 'FeatureCollection', features: [] };
-            addLayerGroup(
-              layer,
-              collection,
-              (mapData.as_built_geojson || {})[layer.name]
-            );
+            addLayerGroup(layer, collection, (mapData.as_built_geojson || {})[layer.name]);
           });
 
           applyBaselineToggle();
@@ -898,8 +892,7 @@
         if (!projects.length) {
           emptyState.style.display = 'block';
           reviewBody.style.display = 'none';
-          document.getElementById('pageSubtitle').textContent =
-            'No projects yet — import a design package first.';
+          document.getElementById('pageSubtitle').textContent = 'No projects yet — import a design package first.';
           return;
         }
 
@@ -910,7 +903,12 @@
           projectSelect.appendChild(option);
         });
 
-        if (projectId && projects.some(function (p) { return pickId(p) === projectId; })) {
+        if (
+          projectId &&
+          projects.some(function (p) {
+            return pickId(p) === projectId;
+          })
+        ) {
           projectSelect.value = projectId;
         } else {
           projectId = pickId(projects[0]);
@@ -963,9 +961,7 @@
           drawMap(mapData);
           renderLayerRows(mapData);
         } catch (err) {
-          showError(
-            'Could not load this project map: ' + (err && err.message ? err.message : String(err))
-          );
+          showError('Could not load this project map: ' + (err && err.message ? err.message : String(err)));
           reviewBody.style.display = 'none';
         } finally {
           busy = false;

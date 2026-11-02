@@ -311,9 +311,7 @@
             <h2>Planned vs as-built</h2>
             <p class="report-muted" id="asBuiltLead"></p>
             <div class="actions">
-              <button type="button" class="btn project" id="exportProjectBtn">
-                Export project workbook (.xlsx)
-              </button>
+              <button type="button" class="btn project" id="exportProjectBtn">Export project workbook (.xlsx)</button>
               <span class="status" id="projectStatus"></span>
             </div>
             <div id="asBuiltBody"></div>
@@ -685,15 +683,7 @@
         if (value === null || value === undefined) return '<span class="report-muted">—</span>';
         var n = Number(value);
         var cls = Math.abs(n) < 0.005 ? 'delta-exact' : 'delta-far';
-        return (
-          '<span class="' +
-          cls +
-          '">' +
-          (n > 0 ? '+' : '') +
-          num(n) +
-          (unit ? ' ' + unit : '') +
-          '</span>'
-        );
+        return '<span class="' + cls + '">' + (n > 0 ? '+' : '') + num(n) + (unit ? ' ' + unit : '') + '</span>';
       }
 
       // A layer total computed from drawn geometry and one summed from typed
@@ -701,10 +691,8 @@
       // second is what someone said it was. Old submissions only have readings,
       // so the table must be able to say which one it is showing.
       function asBuiltSource(source, length) {
-        var laid =
-          length && typeof length.laid_features === 'number' ? length.laid_features : null;
-        var measured =
-          length && typeof length.measured_features === 'number' ? length.measured_features : null;
+        var laid = length && typeof length.laid_features === 'number' ? length.laid_features : null;
+        var measured = length && typeof length.measured_features === 'number' ? length.measured_features : null;
 
         if (source === 'geometry') {
           return (
@@ -730,11 +718,7 @@
           })
           .join('');
         return (
-          '<table class="report-table"><thead><tr>' +
-          head +
-          '</tr></thead><tbody>' +
-          rows.join('') +
-          '</tbody></table>'
+          '<table class="report-table"><thead><tr>' + head + '</tr></thead><tbody>' + rows.join('') + '</tbody></table>'
         );
       }
 
@@ -942,10 +926,7 @@
         } catch (err) {
           asBuiltBody.innerHTML = '';
           boqBody.innerHTML = '';
-          setProjectStatus(
-            'Could not load the as-built report: ' + ((err && err.message) || err),
-            'error'
-          );
+          setProjectStatus('Could not load the as-built report: ' + ((err && err.message) || err), 'error');
         }
       }
 

@@ -695,134 +695,140 @@
               </select>
             </div>
             <div id="supervisionFrameWrap" style="display: none">
-              <iframe id="supervisionFrame" title="New supervision project" style="width: 100%; height: 720px; border: 0"></iframe>
+              <iframe
+                id="supervisionFrame"
+                title="New supervision project"
+                style="width: 100%; height: 720px; border: 0"
+              ></iframe>
             </div>
             <div id="hldSteps">
-            <!-- Step 1: Excel file -->
-            <div class="ftth-step">
-              <div class="ftth-step-title">
-                <span class="ftth-step-number">1</span>
-                Upload Excel File
+              <!-- Step 1: Excel file -->
+              <div class="ftth-step">
+                <div class="ftth-step-title">
+                  <span class="ftth-step-number">1</span>
+                  Upload Excel File
+                </div>
+                <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
+                  Boundary data, building locations, and design parameters
+                </p>
+                <div id="excelDropzone"></div>
               </div>
-              <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
-                Boundary data, building locations, and design parameters
-              </p>
-              <div id="excelDropzone"></div>
-            </div>
 
-            <!-- Step 2: Roads file -->
-            <div class="ftth-step">
-              <div class="ftth-step-title">
-                <span class="ftth-step-number">2</span>
-                Upload Roads File
+              <!-- Step 2: Roads file -->
+              <div class="ftth-step">
+                <div class="ftth-step-title">
+                  <span class="ftth-step-number">2</span>
+                  Upload Roads File
+                </div>
+                <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
+                  Road network GIS data (.gpkg, .geojson, .shp)
+                </p>
+                <div id="roadsDropzone"></div>
               </div>
-              <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
-                Road network GIS data (.gpkg, .geojson, .shp)
-              </p>
-              <div id="roadsDropzone"></div>
-            </div>
 
-            <!-- Step 3: Brownfield / existing infrastructure (optional) -->
-            <div class="ftth-step">
-              <div class="ftth-step-title">
-                <span class="ftth-step-number" style="background: #6b7280">3</span>
-                Existing Infrastructure
-                <span style="font-weight: 400; color: #6b7280; font-size: 13px">(optional)</span>
-              </div>
-              <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
-                ZIP of existing ducts, chambers, poles, fibre, trenches, PDPs and MFGs — enables reuse of current
-                network
-              </p>
-              <div id="brownfieldDropzone"></div>
-              <label
-                style="
-                  display: flex;
-                  gap: 10px;
-                  align-items: flex-start;
-                  padding: 10px 0 0 36px;
-                  font-size: 13px;
-                  color: #374151;
-                  cursor: pointer;
-                "
-              >
-                <input id="useBrownfield" type="checkbox" checked style="margin-top: 3px" />
-                <span>
-                  <strong>Reuse existing infrastructure</strong>
-                  <span style="display: block; color: #6b7280; margin-top: 2px">
-                    Off designs every duct and trench fresh, ignoring both the archive and this project's previously
-                    published network.
+              <!-- Step 3: Brownfield / existing infrastructure (optional) -->
+              <div class="ftth-step">
+                <div class="ftth-step-title">
+                  <span class="ftth-step-number" style="background: #6b7280">3</span>
+                  Existing Infrastructure
+                  <span style="font-weight: 400; color: #6b7280; font-size: 13px">(optional)</span>
+                </div>
+                <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
+                  ZIP of existing ducts, chambers, poles, fibre, trenches, PDPs and MFGs — enables reuse of current
+                  network
+                </p>
+                <div id="brownfieldDropzone"></div>
+                <label
+                  style="
+                    display: flex;
+                    gap: 10px;
+                    align-items: flex-start;
+                    padding: 10px 0 0 36px;
+                    font-size: 13px;
+                    color: #374151;
+                    cursor: pointer;
+                  "
+                >
+                  <input id="useBrownfield" type="checkbox" checked style="margin-top: 3px" />
+                  <span>
+                    <strong>Reuse existing infrastructure</strong>
+                    <span style="display: block; color: #6b7280; margin-top: 2px">
+                      Off designs every duct and trench fresh, ignoring both the archive and this project's previously
+                      published network.
+                    </span>
                   </span>
-                </span>
-              </label>
-            </div>
+                </label>
+              </div>
 
-            <!-- Step 4: OSM reference layers (optional) -->
-            <div class="ftth-step">
-              <div class="ftth-step-title">
-                <span class="ftth-step-number" style="background: #6b7280">4</span>
-                OSM Reference Layers <span style="font-weight: 400; color: #6b7280; font-size: 13px">(optional)</span>
+              <!-- Step 4: OSM reference layers (optional) -->
+              <div class="ftth-step">
+                <div class="ftth-step-title">
+                  <span class="ftth-step-number" style="background: #6b7280">4</span>
+                  OSM Reference Layers <span style="font-weight: 400; color: #6b7280; font-size: 13px">(optional)</span>
+                </div>
+                <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
+                  Routing constraints from the OSM extract: railways / waterways / water / natural feed the polygon
+                  barrier rule, and landuse is used for aerial-zone classification of non-diggable drop legs. Each layer
+                  that loads is logged with the run.
+                </p>
+                <div
+                  style="
+                    padding-left: 36px;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                    gap: 12px;
+                  "
+                >
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🚃 Railways</div>
+                    <div id="railwaysDropzone"></div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">
+                      💧 Waterways
+                    </div>
+                    <div id="waterwaysDropzone"></div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🌊 Water</div>
+                    <div id="waterDropzone"></div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🌲 Landuse</div>
+                    <div id="landuseDropzone"></div>
+                  </div>
+                  <div>
+                    <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🌿 Natural</div>
+                    <div id="naturalDropzone"></div>
+                  </div>
+                </div>
               </div>
-              <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
-                Routing constraints from the OSM extract: railways / waterways / water / natural feed the polygon
-                barrier rule, and landuse is used for aerial-zone classification of non-diggable drop legs. Each layer
-                that loads is logged with the run.
-              </p>
-              <div
-                style="
-                  padding-left: 36px;
-                  display: grid;
-                  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-                  gap: 12px;
-                "
-              >
-                <div>
-                  <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🚃 Railways</div>
-                  <div id="railwaysDropzone"></div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">💧 Waterways</div>
-                  <div id="waterwaysDropzone"></div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🌊 Water</div>
-                  <div id="waterDropzone"></div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🌲 Landuse</div>
-                  <div id="landuseDropzone"></div>
-                </div>
-                <div>
-                  <div style="font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px">🌿 Natural</div>
-                  <div id="naturalDropzone"></div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Step 5: Project Name (optional) -->
-            <div class="ftth-step">
-              <div class="ftth-step-title">
-                <span class="ftth-step-number" style="background: #6b7280">5</span>
-                Project Name <span style="font-weight: 400; color: #6b7280; font-size: 13px">(optional)</span>
+              <!-- Step 5: Project Name (optional) -->
+              <div class="ftth-step">
+                <div class="ftth-step-title">
+                  <span class="ftth-step-number" style="background: #6b7280">5</span>
+                  Project Name <span style="font-weight: 400; color: #6b7280; font-size: 13px">(optional)</span>
+                </div>
+                <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
+                  Give your design a recognizable name
+                </p>
+                <div style="padding-left: 36px">
+                  <input
+                    id="projectName"
+                    class="ftth-project-name-input"
+                    type="text"
+                    placeholder="e.g. Downtown Berlin FTTH Design"
+                    maxlength="100"
+                  />
+                </div>
               </div>
-              <p style="margin: -4px 0 12px; font-size: 13px; color: #6b7280; padding-left: 36px">
-                Give your design a recognizable name
-              </p>
-              <div style="padding-left: 36px">
-                <input
-                  id="projectName"
-                  class="ftth-project-name-input"
-                  type="text"
-                  placeholder="e.g. Downtown Berlin FTTH Design"
-                  maxlength="100"
-                />
-              </div>
-            </div>
 
-            <!-- Run button -->
-            <button id="runBtn" class="ftth-run-btn" type="button">
-              <span class="spinner"></span>
-              <span id="runBtnText">Run Design Pipeline</span>
-            </button>
+              <!-- Run button -->
+              <button id="runBtn" class="ftth-run-btn" type="button">
+                <span class="spinner"></span>
+                <span id="runBtnText">Run Design Pipeline</span>
+              </button>
             </div>
           </div>
         </div>

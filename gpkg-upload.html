@@ -360,9 +360,7 @@
           baseline.style.fontSize = '13px';
           baseline.style.color = 'var(--tm-gray)';
           baseline.textContent =
-            'Planned baseline: LLD ' +
-            lldVersion +
-            ' — read-only. Supervision records what was built beside it.';
+            'Planned baseline: LLD ' + lldVersion + ' — read-only. Supervision records what was built beside it.';
           document.getElementById('projectInfo').appendChild(baseline);
         }
       } else {
@@ -523,8 +521,7 @@
         await window.FiberApi.importLayers(projectId, selectedLayers);
         showStatus('importStatus', `Successfully imported ${selectedLayers.length} layer(s).`, false);
         setTimeout(() => {
-          window.location.href =
-            'project-details.html?project_id=' + encodeURIComponent(projectId);
+          window.location.href = 'project-details.html?project_id=' + encodeURIComponent(projectId);
         }, 1500);
       } catch (e) {
         showStatus('importStatus', e && FtthUI.humanize(e) ? FtthUI.humanize(e) : 'Failed to import layers.', true);

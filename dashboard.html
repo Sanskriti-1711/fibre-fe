@@ -2440,14 +2440,7 @@
           btn.classList.add('is-busy');
           btn.disabled = true;
 
-          await Promise.all([
-            loadHld(),
-            loadQueue(),
-            loadRuns(),
-            loadPermits(),
-            loadTotal(),
-            loadSummary(),
-          ]);
+          await Promise.all([loadHld(), loadQueue(), loadRuns(), loadPermits(), loadTotal(), loadSummary()]);
 
           try {
             renderRail();

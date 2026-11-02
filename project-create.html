@@ -273,9 +273,7 @@
       var nameEl = document.getElementById('projectName');
       var descEl = document.getElementById('projectDescription');
       if (nameEl && !nameEl.value) {
-        nameEl.value =
-          sourceParams.get('project_name') ||
-          (sourceLldVersion ? 'Supervision ' + sourceLldVersion : '');
+        nameEl.value = sourceParams.get('project_name') || (sourceLldVersion ? 'Supervision ' + sourceLldVersion : '');
       }
       if (descEl && !descEl.value) {
         descEl.value = sourceLldVersion
@@ -364,8 +362,7 @@
             try {
               const handoff = await window.FiberApi.handoffFromLld(newId);
               setCreateProjectMsg(
-                'Baseline imported: ' + handoff.features_created + ' features across ' +
-                  handoff.layers + ' layers.',
+                'Baseline imported: ' + handoff.features_created + ' features across ' + handoff.layers + ' layers.',
                 false
               );
             } catch (e) {
@@ -385,9 +382,7 @@
           }
 
           target.location.href =
-            'gpkg-upload.html?project_id=' +
-            encodeURIComponent(newId) +
-            (carry ? '&' + carry : '');
+            'gpkg-upload.html?project_id=' + encodeURIComponent(newId) + (carry ? '&' + carry : '');
         }
       } catch (e) {
         setCreateProjectMsg(e && e.message ? e.message : 'Failed to create project.', true);

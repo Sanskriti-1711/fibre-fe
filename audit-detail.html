@@ -450,8 +450,8 @@
               <h3>Decision history</h3>
               <p class="ad-map-caption" style="margin-top: 0">
                 Every time a reviewer accepted this feature outside its layer's tolerance, with the comparison as it
-                stood at that moment. Append-only — re-approving after a redo adds the next record rather than
-                replacing this one.
+                stood at that moment. Append-only — re-approving after a redo adds the next record rather than replacing
+                this one.
               </p>
               <div id="decisionHistory">
                 <p class="ad-muted" style="margin: 0">Loading…</p>
@@ -579,8 +579,7 @@
                 type: 'raster',
                 tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
                 tileSize: 256,
-                attribution:
-                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
               },
             },
             layers: [{ id: 'basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 }],
@@ -665,16 +664,18 @@
 
         var draw = function () {
           var statusColor = (STATUS_STYLE[feature.status] || STATUS_STYLE.pending).map;
-          addGeometryLayers(
-            'context-layer',
-            '#9ca3af',
-            { data: { type: 'FeatureCollection', features: contextFeatures || [] }, opacity: 0.85, width: 2, radius: 4 }
-          );
-          addGeometryLayers(
-            'feature-layer',
-            statusColor,
-            { data: { type: 'FeatureCollection', features: [currentGeoJson()] }, opacity: 1, width: 4, radius: 7 }
-          );
+          addGeometryLayers('context-layer', '#9ca3af', {
+            data: { type: 'FeatureCollection', features: contextFeatures || [] },
+            opacity: 0.85,
+            width: 2,
+            radius: 4,
+          });
+          addGeometryLayers('feature-layer', statusColor, {
+            data: { type: 'FeatureCollection', features: [currentGeoJson()] },
+            opacity: 1,
+            width: 4,
+            radius: 7,
+          });
 
           var bounds = boundsOf([currentGeoJson()].concat(contextFeatures || []));
           if (bounds) {
@@ -700,10 +701,9 @@
         try {
           // apiFetch, not rawFetch: /map-data/ requires the JWT, and rawFetch
           // does not add it — the neighbouring features silently vanished.
-          var body = await window.FiberApi.apiFetch(
-            '/api/projects/' + encodeURIComponent(projectId) + '/map-data/',
-            { method: 'GET' }
-          );
+          var body = await window.FiberApi.apiFetch('/api/projects/' + encodeURIComponent(projectId) + '/map-data/', {
+            method: 'GET',
+          });
           var layerName = feature.layer_name;
           var context = ((body && body.features) || []).filter(function (f) {
             var props = f.properties || {};
@@ -941,7 +941,7 @@
               : feature.status === 'redo'
                 ? 'Sent back for redo — the engineer re-submits before another decision can be made.'
                 : 'A decision becomes available once the engineer submits this feature for review (now: ' +
-                  ((STATUS_STYLE[feature.status] || STATUS_STYLE.pending).label) +
+                  (STATUS_STYLE[feature.status] || STATUS_STYLE.pending).label +
                   ').';
         }
       }
@@ -985,10 +985,7 @@
         var rows = fields.map(function (row) {
           var unit = row.unit ? ' ' + row.unit : '';
           var diff = signedDelta(row);
-          var diffText =
-            (diff > 0 ? '+' : '') +
-            (Math.abs(diff) < 0.005 ? '0' : esc(diff.toFixed(2))) +
-            esc(unit);
+          var diffText = (diff > 0 ? '+' : '') + (Math.abs(diff) < 0.005 ? '0' : esc(diff.toFixed(2))) + esc(unit);
           return (
             '<tr>' +
             '<td class="field">' +
@@ -1030,7 +1027,7 @@
         if (!records.length) {
           host.innerHTML =
             '<p class="ad-muted" style="margin: 0">No decisions recorded yet. A record appears here when a ' +
-            'reviewer accepts work outside the layer\'s tolerance — approved-as-designed never writes one.</p>';
+            "reviewer accepts work outside the layer's tolerance — approved-as-designed never writes one.</p>";
           return;
         }
 
@@ -1061,9 +1058,7 @@
               '</div>' +
               (record.reason ? '<p class="ad-dec-reason">' + esc(record.reason) + '</p>' : '') +
               '<p class="ad-dec-tol">' +
-              (outside
-                ? esc(outside) + ' field(s) outside the tolerance'
-                : 'Inside the tolerance') +
+              (outside ? esc(outside) + ' field(s) outside the tolerance' : 'Inside the tolerance') +
               esc(toleranceText) +
               ' · layer ' +
               esc(record.layer_name || record.layer_id || '—') +
@@ -1139,9 +1134,7 @@
           drawFeature([]);
           loadContext();
         } catch (err) {
-          showError(
-            'Could not load this feature: ' + (err && err.message ? err.message : String(err))
-          );
+          showError('Could not load this feature: ' + (err && err.message ? err.message : String(err)));
           document.getElementById('pageBody').style.display = 'none';
         }
       }

@@ -215,7 +215,8 @@ function updateKPICards(stats, activity) {
     : (stats && stats.total_features) || assignmentsData.length;
 
   document.getElementById('statProjects').textContent = projectCount || 0;
-  document.getElementById('statLayers').textContent = layers.size || (stats && stats.total_layers) || 0;
+  document.getElementById('statLayers').textContent =
+    layers.size || (stats && stats.total_layers) || 0;
   document.getElementById('statFeatures').textContent = featureCount || 0;
 }
 

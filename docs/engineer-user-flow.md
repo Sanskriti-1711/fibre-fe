@@ -1,6 +1,7 @@
 # Field Engineer User Flow - Backend
 
 ## Overview
+
 This document describes the complete user flow for **Field Engineer** users in the Fiber platform backend, including all API endpoints, authentication requirements, and workflows.
 
 ---
@@ -8,15 +9,18 @@ This document describes the complete user flow for **Field Engineer** users in t
 ## 1. Authentication Flow
 
 ### Login
+
 **Endpoint:** `POST /api/users/login/`
 
 **Flow:**
+
 1. Engineer submits email and password
 2. Backend validates credentials and returns JWT tokens (access + refresh)
 3. Frontend stores tokens for subsequent authenticated requests
 4. Token includes user role information (`ENGINEER`)
 
 **Request:**
+
 ```json
 {
   "email": "eng1@example.com",
@@ -25,6 +29,7 @@ This document describes the complete user flow for **Field Engineer** users in t
 ```
 
 **Response:**
+
 ```json
 {
   "access": "<jwt_access_token>",
@@ -38,9 +43,11 @@ This document describes the complete user flow for **Field Engineer** users in t
 ```
 
 ### Token Refresh
+
 **Endpoint:** `POST /api/users/token/refresh/`
 
 **Flow:**
+
 1. When access token expires, use refresh token to get new access token
 2. Backend validates refresh token and issues new access token
 
@@ -49,30 +56,37 @@ This document describes the complete user flow for **Field Engineer** users in t
 ## 2. Dashboard & Assignment Overview
 
 ### List Assignment Jobs
+
 **Endpoint:** `GET /api/assignments/`
 
 **Query Parameters:**
+
 - `?assignee={engineer_id}` - Filter by own user ID
 - `?project={proj_id}` - Filter by project
 - `?scope=feature|layer|project` - Filter by scope type
 
 **Flow:**
+
 1. Engineer views dashboard
 2. Backend returns all assignments for this engineer
 3. Engineer sees assigned projects, layers, and individual features
 
 ### Assignment Summary
+
 **Endpoint:** `GET /api/assignments/summary/`
 
 **Query Parameters:**
+
 - `?assignee={engineer_id}` (required for engineer view)
 
 **Flow:**
+
 1. Engineer views summary of all assignments
 2. Backend groups assignments by scope type
 3. Returns counts: project, layer, feature
 
 **Response:**
+
 ```json
 {
   "counts": {
@@ -89,23 +103,28 @@ This document describes the complete user flow for **Field Engineer** users in t
 ```
 
 ### View Engineer Activity Timeline
+
 **Endpoint:** `GET /api/engineer/activity/`
 
 **Query Parameters:**
+
 - `?engineer={engineer_id}` (required - must be own ID)
 - `?days={n}` - Lookback period (default: 30)
 
 **Flow:**
+
 1. Engineer views activity dashboard or profile
 2. Backend returns chronological timeline of:
    - New assignments received
    - Feature status changes (submitted, approved, rejected)
 
 **Activity Types:**
+
 - `assignment` - New work assigned
 - `feature_update` - Status change on assigned features
 
 **Response:**
+
 ```json
 {
   "engineer_id": "uuid",
@@ -144,13 +163,16 @@ This document describes the complete user flow for **Field Engineer** users in t
 ```
 
 ### View Personal Statistics
+
 **Endpoint:** `GET /api/engineer/stats/`
 
 **Query Parameters:**
+
 - `?engineer={engineer_id}` (required - must be own ID)
 - `?days={n}` - Period for daily breakdown (default: 30)
 
 **Flow:**
+
 1. Engineer views performance dashboard
 2. Backend calculates personal metrics:
    - Overall stats (total assigned, approved, under review, redo, etc.)
@@ -159,6 +181,7 @@ This document describes the complete user flow for **Field Engineer** users in t
    - Project-by-project breakdown
 
 **Response:**
+
 ```json
 {
   "engineer_id": "uuid",
@@ -203,24 +226,30 @@ This document describes the complete user flow for **Field Engineer** users in t
 ## 3. Project & Layer Access
 
 ### List Assigned Projects
+
 **Endpoint:** `GET /api/projects/`
 
 **Flow:**
+
 1. Engineer views available projects
 2. Backend returns projects (all active projects)
 3. Engineer identifies which projects they have assignments for
 
 ### Get Project Details
+
 **Endpoint:** `GET /api/projects/{proj_id}/`
 
 **Flow:**
+
 1. Engineer selects project to work on
 2. Backend returns project details
 
 ### List Project Layers
+
 **Endpoint:** `GET /api/projects/{proj_id}/layers/`
 
 **Flow:**
+
 1. Engineer views project layers
 2. Backend returns all layers with:
    - Feature counts
@@ -228,9 +257,11 @@ This document describes the complete user flow for **Field Engineer** users in t
    - Layer metadata
 
 ### Get Layer Details
+
 **Endpoint:** `GET /api/projects/{proj_id}/layers/{layer_id}/`
 
 **Flow:**
+
 1. Engineer views specific layer
 2. Backend returns layer with all features
 3. Engineer identifies assigned features within layer
@@ -240,9 +271,11 @@ This document describes the complete user flow for **Field Engineer** users in t
 ## 4. Feature Work Workflow
 
 ### View Assigned Features
+
 **Endpoint:** `GET /api/projects/{proj_id}/features/{feature_id}/`
 
 **Flow:**
+
 1. Engineer navigates to specific feature
 2. Backend returns feature details:
    - Properties (from GPKG import)
@@ -252,15 +285,18 @@ This document describes the complete user flow for **Field Engineer** users in t
    - Photo URL (if uploaded)
 
 ### Update Field Measurements
+
 **Endpoint:** `PATCH /api/features/{feature_id}/field-measurements/`
 
 **Flow:**
+
 1. Engineer takes on-site measurements
 2. Submits measurements via mobile/web app
 3. Backend validates and stores measurements
 4. Adds comparison notes about differences from plan
 
 **Request:**
+
 ```json
 {
   "field_measurements": {
@@ -273,6 +309,7 @@ This document describes the complete user flow for **Field Engineer** users in t
 ```
 
 **Response:**
+
 ```json
 {
   "id": "feature_uuid",
@@ -287,9 +324,11 @@ This document describes the complete user flow for **Field Engineer** users in t
 ```
 
 ### Upload Feature Photo
+
 **Endpoint:** `POST /api/features/{feature_id}/upload-photo/`
 
 **Flow:**
+
 1. Engineer takes site photo
 2. Uploads via form data
 3. Backend validates:
@@ -298,15 +337,18 @@ This document describes the complete user flow for **Field Engineer** users in t
 4. Stores photo and returns URL
 
 **Request Headers:**
+
 ```
 Content-Type: multipart/form-data
 Authorization: Bearer <access_token>
 ```
 
 **Form Data:**
+
 - `photo`: Image file
 
 **Response:**
+
 ```json
 {
   "id": "feature_uuid",
@@ -316,6 +358,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 ```json
 {"detail": "No photo provided"}
 {"detail": "Invalid file type. Only JPEG and PNG are allowed."}
@@ -327,9 +370,11 @@ Authorization: Bearer <access_token>
 ## 5. Submission Workflow
 
 ### Submit Features for Review
+
 **Endpoint:** `POST /api/features/submit/`
 
 **Flow:**
+
 1. Engineer completes work on assigned features
 2. Selects features ready for review
 3. Backend validates:
@@ -340,6 +385,7 @@ Authorization: Bearer <access_token>
 6. Features now appear in admin review queue
 
 **Request:**
+
 ```json
 {
   "feature_ids": ["feature_uuid_1", "feature_uuid_2"],
@@ -348,6 +394,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Response:**
+
 ```json
 {
   "submitted_count": 2,
@@ -358,6 +405,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Validation Errors:**
+
 ```json
 {
   "detail": "Features not found or not assigned: ['feature_uuid_3']"
@@ -367,9 +415,7 @@ Authorization: Bearer <access_token>
 ```json
 {
   "detail": "Some features cannot be submitted",
-  "invalid_features": [
-    {"id": "feature_uuid_1", "status": "approved"}
-  ]
+  "invalid_features": [{ "id": "feature_uuid_1", "status": "approved" }]
 }
 ```
 
@@ -424,29 +470,32 @@ Authorization: Bearer <access_token>
 
 ### Status Descriptions:
 
-| Status | Description | Engineer Actions |
-|--------|-------------|------------------|
-| `pending` | Feature not yet assigned | Wait for assignment |
-| `assigned` | Feature assigned to engineer | Work on feature, update measurements, upload photos, submit |
-| `under_review` | Submitted, awaiting admin approval | Wait for review |
-| `approved` | Work approved by admin | Complete - no further action |
-| `redo` | Rejected by admin, needs corrections | Review notes, correct issues, re-submit |
+| Status         | Description                          | Engineer Actions                                            |
+| -------------- | ------------------------------------ | ----------------------------------------------------------- |
+| `pending`      | Feature not yet assigned             | Wait for assignment                                         |
+| `assigned`     | Feature assigned to engineer         | Work on feature, update measurements, upload photos, submit |
+| `under_review` | Submitted, awaiting admin approval   | Wait for review                                             |
+| `approved`     | Work approved by admin               | Complete - no further action                                |
+| `redo`         | Rejected by admin, needs corrections | Review notes, correct issues, re-submit                     |
 
 ---
 
 ## 7. Working with Different Assignment Scopes
 
 ### Project Scope Assignment
+
 - Engineer assigned to entire project
 - Access to all features across all layers
 - Can submit any feature within project
 
 ### Layer Scope Assignment
+
 - Engineer assigned to specific layer within project
 - Access to all features in that layer only
 - Cannot work on features in other layers unless separately assigned
 
 ### Feature Scope Assignment
+
 - Engineer assigned to specific individual features
 - Access only to those specific features
 - Typically used for targeted corrections or specific tasks
@@ -456,11 +505,13 @@ Authorization: Bearer <access_token>
 ## 8. API Authentication
 
 All endpoints require:
+
 ```
 Authorization: Bearer <access_token>
 ```
 
 **Important Notes:**
+
 - Engineer can only access their own assignments
 - Backend validates that engineer_id matches the authenticated user
 - Attempting to access other engineers' data returns 403 Forbidden
@@ -470,6 +521,7 @@ Authorization: Bearer <access_token>
 ## 9. Error Handling
 
 ### Common HTTP Status Codes:
+
 - `200 OK` - Success
 - `201 Created` - Resource created
 - `400 Bad Request` - Invalid input
@@ -480,6 +532,7 @@ Authorization: Bearer <access_token>
 ### Common Error Responses:
 
 **Not Assigned:**
+
 ```json
 {
   "detail": "Features not found or not assigned: ['feature_uuid']"
@@ -487,16 +540,16 @@ Authorization: Bearer <access_token>
 ```
 
 **Invalid Status for Submission:**
+
 ```json
 {
   "detail": "Some features cannot be submitted",
-  "invalid_features": [
-    {"id": "feature_uuid", "status": "approved"}
-  ]
+  "invalid_features": [{ "id": "feature_uuid", "status": "approved" }]
 }
 ```
 
 **Missing Required Parameter:**
+
 ```json
 {
   "detail": "engineer query parameter is required"
@@ -532,11 +585,13 @@ Authorization: Bearer <access_token>
 ## 11. Data Synchronization Notes
 
 ### Offline Considerations:
+
 - Photos should be queued for upload when connection available
 - Field measurements can be saved locally and synced
 - Submission requires online connection to validate assignments
 
 ### Real-time Updates:
+
 - Activity timeline reflects server state
 - Status changes from admin appear in activity feed
 - New assignments trigger notifications
