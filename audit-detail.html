@@ -496,6 +496,11 @@
 
     <script src="partials/sidebar-loader.js"></script>
     <script src="js/ftth-ui.js"></script>
+    <!-- Every other page loads this before its inline base override; this one
+         did not, so the `|| localhost` fallback below became the value and the
+         deployed build sent every request to localhost:8000 (the audit page
+         sat on "Loading feature…" with no console error to show for it). -->
+    <script src="js/ftth-config.js"></script>
     <script>
       window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
     </script>
