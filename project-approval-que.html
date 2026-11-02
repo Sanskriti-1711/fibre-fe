@@ -467,8 +467,8 @@
             <div>
               <h1>Approval Queue</h1>
               <p class="sub">
-                Engineer submissions waiting on a decision. Approving a feature counts it toward supervision
-                completion; requesting a redo sends it back with your note.
+                Engineer submissions waiting on a decision. Approving a feature counts it toward supervision completion;
+                requesting a redo sends it back with your note.
               </p>
             </div>
             <div style="display: flex; gap: 8px; align-items: center">
@@ -579,7 +579,11 @@
             Tell the engineer what needs correcting. The note is stored on the feature and shown to them.
           </p>
           <label class="aq-note-label" for="redoReason">Reason</label>
-          <textarea id="redoReason" class="aq-note" placeholder="e.g. Span offset ~3 m from the design alignment"></textarea>
+          <textarea
+            id="redoReason"
+            class="aq-note"
+            placeholder="e.g. Span offset ~3 m from the design alignment"
+          ></textarea>
         </div>
         <footer>
           <button class="aq-btn" type="button" id="redoCancel">Cancel</button>
@@ -628,9 +632,7 @@
       function syncMapReviewLink() {
         mapReviewLink.href =
           'project-map-review.html' +
-          (filterProject.value
-            ? '?project_id=' + encodeURIComponent(filterProject.value)
-            : '');
+          (filterProject.value ? '?project_id=' + encodeURIComponent(filterProject.value) : '');
       }
 
       function esc(value) {
@@ -929,9 +931,11 @@
         var selectable = list.filter(function (row) {
           return row.feature.status === 'under_review';
         });
-        selectAll.checked = selectable.length > 0 && selectable.every(function (row) {
-          return selected.has(row.feature.id);
-        });
+        selectAll.checked =
+          selectable.length > 0 &&
+          selectable.every(function (row) {
+            return selected.has(row.feature.id);
+          });
         selectAll.indeterminate =
           !selectAll.checked &&
           selectable.some(function (row) {
@@ -1010,8 +1014,7 @@
         if (!reviewRow) return;
 
         var f = reviewRow.feature;
-        document.getElementById('reviewTitle').textContent =
-          reviewRow.layer.name + ' · ' + reviewRow.project.name;
+        document.getElementById('reviewTitle').textContent = reviewRow.layer.name + ' · ' + reviewRow.project.name;
         document.getElementById('reviewSubtitle').textContent = f.id;
 
         var measurements = f.field_measurements || {};
@@ -1022,14 +1025,9 @@
           .map(function (key) {
             var planned = f.properties ? f.properties[key] : undefined;
             var asBuilt = key in measurements ? measurementValue(measurements[key]) : '—';
-            var plannedText =
-              planned === undefined || planned === null || planned === ''
-                ? '—'
-                : String(planned);
+            var plannedText = planned === undefined || planned === null || planned === '' ? '—' : String(planned);
             var differs =
-              key in measurements &&
-              asBuilt !== '—' &&
-              String(asBuilt).replace(/\s+\S+$/, '') !== plannedText;
+              key in measurements && asBuilt !== '—' && String(asBuilt).replace(/\s+\S+$/, '') !== plannedText;
             return (
               '<tr>' +
               '<td class="label">' +

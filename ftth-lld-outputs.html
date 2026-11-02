@@ -531,10 +531,7 @@
         params.set('source_lld_run_id', String(run.project_id) + ':' + String(run.lld_version));
         params.set('source_project_id', run.project_id);
         params.set('lld_version', run.lld_version);
-        params.set(
-          'project_name',
-          (run.project_name || 'Project') + ' — Supervision ' + run.lld_version
-        );
+        params.set('project_name', (run.project_name || 'Project') + ' — Supervision ' + run.lld_version);
         return 'project-create.html?' + params.toString();
       }
 

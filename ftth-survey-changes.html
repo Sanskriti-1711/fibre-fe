@@ -408,13 +408,58 @@
               </div>
             </div>
 
-            <div class="aq-tabs" role="tablist" style="display: flex; gap: 4px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px">
-              <button id="tabSurvey" class="aq-tab" type="button" role="tab" aria-selected="true" data-tab="survey" style="padding: 10px 14px; border: 0; border-bottom: 2px solid #e31837; background: none; font-weight: 600; color: #111827; cursor: pointer">Survey changes</button>
-              <button id="tabFeatures" class="aq-tab" type="button" role="tab" aria-selected="false" data-tab="features" style="padding: 10px 14px; border: 0; border-bottom: 2px solid transparent; background: none; font-weight: 600; color: #6b7280; cursor: pointer">Supervision approval</button>
+            <div
+              class="aq-tabs"
+              role="tablist"
+              style="display: flex; gap: 4px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px"
+            >
+              <button
+                id="tabSurvey"
+                class="aq-tab"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                data-tab="survey"
+                style="
+                  padding: 10px 14px;
+                  border: 0;
+                  border-bottom: 2px solid #e31837;
+                  background: none;
+                  font-weight: 600;
+                  color: #111827;
+                  cursor: pointer;
+                "
+              >
+                Survey changes
+              </button>
+              <button
+                id="tabFeatures"
+                class="aq-tab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                data-tab="features"
+                style="
+                  padding: 10px 14px;
+                  border: 0;
+                  border-bottom: 2px solid transparent;
+                  background: none;
+                  font-weight: 600;
+                  color: #6b7280;
+                  cursor: pointer;
+                "
+              >
+                Supervision approval
+              </button>
             </div>
 
             <!-- Supervision approval (embedded queue page) -->
-            <iframe id="featureFrame" title="Supervision approval" src="about:blank" style="display: none; width: 100%; min-height: 80vh; border: 0"></iframe>
+            <iframe
+              id="featureFrame"
+              title="Supervision approval"
+              src="about:blank"
+              style="display: none; width: 100%; min-height: 80vh; border: 0"
+            ></iframe>
 
             <!-- Projects container (one block per project) -->
             <div id="projectsContainer">
