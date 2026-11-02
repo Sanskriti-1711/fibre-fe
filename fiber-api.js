@@ -273,6 +273,18 @@
     });
   }
 
+  // Copy the LLD run this supervision project was opened from into the
+  // project's features (planned baseline). Idempotent: a second call only
+  // refreshes rows still pending.
+  async function handoffFromLld(projectId) {
+    const id = encodeURIComponent(projectId);
+    return apiFetch(`/api/projects/${id}/import/from-lld/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+  }
+
   async function deleteProject(projectId) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/`, { method: 'DELETE' });
@@ -587,6 +599,7 @@
     listProjectsFiltered,
     getProject,
     createProject,
+    handoffFromLld,
     createEngineer,
     deleteEngineer,
     deleteProject,

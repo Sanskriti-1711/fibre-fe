@@ -457,25 +457,27 @@
 
       function initMap() {
         if (map || typeof maplibregl === 'undefined') return map;
-        // CARTO light — the same basemap `js/ftth-map.js` ships as its "Light"
-        // style. The OSM tile server answers 403 ("not following the tile usage
-        // policy") to browser tile requests, which painted the map with
-        // "Access blocked" images behind the geometry.
+        // OpenStreetMap raster. This page used CARTO light (`ftth-map.js`'s
+        // "Light" style) after OSM answered 403 here, but CARTO's basemap now
+        // answers with a 2 KB placeholder PNG reading "API KEY REQUIRED" — a
+        // 200, so MapLibre paints it and the map looks blank. OSM answers 200
+        // with a real tile, and it is the basemap the audit and feature maps
+        // already use.
         map = new maplibregl.Map({
           container: 'reviewMap',
           style: {
             version: 8,
             sources: {
-              'carto-light': {
+              osm: {
                 type: 'raster',
-                tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'],
+                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
                 tileSize: 256,
                 attribution:
-                  '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>',
+                  '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
               },
             },
             layers: [
-              { id: 'basemap', type: 'raster', source: 'carto-light', minzoom: 0, maxzoom: 20 },
+              { id: 'basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 },
             ],
           },
           center: [0, 0],

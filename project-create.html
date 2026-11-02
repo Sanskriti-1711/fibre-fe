@@ -334,6 +334,11 @@
       if (sourceProjectId) {
         payload.source_ftth_project_id = sourceProjectId;
       }
+      // The run this project supervises. The backend refuses the create unless
+      // that run exists and is completed, and stamps `origin: lld_run`.
+      if (sourceLldRunId) {
+        payload.source_lld_run_id = sourceLldRunId;
+      }
 
       try {
         const created = await window.FiberApi.createProject(payload);
@@ -347,6 +352,38 @@
           const carry = carryQuery();
           // Embedded in the HLD page's iframe: move the whole page, not just the frame.
           const target = window.top || window;
+
+          // Opened from LLD Outputs: the baseline is the run itself, so copy its
+          // layers into the project rather than asking for a GeoPackage
+          // (INTEGRATION_PLAN.md §3 Stage 4). A failed handoff falls back to the
+          // upload page, because a project with no features is still recoverable
+          // that way.
+          if (sourceLldRunId) {
+            var baselineCopied = true;
+            setCreateProjectMsg('Copying the LLD baseline into the project...', false);
+            try {
+              const handoff = await window.FiberApi.handoffFromLld(newId);
+              setCreateProjectMsg(
+                'Baseline imported: ' + handoff.features_created + ' features across ' +
+                  handoff.layers + ' layers.',
+                false
+              );
+            } catch (e) {
+              baselineCopied = false;
+              setCreateProjectMsg(
+                'Project created, but the LLD baseline could not be copied: ' +
+                  (e && e.message ? e.message : 'unknown error'),
+                true
+              );
+            }
+            target.location.href =
+              (baselineCopied ? 'project-map-review.html' : 'gpkg-upload.html') +
+              '?project_id=' +
+              encodeURIComponent(newId) +
+              (carry ? '&' + carry : '');
+            return;
+          }
+
           target.location.href =
             'gpkg-upload.html?project_id=' +
             encodeURIComponent(newId) +
