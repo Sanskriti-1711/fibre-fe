@@ -525,6 +525,22 @@
     return apiFetch(`/api/features/${id}/decisions/`, { method: 'GET' });
   }
 
+  /**
+   * Ask the LLD stage for the next design version on a feature whose deviation
+   * was accepted (INTEGRATION_PLAN.md §3 Stage 6.3).
+   *
+   * This is a request, not an edit: the backend records it on the LLD timeline
+   * and notifies the planners. 409 means the feature has no accepted deviation,
+   * which the audit page surfaces rather than hides.
+   */
+  async function requestDesignRevision(featureId, note) {
+    const id = encodeURIComponent(featureId);
+    return apiFetch(`/api/features/${id}/request-design-revision/`, {
+      method: 'POST',
+      body: JSON.stringify({ note: note || '' }),
+    });
+  }
+
   async function getProjectDecisions(projectId, params) {
     const id = encodeURIComponent(projectId);
     const query =
@@ -703,6 +719,7 @@
     approveFeatures,
     rejectFeatures,
     getFeatureDecisions,
+    requestDesignRevision,
     getProjectDecisions,
     getProjectAsBuiltReport,
     getDashboardSummary,

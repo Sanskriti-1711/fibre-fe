@@ -322,6 +322,18 @@
       .ad-dec .ad-cmp {
         margin-top: 10px;
       }
+      .ad-dec-request {
+        margin: 10px 0 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        font-size: 12px;
+      }
+      .ad-dec-request .ad-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
 
       .ad-empty {
         text-align: center;
@@ -525,6 +537,10 @@
       var feature = null;
       var layerId = layerIdParam;
       var busy = false;
+      // Last decision history the card rendered, kept so a revision request can
+      // re-render it without a second fetch.
+      var decisionRecords = [];
+      var decisionRequests = [];
 
       var errorState = document.getElementById('errorState');
 
@@ -1027,8 +1043,15 @@
         );
       }
 
-      function renderHistory(records) {
+      function renderHistory(records, requests) {
         var host = document.getElementById('decisionHistory');
+
+        // One lookup per record: a record that already went to the LLD stage
+        // shows when, instead of offering the button again.
+        var requested = {};
+        (requests || []).forEach(function (request) {
+          requested[String(request.record_id)] = request;
+        });
 
         if (!records.length) {
           host.innerHTML =
@@ -1070,17 +1093,46 @@
               esc(record.layer_name || record.layer_id || '—') +
               '</p>' +
               deviationRows(deviation) +
+              revisionAction(record.id, requested[String(record.id)]) +
               '</div>'
             );
           })
           .join('');
       }
 
+      // The design-change loop. Supervision cannot fix a wrong design by sending
+      // the work back — this asks the LLD stage to raise the next version, which
+      // is the only way a deviation is allowed to change anything (§5.2, §5.3).
+      function revisionAction(recordId, request) {
+        if (request) {
+          return (
+            '<p class="ad-dec-request">' +
+            'Design revision requested ' +
+            esc(formatDate(request.requested_at)) +
+            (request.requested_by ? ' by ' + esc(request.requested_by) : '') +
+            (request.design_version ? ' · against ' + esc(request.design_version) : '') +
+            '</p>'
+          );
+        }
+
+        return (
+          '<p class="ad-dec-request">' +
+          '<button class="ad-btn" type="button" data-revision-record="' +
+          esc(recordId) +
+          '">Request design revision</button>' +
+          '<span class="ad-muted"> Asks the planning team for the next LLD version. ' +
+          'The design itself is never edited here.</span>' +
+          '</p>'
+        );
+      }
+
       async function loadDecisionHistory() {
         var host = document.getElementById('decisionHistory');
         try {
           var body = await window.FiberApi.getFeatureDecisions(feature.id);
-          renderHistory((body && body.results) || []);
+          decisionRecords = (body && body.results) || [];
+          decisionRequests = (body && body.revision_requests) || [];
+          renderHistory(decisionRecords, decisionRequests);
         } catch (err) {
           // Evidence, not the page: a failure here must not hide the comparison
           // or the decision buttons.
@@ -1155,9 +1207,42 @@
         renderComparison();
         renderPriorNote();
         renderDecision();
+        // An approval can write the deviation record this card shows, so the
+        // history is re-read rather than left one decision behind.
+        loadDecisionHistory();
         drawFeature([]);
         loadContext();
       }
+
+      // Delegated: the buttons live in HTML the history card rebuilds.
+      document.getElementById('decisionHistory').addEventListener('click', async function (event) {
+        var button = event.target.closest('[data-revision-record]');
+        if (!button || !feature) return;
+
+        var noteEl = document.getElementById('decisionNote');
+        button.disabled = true;
+        button.textContent = 'Requesting…';
+
+        try {
+          var note = noteEl && noteEl.value ? noteEl.value.trim() : '';
+          var result = await window.FiberApi.requestDesignRevision(feature.id, note);
+          decisionRequests = (result && result.requests) || decisionRequests;
+          renderHistory(decisionRecords, decisionRequests);
+          toast(
+            result && result.duplicate
+              ? 'The design revision was already requested for this decision'
+              : 'Design revision requested — the planners have been notified',
+            'success'
+          );
+        } catch (err) {
+          button.disabled = false;
+          button.textContent = 'Request design revision';
+          toast(
+            'Could not request a design revision: ' + (err && err.message ? err.message : String(err)),
+            'error'
+          );
+        }
+      });
 
       async function decide(action) {
         if (!feature || feature.status !== 'under_review' || busy) return;
