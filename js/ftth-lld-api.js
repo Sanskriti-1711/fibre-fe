@@ -134,6 +134,22 @@
     return body;
   }
 
+  // The design-change loop read from this side: as-built deviations that asked
+  // for this design to be revised (supervision -> LLD, never a design edit).
+  async function apiLoadRevisionRequests(projectId) {
+    var url = buildUrl(
+      API_PREFIX + '/projects/' + encodeURIComponent(projectId) + '/revision-requests/'
+    );
+    var response = await authFetch(url);
+    var body = await parseBody(response);
+    if (!response.ok) {
+      var err = new Error((body && body.detail) || response.statusText);
+      err.status = response.status;
+      throw err;
+    }
+    return body;
+  }
+
   async function apiSubmitAction(projectId, changeId, action, comment) {
     var url = buildUrl(
       API_PREFIX +
@@ -957,6 +973,7 @@
 
   window.FtthLldApi = {
     loadReview: loadReview,
+    loadRevisionRequests: apiLoadRevisionRequests,
     submitAction: submitAction,
     createApprovedVersion: createApprovedVersion,
     runLld: runLld,

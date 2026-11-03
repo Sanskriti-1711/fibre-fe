@@ -91,6 +91,72 @@
       .ftth-basemap-btn.active:hover {
         background: #c4142f;
       }
+
+      /* Design revisions requested from the field (supervision -> LLD).
+         Small, quiet rows: this is context for the review, not a queue to
+         work through on this page. */
+      .lld-revision {
+        border: 1px solid #e5e7eb;
+        border-left: 3px solid #f59e0b;
+        border-radius: 8px;
+        padding: 9px 11px;
+        margin-bottom: 8px;
+        background: #fffdf7;
+      }
+
+      .lld-revision.answered {
+        border-left-color: #10b981;
+        background: #ffffff;
+      }
+
+      .lld-revision-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .lld-revision-layer {
+        font-size: 12px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .lld-revision-state {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #b45309;
+        white-space: nowrap;
+      }
+
+      .lld-revision.answered .lld-revision-state {
+        color: #047857;
+      }
+
+      .lld-revision-meta {
+        margin-top: 3px;
+        font-size: 11px;
+        line-height: 1.45;
+        color: #6b7280;
+      }
+
+      .lld-revision-note {
+        margin-top: 5px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #374151;
+      }
+
+      .lld-revision-link {
+        display: inline-block;
+        margin-top: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #1d4ed8;
+        text-decoration: none;
+      }
     </style>
     <link rel="stylesheet" href="css/tokens.css" />
     <link href="vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
@@ -239,6 +305,13 @@
             </p>
 
             <p class="lld-readiness-note" id="readinessNote">Loading review data&#x2026;</p>
+          </div>
+
+          <!-- Design revisions requested from the field (Stage 6.3). Hidden
+               until the project actually has one. -->
+          <div class="lld-side-pane-section" id="revisionSection" style="display: none">
+            <h3>Design Revisions Requested <span class="badge" id="revisionBadge">0</span></h3>
+            <div id="revisionList"></div>
           </div>
 
           <!-- Change queue -->

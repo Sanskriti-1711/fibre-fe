@@ -68,6 +68,9 @@
   const drawerBody = $('drawerBody');
   const legendEl = $('mapLegend');
   const viewModeEl = $('viewMode');
+  const revisionSection = $('revisionSection');
+  const revisionListEl = $('revisionList');
+  const revisionBadge = $('revisionBadge');
 
   // ==================================================================
   // Failure rendering
@@ -203,6 +206,10 @@
     renderFilterTabs(); // counts are computed from the loaded changes
     renderChangeList();
     initBasemapSwitcher();
+
+    // Context for the reviewer, not a dependency of the review: a failure here
+    // must not take the queue down with it.
+    loadRevisionRequests();
   }
 
   // ==================================================================
@@ -707,6 +714,109 @@
       }
       hint.textContent = text;
     }
+  }
+
+  // ==================================================================
+  // Design revisions requested from the field
+  // ==================================================================
+  // supervision -> LLD (INTEGRATION_PLAN.md §3 Stage 6.3). A request is a
+  // recorded ask for the next design version, raised by a reviewer accepting
+  // an as-built deviation. It never edits a design row; this page shows it so
+  // the planner reviewing the design sees the field's answer in the same
+  // place.
+  async function loadRevisionRequests() {
+    if (typeof window.FtthLldApi.loadRevisionRequests !== 'function') return;
+    let payload = null;
+    try {
+      payload = await withTimeout(
+        window.FtthLldApi.loadRevisionRequests(projectId),
+        LOAD_TIMEOUT_MS,
+        'revision requests'
+      );
+    } catch (err) {
+      console.warn('Could not load design revision requests:', err);
+      return;
+    }
+    renderRevisionRequests((payload && payload.results) || []);
+  }
+
+  function formatRequestedAt(iso) {
+    if (!iso) return 'unknown time';
+    const date = new Date(iso);
+    if (isNaN(date.getTime())) return iso;
+    return date.toLocaleString(undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  function renderRevisionRequests(rows) {
+    if (!revisionSection || !revisionListEl) return;
+    if (!rows.length) {
+      revisionSection.style.display = 'none';
+      return;
+    }
+
+    const pending = rows.filter((row) => row.status === 'pending').length;
+    revisionBadge.textContent = pending ? pending + ' pending' : String(rows.length);
+    revisionListEl.innerHTML = rows.map(revisionRowHtml).join('');
+    revisionSection.style.display = '';
+  }
+
+  function revisionRowHtml(row) {
+    const answered = row.status !== 'pending';
+    const feature = row.layer_name || row.layer_id || 'Feature';
+    const layer = row.layer_id ? ' \u00b7 ' + esc(row.layer_id) : '';
+    const fields =
+      row.fields && row.fields.length
+        ? row.fields.slice(0, 3).join(', ') + (row.fields.length > 3 ? ' \u2026' : '')
+        : '';
+
+    const meta = [
+      formatRequestedAt(row.requested_at) +
+        (row.requested_by ? ' by ' + esc(row.requested_by) : ''),
+      row.design_version ? 'against ' + esc(row.design_version) : '',
+      fields ? 'outside tolerance: ' + esc(fields) : '',
+    ]
+      .filter(Boolean)
+      .join(' \u00b7 ');
+
+    const state = answered
+      ? 'Answered' + (row.answered_by ? ' \u00b7 ' + esc(row.answered_by) : '')
+      : 'Pending';
+
+    const href =
+      'audit-detail.html?project_id=' +
+      encodeURIComponent(row.supervision_project_id || '') +
+      '&feature_id=' +
+      encodeURIComponent(row.feature_id) +
+      (row.layer_id ? '&layer=' + encodeURIComponent(row.layer_id) : '');
+
+    return (
+      '<div class="lld-revision' +
+      (answered ? ' answered' : '') +
+      '">' +
+      '<div class="lld-revision-head">' +
+      '<span class="lld-revision-layer">' +
+      esc(feature) +
+      layer +
+      '</span>' +
+      '<span class="lld-revision-state">' +
+      state +
+      '</span>' +
+      '</div>' +
+      '<div class="lld-revision-meta">' +
+      meta +
+      '</div>' +
+      (row.note ? '<div class="lld-revision-note">' + esc(row.note) + '</div>' : '') +
+      '<a class="lld-revision-link" href="' +
+      href +
+      '">Open the as-built evidence \u2192</a>' +
+      '</div>'
+    );
   }
 
   function renderReadiness() {
