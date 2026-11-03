@@ -698,6 +698,14 @@
           (layer ? '&layer_id=' + encodeURIComponent(layer) : '') +
           '&feature_id=' +
           encodeURIComponent(id);
+        // Same feature this popup describes, so the assign page opens on it
+        // rather than on the whole project.
+        var assignUrl =
+          'project-assign.html?project_id=' +
+          encodeURIComponent(projectId) +
+          (layer ? '&layer_id=' + encodeURIComponent(layer) : '') +
+          '&feature_id=' +
+          encodeURIComponent(id);
 
         popup
           .setLngLat(lngLat)
@@ -719,6 +727,9 @@
               '<a href="' +
               esc(auditUrl) +
               '">Audit review &rarr;</a>' +
+              '<a href="' +
+              esc(assignUrl) +
+              '" style="display:block;margin-top:6px">Assign engineer &rarr;</a>' +
               '</div>'
           )
           .addTo(map);
