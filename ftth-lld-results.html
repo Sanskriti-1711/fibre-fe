@@ -1471,6 +1471,18 @@
         redo: 'Redo',
       };
 
+      // A job can cover one feature, a whole layer, or the project. Naming the
+      // one that answers here matters: "assigned" from a layer job survives
+      // deleting a feature job, and releasing a layer job releases every feature
+      // in it, not just this one.
+      function describeAssignmentScope(job) {
+        if (!job) return '';
+        if (job.scope === 'feature') return 'feature job';
+        if (job.scope === 'layer') return 'layer job · ' + (job.layer_id || 'layer');
+        if (job.scope === 'project') return 'project job';
+        return (job.scope || 'job') + ' job';
+      }
+
       function showInspector(feature, layerName, coords) {
         var props = feature.properties || {};
         var fid =
@@ -1540,7 +1552,7 @@
           var assignee = (job && job.assignee) || {};
           var who = assignee.full_name || assignee.email || 'an engineer';
           line.textContent = job
-            ? 'Assigned to ' + who + ' (' + (job.scope || 'job') + ') · ' + status
+            ? 'Assigned to ' + who + ' (' + describeAssignmentScope(job) + ') · ' + status
             : 'No engineer assigned · ' + status;
           if (!job) return;
 
