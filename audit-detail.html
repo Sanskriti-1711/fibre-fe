@@ -1237,10 +1237,7 @@
         } catch (err) {
           button.disabled = false;
           button.textContent = 'Request design revision';
-          toast(
-            'Could not request a design revision: ' + (err && err.message ? err.message : String(err)),
-            'error'
-          );
+          toast('Could not request a design revision: ' + (err && err.message ? err.message : String(err)), 'error');
         }
       });
 
