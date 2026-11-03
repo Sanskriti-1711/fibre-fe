@@ -442,6 +442,51 @@
         return status ? `${base} (${status})` : base;
       }
 
+      // Who already holds each feature, so the picker shows the people who are
+      // free rather than making the planner remember. One jobs request per
+      // project; a feature job wins over its layer's job, which wins over a
+      // project-wide job — the same precedence the API reports.
+      let assignmentIndexCache = { projectId: '', index: null };
+
+      async function loadAssignmentIndex(projectId) {
+        if (!projectId) return null;
+        if (assignmentIndexCache.projectId === projectId) return assignmentIndexCache.index;
+
+        const data = await window.FiberApi.listJobs({ project: projectId, page_size: 500 });
+        const rows = Array.isArray(data)
+          ? data
+          : data && Array.isArray(data.results)
+            ? data.results
+            : [];
+
+        const index = { byFeature: {}, byLayer: {}, project: '' };
+        rows.forEach(function (row) {
+          const assignee = row && row.assignee;
+          const who = assignee && (assignee.full_name || assignee.email);
+          if (!who) return;
+          if (row.scope === 'feature' && row.feature && row.feature.id) {
+            index.byFeature[row.feature.id] = who;
+          } else if (row.scope === 'layer' && row.layer && row.layer.id) {
+            index.byLayer[row.layer.id] = who;
+          } else if (row.scope === 'project') {
+            index.project = who;
+          }
+        });
+
+        assignmentIndexCache = { projectId: projectId, index: index };
+        return index;
+      }
+
+      function assigneeForFeature(f, index) {
+        if (!index) return '';
+        const id = pickFeatureId(f);
+        if (id && index.byFeature[id]) return index.byFeature[id] + ' (feature job)';
+        const layerId = f && f.layer_id;
+        if (layerId && index.byLayer[layerId]) return index.byLayer[layerId] + ' (layer job)';
+        if (index.project) return index.project + ' (project job)';
+        return '';
+      }
+
       async function loadEngineersForAssign() {
         const select = document.getElementById('engineerSelect');
         if (!select) return;
@@ -481,6 +526,11 @@
 
         const data = await window.FiberApi.getProjectLayerDetails(projectId, layerId);
         const list = data && Array.isArray(data.features) ? data.features : [];
+        // A missing jobs list must not empty the picker: the label just falls
+        // back to the feature alone.
+        const index = await loadAssignmentIndex(projectId).catch(function () {
+          return null;
+        });
 
         const wanted = designFeatureId ? String(designFeatureId).trim().toLowerCase() : '';
         const current = select.value;
@@ -491,10 +541,12 @@
           const id = pickFeatureId(f);
           if (!id) return;
           if (wanted && !matched && pickDesignFeatureId(f) === wanted) matched = id;
-          const label = pickFeatureLabel(f);
+          const label = pickFeatureLabel(f) || id;
+          const holder = assigneeForFeature(f, index);
           const opt = document.createElement('option');
           opt.value = id;
-          opt.textContent = label || id;
+          opt.textContent = label + ' — ' + (holder || 'unassigned');
+          opt.title = holder ? 'Already assigned: ' + holder : 'No engineer assigned yet';
           select.appendChild(opt);
         });
 
