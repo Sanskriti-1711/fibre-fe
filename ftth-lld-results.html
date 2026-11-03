@@ -1521,39 +1521,84 @@
         loadAssignmentLine(designId);
       }
 
-      // The job covering this design feature: who holds it and where it stands.
-      // Nothing depends on the answer — the assign link works either way — so a
-      // miss (no supervision copy of this design feature yet) only says so.
+      // The job covering this design feature: who holds it, where it stands, and
+      // the one action worth taking from here — releasing it. Nothing depends on
+      // the answer (the assign link works either way), so a miss only says so.
       function loadAssignmentLine(designId) {
         var box = document.getElementById('inspectorAssign');
         if (!box || !designId) return;
 
-        function settle(text) {
+        function alive() {
           // A newer feature re-rendered the panel while this was in flight.
-          if (document.getElementById('inspectorAssign') !== box) return;
+          return document.getElementById('inspectorAssign') === box;
+        }
+
+        function show(job, status) {
+          if (!alive()) return;
           var line = box.querySelector('.ftth-inspector-assign');
-          if (line) line.textContent = text;
+          if (!line) return;
+          var assignee = (job && job.assignee) || {};
+          var who = assignee.full_name || assignee.email || 'an engineer';
+          line.textContent = job
+            ? 'Assigned to ' + who + ' (' + (job.scope || 'job') + ') · ' + status
+            : 'No engineer assigned · ' + status;
+          if (!job) return;
+
+          var release = document.createElement('button');
+          release.type = 'button';
+          release.textContent = 'Unassign';
+          release.title = 'Release this feature from ' + who;
+          release.style.cssText =
+            'margin-left:8px;padding:1px 8px;font-size:11px;border:1px solid #d0d5dd;' +
+            'border-radius:6px;background:#fff;color:#b42318;cursor:pointer';
+          release.addEventListener('click', function () {
+            release.disabled = true;
+            window.FtthUI.confirm({
+              title: 'Unassign engineer',
+              message: 'Release this feature from ' + who + '?',
+              note: 'The feature stays in the project; only the job is removed.',
+              confirmLabel: 'Unassign',
+              danger: true,
+            }).then(function (ok) {
+              if (!ok) {
+                release.disabled = false;
+                return;
+              }
+              window.FiberApi.deleteAssignment(job.id)
+                .then(function () {
+                  show(null, status);
+                })
+                .catch(function (e) {
+                  release.disabled = false;
+                  if (!alive()) return;
+                  var target = box.querySelector('.ftth-inspector-assign');
+                  if (target) {
+                    target.textContent =
+                      'Could not unassign: ' + (e && e.message ? e.message : 'request failed');
+                  }
+                });
+            });
+          });
+          line.appendChild(release);
         }
 
         if (!projectId) {
-          settle('Open this page with a project to see its assignment.');
+          var hint = box.querySelector('.ftth-inspector-assign');
+          if (hint) hint.textContent = 'Open this page with a project to see its assignment.';
           return;
         }
         window.FiberApi.getFeatureByDesignId(projectId, designId)
           .then(function (data) {
-            var job = data && data.assignment;
             var feature = (data && data.feature) || {};
-            var status = ASSIGN_STATUS_LABELS[feature.status] || feature.status || 'Pending';
-            if (!job) {
-              settle('No engineer assigned · ' + status);
-              return;
-            }
-            var assignee = job.assignee || {};
-            var who = assignee.full_name || assignee.email || 'an engineer';
-            settle('Assigned to ' + who + ' (' + (job.scope || 'job') + ') · ' + status);
+            show(
+              data && data.assignment,
+              ASSIGN_STATUS_LABELS[feature.status] || feature.status || 'Pending'
+            );
           })
           .catch(function () {
-            settle('No supervision copy of this feature yet.');
+            if (!alive()) return;
+            var line = box.querySelector('.ftth-inspector-assign');
+            if (line) line.textContent = 'No supervision copy of this feature yet.';
           });
       }
 
