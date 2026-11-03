@@ -1476,11 +1476,20 @@
                 : '—';
         inspectorLayer.textContent = layerName || 'Layer';
         inspectorFid.textContent = 'ID: ' + String(fid);
+        // Feature ids in the LLD output are engine ids, not projects.Feature rows,
+        // so pass only project and layer; the assign page picks the feature.
+        var assignHref =
+          'project-assign.html?project_id=' +
+          encodeURIComponent(projectId) +
+          '&layer_id=' +
+          encodeURIComponent(layerName || '');
+        var assignLink =
+          '<a class="btn" href="' + assignHref + '" style="display:inline-block;margin:0 0 10px;text-decoration:none">Assign engineer</a>';
         var keys = Object.keys(props).sort();
         if (!keys.length) {
-          inspectorBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
+          inspectorBody.innerHTML = assignLink + '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
         } else {
-          var html = '<table class="ftth-inspector-table">';
+          var html = assignLink + '<table class="ftth-inspector-table">';
           keys.forEach(function (k) {
             var v = props[k];
             if (v === null || v === undefined || v === '') return;
