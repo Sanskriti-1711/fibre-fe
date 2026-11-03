@@ -1566,7 +1566,9 @@
               }
               window.FiberApi.deleteAssignment(job.id)
                 .then(function () {
-                  show(null, status);
+                  // Re-read rather than assume: the API releases the row to
+                  // pending only when no other job still covers it.
+                  loadAssignmentLine(designId);
                 })
                 .catch(function (e) {
                   release.disabled = false;
