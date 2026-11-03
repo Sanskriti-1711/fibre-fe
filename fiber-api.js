@@ -329,6 +329,15 @@
     return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: 'GET' });
   }
 
+  // A design (engine) feature id -> the supervision row carrying it, plus the
+  // assignment covering that row. Pages showing design output use this to name
+  // the engineer without guessing at layer names.
+  async function getFeatureByDesignId(projectId, designId) {
+    const pid = encodeURIComponent(projectId);
+    const did = encodeURIComponent(designId);
+    return apiFetch(`/api/projects/${pid}/features/by-design/${did}/`, { method: 'GET' });
+  }
+
   async function discoverLayers(projectId) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/import/discover/`, { method: 'POST' });
@@ -695,6 +704,7 @@
     deleteProject,
     uploadGpkg,
     listProjectLayers,
+    getFeatureByDesignId,
     getProjectLayerDetails,
     getFeature,
     discoverLayers,
