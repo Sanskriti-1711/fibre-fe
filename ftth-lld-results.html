@@ -1476,13 +1476,17 @@
                 : '—';
         inspectorLayer.textContent = layerName || 'Layer';
         inspectorFid.textContent = 'ID: ' + String(fid);
-        // Feature ids in the LLD output are engine ids, not projects.Feature rows,
-        // so pass only project and layer; the assign page picks the feature.
+        // Feature ids in the LLD output are engine ids, not projects.Feature rows.
+        // The assign page matches this id against the design id the row keeps in
+        // its properties, so hand it over rather than making the user search.
         var assignHref =
           'project-assign.html?project_id=' +
           encodeURIComponent(projectId) +
           '&layer_id=' +
           encodeURIComponent(layerName || '');
+        if (fid !== '—' && String(fid).trim() !== '') {
+          assignHref += '&feature_id=' + encodeURIComponent(String(fid));
+        }
         var assignLink =
           '<a class="btn" href="' + assignHref + '" style="display:inline-block;margin:0 0 10px;text-decoration:none">Assign engineer</a>';
         var keys = Object.keys(props).sort();

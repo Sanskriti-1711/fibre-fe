@@ -398,6 +398,40 @@
         return (f && (f.id || f.feature_id || f.uuid)) || null;
       }
 
+      // The map and the LLD results speak in design (engine) feature ids, while
+      // an assignment keys on a projects.Feature row. The design id survives on
+      // the row's properties, so match on it instead of inventing a second map.
+      function pickDesignFeatureId(f) {
+        const props = f && f.properties && typeof f.properties === 'object' ? f.properties : null;
+        if (!props) return null;
+        const raw = props._feature_id || props.feature_id || props.id;
+        if (raw === null || raw === undefined || raw === '') return null;
+        return String(raw).trim().toLowerCase();
+      }
+
+      function layerKey(value) {
+        return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+      }
+
+      // The LLD map names a layer by its display name while the layer list keys
+      // it by layer_id, so accept either before giving up on the pre-selection.
+      function resolveLayerId(requested, select) {
+        if (!select) return '';
+        const wanted = String(requested || '').trim();
+        if (!wanted) return select.value || '';
+        const options = Array.prototype.slice.call(select.options || []);
+        const direct = options.filter(function (o) {
+          return o.value === wanted;
+        })[0];
+        if (direct) return direct.value;
+        const target = layerKey(wanted);
+        if (!target) return '';
+        const fuzzy = options.filter(function (o) {
+          return layerKey(o.value) === target || layerKey(o.textContent) === target;
+        })[0];
+        return fuzzy ? fuzzy.value : '';
+      }
+
       function pickFeatureLabel(f) {
         if (!f) return '';
         const props = f.properties && typeof f.properties === 'object' ? f.properties : null;
@@ -436,7 +470,7 @@
         if (current) select.value = current;
       }
 
-      async function loadFeaturesForLayer(projectId, layerId) {
+      async function loadFeaturesForLayer(projectId, layerId, designFeatureId) {
         const select = document.getElementById('featureSelect');
         if (!select) return;
 
@@ -448,12 +482,15 @@
         const data = await window.FiberApi.getProjectLayerDetails(projectId, layerId);
         const list = data && Array.isArray(data.features) ? data.features : [];
 
+        const wanted = designFeatureId ? String(designFeatureId).trim().toLowerCase() : '';
         const current = select.value;
         select.innerHTML = '<option value="">All Features in Layer</option>';
 
+        let matched = '';
         list.forEach(function (f) {
           const id = pickFeatureId(f);
           if (!id) return;
+          if (wanted && !matched && pickDesignFeatureId(f) === wanted) matched = id;
           const label = pickFeatureLabel(f);
           const opt = document.createElement('option');
           opt.value = id;
@@ -462,6 +499,7 @@
         });
 
         if (current) select.value = current;
+        else if (matched) select.value = matched;
       }
 
       async function loadLayersForProject(projectId) {
@@ -615,13 +653,17 @@
             const selectedProjectId = params.projectId || (projectSelect ? projectSelect.value : '');
             return loadLayersForProject(selectedProjectId)
               .then(function () {
-                if (params.layerId && layerSelect) layerSelect.value = params.layerId;
-                const selectedLayerId =
-                  params.layerId && layerSelect ? layerSelect.value : layerSelect ? layerSelect.value : '';
-                return loadFeaturesForLayer(selectedProjectId, selectedLayerId);
+                const layerId = resolveLayerId(params.layerId, layerSelect);
+                if (layerId && layerSelect) layerSelect.value = layerId;
+                const selectedLayerId = layerSelect ? layerSelect.value : '';
+                return loadFeaturesForLayer(selectedProjectId, selectedLayerId, params.featureId);
               })
               .then(function () {
-                if (params.featureId && featureSelect) featureSelect.value = params.featureId;
+                if (!params.featureId || !featureSelect) return;
+                const exact = Array.prototype.some.call(featureSelect.options, function (o) {
+                  return o.value === params.featureId;
+                });
+                if (exact) featureSelect.value = params.featureId;
               });
           })
           .then(function () {
