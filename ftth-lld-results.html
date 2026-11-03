@@ -1580,6 +1580,19 @@
             });
           });
           line.appendChild(release);
+
+          // Reassigning is the other half of releasing: the same assign page,
+          // with the engineer it will replace already chosen.
+          var assignAnchor = box.querySelector('a.btn');
+          var assignLink = assignAnchor && assignAnchor.getAttribute('href');
+          if (assignLink && assignee.id) {
+            var reassign = document.createElement('a');
+            reassign.href = assignLink + '&assignee_id=' + encodeURIComponent(assignee.id);
+            reassign.textContent = 'Reassign';
+            reassign.style.cssText =
+              'margin-left:8px;font-size:11px;color:#1d4ed8;text-decoration:none';
+            line.appendChild(reassign);
+          }
         }
 
         if (!projectId) {

@@ -337,7 +337,11 @@
         const projectId = params.get('project_id') || params.get('proj_id') || params.get('project');
         const layerId = params.get('layer_id') || params.get('layer');
         const featureId = params.get('feature_id') || params.get('fid') || params.get('id');
-        return { projectId, layerId, featureId };
+        // Reassigning arrives with the engineer it is about to replace, so the
+        // page can show them already chosen.
+        const assigneeId =
+          params.get('assignee_id') || params.get('engineer_id') || params.get('engineer');
+        return { projectId, layerId, featureId, assigneeId };
       }
 
       function showSuccessModal(message) {
@@ -699,8 +703,17 @@
             const projectSelect = document.getElementById('projectSelect');
             const layerSelect = document.getElementById('layerSelect');
             const featureSelect = document.getElementById('featureSelect');
+            const engineerSelect = document.getElementById('engineerSelect');
 
             if (params.projectId && projectSelect) projectSelect.value = params.projectId;
+
+            if (params.assigneeId && engineerSelect) {
+              const wanted = String(params.assigneeId);
+              const known = Array.prototype.some.call(engineerSelect.options, function (o) {
+                return o.value === wanted;
+              });
+              if (known) engineerSelect.value = wanted;
+            }
 
             const selectedProjectId = params.projectId || (projectSelect ? projectSelect.value : '');
             return loadLayersForProject(selectedProjectId)
