@@ -89,7 +89,9 @@
       .stage-option[aria-selected='true'] {
         border-color: var(--brand);
         background: var(--brand-soft);
-        box-shadow: 0 0 0 1px var(--brand), var(--shadow-sm);
+        box-shadow:
+          0 0 0 1px var(--brand),
+          var(--shadow-sm);
       }
 
       .stage-option__icon {
@@ -820,8 +822,8 @@
               <div class="assign-eyebrow">Jobs</div>
               <h1>Assign jobs</h1>
               <p>
-                One place for both field stages — send engineers out to collect the survey, or assign
-                supervisors to sign off the build.
+                One place for both field stages — send engineers out to collect the survey, or assign supervisors to
+                sign off the build.
               </p>
             </div>
             <a class="btn btn-outline" href="all-jobs.html">All jobs</a>
@@ -846,8 +848,7 @@
               <span class="stage-option__body">
                 <span class="stage-option__title">Field survey</span>
                 <span class="stage-option__desc">
-                  Send a completed design to the field. The survey copy and its package are created
-                  for the engineers.
+                  Send a completed design to the field. The survey copy and its package are created for the engineers.
                 </span>
               </span>
               <span class="stage-option__check" aria-hidden="true">✓</span>
@@ -871,8 +872,7 @@
               <span class="stage-option__body">
                 <span class="stage-option__title">Site supervision</span>
                 <span class="stage-option__desc">
-                  Assign a project, one layer, or a single feature so an engineer can record as-built
-                  work.
+                  Assign a project, one layer, or a single feature so an engineer can record as-built work.
                 </span>
               </span>
               <span class="stage-option__check" aria-hidden="true">✓</span>
@@ -882,12 +882,7 @@
           <div class="assign-grid">
             <div>
               <!-- ── Field survey ─────────────────────────────────── -->
-              <section
-                class="assign-panel"
-                id="surveyPanel"
-                role="tabpanel"
-                aria-labelledby="surveyTab"
-              >
+              <section class="assign-panel" id="surveyPanel" role="tabpanel" aria-labelledby="surveyTab">
                 <div class="panel-head">
                   <span class="panel-head__icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -907,8 +902,7 @@
                     <option value="">Loading completed runs…</option>
                   </select>
                   <p class="hint" id="surveyRunHint">
-                    Only completed runs can be assigned. The survey package is built and imported on
-                    assignment.
+                    Only completed runs can be assigned. The survey package is built and imported on assignment.
                   </p>
                 </div>
 
@@ -946,9 +940,8 @@
                     <div class="engineer-note" id="surveyEngineerEmpty" hidden></div>
                   </div>
                   <p class="hint">
-                    These are your active engineer accounts. Each selected engineer gets their own
-                    project-scope job — <a href="engineers-invite.html">invite an engineer</a> if
-                    someone is missing.
+                    These are your active engineer accounts. Each selected engineer gets their own project-scope job —
+                    <a href="engineers-invite.html">invite an engineer</a> if someone is missing.
                   </p>
                 </fieldset>
 
@@ -1050,8 +1043,7 @@
                     <div class="engineer-note" id="supervisionEngineerEmpty" hidden></div>
                   </div>
                   <p class="hint">
-                    A project or layer can be held by several engineers; a feature is one engineer's
-                    job.
+                    A project or layer can be held by several engineers; a feature is one engineer's job.
                   </p>
                 </fieldset>
 
@@ -1095,12 +1087,7 @@
                 </div>
               </section>
 
-              <section
-                class="summary-card"
-                id="supervisionSummary"
-                aria-label="Supervision assignment summary"
-                hidden
-              >
+              <section class="summary-card" id="supervisionSummary" aria-label="Supervision assignment summary" hidden>
                 <div class="summary-head">
                   <span class="summary-eyebrow">Assignment summary</span>
                   <span class="badge badge-blue">Site supervision</span>
@@ -1172,17 +1159,14 @@
 
       function getParams() {
         const search = new URLSearchParams(window.location.search);
-        const projectId =
-          search.get('project_id') || search.get('proj_id') || search.get('project');
+        const projectId = search.get('project_id') || search.get('proj_id') || search.get('project');
         const layerId = search.get('layer_id') || search.get('layer');
-        const featureId =
-          search.get('feature_id') || search.get('fid') || search.get('id');
+        const featureId = search.get('feature_id') || search.get('fid') || search.get('id');
         const featureIds = String(search.get('feature_ids') || '')
           .split(',')
           .map((id) => id.trim())
           .filter(Boolean);
-        const assigneeId =
-          search.get('assignee_id') || search.get('engineer_id') || search.get('engineer');
+        const assigneeId = search.get('assignee_id') || search.get('engineer_id') || search.get('engineer');
         const runId = search.get('run_id') || search.get('hld_id') || search.get('hld');
         return { projectId, layerId, featureId, featureIds, assigneeId, runId };
       }
@@ -1194,8 +1178,7 @@
       function escapeHtml(value) {
         return String(value === null || value === undefined ? '' : value).replace(
           /[&<>"']/g,
-          (char) =>
-            ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]
+          (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]
         );
       }
 
@@ -1381,9 +1364,7 @@
               '<span class="engineer-name">' +
               escapeHtml(engineer.name) +
               '</span>' +
-              (engineer.email
-                ? '<span class="engineer-email">' + escapeHtml(engineer.email) + '</span>'
-                : '') +
+              (engineer.email ? '<span class="engineer-email">' + escapeHtml(engineer.email) + '</span>' : '') +
               '</span>' +
               '<span class="engineer-tick" aria-hidden="true">✓</span>' +
               '</label>'
@@ -1501,9 +1482,8 @@
 
         select.disabled = false;
         const wanted =
-          state.surveyRunId || (params.runId && state.hldRuns.some((run) => run.project_id === params.runId)
-            ? params.runId
-            : '') ||
+          state.surveyRunId ||
+          (params.runId && state.hldRuns.some((run) => run.project_id === params.runId) ? params.runId : '') ||
           state.hldRuns[0].project_id;
 
         select.innerHTML =
@@ -1573,8 +1553,7 @@
               ? '<span>' + engineers.map((engineer) => escapeHtml(engineerName(engineer))).join(', ') + '</span>'
               : '<span>No engineer assigned yet.</span>');
         } else {
-          copy.innerHTML =
-            '<span>No survey copy yet — assigning creates it and imports the package.</span>';
+          copy.innerHTML = '<span>No survey copy yet — assigning creates it and imports the package.</span>';
         }
       }
 
@@ -1795,13 +1774,7 @@
                 const id = layer.id || layer.layer_id || layer.name || '';
                 if (!id) return '';
                 const name = layer.layer_name || layer.name || layer.title || id;
-                return (
-                  '<option value="' +
-                  escapeHtml(id) +
-                  '">' +
-                  escapeHtml(name) +
-                  '</option>'
-                );
+                return '<option value="' + escapeHtml(id) + '">' + escapeHtml(name) + '</option>';
               })
               .join('');
 
@@ -1835,9 +1808,7 @@
           try {
             const data = await window.FiberApi.getProjectLayerDetails(projectId, layerId);
             const features = data && Array.isArray(data.features) ? data.features : [];
-            const match = features.find(
-              (feature) => String(feature.id) === String(featureId)
-            );
+            const match = features.find((feature) => String(feature.id) === String(featureId));
             if (match) {
               $('layerSelect').value = layerId;
               state.target.layerId = layerId;
@@ -1878,9 +1849,7 @@
 
       function pickDesignFeatureId(feature) {
         const props =
-          feature && feature.properties && typeof feature.properties === 'object'
-            ? feature.properties
-            : null;
+          feature && feature.properties && typeof feature.properties === 'object' ? feature.properties : null;
         if (!props) return null;
         const raw = props._feature_id || props.feature_id || props.id;
         if (raw === null || raw === undefined || raw === '') return null;
@@ -1889,10 +1858,7 @@
 
       function featureLabel(feature) {
         if (!feature) return '';
-        const props =
-          feature.properties && typeof feature.properties === 'object'
-            ? feature.properties
-            : null;
+        const props = feature.properties && typeof feature.properties === 'object' ? feature.properties : null;
         const propsId = props && (props.id || props.name || props.asset_id);
         const base = propsId || feature.feature_name || feature.name || feature.id || '';
         return feature.status ? base + ' (' + feature.status + ')' : base;
@@ -1955,11 +1921,7 @@
           const features = data && Array.isArray(data.features) ? data.features : [];
 
           const isBulk = !!(state.bulkSelection && state.bulkSelection.designIds.length);
-          const wantedIds = isBulk
-            ? state.bulkSelection.designIds
-            : designFeatureId
-              ? [designFeatureId]
-              : [];
+          const wantedIds = isBulk ? state.bulkSelection.designIds : designFeatureId ? [designFeatureId] : [];
           const wanted = new Set(wantedIds.map((id) => String(id).trim().toLowerCase()));
           const matchedIds = [];
           const matchedFeatures = [];
@@ -1993,8 +1955,7 @@
             select.innerHTML =
               '<option value="">' +
               (matchedIds.length
-                ? matchedIds.length +
-                  (matchedIds.length === 1 ? ' selected feature' : ' selected features')
+                ? matchedIds.length + (matchedIds.length === 1 ? ' selected feature' : ' selected features')
                 : 'No matching selected features') +
               '</option>';
             renderBulkContext();
@@ -2067,12 +2028,9 @@
           return;
         }
 
-        const layers =
-          state.layerSummaryCache.projectId === projectId ? state.layerSummaryCache.layers : [];
+        const layers = state.layerSummaryCache.projectId === projectId ? state.layerSummaryCache.layers : [];
         const scoped = layerId
-          ? layers.filter(
-              (layer) => layer.layer_id === layerId || layer.layer_name === layerId || layer.id === layerId
-            )
+          ? layers.filter((layer) => layer.layer_id === layerId || layer.layer_name === layerId || layer.id === layerId)
           : layers;
         const totals = layerTotals(scoped);
         const scopeLabel = layerId ? 'this layer' : 'the whole project';
@@ -2102,29 +2060,19 @@
       }
 
       function summaryRow(label, value) {
-        return (
-          '<div class="summary-row"><dt>' +
-          escapeHtml(label) +
-          '</dt><dd>' +
-          escapeHtml(value) +
-          '</dd></div>'
-        );
+        return '<div class="summary-row"><dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(value) + '</dd></div>';
       }
 
       function targetName() {
         const select = $('featureSelect');
         if (state.target.featureId && select) {
-          const option = Array.from(select.options).find(
-            (candidate) => candidate.value === state.target.featureId
-          );
+          const option = Array.from(select.options).find((candidate) => candidate.value === state.target.featureId);
           if (option) return option.textContent.split(' — ')[0];
         }
         if (state.target.layerId) {
           const layerSelect = $('layerSelect');
           const option = layerSelect
-            ? Array.from(layerSelect.options).find(
-                (candidate) => candidate.value === state.target.layerId
-              )
+            ? Array.from(layerSelect.options).find((candidate) => candidate.value === state.target.layerId)
             : null;
           return option ? option.textContent : state.target.layerId;
         }
@@ -2246,9 +2194,7 @@
         $('bulkContextMap').href =
           'project-map-review.html?project_id=' +
           encodeURIComponent(state.target.projectId || '') +
-          (state.target.layerId
-            ? '&layer_id=' + encodeURIComponent(state.target.layerId)
-            : '');
+          (state.target.layerId ? '&layer_id=' + encodeURIComponent(state.target.layerId) : '');
       }
 
       async function applySupervision() {
@@ -2274,20 +2220,13 @@
           : state.target.featureId
             ? [state.target.featureId]
             : [];
-        const scope = featureTargets.length
-          ? 'feature'
-          : state.target.layerId
-            ? 'layer'
-            : 'project';
+        const scope = featureTargets.length ? 'feature' : state.target.layerId ? 'layer' : 'project';
         const targets = featureTargets.length ? featureTargets : [null];
         const total = targets.length * engineers.length;
 
         state.busy = true;
         showResult('supervision', '');
-        setStatus(
-          'supervision',
-          'Creating ' + (total === 1 ? 'assignment' : total + ' assignments') + '…'
-        );
+        setStatus('supervision', 'Creating ' + (total === 1 ? 'assignment' : total + ' assignments') + '…');
         updateButtons();
 
         const created = [];
@@ -2304,8 +2243,7 @@
               updateButtons();
               setStatus(
                 'supervision',
-                humanizeError(error) +
-                  (created.length ? ' (' + created.length + ' of ' + total + ' created)' : ''),
+                humanizeError(error) + (created.length ? ' (' + created.length + ' of ' + total + ' created)' : ''),
                 true
               );
               renderSupervisionTeam();
@@ -2323,7 +2261,7 @@
             (created.length === 1 ? 'Assignment created.' : created.length + ' assignments created.') +
             '</strong> ' +
             escapeHtml(scope === 'feature' ? 'Feature' : scope === 'layer' ? 'Layer' : 'Project') +
-            ' work is now on the engineers\' lists.' +
+            " work is now on the engineers' lists." +
             ' <a href="all-jobs.html">View all jobs</a></div>'
         );
         updateSupervisionSummary();
@@ -2363,8 +2301,7 @@
 
       function updateButtons() {
         const surveyRun = currentRun();
-        const surveyReady =
-          !state.busy && !!surveyRun && state.selected.survey.size > 0 && !state.engineersError;
+        const surveyReady = !state.busy && !!surveyRun && state.selected.survey.size > 0 && !state.engineersError;
         const surveyButton = $('surveyAssignBtn');
         if (surveyButton) {
           surveyButton.disabled = !surveyReady;
@@ -2380,9 +2317,7 @@
           !!state.target.projectId &&
           state.selected.supervision.size > 0 &&
           !state.engineersError &&
-          (!state.bulkSelection ||
-            !state.bulkSelection.designIds.length ||
-            state.bulkSelection.featureIds.length > 0);
+          (!state.bulkSelection || !state.bulkSelection.designIds.length || state.bulkSelection.featureIds.length > 0);
         const supervisionButton = $('supervisionAssignBtn');
         if (supervisionButton) {
           supervisionButton.disabled = !supervisionReady;

@@ -206,6 +206,9 @@ function resolveTarget(pageRel, href) {
   const clean = href.split('#')[0].split('?')[0];
   if (
     !clean ||
+    // A URL assembled at runtime (for example
+    // `href="${escapeHtml(photo.url)}"`) is not a static file path.
+    /\$\{|\{\{/.test(clean) ||
     /^https?:\/\//.test(clean) ||
     clean.startsWith('//') ||
     clean.startsWith('mailto:') ||
