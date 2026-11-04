@@ -285,19 +285,6 @@
     });
   }
 
-  // Refresh an existing supervision project from its (re-)exported LLD run:
-  // only rows still pending are rewritten, approved work is kept. Passing a
-  // ``sourceLldRunId`` re-points the project at a newer completed run first.
-  async function resyncFromLld(projectId, sourceLldRunId) {
-    const id = encodeURIComponent(projectId);
-    const payload = sourceLldRunId ? { source_lld_run_id: sourceLldRunId } : {};
-    return apiFetch(`/api/projects/${id}/import/from-lld/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-  }
-
   async function deleteProject(projectId) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/`, { method: 'DELETE' });
@@ -340,15 +327,6 @@
     const pid = encodeURIComponent(projectId);
     const fid = encodeURIComponent(featureId);
     return apiFetch(`/api/projects/${pid}/features/${fid}/`, { method: 'GET' });
-  }
-
-  // A design (engine) feature id -> the supervision row carrying it, plus the
-  // assignment covering that row. Pages showing design output use this to name
-  // the engineer without guessing at layer names.
-  async function getFeatureByDesignId(projectId, designId) {
-    const pid = encodeURIComponent(projectId);
-    const did = encodeURIComponent(designId);
-    return apiFetch(`/api/projects/${pid}/features/by-design/${did}/`, { method: 'GET' });
   }
 
   async function discoverLayers(projectId) {
@@ -563,13 +541,6 @@
     });
   }
 
-  // ── Field evidence (FeaturePhoto gallery) ────────────────────────────
-  // One feature can carry several site photos; the deprecated single
-  // `Feature.photo` column is still read as a fallback by older pages.
-  async function getFeaturePhotos(featureId) {
-    return apiFetch(`/api/features/${encodeURIComponent(featureId)}/photos/`, { method: 'GET' });
-  }
-
   async function getProjectDecisions(projectId, params) {
     const id = encodeURIComponent(projectId);
     const query =
@@ -719,13 +690,11 @@
     getProject,
     createProject,
     handoffFromLld,
-    resyncFromLld,
     createEngineer,
     deleteEngineer,
     deleteProject,
     uploadGpkg,
     listProjectLayers,
-    getFeatureByDesignId,
     getProjectLayerDetails,
     getFeature,
     discoverLayers,
@@ -750,7 +719,6 @@
     approveFeatures,
     rejectFeatures,
     getFeatureDecisions,
-    getFeaturePhotos,
     requestDesignRevision,
     getProjectDecisions,
     getProjectAsBuiltReport,

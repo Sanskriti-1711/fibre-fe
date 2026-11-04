@@ -295,7 +295,7 @@
 
               <div class="field">
                 <label>Assign Engineer</label>
-                <select id="engineerSelect" multiple size="6">
+                <select id="engineerSelect">
                   <option value="">Select Engineer</option>
                   <option value="Priya K.">Priya K.</option>
                   <option value="Arjun R.">Arjun R.</option>
@@ -303,13 +303,8 @@
                   <option value="Aanya S.">Aanya S.</option>
                   <option value="Vikram D.">Vikram D.</option>
                 </select>
-                <div class="hint">
-                  Pick one or more. A project or layer can be held by several engineers; only a feature is
-                  one-per-engineer.
-                </div>
               </div>
 
-              <div id="assignPreview" class="hint" style="margin-top: 6px; font-weight: 600; color: #374151"></div>
               <div id="assignStatus" class="hint" style="margin-top: 6px"></div>
 
               <button class="btn" type="button" onclick="applyAssignment()">Apply Assignment</button>
@@ -342,11 +337,7 @@
         const projectId = params.get('project_id') || params.get('proj_id') || params.get('project');
         const layerId = params.get('layer_id') || params.get('layer');
         const featureId = params.get('feature_id') || params.get('fid') || params.get('id');
-        // Reassigning arrives with the engineer it is about to replace, so the
-        // page can show them already chosen.
-        const assigneeId =
-          params.get('assignee_id') || params.get('engineer_id') || params.get('engineer');
-        return { projectId, layerId, featureId, assigneeId };
+        return { projectId, layerId, featureId };
       }
 
       function showSuccessModal(message) {
@@ -407,40 +398,6 @@
         return (f && (f.id || f.feature_id || f.uuid)) || null;
       }
 
-      // The map and the LLD results speak in design (engine) feature ids, while
-      // an assignment keys on a projects.Feature row. The design id survives on
-      // the row's properties, so match on it instead of inventing a second map.
-      function pickDesignFeatureId(f) {
-        const props = f && f.properties && typeof f.properties === 'object' ? f.properties : null;
-        if (!props) return null;
-        const raw = props._feature_id || props.feature_id || props.id;
-        if (raw === null || raw === undefined || raw === '') return null;
-        return String(raw).trim().toLowerCase();
-      }
-
-      function layerKey(value) {
-        return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
-      }
-
-      // The LLD map names a layer by its display name while the layer list keys
-      // it by layer_id, so accept either before giving up on the pre-selection.
-      function resolveLayerId(requested, select) {
-        if (!select) return '';
-        const wanted = String(requested || '').trim();
-        if (!wanted) return select.value || '';
-        const options = Array.prototype.slice.call(select.options || []);
-        const direct = options.filter(function (o) {
-          return o.value === wanted;
-        })[0];
-        if (direct) return direct.value;
-        const target = layerKey(wanted);
-        if (!target) return '';
-        const fuzzy = options.filter(function (o) {
-          return layerKey(o.value) === target || layerKey(o.textContent) === target;
-        })[0];
-        return fuzzy ? fuzzy.value : '';
-      }
-
       function pickFeatureLabel(f) {
         if (!f) return '';
         const props = f.properties && typeof f.properties === 'object' ? f.properties : null;
@@ -449,51 +406,6 @@
         const base = propsId || f.feature_name || f.name || f.id || '';
         if (!base) return '';
         return status ? `${base} (${status})` : base;
-      }
-
-      // Who already holds each feature, so the picker shows the people who are
-      // free rather than making the planner remember. One jobs request per
-      // project; a feature job wins over its layer's job, which wins over a
-      // project-wide job — the same precedence the API reports.
-      let assignmentIndexCache = { projectId: '', index: null };
-
-      async function loadAssignmentIndex(projectId) {
-        if (!projectId) return null;
-        if (assignmentIndexCache.projectId === projectId) return assignmentIndexCache.index;
-
-        const data = await window.FiberApi.listJobs({ project: projectId, page_size: 500 });
-        const rows = Array.isArray(data)
-          ? data
-          : data && Array.isArray(data.results)
-            ? data.results
-            : [];
-
-        const index = { byFeature: {}, byLayer: {}, project: '' };
-        rows.forEach(function (row) {
-          const assignee = row && row.assignee;
-          const who = assignee && (assignee.full_name || assignee.email);
-          if (!who) return;
-          if (row.scope === 'feature' && row.feature && row.feature.id) {
-            index.byFeature[row.feature.id] = who;
-          } else if (row.scope === 'layer' && row.layer && row.layer.id) {
-            index.byLayer[row.layer.id] = who;
-          } else if (row.scope === 'project') {
-            index.project = who;
-          }
-        });
-
-        assignmentIndexCache = { projectId: projectId, index: index };
-        return index;
-      }
-
-      function assigneeForFeature(f, index) {
-        if (!index) return '';
-        const id = pickFeatureId(f);
-        if (id && index.byFeature[id]) return index.byFeature[id] + ' (feature job)';
-        const layerId = f && f.layer_id;
-        if (layerId && index.byLayer[layerId]) return index.byLayer[layerId] + ' (layer job)';
-        if (index.project) return index.project + ' (project job)';
-        return '';
       }
 
       async function loadEngineersForAssign() {
@@ -524,7 +436,7 @@
         if (current) select.value = current;
       }
 
-      async function loadFeaturesForLayer(projectId, layerId, designFeatureId) {
+      async function loadFeaturesForLayer(projectId, layerId) {
         const select = document.getElementById('featureSelect');
         if (!select) return;
 
@@ -535,33 +447,21 @@
 
         const data = await window.FiberApi.getProjectLayerDetails(projectId, layerId);
         const list = data && Array.isArray(data.features) ? data.features : [];
-        // A missing jobs list must not empty the picker: the label just falls
-        // back to the feature alone.
-        const index = await loadAssignmentIndex(projectId).catch(function () {
-          return null;
-        });
 
-        const wanted = designFeatureId ? String(designFeatureId).trim().toLowerCase() : '';
         const current = select.value;
         select.innerHTML = '<option value="">All Features in Layer</option>';
 
-        let matched = '';
         list.forEach(function (f) {
           const id = pickFeatureId(f);
           if (!id) return;
-          if (wanted && !matched && pickDesignFeatureId(f) === wanted) matched = id;
-          const label = pickFeatureLabel(f) || id;
-          const holder = assigneeForFeature(f, index);
+          const label = pickFeatureLabel(f);
           const opt = document.createElement('option');
           opt.value = id;
-          opt.textContent = label + ' — ' + (holder || 'unassigned');
-          opt.title = holder ? 'Already assigned: ' + holder : 'No engineer assigned yet';
+          opt.textContent = label || id;
           select.appendChild(opt);
         });
 
         if (current) select.value = current;
-        else if (matched) select.value = matched;
-        updateAssignPreview();
       }
 
       async function loadLayersForProject(projectId) {
@@ -603,8 +503,6 @@
         });
 
         if (current) select.value = current;
-        layerSummaryCache = { projectId: projectId, layers: list.filter(function (l) { return l && typeof l === 'object'; }) };
-        updateAssignPreview();
       }
 
       async function loadProjectsForAssign() {
@@ -634,128 +532,40 @@
         if (current) select.value = current;
       }
 
-      function selectedEngineers() {
-        const select = document.getElementById('engineerSelect');
-        if (!select) return [];
-        return Array.from(select.selectedOptions || [])
-          .map(function (o) {
-            return o.value;
-          })
-          .filter(Boolean);
-      }
-
-      // The counts a pending assignment would touch. Taken from the layers
-      // endpoint the picker already reads, so the preview cannot describe a
-      // different set of layers from the one on screen — and it reflects the
-      // rule that only a pending feature moves to assigned.
-      let layerSummaryCache = { projectId: '', layers: [] };
-
-      function layerTotals(layers) {
-        const totals = { pending: 0, assigned: 0, under_review: 0, approved: 0, redo: 0, features: 0 };
-        layers.forEach(function (l) {
-          const counts = l.status_counts || {};
-          ['pending', 'assigned', 'under_review', 'approved', 'redo'].forEach(function (k) {
-            totals[k] += Number(counts[k] || 0);
-          });
-          totals.features += Number(l.feature_count || 0);
-        });
-        return totals;
-      }
-
-      function updateAssignPreview() {
-        const box = document.getElementById('assignPreview');
-        if (!box) return;
-        const project = document.getElementById('projectSelect').value;
-        const layer = document.getElementById('layerSelect').value;
-        const feature = document.getElementById('featureSelect').value;
-        const engineers = selectedEngineers().length;
-
-        if (!project) {
-          box.textContent = '';
-          return;
-        }
-
-        if (feature) {
-          const option = document.getElementById('featureSelect').selectedOptions[0];
-          const match = option && option.textContent.match(/\((pending|assigned|under_review|approved|redo)\)/);
-          box.textContent =
-            'This assignment covers 1 feature' +
-            (match ? ' (currently ' + match[1] + ')' : '') +
-            '. Only a pending feature moves to assigned.';
-          return;
-        }
-
-        const layers = layerSummaryCache.projectId === project ? layerSummaryCache.layers : [];
-        const scopeLabel = layer ? 'layer ' + layer : 'the whole project';
-        const scoped = layer
-          ? layers.filter(function (l) {
-              return l.layer_id === layer || l.layer_name === layer;
-            })
-          : layers;
-        const totals = layerTotals(scoped);
-
-        if (!totals.features) {
-          box.textContent = 'No features are recorded for ' + scopeLabel + ' yet.';
-          return;
-        }
-        box.textContent =
-          'Covers ' + scopeLabel + ': ' + totals.features + ' features — ' +
-          totals.pending + ' pending will be assigned; ' +
-          totals.assigned + ' assigned, ' + totals.under_review + ' under review, ' +
-          totals.approved + ' approved and ' + totals.redo + ' redo left untouched' +
-          (engineers > 1 ? '. ' + engineers + ' engineers will each get a job.' : '.');
-      }
-
-      async function applyAssignment() {
+      function applyAssignment() {
         const projectSelect = document.getElementById('projectSelect');
         const project = projectSelect.value;
         const layer = document.getElementById('layerSelect').value;
         const feature = document.getElementById('featureSelect').value;
-        const engineers = selectedEngineers();
+        const engineerSelect = document.getElementById('engineerSelect');
+        const engineer = engineerSelect.value;
 
         if (!project) {
           setAssignStatus('Select a project.', true);
           return;
         }
 
-        if (!engineers.length) {
-          setAssignStatus('Select at least one engineer.', true);
+        if (!engineer) {
+          setAssignStatus('Select an engineer.', true);
           return;
         }
 
         const scope = feature ? 'feature' : layer ? 'layer' : 'project';
-        setAssignStatus(
-          'Creating ' + (engineers.length === 1 ? 'assignment' : engineers.length + ' assignments') + '...'
-        );
+        const payload = { project: project, scope: scope, assignee: engineer };
+        if (scope === 'layer') payload.layer_id = layer;
+        if (scope === 'feature') payload.feature = feature;
 
-        const created = [];
-        for (const engineer of engineers) {
-          const payload = { project: project, scope: scope, assignee: engineer };
-          if (scope === 'layer') payload.layer_id = layer;
-          if (scope === 'feature') payload.feature = feature;
-          try {
-            created.push(await window.FiberApi.createAssignment(payload));
-          } catch (e) {
-            setAssignStatus(
-              (e && e.message ? e.message : 'Failed to create assignment.') +
-                (created.length ? ' (' + created.length + ' created first)' : ''),
-              true
-            );
-            assignmentIndexCache = { projectId: '', index: null };
-            return;
-          }
-        }
+        setAssignStatus('Creating assignment...');
 
-        // The pickers' "who holds this" came from the jobs list, which just
-        // changed. Drop it so the next load reads the new state.
-        assignmentIndexCache = { projectId: '', index: null };
-        setAssignStatus('');
-        showSuccessModal(
-          created.length === 1 && created[0] && created[0].id
-            ? 'Assignment ID: ' + created[0].id
-            : created.length + ' assignments created (' + scope + ').'
-        );
-        updateAssignPreview();
+        window.FiberApi.createAssignment(payload)
+          .then(function (res) {
+            const assigned = res && res.id ? 'Assignment ID: ' + res.id : 'Assignment created.';
+            setAssignStatus('');
+            showSuccessModal(assigned);
+          })
+          .catch(function (e) {
+            setAssignStatus(e && e.message ? e.message : 'Failed to create assignment.', true);
+          });
       }
 
       function bindProjectChange() {
@@ -764,13 +574,9 @@
         projectSelect.addEventListener('change', function () {
           const featureSelect = document.getElementById('featureSelect');
           if (featureSelect) featureSelect.innerHTML = '<option value="">All Features in Layer</option>';
-          loadLayersForProject(projectSelect.value)
-            .then(function () {
-              updateAssignPreview();
-            })
-            .catch(function (e) {
-              setAssignStatus(e && e.message ? e.message : 'Failed to load layers.', true);
-            });
+          loadLayersForProject(projectSelect.value).catch(function (e) {
+            setAssignStatus(e && e.message ? e.message : 'Failed to load layers.', true);
+          });
         });
       }
 
@@ -784,7 +590,6 @@
           loadFeaturesForLayer(projectSelect.value, layerSelect.value)
             .then(function () {
               setAssignStatus('');
-              updateAssignPreview();
             })
             .catch(function (e) {
               setAssignStatus(e && e.message ? e.message : 'Failed to load features.', true);
@@ -804,35 +609,19 @@
             const projectSelect = document.getElementById('projectSelect');
             const layerSelect = document.getElementById('layerSelect');
             const featureSelect = document.getElementById('featureSelect');
-            const engineerSelect = document.getElementById('engineerSelect');
-
-            if (featureSelect) featureSelect.addEventListener('change', updateAssignPreview);
-            if (engineerSelect) engineerSelect.addEventListener('change', updateAssignPreview);
 
             if (params.projectId && projectSelect) projectSelect.value = params.projectId;
-
-            if (params.assigneeId && engineerSelect) {
-              const wanted = String(params.assigneeId);
-              const known = Array.prototype.some.call(engineerSelect.options, function (o) {
-                return o.value === wanted;
-              });
-              if (known) engineerSelect.value = wanted;
-            }
 
             const selectedProjectId = params.projectId || (projectSelect ? projectSelect.value : '');
             return loadLayersForProject(selectedProjectId)
               .then(function () {
-                const layerId = resolveLayerId(params.layerId, layerSelect);
-                if (layerId && layerSelect) layerSelect.value = layerId;
-                const selectedLayerId = layerSelect ? layerSelect.value : '';
-                return loadFeaturesForLayer(selectedProjectId, selectedLayerId, params.featureId);
+                if (params.layerId && layerSelect) layerSelect.value = params.layerId;
+                const selectedLayerId =
+                  params.layerId && layerSelect ? layerSelect.value : layerSelect ? layerSelect.value : '';
+                return loadFeaturesForLayer(selectedProjectId, selectedLayerId);
               })
               .then(function () {
-                if (!params.featureId || !featureSelect) return;
-                const exact = Array.prototype.some.call(featureSelect.options, function (o) {
-                  return o.value === params.featureId;
-                });
-                if (exact) featureSelect.value = params.featureId;
+                if (params.featureId && featureSelect) featureSelect.value = params.featureId;
               });
           })
           .then(function () {

@@ -12,7 +12,7 @@
 (function () {
   var LOCAL_HOST_RE = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$/;
   var isLocal = LOCAL_HOST_RE.test(window.location.hostname);
-  var LOCAL_API = 'http://localhost:8000';
+  var LOCAL_API = 'https://fibre-backend-wml3.onrender.com';
   var PROD_API = 'https://fibre-backend-wml3.onrender.com';
 
   if (!window.FIBER_BASE_URL) {

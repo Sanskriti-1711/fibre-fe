@@ -1463,25 +1463,6 @@
       var inspectorClose = document.getElementById('inspectorClose');
       var inspectorClear = document.getElementById('inspectorClear');
       var identifyOn = false;
-      var ASSIGN_STATUS_LABELS = {
-        pending: 'Pending',
-        assigned: 'Assigned',
-        under_review: 'Under Review',
-        approved: 'Approved',
-        redo: 'Redo',
-      };
-
-      // A job can cover one feature, a whole layer, or the project. Naming the
-      // one that answers here matters: "assigned" from a layer job survives
-      // deleting a feature job, and releasing a layer job releases every feature
-      // in it, not just this one.
-      function describeAssignmentScope(job) {
-        if (!job) return '';
-        if (job.scope === 'feature') return 'feature job';
-        if (job.scope === 'layer') return 'layer job · ' + (job.layer_id || 'layer');
-        if (job.scope === 'project') return 'project job';
-        return (job.scope || 'job') + ' job';
-      }
 
       function showInspector(feature, layerName, coords) {
         var props = feature.properties || {};
@@ -1495,30 +1476,11 @@
                 : '—';
         inspectorLayer.textContent = layerName || 'Layer';
         inspectorFid.textContent = 'ID: ' + String(fid);
-        // Feature ids in the LLD output are engine ids, not projects.Feature rows.
-        // The assign page matches this id against the design id the row keeps in
-        // its properties, so hand it over rather than making the user search.
-        var assignHref =
-          'project-assign.html?project_id=' +
-          encodeURIComponent(projectId) +
-          '&layer_id=' +
-          encodeURIComponent(layerName || '');
-        if (fid !== '—' && String(fid).trim() !== '') {
-          assignHref += '&feature_id=' + encodeURIComponent(String(fid));
-        }
-        var designId = fid === '—' ? '' : String(fid);
-        var assignLink =
-          '<div id="inspectorAssign">' +
-          '<a class="btn" href="' +
-          assignHref +
-          '" style="display:inline-block;margin:0 0 6px;text-decoration:none">Assign engineer</a>' +
-          '<div class="ftth-inspector-assign" style="font-size:12px;color:#616a75;margin:0 0 10px">Checking assignment…</div>' +
-          '</div>';
         var keys = Object.keys(props).sort();
         if (!keys.length) {
-          inspectorBody.innerHTML = assignLink + '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
+          inspectorBody.innerHTML = '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
         } else {
-          var html = assignLink + '<table class="ftth-inspector-table">';
+          var html = '<table class="ftth-inspector-table">';
           keys.forEach(function (k) {
             var v = props[k];
             if (v === null || v === undefined || v === '') return;
@@ -1530,103 +1492,6 @@
           inspectorBody.innerHTML = html;
         }
         inspectorPanel.style.display = 'flex';
-        loadAssignmentLine(designId);
-      }
-
-      // The job covering this design feature: who holds it, where it stands, and
-      // the one action worth taking from here — releasing it. Nothing depends on
-      // the answer (the assign link works either way), so a miss only says so.
-      function loadAssignmentLine(designId) {
-        var box = document.getElementById('inspectorAssign');
-        if (!box || !designId) return;
-
-        function alive() {
-          // A newer feature re-rendered the panel while this was in flight.
-          return document.getElementById('inspectorAssign') === box;
-        }
-
-        function show(job, status) {
-          if (!alive()) return;
-          var line = box.querySelector('.ftth-inspector-assign');
-          if (!line) return;
-          var assignee = (job && job.assignee) || {};
-          var who = assignee.full_name || assignee.email || 'an engineer';
-          line.textContent = job
-            ? 'Assigned to ' + who + ' (' + describeAssignmentScope(job) + ') · ' + status
-            : 'No engineer assigned · ' + status;
-          if (!job) return;
-
-          var release = document.createElement('button');
-          release.type = 'button';
-          release.textContent = 'Unassign';
-          release.title = 'Release this feature from ' + who;
-          release.style.cssText =
-            'margin-left:8px;padding:1px 8px;font-size:11px;border:1px solid #d0d5dd;' +
-            'border-radius:6px;background:#fff;color:#b42318;cursor:pointer';
-          release.addEventListener('click', function () {
-            release.disabled = true;
-            window.FtthUI.confirm({
-              title: 'Unassign engineer',
-              message: 'Release this feature from ' + who + '?',
-              note: 'The feature stays in the project; only the job is removed.',
-              confirmLabel: 'Unassign',
-              danger: true,
-            }).then(function (ok) {
-              if (!ok) {
-                release.disabled = false;
-                return;
-              }
-              window.FiberApi.deleteAssignment(job.id)
-                .then(function () {
-                  // Re-read rather than assume: the API releases the row to
-                  // pending only when no other job still covers it.
-                  loadAssignmentLine(designId);
-                })
-                .catch(function (e) {
-                  release.disabled = false;
-                  if (!alive()) return;
-                  var target = box.querySelector('.ftth-inspector-assign');
-                  if (target) {
-                    target.textContent =
-                      'Could not unassign: ' + (e && e.message ? e.message : 'request failed');
-                  }
-                });
-            });
-          });
-          line.appendChild(release);
-
-          // Reassigning is the other half of releasing: the same assign page,
-          // with the engineer it will replace already chosen.
-          var assignAnchor = box.querySelector('a.btn');
-          var assignLink = assignAnchor && assignAnchor.getAttribute('href');
-          if (assignLink && assignee.id) {
-            var reassign = document.createElement('a');
-            reassign.href = assignLink + '&assignee_id=' + encodeURIComponent(assignee.id);
-            reassign.textContent = 'Reassign';
-            reassign.style.cssText =
-              'margin-left:8px;font-size:11px;color:#1d4ed8;text-decoration:none';
-            line.appendChild(reassign);
-          }
-        }
-
-        if (!projectId) {
-          var hint = box.querySelector('.ftth-inspector-assign');
-          if (hint) hint.textContent = 'Open this page with a project to see its assignment.';
-          return;
-        }
-        window.FiberApi.getFeatureByDesignId(projectId, designId)
-          .then(function (data) {
-            var feature = (data && data.feature) || {};
-            show(
-              data && data.assignment,
-              ASSIGN_STATUS_LABELS[feature.status] || feature.status || 'Pending'
-            );
-          })
-          .catch(function () {
-            if (!alive()) return;
-            var line = box.querySelector('.ftth-inspector-assign');
-            if (line) line.textContent = 'No supervision copy of this feature yet.';
-          });
       }
 
       function clearInspector() {

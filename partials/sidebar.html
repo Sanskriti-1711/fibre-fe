@@ -32,49 +32,34 @@
     </button>
   </div>
   <nav class="nav" id="sharedNav" aria-label="Main">
-    <!-- The three screens that are not about one project. Everything else is
-         either the open project's own workspace (below) or a cross-project
-         queue, which is why they are not mixed in with the stages. -->
     <div class="nav-section">
-      <span class="nav-label">Workspace</span>
-      <a data-page="dashboard" href="dashboard.html">Home</a>
-      <a data-page="projects" href="projects.html">All projects</a>
-      <a data-page="engineers-list" href="engineers-list.html">People</a>
-    </div>
-
-    <!-- Shown only when the URL carries a project. sidebar-loader.js fills the
-         links with that project's id, names it, and marks the stage the
-         current page belongs to, so one project reads as one flow instead of
-         the stages being scattered across four nav groups. -->
-    <div class="nav-section nav-project" id="projectNav" hidden>
-      <div class="nav-project__head">
-        <span class="nav-project__eyebrow">Project workspace</span>
-        <span class="nav-project__name" id="projectNavName">Current project</span>
-      </div>
-      <a data-stage="overview" href="project-details.html">Overview</a>
-      <a data-stage="planning" href="ftth-lld-outputs.html">Planning &amp; design</a>
-      <a data-stage="permits" href="ftth-permits.html">Permits</a>
-      <a data-stage="jobs" href="project-assign.html">Jobs</a>
-      <a data-stage="review" href="project-approval-que.html">Review</a>
-      <a data-stage="progress" href="projects-completion.html">Progress</a>
+      <span class="nav-label">Overview</span>
+      <a data-page="dashboard" href="dashboard.html">Dashboard</a>
+      <a data-page="projects" href="projects.html">All Projects</a>
     </div>
 
     <div class="nav-section">
-      <span class="nav-label">Queues</span>
-      <a data-page="project-approval-que" href="project-approval-que.html">Approval queue</a>
-      <a data-page="all-jobs" href="all-jobs.html">All jobs</a>
-      <a data-page="projects-completion" href="projects-completion.html">Completion</a>
+      <span class="nav-label">Design Pipeline</span>
+      <a data-page="ftth-hld" href="ftth-hld.html">Create project</a>
+      <a data-page="ftth-hld-projects" href="ftth-hld-projects.html">HLD Outputs</a>
+      <a data-page="ftth-survey-changes" href="ftth-survey-changes.html">Approval queue</a>
+      <a data-page="ftth-lld-outputs" href="ftth-lld-outputs.html">LLD Outputs</a>
+      <a data-page="ftth-permits" href="ftth-permits.html">Permits</a>
+    </div>
+
+    <div class="nav-section">
+      <span class="nav-label">Supervision</span>
+      <a data-page="all-jobs" href="all-jobs.html">All Jobs</a>
+      <a data-page="projects-completion" href="projects-completion.html">Projects Completion</a>
       <a data-page="project-map-review" href="project-map-review.html">Map review</a>
       <a data-page="reports" href="reports.html">Reports &amp; exports</a>
     </div>
 
     <div class="nav-section">
-      <span class="nav-label">Set up</span>
-      <a data-page="ftth-hld" href="ftth-hld.html">Create project</a>
-      <a data-page="ftth-hld-projects" href="ftth-hld-projects.html">HLD outputs</a>
-      <a data-page="ftth-lld-outputs" href="ftth-lld-outputs.html">LLD outputs</a>
-      <a data-page="engineers-invite" href="engineers-invite.html">Invite engineer</a>
-      <a data-page="engineer-activity" href="engineer-activity.html">Engineer activity</a>
+      <span class="nav-label">Engineers</span>
+      <a data-page="engineers-list" href="engineers-list.html">Engineers</a>
+      <a data-page="engineers-invite" href="engineers-invite.html">Invite Engineer</a>
+      <a data-page="engineer-activity" href="engineer-activity.html">Engineer Activity</a>
     </div>
 
     <div class="nav-section">
