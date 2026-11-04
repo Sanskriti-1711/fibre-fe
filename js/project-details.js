@@ -298,15 +298,18 @@ function esc(str) {
 // The backend only rewrites rows still `pending`, so this is safe to run after
 // a design fix without touching work already in the field.
 async function resyncBaseline(projectId, sourceRun) {
+  // ftth-ui.js declares FtthUI as a top-level binding, which is not a property
+  // of `window`; check both spellings so the app dialog is used rather than a
+  // native one that ignores the rest of the app's styling.
+  const ui = typeof FtthUI !== 'undefined' ? FtthUI : window.FtthUI || null;
+
   const message =
     'Refresh the planned values of features still pending from ' +
     (sourceRun || 'the LLD run') +
     '? Assigned, submitted and approved work is left untouched.';
-  // The platform's own dialog, so the confirm matches every other decision in
-  // the app; the native confirm is only a fallback if ftth-ui never loaded.
   const confirmed =
-    window.FtthUI && typeof window.FtthUI.confirm === 'function'
-      ? await window.FtthUI.confirm({
+    ui && typeof ui.confirm === 'function'
+      ? await ui.confirm({
           title: 'Re-sync from LLD',
           message: message,
           confirmLabel: 'Re-sync',
@@ -332,8 +335,8 @@ async function resyncBaseline(projectId, sourceRun) {
       ' kept, ' +
       result.features_created +
       ' added.';
-    if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
-      window.FtthUI.toast(message, 'success');
+    if (ui && typeof ui.toast === 'function') {
+      ui.toast(message, 'success');
     } else {
       console.log(message);
     }
@@ -341,8 +344,8 @@ async function resyncBaseline(projectId, sourceRun) {
       window.location.reload();
     }, 900);
   } catch (err) {
-    if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
-      window.FtthUI.toast((err && err.message) || 'Re-sync failed', 'error');
+    if (ui && typeof ui.toast === 'function') {
+      ui.toast((err && err.message) || 'Re-sync failed', 'error');
     } else {
       console.error(err);
     }
