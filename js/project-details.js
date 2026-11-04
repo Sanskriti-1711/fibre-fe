@@ -294,6 +294,65 @@ function esc(str) {
     .replace(/"/g, '&quot;');
 }
 
+// Re-sync the planned baseline from the LLD run this project was opened from.
+// The backend only rewrites rows still `pending`, so this is safe to run after
+// a design fix without touching work already in the field.
+async function resyncBaseline(projectId, sourceRun) {
+  const message =
+    'Refresh the planned values of features still pending from ' +
+    (sourceRun || 'the LLD run') +
+    '? Assigned, submitted and approved work is left untouched.';
+  // The platform's own dialog, so the confirm matches every other decision in
+  // the app; the native confirm is only a fallback if ftth-ui never loaded.
+  const confirmed =
+    window.FtthUI && typeof window.FtthUI.confirm === 'function'
+      ? await window.FtthUI.confirm({
+          title: 'Re-sync from LLD',
+          message: message,
+          confirmLabel: 'Re-sync',
+        })
+      : window.confirm(message);
+  if (!confirmed) return;
+
+  const btn = document.getElementById('resyncBaselineBtn');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Re-syncing…';
+  }
+
+  try {
+    const result = await window.FiberApi.resyncFromLld(projectId);
+    const message =
+      'Re-synced ' +
+      (result.source_lld_run_id || 'the LLD run') +
+      ': ' +
+      result.features_updated +
+      ' refreshed, ' +
+      result.features_kept +
+      ' kept, ' +
+      result.features_created +
+      ' added.';
+    if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
+      window.FtthUI.toast(message, 'success');
+    } else {
+      console.log(message);
+    }
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 900);
+  } catch (err) {
+    if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
+      window.FtthUI.toast((err && err.message) || 'Re-sync failed', 'error');
+    } else {
+      console.error(err);
+    }
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Re-sync from LLD';
+    }
+  }
+}
+
 // Load and render project data
 async function loadAndRenderProject() {
   const projectId = getProjectIdFromUrl();
@@ -357,6 +416,20 @@ async function loadAndRenderProject() {
       projectDetails.name || `Project ${projectId}`;
     document.getElementById('projectDescription').textContent =
       projectDetails.description || 'Layer and feature management for the selected project';
+
+    // Offered only for a project opened from an LLD run: re-importing a GPKG
+    // project is the upload wizard's job, not this button's.
+    const resyncBtn = document.getElementById('resyncBaselineBtn');
+    if (resyncBtn) {
+      const sourceRun = projectDetails.source_lld_run_id || '';
+      resyncBtn.hidden = !sourceRun;
+      resyncBtn.title = sourceRun
+        ? 'Refresh pending features from ' + sourceRun
+        : 'Not opened from an LLD run';
+      resyncBtn.onclick = function () {
+        resyncBaseline(projectId, sourceRun);
+      };
+    }
 
     // Update KPI section with project details
     const totalFeatures = mapData.features ? mapData.features.length : 0;

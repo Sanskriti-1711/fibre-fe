@@ -285,6 +285,19 @@
     });
   }
 
+  // Refresh an existing supervision project from its (re-)exported LLD run:
+  // only rows still pending are rewritten, approved work is kept. Passing a
+  // ``sourceLldRunId`` re-points the project at a newer completed run first.
+  async function resyncFromLld(projectId, sourceLldRunId) {
+    const id = encodeURIComponent(projectId);
+    const payload = sourceLldRunId ? { source_lld_run_id: sourceLldRunId } : {};
+    return apiFetch(`/api/projects/${id}/import/from-lld/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  }
+
   async function deleteProject(projectId) {
     const id = encodeURIComponent(projectId);
     return apiFetch(`/api/projects/${id}/`, { method: 'DELETE' });
@@ -550,6 +563,13 @@
     });
   }
 
+  // ── Field evidence (FeaturePhoto gallery) ────────────────────────────
+  // One feature can carry several site photos; the deprecated single
+  // `Feature.photo` column is still read as a fallback by older pages.
+  async function getFeaturePhotos(featureId) {
+    return apiFetch(`/api/features/${encodeURIComponent(featureId)}/photos/`, { method: 'GET' });
+  }
+
   async function getProjectDecisions(projectId, params) {
     const id = encodeURIComponent(projectId);
     const query =
@@ -699,6 +719,7 @@
     getProject,
     createProject,
     handoffFromLld,
+    resyncFromLld,
     createEngineer,
     deleteEngineer,
     deleteProject,
@@ -729,6 +750,7 @@
     approveFeatures,
     rejectFeatures,
     getFeatureDecisions,
+    getFeaturePhotos,
     requestDesignRevision,
     getProjectDecisions,
     getProjectAsBuiltReport,
