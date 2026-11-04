@@ -606,6 +606,15 @@ function bindAssignJobLink(params) {
   if (featureId) qsParts.push('feature_id=' + encodeURIComponent(featureId));
 
   btn.href = qsParts.length ? 'project-assign.html?' + qsParts.join('&') : 'project-assign.html';
+
+  // The project map can zoom to one feature; this page's map is only a
+  // fragment of it, so offer the surrounding design too.
+  const fullMapBtn = qs('viewOnMapBtn');
+  if (fullMapBtn) {
+    fullMapBtn.href = qsParts.length
+      ? 'project-map-review.html?' + qsParts.join('&')
+      : 'project-map-review.html';
+  }
 }
 
 async function loadPage() {

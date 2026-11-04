@@ -17,13 +17,7 @@
     {
       key: 'overview',
       page: 'project-details.html',
-      pages: [
-        'project-details',
-        'ftth-project-overview',
-        'project-map-review',
-        'layer-details',
-        'feature-details',
-      ],
+      pages: ['project-details', 'ftth-project-overview', 'layer-details', 'feature-details'],
     },
     {
       key: 'planning',
@@ -188,10 +182,15 @@
     // Clear first: a page that appears both as a stage and as a queue row must
     // not light up twice.
     Array.prototype.forEach.call(nav.querySelectorAll('a'), function (link) {
-      link.classList.remove('active');
+      link.classList.remove('active', 'active-module');
     });
 
     if (activeStage) {
+      // The module entry keeps saying where the page lives while the project
+      // stage stays the primary marker inside the workspace card.
+      Array.prototype.forEach.call(nav.querySelectorAll('a[data-page]'), function (link) {
+        if (link.getAttribute('data-page') === currentPage) link.classList.add('active-module');
+      });
       var stageLink = nav.querySelector('a[data-stage="' + activeStage.key + '"]');
       if (stageLink) stageLink.classList.add('active');
       return;

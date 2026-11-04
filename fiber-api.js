@@ -127,7 +127,15 @@
       }
     }
 
-    if (typeof body === 'string' && body.trim()) return body;
+    if (typeof body === 'string') {
+      const text = body.trim();
+      // A proxy or Django error page is HTML, not an API answer. Showing it in
+      // a toast buried the actual failure under a wall of markup, so fall back
+      // to the status line instead.
+      if (text && !/^<\s*[!a-z]/i.test(text)) {
+        return text.length > 300 ? `${text.slice(0, 297)}...` : text;
+      }
+    }
     return `${response.status} ${response.statusText}`;
   }
 

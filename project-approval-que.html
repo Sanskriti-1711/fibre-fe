@@ -8,7 +8,9 @@
       if (new URLSearchParams(location.search).get('embed') === '1') {
         document.documentElement.classList.add('embed');
       } else {
-        location.replace('ftth-survey-changes.html#features');
+        // Keep a project-scoped link scoped after the redirect; dropping the
+        // query made "Open approval queue" scan every project.
+        location.replace('ftth-survey-changes.html' + location.search + '#features');
       }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -39,7 +41,7 @@
       .aq-head .sub {
         margin: 4px 0 0;
         font-size: 13px;
-        color: #6b7280;
+        color: #5b6472;
       }
 
       .aq-btn {
@@ -74,22 +76,22 @@
         border-color: #c4142f;
       }
       .aq-btn.approve {
-        background: #10b981;
-        border-color: #10b981;
+        background: #047857;
+        border-color: #047857;
         color: #ffffff;
       }
       .aq-btn.approve:hover {
-        background: #059669;
-        border-color: #059669;
+        background: #065f46;
+        border-color: #065f46;
       }
       .aq-btn.redo {
-        background: #f59e0b;
-        border-color: #f59e0b;
+        background: #b45309;
+        border-color: #b45309;
         color: #ffffff;
       }
       .aq-btn.redo:hover {
-        background: #d97706;
-        border-color: #d97706;
+        background: #92400e;
+        border-color: #92400e;
       }
       .aq-btn.sm {
         padding: 5px 10px;
@@ -112,7 +114,7 @@
         display: block;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #5b6472;
         margin-bottom: 6px;
       }
       .aq-filters select,
@@ -142,20 +144,20 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #6b7280;
+        color: #5b6472;
       }
       .aq-stat strong {
         font-size: 20px;
         font-weight: 700;
       }
       .aq-stat.under-review strong {
-        color: #f59e0b;
+        color: #b45309;
       }
       .aq-stat.approved strong {
-        color: #10b981;
+        color: #047857;
       }
       .aq-stat.redo strong {
-        color: #ef4444;
+        color: #b91c1c;
       }
 
       .aq-bulk {
@@ -187,8 +189,42 @@
       }
       .aq-table {
         width: 100%;
+        min-width: 760px;
+        table-layout: fixed;
         border-collapse: collapse;
         font-size: 13px;
+      }
+      /* Fixed widths stop the project name wrapping one word per line when the
+         queue is embedded beside the 326px sidebar. Below 760px the card
+         scrolls horizontally instead of crushing every column. */
+      .aq-table th:nth-child(1),
+      .aq-table td:nth-child(1) {
+        width: 34px;
+      }
+      .aq-table th:nth-child(2),
+      .aq-table td:nth-child(2) {
+        width: 96px;
+      }
+      .aq-table th:nth-child(3),
+      .aq-table td:nth-child(3) {
+        width: 154px;
+        overflow-wrap: normal;
+      }
+      .aq-table th:nth-child(4),
+      .aq-table td:nth-child(4) {
+        width: 124px;
+      }
+      .aq-table th:nth-child(5),
+      .aq-table td:nth-child(5) {
+        width: 104px;
+      }
+      .aq-table th:nth-child(6),
+      .aq-table td:nth-child(6) {
+        width: 84px;
+      }
+      .aq-table th:nth-child(7),
+      .aq-table td:nth-child(7) {
+        width: 164px;
       }
       .aq-table th {
         text-align: left;
@@ -197,7 +233,7 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #6b7280;
+        color: #5b6472;
         background: #f9fafb;
         border-bottom: 1px solid #e5e7eb;
         white-space: nowrap;
@@ -211,11 +247,10 @@
       }
 
       /* components.css floors every `div:has(> table) > table` at 720px so that
-         wide tables scroll on tablets. This card is ~662px inside the embedded
-         Approval queue tab, so that floor was what pushed the Actions column out
-         of view. The cells wrap, so the table can follow the card instead. */
+         wide tables scroll on tablets. Keep this table at 820px as well: the
+         card scrolls, while the columns keep enough width to stay readable. */
       .aq-table-card > .aq-table {
-        min-width: 0;
+        min-width: 760px;
       }
       .aq-table tr:last-child td {
         border-bottom: none;
@@ -252,10 +287,10 @@
       .aq-mono {
         font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
         font-size: 11px;
-        color: #6b7280;
+        color: #5b6472;
       }
       .aq-muted {
-        color: #6b7280;
+        color: #5b6472;
       }
 
       .aq-badge {
@@ -299,7 +334,7 @@
       .aq-empty {
         text-align: center;
         padding: 56px 20px;
-        color: #6b7280;
+        color: #5b6472;
         font-size: 14px;
       }
       .aq-empty strong {
@@ -366,7 +401,7 @@
         border: none;
         font-size: 22px;
         line-height: 1;
-        color: #6b7280;
+        color: #5b6472;
         cursor: pointer;
       }
       .aq-close:hover {
@@ -385,7 +420,7 @@
         font-size: 11px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        color: #6b7280;
+        color: #5b6472;
         border-bottom: 1px solid #e5e7eb;
       }
       .aq-cmp td {
@@ -408,7 +443,7 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #6b7280;
+        color: #5b6472;
       }
 
       .aq-photo {
@@ -428,7 +463,7 @@
         display: block;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #5b6472;
         margin-bottom: 6px;
       }
       .aq-note {
@@ -538,7 +573,7 @@
                   <th>As-built</th>
                   <th>Submitted</th>
                   <th style="width: 130px">Status</th>
-                  <th style="width: 200px; text-align: right">Actions</th>
+                  <th style="width: 250px; text-align: right">Actions</th>
                 </tr>
               </thead>
               <tbody id="rowsBody">
@@ -575,7 +610,7 @@
           <button class="aq-close" type="button" id="redoClose" aria-label="Close">&times;</button>
         </header>
         <div class="body">
-          <p style="margin: 0 0 14px; font-size: 13px; color: #6b7280">
+          <p style="margin: 0 0 14px; font-size: 13px; color: #5b6472">
             Tell the engineer what needs correcting. The note is stored on the feature and shown to them.
           </p>
           <label class="aq-note-label" for="redoReason">Reason</label>
@@ -670,6 +705,23 @@
         errorState.textContent = message;
       }
 
+      function requestedProjectId() {
+        var params = new URLSearchParams(location.search);
+        return params.get('project_id') || params.get('project') || '';
+      }
+
+      function showLoadFailures(failures) {
+        if (!failures.length) return;
+        var shown = failures.slice(0, 3).join(', ');
+        var more = failures.length > 3 ? ' and ' + (failures.length - 3) + ' more' : '';
+        showError(
+          'Some layers could not be loaded: ' +
+            shown +
+            more +
+            '. The rest of the queue is shown; refresh to try them again.'
+        );
+      }
+
       function toast(message, kind) {
         if (window.FtthUI && typeof window.FtthUI.toast === 'function') {
           window.FtthUI.toast(message, kind);
@@ -762,6 +814,19 @@
         );
       }
 
+      // The project map, focused on this one feature. The map page reads
+      // feature_id/layer_id and zooms to the supervision row's own geometry.
+      function mapFeatureParam(row) {
+        return (
+          'project-map-review.html?project_id=' +
+          encodeURIComponent(row.project.id) +
+          '&layer_id=' +
+          encodeURIComponent(row.layer.id) +
+          '&feature_id=' +
+          encodeURIComponent(row.feature.id)
+        );
+      }
+
       function auditParam(row) {
         return (
           'audit-detail.html?project_id=' +
@@ -788,11 +853,20 @@
           opt.textContent = p.name || 'Unnamed project';
           filterProject.appendChild(opt);
         });
+
+        var requested = requestedProjectId();
+        if (!filterProject.value && requested) {
+          var exists = Array.prototype.some.call(filterProject.options, function (opt) {
+            return opt.value === requested;
+          });
+          if (exists) filterProject.value = requested;
+        }
       }
 
       async function loadRows() {
         rows = [];
         selected.clear();
+        var failures = [];
         var projects = loadedProjects;
 
         if (filterProject.value) {
@@ -805,9 +879,18 @@
           var project = projects[i];
           var projectId = project.id || project.uuid || project.pk;
           if (!projectId) continue;
+          var projectName = project.name || 'Unnamed project';
 
-          var layerResponse = await window.FiberApi.listProjectLayers(projectId);
-          var layers = (layerResponse && layerResponse.layers) || [];
+          var layers;
+          try {
+            var layerResponse = await window.FiberApi.listProjectLayers(projectId);
+            layers = (layerResponse && layerResponse.layers) || [];
+          } catch (_) {
+            // A single project failing (a dropped connection, a 500) must not
+            // blank a queue that already has the other projects in it.
+            failures.push(projectName);
+            continue;
+          }
 
           for (var j = 0; j < layers.length; j++) {
             var layer = layers[j];
@@ -817,17 +900,24 @@
             });
             if (!hasStatuses) continue;
 
-            var detail = await window.FiberApi.getProjectLayerDetails(projectId, layer.layer_id);
+            var detail;
+            try {
+              detail = await window.FiberApi.getProjectLayerDetails(projectId, layer.layer_id);
+            } catch (_) {
+              failures.push(projectName + ' / ' + (layer.layer_name || layer.layer_id));
+              continue;
+            }
             var features = (detail && detail.features) || [];
             features.forEach(function (feature) {
               rows.push({
-                project: { id: projectId, name: project.name || 'Unnamed project' },
+                project: { id: projectId, name: projectName },
                 layer: { id: layer.layer_id, name: layer.layer_name || layer.layer_id },
                 feature: feature,
               });
             });
           }
         }
+        return failures;
       }
 
       function visibleRows() {
@@ -911,6 +1001,9 @@
               badge(f.status) +
               '</td>' +
               '<td><div class="aq-actions">' +
+              '<a class="aq-btn sm" href="' +
+              esc(mapFeatureParam(row)) +
+              '" target="_top">View map</a> ' +
               '<button class="aq-btn sm" type="button" data-review="' +
               esc(f.id) +
               '">Review</button> ' +
@@ -955,8 +1048,9 @@
         try {
           await loadProjects();
           syncMapReviewLink();
-          await loadRows();
+          var failures = await loadRows();
           renderRows();
+          showLoadFailures(failures);
         } catch (err) {
           showError('Failed to load the approval queue: ' + (err && err.message ? err.message : err));
           rowsBody.innerHTML = '<tr><td colspan="7" class="aq-empty">Could not load features.</td></tr>';
@@ -998,8 +1092,9 @@
       // status rather than a locally patched one.
       async function refreshRowsOnly() {
         try {
-          await loadRows();
+          var failures = await loadRows();
           renderRows();
+          showLoadFailures(failures);
         } catch (err) {
           showError('Feature saved, but the queue could not be refreshed: ' + err.message);
         }
@@ -1082,10 +1177,13 @@
           '<p style="margin:18px 0 0">' +
           '<a href="' +
           auditParam(reviewRow) +
-          '" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none">Full audit review &rarr;</a>' +
+          '" target="_top" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none">Full audit review &rarr;</a>' +
+          '<a href="' +
+          mapFeatureParam(reviewRow) +
+          '" target="_top" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none;margin-left:18px">View on the map &rarr;</a>' +
           '<a href="' +
           featureParam(reviewRow) +
-          '" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none;margin-left:18px">Open on the map &rarr;</a>' +
+          '" target="_top" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none;margin-left:18px">Feature details &rarr;</a>' +
           '</p>';
 
         document.getElementById('reviewBody').innerHTML = body;
