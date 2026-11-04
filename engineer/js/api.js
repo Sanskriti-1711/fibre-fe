@@ -281,6 +281,37 @@
     });
   }
 
+  /**
+   * Site photo gallery (FeaturePhoto). One feature carries up to 20 photos;
+   * the single-photo route above only writes the deprecated Feature.photo.
+   *
+   * GET  /api/features/{id}/photos/
+   */
+  async function getFeaturePhotos(featureId) {
+    const id = encodeURIComponent(featureId);
+    return apiFetch(`/api/features/${id}/photos/`, { method: 'GET' });
+  }
+
+  /**
+   * Append one or more photos to the feature's gallery.
+   * POST /api/features/{id}/photos/ — repeat the `photos` key per file.
+   */
+  async function uploadFeaturePhotos(featureId, files) {
+    const id = encodeURIComponent(featureId);
+    const formData = new FormData();
+    (files || []).forEach((file) => formData.append('photos', file));
+    return apiFetch(`/api/features/${id}/photos/`, {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  async function deleteFeaturePhoto(featureId, photoId) {
+    const id = encodeURIComponent(featureId);
+    const photo = encodeURIComponent(photoId);
+    return apiFetch(`/api/features/${id}/photos/${photo}/`, { method: 'DELETE' });
+  }
+
   // Export API module
   window.EngineerApi = {
     // Auth (re-exported for convenience)
@@ -295,6 +326,9 @@
     updateFieldMeasurements,
     submitFeatures,
     uploadFeaturePhoto,
+    getFeaturePhotos,
+    uploadFeaturePhotos,
+    deleteFeaturePhoto,
 
     // Assignments
     listJobs,

@@ -75,6 +75,32 @@
         word-break: break-all;
       }
 
+      .ftth-supervision-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #f3f4f6;
+        font-size: 12px;
+        color: #616a75;
+      }
+
+      .ftth-supervision-line[hidden] {
+        display: none;
+      }
+
+      .ftth-supervision-line a {
+        color: #b42318;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .ftth-supervision-line a:hover {
+        text-decoration: underline;
+      }
+
       .ftth-side-pane-section {
         padding: 16px 20px;
         border-bottom: 1px solid #e5e7eb;
@@ -408,6 +434,10 @@
         transform: scale(1.1);
       }
 
+      .ftth-multiselect-btn {
+        right: 72px;
+      }
+
       .ftth-inspector {
         position: absolute;
         top: 122px;
@@ -538,6 +568,88 @@
         background: #f3f4f6;
       }
 
+      .ftth-selection-tray {
+        position: absolute;
+        left: 12px;
+        bottom: 52px;
+        z-index: 8;
+
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 12px;
+        max-width: calc(100% - 24px);
+
+        padding: 9px 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.18);
+
+        color: #374151;
+        font-size: 12px;
+      }
+
+      .ftth-selection-tray[hidden] {
+        display: none;
+      }
+
+      .ftth-selection-tray strong {
+        color: #111827;
+        font-weight: 800;
+      }
+
+      .ftth-selection-layer,
+      .ftth-selection-status {
+        color: #616a75;
+        font-size: 11px;
+      }
+
+      .ftth-selection-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+      }
+
+      .ftth-selection-clear {
+        padding: 6px 8px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: #616a75;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .ftth-selection-clear:hover {
+        background: #f3f4f6;
+        color: #111827;
+      }
+
+      .ftth-selection-assign {
+        display: inline-block;
+        padding: 7px 10px;
+        border-radius: 7px;
+        background: #e31837;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .ftth-selection-assign:hover {
+        background: #be1230;
+      }
+
+      .ftth-selection-assign[aria-disabled='true'] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
       .ftth-lld-download-btn {
         display: flex;
         align-items: center;
@@ -652,6 +764,15 @@
           </div>
 
           <button
+            class="ftth-identify-btn ftth-multiselect-btn"
+            id="multiSelectBtn"
+            type="button"
+            title="Select several features from one layer to assign together"
+          >
+            <span class="icon">&#x2611;</span><span class="label">Select</span>
+          </button>
+
+          <button
             class="ftth-identify-btn"
             id="identifyBtn"
             type="button"
@@ -674,6 +795,19 @@
             </div>
           </div>
 
+          <div id="selectionTray" class="ftth-selection-tray" hidden aria-live="polite">
+            <div>
+              <strong id="selectionCount">0</strong>
+              <span id="selectionNoun">features</span> selected
+              <span id="selectionLayer" class="ftth-selection-layer"></span>
+            </div>
+            <span id="selectionStatus" class="ftth-selection-status"></span>
+            <div class="ftth-selection-actions">
+              <button id="clearSelectionBtn" class="ftth-selection-clear" type="button">Clear</button>
+              <a id="assignSelectedBtn" class="ftth-selection-assign" href="#" aria-disabled="true">Assign selected</a>
+            </div>
+          </div>
+
           <div id="mapLoading" class="ftth-map-loading">
             <div>
               <div class="spinner" style="margin: 0 auto 12px"></div>
@@ -687,6 +821,10 @@
             <h2>LLD Output <a class="back-link" href="#" id="backLink">&#x2190; Back</a></h2>
             <div class="project-id">Project: <span id="projectIdDisplay">&#x2014;</span></div>
             <div class="project-id">LLD: <span id="lldVersionDisplay">&#x2014;</span></div>
+            <div id="supervisionLine" class="ftth-supervision-line" hidden>
+              <span>Supervision copy</span>
+              <a id="supervisionLink" href="#">Open map &#x2192;</a>
+            </div>
           </div>
 
           <div class="ftth-side-pane-section">
@@ -802,6 +940,7 @@
       }
 
       var map = null;
+      var lldDataStarted = false;
       var mapLoadingEl = document.getElementById('mapLoading');
       var layerControlsEl = document.getElementById('layerControls');
       var layerCountEl = document.getElementById('layerCount');
@@ -812,6 +951,90 @@
       var layerBadgeEl = document.getElementById('layerBadge');
       var validationBoxEl = document.getElementById('validationBox');
       var downloadBtn = document.getElementById('downloadBtn');
+
+      // The LLD run and its supervision copy are different project rows. The
+      // run id + version is the durable bridge; use the newest supervision
+      // project opened from this run so the inspector lands on real
+      // projects.Feature rows rather than the design project.
+      var supervisionLookup = { state: 'idle', project: null };
+      var supervisionLookupPromise = null;
+
+      function supervisionRunRef() {
+        return projectId && lldVersion ? String(projectId) + ':' + String(lldVersion) : '';
+      }
+
+      function resolveSupervisionProject() {
+        if (supervisionLookupPromise) return supervisionLookupPromise;
+        var sourceRef = supervisionRunRef();
+        if (!sourceRef || !window.FiberApi || typeof window.FiberApi.listProjects !== 'function') {
+          supervisionLookup.state = 'unavailable';
+          return Promise.resolve(null);
+        }
+
+        supervisionLookup.state = 'loading';
+        supervisionLookupPromise = window.FiberApi.listProjects()
+          .then(function (data) {
+            var rows = Array.isArray(data) ? data : data && Array.isArray(data.results) ? data.results : [];
+            var matches = rows.filter(function (p) {
+              return p && String(p.source_lld_run_id || '') === sourceRef;
+            });
+            // A re-run can leave several supervision copies. Pick the newest
+            // one, matching the project the planner most recently opened.
+            matches.sort(function (a, b) {
+              return String(b.created_at || '').localeCompare(String(a.created_at || ''));
+            });
+            supervisionLookup.project = matches[0] || null;
+            supervisionLookup.state = 'ready';
+            renderSupervisionLink();
+            return supervisionLookup.project;
+          })
+          .catch(function () {
+            supervisionLookup.state = 'unavailable';
+            supervisionLookup.project = null;
+            renderSupervisionLink();
+            return null;
+          });
+        return supervisionLookupPromise;
+      }
+
+      function renderSupervisionLink() {
+        var line = document.getElementById('supervisionLine');
+        var link = document.getElementById('supervisionLink');
+        if (!line || !link) return;
+        var sp = supervisionLookup.project;
+        if (!sp) {
+          line.hidden = true;
+          renderSelectionTray();
+          return;
+        }
+        link.href = 'project-map-review.html?project_id=' + encodeURIComponent(sp.id);
+        line.hidden = false;
+        renderSelectionTray();
+      }
+
+      function supervisionCreateHref() {
+        var params = new URLSearchParams();
+        params.set('source_lld_run_id', supervisionRunRef());
+        params.set('source_project_id', projectId);
+        params.set('lld_version', lldVersion);
+        return 'project-create.html?' + params.toString();
+      }
+
+      function supervisionAssignHref(sp, layerName, designId) {
+        var parts = ['project_id=' + encodeURIComponent(sp.id)];
+        if (layerName) parts.push('layer_id=' + encodeURIComponent(layerName));
+        if (designId) parts.push('feature_id=' + encodeURIComponent(designId));
+        return 'project-assign.html?' + parts.join('&');
+      }
+
+      function supervisionAssignBatchHref(sp, layerName, designIds) {
+        var parts = ['project_id=' + encodeURIComponent(sp.id)];
+        if (layerName) parts.push('layer_id=' + encodeURIComponent(layerName));
+        var ids = (designIds || []).filter(Boolean);
+        if (ids.length === 1) parts.push('feature_id=' + encodeURIComponent(ids[0]));
+        else if (ids.length > 1) parts.push('feature_ids=' + encodeURIComponent(ids.join(',')));
+        return 'project-assign.html?' + parts.join('&');
+      }
 
       // Permit-status colouring: worst (most blocking) status wins per feature.
       var PERMIT_STATUS_COLORS = {
@@ -942,6 +1165,11 @@
       }
 
       async function loadLldData() {
+        // MapLibre's onLoad and the immediate `map.loaded()` check can both
+        // land here on a warm cache. Starting twice duplicates the survey
+        // overlay and logs a "layer already exists" error.
+        if (lldDataStarted) return;
+        lldDataStarted = true;
         if (!projectId || !lldVersion) {
           mapLoadingEl.innerHTML =
             '<p style="color:#616A75;font-size:16px;">No project or LLD version specified. <a href="ftth-lld-versions.html" style="color:#4F46E5;">Open LLD Versions</a></p>';
@@ -1462,7 +1690,19 @@
       var inspectorBody = document.getElementById('inspectorBody');
       var inspectorClose = document.getElementById('inspectorClose');
       var inspectorClear = document.getElementById('inspectorClear');
+      var multiSelectBtn = document.getElementById('multiSelectBtn');
+      var selectionTray = document.getElementById('selectionTray');
+      var selectionCountEl = document.getElementById('selectionCount');
+      var selectionNounEl = document.getElementById('selectionNoun');
+      var selectionLayerEl = document.getElementById('selectionLayer');
+      var selectionStatusEl = document.getElementById('selectionStatus');
+      var clearSelectionBtn = document.getElementById('clearSelectionBtn');
+      var assignSelectedBtn = document.getElementById('assignSelectedBtn');
       var identifyOn = false;
+      var multiSelectOn = false;
+      var selectedFeatures = {};
+      var selectedLayerName = '';
+      var MAX_SELECTION = 50;
       var ASSIGN_STATUS_LABELS = {
         pending: 'Pending',
         assigned: 'Assigned',
@@ -1495,28 +1735,19 @@
                 : '—';
         inspectorLayer.textContent = layerName || 'Layer';
         inspectorFid.textContent = 'ID: ' + String(fid);
-        // Feature ids in the LLD output are engine ids, not projects.Feature rows.
-        // The assign page matches this id against the design id the row keeps in
-        // its properties, so hand it over rather than making the user search.
-        var assignHref =
-          'project-assign.html?project_id=' +
-          encodeURIComponent(projectId) +
-          '&layer_id=' +
-          encodeURIComponent(layerName || '');
-        if (fid !== '—' && String(fid).trim() !== '') {
-          assignHref += '&feature_id=' + encodeURIComponent(String(fid));
-        }
+        // Feature ids in the LLD output are engine ids, not projects.Feature
+        // rows. The assign page keeps the design id in properties and matches
+        // it there, so hand it over rather than making the user search again.
         var designId = fid === '—' ? '' : String(fid);
         var assignLink =
           '<div id="inspectorAssign">' +
-          '<a class="btn" href="' +
-          assignHref +
-          '" style="display:inline-block;margin:0 0 6px;text-decoration:none">Assign engineer</a>' +
-          '<div class="ftth-inspector-assign" style="font-size:12px;color:#616a75;margin:0 0 10px">Checking assignment…</div>' +
+          '<a id="inspectorAssignBtn" class="btn" href="#" aria-disabled="true" style="display:inline-block;margin:0 0 6px;text-decoration:none">Assign engineer</a>' +
+          '<div class="ftth-inspector-assign" style="font-size:12px;color:#616a75;margin:0 0 10px">Finding supervision copy…</div>' +
           '</div>';
         var keys = Object.keys(props).sort();
         if (!keys.length) {
-          inspectorBody.innerHTML = assignLink + '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
+          inspectorBody.innerHTML =
+            assignLink + '<div class="ftth-inspector-empty">No attributes on this feature.</div>';
         } else {
           var html = assignLink + '<table class="ftth-inspector-table">';
           keys.forEach(function (k) {
@@ -1530,15 +1761,60 @@
           inspectorBody.innerHTML = html;
         }
         inspectorPanel.style.display = 'flex';
-        loadAssignmentLine(designId);
+
+        var assignBtn = document.getElementById('inspectorAssignBtn');
+        if (assignBtn) {
+          assignBtn.addEventListener('click', function (e) {
+            if (assignBtn.getAttribute('aria-disabled') === 'true') e.preventDefault();
+          });
+        }
+
+        if (!designId) {
+          var noIdLine = document.querySelector('#inspectorAssign .ftth-inspector-assign');
+          if (noIdLine) noIdLine.textContent = 'This feature has no design id to hand over.';
+          return;
+        }
+        bindInspectorAssignment(layerName || '', designId);
+      }
+
+      function bindInspectorAssignment(layerName, designId) {
+        var box = document.getElementById('inspectorAssign');
+        if (!box) return;
+        var anchor = box.querySelector('#inspectorAssignBtn');
+        var line = box.querySelector('.ftth-inspector-assign');
+        if (!anchor || !line) return;
+
+        resolveSupervisionProject().then(function (sp) {
+          if (document.getElementById('inspectorAssign') !== box) return;
+          if (!sp) {
+            if (supervisionLookup.state === 'unavailable') {
+              anchor.textContent = 'Assignment unavailable';
+              anchor.href = '#';
+              anchor.setAttribute('aria-disabled', 'true');
+              line.textContent = 'Could not check the supervision copy. Reload to try again.';
+              return;
+            }
+            anchor.textContent = 'Create supervision project';
+            anchor.href = supervisionCreateHref();
+            anchor.removeAttribute('aria-disabled');
+            line.textContent = 'No supervision project exists for this LLD run yet.';
+            return;
+          }
+
+          anchor.href = supervisionAssignHref(sp, layerName, designId);
+          anchor.removeAttribute('aria-disabled');
+          anchor.textContent = 'Assign engineer';
+          line.textContent = 'Checking assignment…';
+          loadAssignmentLine(designId, sp.id);
+        });
       }
 
       // The job covering this design feature: who holds it, where it stands, and
       // the one action worth taking from here — releasing it. Nothing depends on
       // the answer (the assign link works either way), so a miss only says so.
-      function loadAssignmentLine(designId) {
+      function loadAssignmentLine(designId, supervisionId) {
         var box = document.getElementById('inspectorAssign');
-        if (!box || !designId) return;
+        if (!box || !designId || !supervisionId) return;
 
         function alive() {
           // A newer feature re-rendered the panel while this was in flight.
@@ -1580,15 +1856,14 @@
                 .then(function () {
                   // Re-read rather than assume: the API releases the row to
                   // pending only when no other job still covers it.
-                  loadAssignmentLine(designId);
+                  loadAssignmentLine(designId, supervisionId);
                 })
                 .catch(function (e) {
                   release.disabled = false;
                   if (!alive()) return;
                   var target = box.querySelector('.ftth-inspector-assign');
                   if (target) {
-                    target.textContent =
-                      'Could not unassign: ' + (e && e.message ? e.message : 'request failed');
+                    target.textContent = 'Could not unassign: ' + (e && e.message ? e.message : 'request failed');
                   }
                 });
             });
@@ -1603,34 +1878,32 @@
             var reassign = document.createElement('a');
             reassign.href = assignLink + '&assignee_id=' + encodeURIComponent(assignee.id);
             reassign.textContent = 'Reassign';
-            reassign.style.cssText =
-              'margin-left:8px;font-size:11px;color:#1d4ed8;text-decoration:none';
+            reassign.style.cssText = 'margin-left:8px;font-size:11px;color:#1d4ed8;text-decoration:none';
             line.appendChild(reassign);
           }
         }
 
-        if (!projectId) {
-          var hint = box.querySelector('.ftth-inspector-assign');
-          if (hint) hint.textContent = 'Open this page with a project to see its assignment.';
-          return;
-        }
-        window.FiberApi.getFeatureByDesignId(projectId, designId)
+        window.FiberApi.getFeatureByDesignId(supervisionId, designId)
           .then(function (data) {
             var feature = (data && data.feature) || {};
-            show(
-              data && data.assignment,
-              ASSIGN_STATUS_LABELS[feature.status] || feature.status || 'Pending'
-            );
+            show(data && data.assignment, ASSIGN_STATUS_LABELS[feature.status] || feature.status || 'Pending');
           })
           .catch(function () {
             if (!alive()) return;
             var line = box.querySelector('.ftth-inspector-assign');
             if (line) line.textContent = 'No supervision copy of this feature yet.';
+            var anchor = box.querySelector('#inspectorAssignBtn');
+            if (anchor) {
+              anchor.textContent = 'Open supervision map';
+              anchor.href = 'project-map-review.html?project_id=' + encodeURIComponent(supervisionId);
+              anchor.removeAttribute('aria-disabled');
+            }
           });
       }
 
       function clearInspector() {
         if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
+        clearSelectedFeatures();
         inspectorPanel.style.display = 'none';
         // Clearing the selection also releases the change-list row, so the list
         // never claims a change is selected when nothing is highlighted.
@@ -1642,15 +1915,146 @@
         }
       }
 
-      if (identifyBtn) {
-        identifyBtn.addEventListener('click', function () {
-          identifyOn = !identifyOn;
+      function designFeatureId(feature) {
+        var props = feature && feature.properties ? feature.properties : {};
+        var raw = props._feature_id;
+        if (raw === null || raw === undefined || raw === '') raw = props.feature_id;
+        if (raw === null || raw === undefined || raw === '') raw = props.id;
+        if (raw === null || raw === undefined || raw === '') raw = feature && feature.id;
+        return raw === null || raw === undefined || raw === '' ? '' : String(raw);
+      }
+
+      function addFeatureToSelection(feature, layerName) {
+        var id = designFeatureId(feature);
+        if (!id) {
+          if (window.FtthUI && window.FtthUI.toast) {
+            window.FtthUI.toast('This feature has no design id to assign.', 'error');
+          }
+          return;
+        }
+        var count = Object.keys(selectedFeatures).length;
+        if (count && selectedLayerName && layerName && selectedLayerName !== layerName) {
+          if (window.FtthUI && window.FtthUI.toast) {
+            window.FtthUI.toast('Select features from one layer at a time.', 'error');
+          }
+          return;
+        }
+        if (selectedFeatures[id]) {
+          delete selectedFeatures[id];
+          if (!Object.keys(selectedFeatures).length) {
+            selectedLayerName = '';
+            if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
+          }
+        } else {
+          if (count >= MAX_SELECTION) {
+            if (window.FtthUI && window.FtthUI.toast) {
+              window.FtthUI.toast('Select up to ' + MAX_SELECTION + ' features at a time.', 'error');
+            }
+            return;
+          }
+          selectedFeatures[id] = { feature: feature, layerName: layerName || '' };
+          selectedLayerName = layerName || '';
+        }
+        renderSelectionTray();
+      }
+
+      function clearSelectedFeatures() {
+        selectedFeatures = {};
+        selectedLayerName = '';
+        renderSelectionTray();
+      }
+
+      function renderSelectionTray() {
+        if (!selectionTray) return;
+        var ids = Object.keys(selectedFeatures);
+        var count = ids.length;
+        if (!count) {
+          selectionTray.hidden = true;
+          return;
+        }
+
+        selectionTray.hidden = false;
+        if (selectionCountEl) selectionCountEl.textContent = String(count);
+        if (selectionNounEl) selectionNounEl.textContent = count === 1 ? 'feature' : 'features';
+        if (selectionLayerEl) selectionLayerEl.textContent = selectedLayerName ? '\u00b7 ' + selectedLayerName : '';
+
+        var sp = supervisionLookup.project;
+        if (selectionStatusEl) {
+          selectionStatusEl.textContent =
+            supervisionLookup.state === 'loading'
+              ? 'Checking supervision copy\u2026'
+              : !sp
+                ? 'No supervision copy'
+                : '';
+        }
+        if (assignSelectedBtn) {
+          assignSelectedBtn.textContent = count === 1 ? 'Assign feature' : 'Assign selected';
+          if (sp) {
+            assignSelectedBtn.href = supervisionAssignBatchHref(sp, selectedLayerName, ids);
+            assignSelectedBtn.removeAttribute('aria-disabled');
+          } else {
+            assignSelectedBtn.href = '#';
+            assignSelectedBtn.setAttribute('aria-disabled', 'true');
+          }
+        }
+        if (window.FtthMap.highlightFeature) {
+          window.FtthMap.highlightFeature(
+            map,
+            ids.map(function (id) {
+              return selectedFeatures[id].feature;
+            })
+          );
+        }
+      }
+
+      function onIdentifyFeature(feature, layerName, coords) {
+        if (multiSelectOn) addFeatureToSelection(feature, layerName);
+        showInspector(feature, layerName, coords);
+      }
+
+      function setIdentifyMode(on) {
+        identifyOn = !!on;
+        if (identifyBtn) {
           identifyBtn.classList.toggle('active', identifyOn);
           identifyBtn.title = identifyOn
             ? 'Click any component on the map to view its full attributes'
             : 'Turn on to click a cable, trench or any component and view its full attributes';
-          window.FtthMap.setIdentifyActive(map, identifyOn, showInspector);
-          if (!identifyOn) clearInspector();
+        }
+        window.FtthMap.setIdentifyActive(map, identifyOn, onIdentifyFeature);
+        if (!identifyOn) {
+          multiSelectOn = false;
+          if (multiSelectBtn) multiSelectBtn.classList.remove('active');
+          clearInspector();
+        }
+      }
+
+      if (identifyBtn) {
+        identifyBtn.addEventListener('click', function () {
+          setIdentifyMode(!identifyOn);
+        });
+      }
+      if (multiSelectBtn) {
+        multiSelectBtn.addEventListener('click', function () {
+          multiSelectOn = !multiSelectOn;
+          multiSelectBtn.classList.toggle('active', multiSelectOn);
+          multiSelectBtn.title = multiSelectOn
+            ? 'Click features from one layer to add or remove them from the batch'
+            : 'Select several features from one layer to assign together';
+          if (multiSelectOn && !identifyOn) setIdentifyMode(true);
+          if (multiSelectOn && supervisionLookup.state === 'idle') {
+            resolveSupervisionProject().then(renderSelectionTray);
+          }
+        });
+      }
+      if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener('click', function () {
+          clearSelectedFeatures();
+          if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
+        });
+      }
+      if (assignSelectedBtn) {
+        assignSelectedBtn.addEventListener('click', function (e) {
+          if (assignSelectedBtn.getAttribute('aria-disabled') === 'true') e.preventDefault();
         });
       }
       if (inspectorClose) {
@@ -1843,6 +2247,7 @@
           .replace(/'/g, '&#039;');
       }
 
+      resolveSupervisionProject();
       initMap();
       initBasemapSwitcher();
     </script>

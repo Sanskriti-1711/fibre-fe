@@ -494,19 +494,43 @@ function properLabel(f) {
   return (f && PROPER_FIELD_LABELS[f.key]) || (f && (f.label || f.key)) || '';
 }
 
+const SCHEMA_UNITS = {
+  length: 'm',
+  trenchlen: 'm',
+  trenchdep: 'mm',
+  trenchwid: 'mm',
+  diameter: 'mm',
+};
+
+// `field_schema.unit` is a boolean flag from the admin field config, not a
+// unit string. Derive the unit from the label first (e.g. "Trench Depth
+// (mm)"), then from known measurement keys. The old blanket 'm' suffix made a
+// 900 mm design depth read as "900 m" on the review screen.
+function schemaUnit(field) {
+  if (!field) return '';
+  const label = properLabel(field);
+  const labelUnit = label.match(/\(([^)]+)\)/);
+  if (labelUnit && /^(mm|cm|m|km|ft|in|yd|kg|g|t|ea|no\.?|nos?\.?)$/i.test(labelUnit[1].trim())) {
+    return labelUnit[1].trim();
+  }
+  const explicit = typeof field.unit === 'string' ? field.unit.trim() : '';
+  if (explicit && !/^(true|false)$/i.test(explicit)) return explicit;
+  return SCHEMA_UNITS[field.key] || '';
+}
+
 function plannedDisplay(val, unit) {
   if (val === undefined || val === null || val === '') return '--';
   return unit ? `${val} ${unit}` : `${val}`;
 }
 
 // A stored field_measurements entry is either { value, unit } or a raw scalar.
-function measurementDisplay(entry) {
+function measurementDisplay(entry, unit) {
   if (entry === undefined || entry === null) return '--';
   if (typeof entry === 'object') {
     if (entry.value === undefined || entry.value === null || entry.value === '') return '--';
     return entry.unit ? `${entry.value} ${entry.unit}` : `${entry.value}`;
   }
-  return String(entry);
+  return unit ? `${entry} ${unit}` : String(entry);
 }
 
 // Render the measurements table dynamically from the layer's editable fields.
@@ -534,9 +558,9 @@ function renderSchemaMeasurements(editable, properties, fm) {
     const c1 = document.createElement('td');
     c1.textContent = properLabel(f);
     const c2 = document.createElement('td');
-    c2.textContent = plannedDisplay(properties[f.key], f.unit ? 'm' : '');
+    c2.textContent = plannedDisplay(properties[f.key], schemaUnit(f));
     const c3 = document.createElement('td');
-    c3.textContent = measurementDisplay(fm[f.key]);
+    c3.textContent = measurementDisplay(fm[f.key], schemaUnit(f));
     tr.appendChild(c1);
     tr.appendChild(c2);
     tr.appendChild(c3);

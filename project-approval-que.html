@@ -252,6 +252,19 @@
       .aq-table-card > .aq-table {
         min-width: 760px;
       }
+
+      /* An empty state is one centered message, not a 760px table. Without
+         releasing the floor, the message centers at the middle of the scroll
+         width and is clipped on a 390px screen. */
+      .aq-table-card.is-empty {
+        overflow-x: hidden;
+      }
+      .aq-table-card.is-empty > .aq-table {
+        min-width: 0;
+      }
+      .aq-table-card.is-empty thead {
+        display: none;
+      }
       .aq-table tr:last-child td {
         border-bottom: none;
       }
@@ -532,7 +545,7 @@
             </div>
             <div>
               <label for="filterSearch">Search</label>
-              <input id="filterSearch" type="search" placeholder="Layer, engineer or feature id" />
+              <input id="filterSearch" type="search" placeholder="Layer, engineer or ID" />
             </div>
           </div>
 
@@ -563,7 +576,7 @@
             <button id="bulkClearBtn" class="aq-btn sm" type="button">Clear selection</button>
           </div>
 
-          <div class="aq-table-card">
+          <div class="aq-table-card is-empty">
             <table class="aq-table">
               <thead>
                 <tr>
@@ -950,6 +963,12 @@
         document.getElementById('statTotal').textContent = rows.length;
       }
 
+      function setQueueEmpty(markup) {
+        rowsBody.innerHTML = '<tr><td colspan="7" class="aq-empty">' + markup + '</td></tr>';
+        var card = rowsBody.closest('.aq-table-card');
+        if (card) card.classList.add('is-empty');
+      }
+
       function renderRows() {
         var list = visibleRows();
         renderStats();
@@ -960,12 +979,14 @@
             rows.length === 0
               ? '<strong>Nothing to review</strong>No features have been imported for the selected project yet.'
               : '<strong>Queue is clear</strong>No features match these filters.';
-          rowsBody.innerHTML = '<tr><td colspan="7" class="aq-empty">' + emptyText + '</td></tr>';
+          setQueueEmpty(emptyText);
           selectAll.checked = false;
           selectAll.indeterminate = false;
           return;
         }
 
+        var card = rowsBody.closest('.aq-table-card');
+        if (card) card.classList.remove('is-empty');
         rowsBody.innerHTML = list
           .map(function (row) {
             var f = row.feature;
@@ -1053,7 +1074,7 @@
           showLoadFailures(failures);
         } catch (err) {
           showError('Failed to load the approval queue: ' + (err && err.message ? err.message : err));
-          rowsBody.innerHTML = '<tr><td colspan="7" class="aq-empty">Could not load features.</td></tr>';
+          setQueueEmpty('Could not load features.');
         } finally {
           refreshBtn.disabled = false;
         }

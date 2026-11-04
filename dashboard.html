@@ -1190,6 +1190,12 @@
         margin-bottom: 24px;
       }
 
+      /* A section with one card should use the full row rather than leaving a
+         blank half beside it (the duplicate quick-actions card was removed). */
+      .dash-grid-2 > :only-child {
+        grid-column: 1 / -1;
+      }
+
       @media (max-width: 1000px) {
         .dash-grid-2 {
           grid-template-columns: 1fr;
@@ -1457,47 +1463,6 @@
             </div>
             <div class="dash-timeline" id="timeline">
               <div class="dash-empty">Loading…</div>
-            </div>
-          </div>
-
-          <div class="dash-card dash-fade">
-            <div class="card-head">
-              <span class="card-title">Pipeline Quick Actions</span>
-              <span class="card-hint">Jump straight to the work</span>
-            </div>
-            <div class="dash-quick-actions">
-              <a class="dash-stage hld dash-quick-action" href="ftth-hld.html">
-                <span class="stage-glow"></span>
-                <div class="stage-icon">📤</div>
-                <div class="stage-meta">
-                  <div class="stage-name">Upload &amp; Run HLD</div>
-                  <div class="stage-sub">Kick off a new high-level design</div>
-                </div>
-              </a>
-              <a class="dash-stage survey dash-quick-action" href="ftth-survey-changes.html">
-                <span class="stage-glow"></span>
-                <div class="stage-icon">✔️</div>
-                <div class="stage-meta">
-                  <div class="stage-name">Review Survey Changes</div>
-                  <div class="stage-sub">Approve, reject or request corrections</div>
-                </div>
-              </a>
-              <a class="dash-stage lld dash-quick-action" href="ftth-lld-outputs.html">
-                <span class="stage-glow"></span>
-                <div class="stage-icon">🚀</div>
-                <div class="stage-meta">
-                  <div class="stage-name">Run &amp; View LLD</div>
-                  <div class="stage-sub">Generate the detailed network design</div>
-                </div>
-              </a>
-              <a class="dash-stage dash-quick-action projects" href="projects.html">
-                <span class="stage-glow"></span>
-                <div class="stage-icon">🗃️</div>
-                <div class="stage-meta">
-                  <div class="stage-name">All Projects</div>
-                  <div class="stage-sub">Browse every project by stage flag</div>
-                </div>
-              </a>
             </div>
           </div>
         </div>
