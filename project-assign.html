@@ -1260,7 +1260,7 @@
         if (stage === 'survey') {
           renderSurveySummary();
         } else {
-          renderSupervisionSummary();
+          updateSupervisionSummary();
           renderSupervisionTeam();
         }
       }
@@ -1425,7 +1425,7 @@
             renderSurveySummary();
           } else {
             updateCoverage();
-            renderSupervisionSummary();
+            updateSupervisionSummary();
           }
           updateButtons();
         });
@@ -1680,7 +1680,14 @@
 
         try {
           const data = await window.FiberApi.listProjects();
-          state.projects = asList(data).filter((project) => !project.source_ftth_project_id);
+          // Survey copies are assigned on the survey tab, so they are not
+          // listed here. A supervision project opened from an LLD run also
+          // carries source_ftth_project_id, so the run link is what tells the
+          // two apart — filtering on source_ftth_project_id alone hid exactly
+          // the project an LLD handoff link points at.
+          state.projects = asList(data).filter(
+            (project) => !project.source_ftth_project_id || !!project.source_lld_run_id
+          );
         } catch (error) {
           state.projects = [];
           select.innerHTML = '<option value="">Could not load projects</option>';
@@ -1692,11 +1699,7 @@
         if (!state.projects.length) {
           select.innerHTML = '<option value="">No supervision projects</option>';
           select.disabled = true;
-          setStatus(
-            'supervision',
-            'No supervision project exists yet. Open one from an LLD run or upload a GeoPackage.',
-            false
-          );
+          setStatus('supervision', 'No supervision project exists yet. Upload a GeoPackage to create one.', false);
           return;
         }
 
@@ -1719,6 +1722,16 @@
         if (params.projectId && state.projects.some((project) => project.id === params.projectId)) {
           select.value = params.projectId;
           state.target.projectId = params.projectId;
+          await loadLayersForProject(params.projectId);
+        } else if (params.projectId) {
+          // The link names a project the list did not return (an older
+          // contract, an archived row). Honour the handoff anyway instead of
+          // silently dropping it and leaving every field empty.
+          const option = document.createElement('option');
+          option.value = params.projectId;
+          option.textContent = params.projectId;
+          select.appendChild(option);
+          select.value = params.projectId;
           await loadLayersForProject(params.projectId);
         } else {
           updateSupervisionSummary();
@@ -2386,7 +2399,7 @@
 
         renderSurveyRun();
         renderSurveySummary();
-        renderSupervisionSummary();
+        updateSupervisionSummary();
         renderSupervisionTeam();
       }
 

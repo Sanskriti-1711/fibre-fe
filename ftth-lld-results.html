@@ -1012,14 +1012,6 @@
         renderSelectionTray();
       }
 
-      function supervisionCreateHref() {
-        var params = new URLSearchParams();
-        params.set('source_lld_run_id', supervisionRunRef());
-        params.set('source_project_id', projectId);
-        params.set('lld_version', lldVersion);
-        return 'project-create.html?' + params.toString();
-      }
-
       function supervisionAssignHref(sp, layerName, designId) {
         var parts = ['project_id=' + encodeURIComponent(sp.id)];
         if (layerName) parts.push('layer_id=' + encodeURIComponent(layerName));
@@ -1794,9 +1786,9 @@
               line.textContent = 'Could not check the supervision copy. Reload to try again.';
               return;
             }
-            anchor.textContent = 'Create supervision project';
-            anchor.href = supervisionCreateHref();
-            anchor.removeAttribute('aria-disabled');
+            anchor.textContent = 'Assignment unavailable';
+            anchor.href = '#';
+            anchor.setAttribute('aria-disabled', 'true');
             line.textContent = 'No supervision project exists for this LLD run yet.';
             return;
           }
