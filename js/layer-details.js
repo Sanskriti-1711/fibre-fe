@@ -160,7 +160,7 @@ function renderFeatures(features, projectId, layerId) {
     const detected = '-';
     const featureUuid = (f && f.id) || '';
     const viewHref = featureUuid
-      ? 'feature-details.html?project_id=' +
+      ? 'audit-detail.html?project_id=' +
         encodeURIComponent(projectId || '') +
         '&layer_id=' +
         encodeURIComponent(layerId || '') +

@@ -476,6 +476,37 @@
             </div>
 
             <div class="card" style="margin-top: 18px">
+              <h3>Field progress</h3>
+              <p class="ad-map-caption" style="margin-top: 0">
+                What the engineer has recorded so far. It is visible before submission, so a reviewer starts with the
+                work already on the table instead of an empty page.
+              </p>
+              <table class="ad-meta">
+                <tr>
+                  <td>Assigned engineer</td>
+                  <td id="progressEngineer">—</td>
+                </tr>
+                <tr>
+                  <td>Assigned on</td>
+                  <td id="progressAssigned">—</td>
+                </tr>
+                <tr>
+                  <td>Measurements</td>
+                  <td id="progressMeasurements">—</td>
+                </tr>
+                <tr>
+                  <td>Site photos</td>
+                  <td id="progressPhotos">—</td>
+                </tr>
+                <tr>
+                  <td>Last update</td>
+                  <td id="progressUpdated">—</td>
+                </tr>
+              </table>
+              <p class="ad-note-hint" id="progressHint"></p>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
               <h3>Planned vs as-built</h3>
               <table class="ad-cmp">
                 <thead>
@@ -1006,6 +1037,74 @@
           console.warn('Could not load field photos:', err);
         }
         if (gallery.featureId === featureId) renderGallery();
+        renderProgress();
+      }
+
+      // ── Field progress (before submission) ────────────────────────────
+      // Photos and readings arrive while the job is still `assigned`, before
+      // the engineer submits and the decision unlocks. The reviewer needs to
+      // see that work: an evidence card that only filled in at submission read
+      // as if nothing had been done during the whole field visit.
+      var assignmentInfo = null;
+
+      async function loadProgress() {
+        try {
+          var data = await window.FiberApi.listAssignments({
+            project: projectId,
+            feature: feature.id,
+            scope: 'feature',
+          });
+          var list = Array.isArray(data) ? data : (data && data.results) || [];
+          assignmentInfo = list[0] || null;
+        } catch (err) {
+          assignmentInfo = null;
+        }
+        renderProgress();
+      }
+
+      function assignmentEngineer(assignment) {
+        var a = (assignment && assignment.assignee) || {};
+        return (
+          a.full_name ||
+          a.name ||
+          a.email ||
+          (assignment && assignment.assignee_name) ||
+          (typeof a === 'string' ? a : '') ||
+          '—'
+        );
+      }
+
+      function renderProgress() {
+        if (!feature) return;
+
+        var measured = Object.keys(feature.field_measurements || {}).length;
+        var expected = schemaKeys(feature.field_schema).length || comparableKeys().length;
+
+        document.getElementById('progressEngineer').textContent = assignmentInfo
+          ? assignmentEngineer(assignmentInfo)
+          : '—';
+        document.getElementById('progressAssigned').textContent =
+          assignmentInfo && assignmentInfo.created_at ? formatDate(assignmentInfo.created_at) : '—';
+        document.getElementById('progressMeasurements').textContent =
+          measured + (expected ? ' of ' + expected : '') + ' recorded';
+        document.getElementById('progressPhotos').textContent =
+          gallery.featureId === feature.id ? gallery.photos.length + ' attached' : 'Loading…';
+        document.getElementById('progressUpdated').textContent = feature.updated_at
+          ? formatDate(feature.updated_at)
+          : '—';
+
+        var hint = document.getElementById('progressHint');
+        if (feature.status === 'under_review') {
+          hint.textContent =
+            "Submitted for review — this is the engineer's final evidence for the round, and the decision is open below.";
+        } else if (feature.status === 'approved') {
+          hint.textContent = 'Approved. This is the evidence that decision was based on.';
+        } else if (feature.status === 'redo') {
+          hint.textContent = 'Sent back for redo — the engineer is fixing it and will submit again.';
+        } else {
+          hint.textContent =
+            'Still in the field. Photos and readings appear here as the engineer works; the decision stays locked until the work is submitted.';
+        }
       }
 
       function geometrySummary() {
@@ -1303,6 +1402,7 @@
           renderHeader(detail);
           renderPill();
           loadGallery();
+          loadProgress();
           renderMeta();
           renderComparison();
           renderPriorNote();
@@ -1321,7 +1421,8 @@
         feature = detail.feature;
         renderHeader(detail);
         renderPill();
-        renderPhoto();
+        renderGallery();
+        loadProgress();
         renderMeta();
         renderComparison();
         renderPriorNote();

@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Job details | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .jd-crumbs {
+        margin: 4px 0 14px;
+        font-size: 13px;
+        color: #616a75;
+      }
+      .jd-crumbs a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .jd-crumbs a:hover {
+        color: #374151;
+        text-decoration: underline;
+      }
+      .jd-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .jd-head h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .jd-sub {
+        margin: 4px 0 0;
+        font-size: 13px;
+        color: #616a75;
+      }
+      .jd-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        border: 1px solid transparent;
+      }
+      .jd-pill .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .jd-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 16px 0 4px;
+      }
+      .jd-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 15px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        color: #374151;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .jd-btn:hover {
+        background: #f9fafb;
+      }
+      .jd-btn.primary {
+        background: #e31837;
+        border-color: #e31837;
+        color: #ffffff;
+      }
+      .jd-meta {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .jd-meta td {
+        padding: 7px 0;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: top;
+      }
+      .jd-meta td:first-child {
+        width: 40%;
+        color: #5b6472;
+        font-weight: 600;
+      }
+      .jd-meta tr:last-child td {
+        border-bottom: none;
+      }
+      .jd-kpis {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 14px;
+      }
+      .jd-kpi .label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #5b6472;
+        margin-bottom: 4px;
+      }
+      .jd-kpi .value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1f2937;
+      }
+      .jd-hint {
+        margin: 12px 0 0;
+        font-size: 12px;
+        color: #5b6472;
+        line-height: 1.5;
+      }
+      .jd-cmp {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .jd-cmp th {
+        text-align: left;
+        padding: 9px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #5b6472;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .jd-cmp td {
+        padding: 9px 12px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+      }
+      .jd-cmp td.field {
+        font-weight: 600;
+        color: #1f2937;
+      }
+      .jd-cmp tr:last-child td {
+        border-bottom: none;
+      }
+      .jd-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+      }
+      .jd-gallery figure {
+        margin: 0;
+      }
+      .jd-gallery img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        display: block;
+      }
+      .jd-gallery figcaption {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #5b6472;
+        line-height: 1.35;
+      }
+      .jd-dec {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-top: 10px;
+        font-size: 13px;
+      }
+      .jd-dec strong {
+        color: #1f2937;
+      }
+      .jd-dec .when {
+        color: #5b6472;
+        font-size: 12px;
+      }
+      .jd-dec p {
+        margin: 8px 0 0;
+        color: #374151;
+        line-height: 1.5;
+      }
+      .jd-muted {
+        color: #5b6472;
+      }
+      .jd-error {
+        display: none;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+      .jd-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: #5b6472;
+        font-size: 14px;
+      }
+      .jd-empty strong {
+        display: block;
+        font-size: 17px;
+        color: #1f2937;
+        margin-bottom: 8px;
+      }
+      .jd-empty a {
+        color: #e31837;
+        font-weight: 700;
+        text-decoration: none;
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body class="all-jobs">
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+
+      <main class="content">
+        <div class="container">
+          <div id="errorState" class="jd-error"></div>
+
+          <div id="pageBody" style="display: none">
+            <div class="jd-crumbs">
+              <a href="all-jobs.html">All jobs</a> <span>/</span> <a id="crumbProject" href="projects.html">Project</a>
+              <span>/</span> <a id="crumbLayer" href="projects.html">Layer</a> <span>/</span>
+              <span id="crumbFeature">Feature</span>
+            </div>
+
+            <div class="jd-head">
+              <div>
+                <h1 id="jobTitle">Job details</h1>
+                <p class="jd-sub" id="jobSubtitle">Loading job…</p>
+              </div>
+              <div id="statusPill" class="jd-pill" style="display: none"></div>
+            </div>
+
+            <div class="jd-actions">
+              <a id="editLink" class="jd-btn primary" href="project-assign.html">Edit assignment</a>
+              <a id="auditLink" class="jd-btn" href="audit-detail.html" style="display: none">Open audit review</a>
+              <a id="mapLink" class="jd-btn" href="project-map-review.html" style="display: none">View on map</a>
+              <a class="jd-btn" href="all-jobs.html">Back to all jobs</a>
+            </div>
+
+            <div class="grid" style="margin-top: 18px">
+              <div class="card">
+                <h3>Assignment</h3>
+                <table class="jd-meta">
+                  <tr>
+                    <td>Job id</td>
+                    <td id="metaJobId" style="font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 11px">
+                      —
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Assigned engineer</td>
+                    <td id="metaEngineer">—</td>
+                  </tr>
+                  <tr>
+                    <td>Scope</td>
+                    <td id="metaScope">—</td>
+                  </tr>
+                  <tr>
+                    <td>Assigned on</td>
+                    <td id="metaCreated">—</td>
+                  </tr>
+                  <tr>
+                    <td>Project</td>
+                    <td id="metaProject">—</td>
+                  </tr>
+                  <tr>
+                    <td>Layer</td>
+                    <td id="metaLayer">—</td>
+                  </tr>
+                  <tr>
+                    <td>Feature</td>
+                    <td id="metaFeature">—</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div class="card">
+                <h3>Field progress</h3>
+                <div class="jd-kpis">
+                  <div class="jd-kpi">
+                    <span class="label">Work status</span>
+                    <span class="value" id="progressStatus">—</span>
+                  </div>
+                  <div class="jd-kpi">
+                    <span class="label">Measurements</span>
+                    <span class="value" id="progressMeasurements">—</span>
+                  </div>
+                  <div class="jd-kpi">
+                    <span class="label">Site photos</span>
+                    <span class="value" id="progressPhotos">—</span>
+                  </div>
+                  <div class="jd-kpi">
+                    <span class="label">Last update</span>
+                    <span class="value" id="progressUpdated">—</span>
+                  </div>
+                </div>
+                <p class="jd-hint" id="progressHint">
+                  This is the engineer's live progress. The decision to approve or send the work back happens on the
+                  audit review, once it is submitted.
+                </p>
+              </div>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
+              <h3>Site photos</h3>
+              <div id="photoBox" class="jd-muted">No site photos attached yet.</div>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
+              <h3>Measurements</h3>
+              <table class="jd-cmp">
+                <thead>
+                  <tr>
+                    <th style="width: 46%">Field</th>
+                    <th style="width: 27%">Planned</th>
+                    <th style="width: 27%">As-built</th>
+                  </tr>
+                </thead>
+                <tbody id="comparisonBody">
+                  <tr>
+                    <td colspan="3" class="jd-muted" style="padding: 18px">Loading measurements…</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="jd-hint" id="comparisonCaption"></p>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
+              <h3>Decisions</h3>
+              <div id="decisionBox">
+                <p class="jd-muted" style="margin: 0">Loading…</p>
+              </div>
+            </div>
+
+            <div id="noFeatureNote" class="card" style="margin-top: 18px; display: none">
+              <h3>Scope covers no single feature</h3>
+              <p class="jd-hint" style="margin-top: 0">
+                This job assigns the whole <span id="noFeatureScope">project</span>, so there is no single feature to
+                show evidence for. Open the project map or the completion report to see the work it covers.
+              </p>
+              <div class="jd-actions" style="margin-bottom: 0">
+                <a id="noFeatureMap" class="jd-btn" href="project-map-review.html">Open project map</a>
+                <a id="noFeatureProgress" class="jd-btn" href="projects-completion.html">Project progress</a>
+              </div>
+            </div>
+          </div>
+
+          <div id="emptyState" class="jd-empty" style="display: none">
+            <strong>No job selected</strong>
+            Open this page from the jobs table, not directly.
+            <p style="margin-top: 14px"><a href="all-jobs.html">All jobs</a></p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script src="fiber-api.js"></script>
+    <script>
+      window.FiberAuth.requireLogin();
+
+      var params = new URLSearchParams(window.location.search);
+      var jobId = params.get('job_id') || params.get('id');
+
+      var STATUS_STYLE = {
+        pending: { label: 'Pending', bg: '#f3f4f6', fg: '#4b5563', border: '#e5e7eb' },
+        assigned: { label: 'Assigned', bg: '#eff6ff', fg: '#1d4ed8', border: '#bfdbfe' },
+        under_review: { label: 'Under review', bg: '#fffbeb', fg: '#b45309', border: '#fde68a' },
+        approved: { label: 'Approved', bg: '#ecfdf5', fg: '#065f46', border: '#a7f3d0' },
+        redo: { label: 'Redo', bg: '#fef2f2', fg: '#991b1b', border: '#fecaca' },
+      };
+
+      var job = null;
+      var feature = null;
+      var photos = [];
+      var projectId = '';
+      var layerId = '';
+      var featureId = '';
+
+      function esc(value) {
+        return String(value === undefined || value === null ? '' : value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function shortId(id) {
+        var s = String(id || '');
+        return s.length > 16 ? s.slice(0, 8) + '…' + s.slice(-4) : s;
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        var d = new Date(value);
+        return isNaN(d.getTime()) ? '—' : d.toLocaleString();
+      }
+
+      function statusLabel(status) {
+        return (STATUS_STYLE[status] || STATUS_STYLE.pending).label;
+      }
+
+      function showError(message) {
+        var box = document.getElementById('errorState');
+        box.style.display = message ? 'block' : 'none';
+        box.textContent = message || '';
+      }
+
+      function engineerLabel(assignment) {
+        var a = (assignment && assignment.assignee) || {};
+        return (
+          a.full_name ||
+          a.name ||
+          a.email ||
+          (assignment && assignment.assignee_name) ||
+          (typeof a === 'string' ? a : '') ||
+          'Unassigned'
+        );
+      }
+
+      function renderPill() {
+        var style = STATUS_STYLE[job.status] || STATUS_STYLE.pending;
+        var pill = document.getElementById('statusPill');
+        pill.style.display = 'inline-flex';
+        pill.style.background = style.bg;
+        pill.style.color = style.fg;
+        pill.style.borderColor = style.border;
+        pill.innerHTML = '<span class="dot"></span>' + esc(style.label);
+      }
+
+      function renderJob() {
+        document.getElementById('pageBody').style.display = 'block';
+
+        document.getElementById('jobTitle').textContent = 'Job #' + shortId(jobId);
+        document.getElementById('jobSubtitle').textContent =
+          engineerLabel(job) + ' · assigned ' + formatDate(job.created_at || job.created);
+        renderPill();
+
+        document.getElementById('metaJobId').textContent = jobId;
+        document.getElementById('metaEngineer').textContent = engineerLabel(job);
+        document.getElementById('metaScope').textContent = (job.scope || 'project').replace(/^./, function (c) {
+          return c.toUpperCase();
+        });
+        document.getElementById('metaCreated').textContent = formatDate(job.created_at || job.created);
+
+        var projectName =
+          (job.project && (job.project.name || job.project.title)) || job.project_name || shortId(projectId) || '—';
+        document.getElementById('metaProject').textContent = projectName;
+        document.getElementById('metaLayer').textContent =
+          (job.feature && (job.feature.layer_name || job.feature.layer_id)) ||
+          (job.layer && (job.layer.name || job.layer.id)) ||
+          layerId ||
+          '—';
+        document.getElementById('metaFeature').textContent = featureId
+          ? shortId(featureId)
+          : 'Whole ' + (job.scope || 'project');
+
+        document.getElementById('crumbProject').textContent = projectName;
+        document.getElementById('crumbProject').href =
+          'project-details.html?project_id=' + encodeURIComponent(projectId);
+        document.getElementById('crumbLayer').textContent =
+          (job.feature && (job.feature.layer_name || job.feature.layer_id)) ||
+          (job.layer && (job.layer.name || job.layer.id)) ||
+          layerId ||
+          'Layer';
+        document.getElementById('crumbLayer').href =
+          'layer-details.html?project_id=' + encodeURIComponent(projectId) + '&layer_id=' + encodeURIComponent(layerId);
+        document.getElementById('crumbFeature').textContent = featureId ? shortId(featureId) : 'Whole scope';
+
+        var query = new URLSearchParams({ project_id: projectId });
+        if (layerId) query.set('layer_id', layerId);
+        if (featureId) query.set('feature_id', featureId);
+
+        document.getElementById('editLink').href = 'project-assign.html?' + query.toString();
+
+        var auditLink = document.getElementById('auditLink');
+        var mapLink = document.getElementById('mapLink');
+        if (featureId) {
+          auditLink.href = 'audit-detail.html?' + query.toString();
+          auditLink.style.display = '';
+          mapLink.href = 'project-map-review.html?' + query.toString();
+          mapLink.style.display = '';
+        } else {
+          auditLink.style.display = 'none';
+          mapLink.style.display = 'none';
+          document.getElementById('noFeatureNote').style.display = 'block';
+          document.getElementById('noFeatureScope').textContent = job.scope || 'project';
+          document.getElementById('noFeatureMap').href = 'project-map-review.html?' + query.toString();
+          document.getElementById('noFeatureProgress').href =
+            'projects-completion.html?project_id=' + encodeURIComponent(projectId);
+        }
+      }
+
+      function renderProgress() {
+        var measured = feature ? Object.keys(feature.field_measurements || {}).length : 0;
+        var expected = feature
+          ? (Array.isArray(feature.field_schema) ? feature.field_schema.length : 0) ||
+            Object.keys(feature.properties || {}).length
+          : 0;
+
+        document.getElementById('progressStatus').textContent = feature ? statusLabel(feature.status) : '—';
+        document.getElementById('progressMeasurements').textContent = feature
+          ? measured + (expected ? ' of ' + expected : '') + ' recorded'
+          : '—';
+        document.getElementById('progressPhotos').textContent = photos.length + ' attached';
+        document.getElementById('progressUpdated').textContent = feature ? formatDate(feature.updated_at) : '—';
+
+        var hint = document.getElementById('progressHint');
+        if (!feature) {
+          hint.textContent = 'This job covers a whole layer or project, so its evidence lives on each feature.';
+        } else if (feature.status === 'under_review') {
+          hint.textContent =
+            'Submitted for review — the engineer has sent this in, and a decision is open on the audit review.';
+        } else if (feature.status === 'approved') {
+          hint.textContent = 'Approved. This is the evidence the decision was based on.';
+        } else if (feature.status === 'redo') {
+          hint.textContent = 'Sent back for redo — the engineer is working on the fix and will submit again.';
+        } else {
+          hint.textContent =
+            'Still in the field. Photos and readings appear here as the engineer works; the decision opens once it is submitted.';
+        }
+      }
+
+      function renderPhotos() {
+        var box = document.getElementById('photoBox');
+        if (photos.length) {
+          box.className = 'jd-gallery';
+          box.innerHTML = photos
+            .map(function (photo, index) {
+              var label = photo.description || 'Site photo ' + (index + 1);
+              return (
+                '<figure><a href="' +
+                esc(photo.url) +
+                '" target="_blank" rel="noopener"><img src="' +
+                esc(photo.url) +
+                '" alt="' +
+                esc(label) +
+                '" loading="lazy" /></a><figcaption>' +
+                esc(label) +
+                (photo.uploaded_at ? ' · ' + esc(formatDate(photo.uploaded_at)) : '') +
+                '</figcaption></figure>'
+              );
+            })
+            .join('');
+          return;
+        }
+
+        if (feature && feature.photo_url) {
+          box.className = 'jd-gallery';
+          box.innerHTML =
+            '<figure><a href="' +
+            esc(feature.photo_url) +
+            '" target="_blank" rel="noopener"><img src="' +
+            esc(feature.photo_url) +
+            '" alt="Field photo" /></a><figcaption>Field photo</figcaption></figure>';
+          return;
+        }
+
+        box.className = 'jd-muted';
+        box.textContent = 'No site photos attached yet. The engineer adds them from the field app.';
+      }
+
+      function measurementText(entry) {
+        if (entry === undefined || entry === null || entry === '') return '—';
+        if (typeof entry === 'object') {
+          if (entry.value === undefined || entry.value === null || entry.value === '') return '—';
+          return String(entry.value) + (entry.unit ? ' ' + entry.unit : '');
+        }
+        return String(entry);
+      }
+
+      function fieldKeys() {
+        if (!feature) return [];
+        var keys = [];
+        var add = function (key) {
+          if (key && keys.indexOf(key) === -1) keys.push(key);
+        };
+        if (Array.isArray(feature.field_schema)) {
+          feature.field_schema.forEach(function (field) {
+            add(field && typeof field === 'object' ? field.key || field.name : field);
+          });
+        }
+        Object.keys(feature.properties || {}).forEach(add);
+        Object.keys(feature.field_measurements || {}).forEach(add);
+
+        var props = feature.properties || {};
+        var measured = feature.field_measurements || {};
+        var hasValue = function (value) {
+          return value !== undefined && value !== null && value !== '';
+        };
+        return keys.filter(function (key) {
+          if (key === 'id' || key === 'feature_id' || key === 'layer' || key === 'status') return false;
+          return hasValue(props[key]) || hasValue(measured[key]);
+        });
+      }
+
+      function renderComparison() {
+        var body = document.getElementById('comparisonBody');
+        if (!feature) {
+          body.innerHTML =
+            '<tr><td colspan="3" class="jd-muted" style="padding: 18px">No single feature is attached to this job.</td></tr>';
+          return;
+        }
+
+        var keys = fieldKeys();
+        if (!keys.length) {
+          body.innerHTML =
+            '<tr><td colspan="3" class="jd-muted" style="padding: 18px">This feature carries no attributes to compare.</td></tr>';
+          document.getElementById('comparisonCaption').textContent = '';
+          return;
+        }
+
+        var props = feature.properties || {};
+        var measured = feature.field_measurements || {};
+        body.innerHTML = keys
+          .map(function (key) {
+            var planned = props[key];
+            var plannedText =
+              planned === undefined || planned === null || planned === ''
+                ? '—'
+                : typeof planned === 'object'
+                  ? JSON.stringify(planned)
+                  : String(planned);
+            var hasAsBuilt = key in measured;
+            return (
+              '<tr><td class="field">' +
+              esc(key) +
+              '</td><td>' +
+              esc(plannedText) +
+              '</td><td class="' +
+              (hasAsBuilt ? '' : 'jd-muted') +
+              '">' +
+              esc(hasAsBuilt ? measurementText(measured[key]) : '—') +
+              '</td></tr>'
+            );
+          })
+          .join('');
+
+        var count = Object.keys(measured).length;
+        document.getElementById('comparisonCaption').textContent = count
+          ? count + ' field(s) recorded by the engineer. Anything still dashed has not been measured yet.'
+          : 'The engineer has not recorded any measurements for this feature yet.';
+      }
+
+      function decisionLabel(decision) {
+        return (
+          {
+            approved: 'Approved as designed',
+            approved_with_deviation: 'Approved with deviation',
+            redo: 'Sent back for rework',
+          }[decision] ||
+          decision ||
+          'Decision'
+        );
+      }
+
+      async function loadPhotos() {
+        try {
+          var data = await window.FiberApi.getFeaturePhotos(feature.id);
+          photos = (data && data.results) || [];
+        } catch (err) {
+          photos = [];
+        }
+        renderPhotos();
+        renderProgress();
+      }
+
+      async function loadDecisions() {
+        var box = document.getElementById('decisionBox');
+        try {
+          var data = await window.FiberApi.getFeatureDecisions(feature.id);
+          var records = (data && data.results) || [];
+          if (!records.length) {
+            box.innerHTML =
+              '<p class="jd-muted" style="margin: 0">No decision recorded yet — the engineer\'s work is still in the field, or it has just been submitted.</p>';
+            return;
+          }
+          box.innerHTML = records
+            .map(function (record) {
+              return (
+                '<div class="jd-dec"><strong>' +
+                esc(decisionLabel(record.decision)) +
+                '</strong> <span class="when">' +
+                esc(formatDate(record.created_at)) +
+                ' · ' +
+                esc(record.reviewer || 'reviewer unknown') +
+                '</span>' +
+                (record.reason ? '<p>' + esc(record.reason) + '</p>' : '') +
+                '</div>'
+              );
+            })
+            .join('');
+        } catch (err) {
+          box.innerHTML = '<p class="jd-muted" style="margin: 0">Could not load decisions for this feature.</p>';
+        }
+      }
+
+      async function load() {
+        if (!jobId) {
+          document.getElementById('emptyState').style.display = 'block';
+          return;
+        }
+
+        try {
+          job = await window.FiberApi.getAssignment(jobId);
+        } catch (err) {
+          showError(
+            'Could not load this job: ' +
+              (err && err.message ? err.message : String(err)) +
+              ' — it may have been deleted.'
+          );
+          return;
+        }
+
+        var projectRef = job.project;
+        projectId =
+          typeof projectRef === 'string' ? projectRef : (projectRef && (projectRef.id || projectRef.uuid)) || '';
+        featureId = (job.feature && job.feature.id) || '';
+        layerId =
+          (job.feature && (job.feature.layer_id || job.feature.layer_name)) ||
+          (typeof job.layer === 'string' ? job.layer : job.layer && (job.layer.id || job.layer.name)) ||
+          '';
+
+        renderJob();
+        renderProgress();
+        renderComparison();
+
+        if (!featureId) return;
+
+        try {
+          var detail = await window.FiberApi.getFeature(projectId, featureId);
+          feature = detail.feature;
+          renderProgress();
+          renderComparison();
+          loadPhotos();
+          loadDecisions();
+        } catch (err) {
+          showError('Could not load the field data for this job: ' + (err && err.message ? err.message : String(err)));
+        }
+      }
+
+      load();
+    </script>
+  </body>
+</html>

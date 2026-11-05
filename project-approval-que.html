@@ -816,17 +816,6 @@
         );
       }
 
-      function featureParam(row) {
-        return (
-          'feature-details.html?project_id=' +
-          encodeURIComponent(row.project.id) +
-          '&layer_id=' +
-          encodeURIComponent(row.layer.id) +
-          '&feature_id=' +
-          encodeURIComponent(row.feature.id)
-        );
-      }
-
       // The project map, focused on this one feature. The map page reads
       // feature_id/layer_id and zooms to the supervision row's own geometry.
       function mapFeatureParam(row) {
@@ -1202,9 +1191,6 @@
           '<a href="' +
           mapFeatureParam(reviewRow) +
           '" target="_top" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none;margin-left:18px">View on the map &rarr;</a>' +
-          '<a href="' +
-          featureParam(reviewRow) +
-          '" target="_top" style="font-size:13px;font-weight:600;color:#e31837;text-decoration:none;margin-left:18px">Feature details &rarr;</a>' +
           '</p>';
 
         document.getElementById('reviewBody').innerHTML = body;

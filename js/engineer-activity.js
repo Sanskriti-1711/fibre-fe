@@ -580,9 +580,15 @@ function viewAssignmentDetails(id) {
   const assignment = assignmentsData.find((a) => String(a.id) === String(id));
   if (!assignment) return;
 
-  // Feature-scope assignment → the platform's feature detail page
-  if (assignment.target_id) {
-    window.location.href = `feature-details.html?id=${encodeURIComponent(assignment.target_id)}`;
+  // Feature-scope assignment → the audit review for that feature, the page
+  // that shows the engineer's evidence and the decision record. It needs the
+  // project as well as the feature, so a row without one falls through to the
+  // map instead of landing on an empty page.
+  const assignmentProjectId = assignment.project?.id || assignment.project;
+  if (assignment.target_id && assignmentProjectId) {
+    window.location.href =
+      `audit-detail.html?project_id=${encodeURIComponent(assignmentProjectId)}` +
+      `&feature_id=${encodeURIComponent(assignment.target_id)}`;
     return;
   }
 

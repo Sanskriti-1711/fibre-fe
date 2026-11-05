@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>All pages | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <style>
+      .pages-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .pages-head {
+        margin-bottom: var(--space-5);
+      }
+
+      .pages-head h1 {
+        margin: 0;
+        color: var(--ink);
+        font-size: var(--text-2xl);
+        font-weight: var(--weight-black);
+        letter-spacing: -0.4px;
+      }
+
+      .pages-head p {
+        max-width: 66ch;
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: var(--text-base);
+        line-height: 1.5;
+      }
+
+      .pages-note {
+        padding: var(--space-3) var(--space-4);
+        margin-bottom: var(--space-5);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--info);
+        border-radius: 8px;
+        background: var(--surface-sunken);
+        color: var(--muted-strong);
+        font-size: var(--text-sm);
+        line-height: 1.5;
+      }
+
+      .pages-note[hidden] {
+        display: none;
+      }
+
+      .pages-group {
+        margin-bottom: var(--space-6);
+      }
+
+      .pages-group h2 {
+        margin: 0 0 var(--space-3);
+        color: var(--muted);
+        font-size: var(--text-xs);
+        font-weight: var(--weight-bold);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      .pages-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+        gap: var(--space-3);
+      }
+
+      .page-card {
+        display: block;
+        padding: var(--space-4);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: inherit;
+        text-decoration: none;
+        box-shadow: var(--shadow-sm);
+        transition:
+          border-color var(--transition),
+          transform var(--transition);
+      }
+
+      .page-card:hover {
+        border-color: var(--brand);
+        transform: translateY(-1px);
+      }
+
+      .page-card:focus-visible {
+        outline: 2px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      .page-card__title {
+        display: block;
+        color: var(--ink);
+        font-size: var(--text-md);
+        font-weight: var(--weight-bold);
+      }
+
+      .page-card__desc {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: var(--text-sm);
+        line-height: 1.45;
+      }
+
+      .page-card__file {
+        display: block;
+        margin-top: 8px;
+        color: var(--muted);
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 11px;
+        opacity: 0.75;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .page-card {
+          transition: none;
+        }
+
+        .page-card:hover {
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+
+      <main class="content">
+        <div class="pages-wrap">
+          <div class="pages-head">
+            <h1>All pages</h1>
+            <p>
+              Every screen in the app, including the ones that are normally only reachable from a button or a table row.
+              Use this when you know a page exists but cannot remember which control opens it.
+            </p>
+          </div>
+
+          <div class="pages-note" id="projectNote" hidden>
+            Project links below carry the project you are looking at, so they open on that project rather than an empty
+            picker.
+          </div>
+
+          <section class="pages-group">
+            <h2>Projects</h2>
+            <div class="pages-grid">
+              <a class="page-card" href="dashboard.html">
+                <span class="page-card__title">Dashboard</span>
+                <span class="page-card__desc">What needs attention across every project.</span>
+                <span class="page-card__file">dashboard.html</span>
+              </a>
+              <a class="page-card" href="projects.html">
+                <span class="page-card__title">All projects</span>
+                <span class="page-card__desc">Every HLD, survey and LLD project with its progress.</span>
+                <span class="page-card__file">projects.html</span>
+              </a>
+              <a class="page-card" href="projects-completion.html">
+                <span class="page-card__title">Project progress</span>
+                <span class="page-card__desc">Completion per layer, and the weights behind it.</span>
+                <span class="page-card__file">projects-completion.html</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="pages-group">
+            <h2>Design &amp; planning</h2>
+            <div class="pages-grid">
+              <a class="page-card" href="ftth-hld.html" data-keep-project>
+                <span class="page-card__title">Create project</span>
+                <span class="page-card__desc">Start an HLD run for an area or a drawn section.</span>
+                <span class="page-card__file">ftth-hld.html</span>
+              </a>
+              <a class="page-card" href="ftth-hld-projects.html" data-keep-project>
+                <span class="page-card__title">HLD outputs</span>
+                <span class="page-card__desc">Every HLD run and the layers it produced.</span>
+                <span class="page-card__file">ftth-hld-projects.html</span>
+              </a>
+              <a class="page-card" href="ftth-hld-status.html" data-keep-project>
+                <span class="page-card__title">HLD status</span>
+                <span class="page-card__desc">Live pipeline progress while a run is working.</span>
+                <span class="page-card__file">ftth-hld-status.html</span>
+              </a>
+              <a class="page-card" href="ftth-hld-results.html" data-keep-project>
+                <span class="page-card__title">HLD results</span>
+                <span class="page-card__desc">A finished run's layers, spans and surface review.</span>
+                <span class="page-card__file">ftth-hld-results.html</span>
+              </a>
+              <a class="page-card" href="ftth-trench-design.html" data-keep-project>
+                <span class="page-card__title">Trench design</span>
+                <span class="page-card__desc">Civil design: trenches, ducts, chambers and crossings.</span>
+                <span class="page-card__file">ftth-trench-design.html</span>
+              </a>
+              <a class="page-card" href="ftth-lld-outputs.html" data-keep-project>
+                <span class="page-card__title">LLD outputs</span>
+                <span class="page-card__desc">Low-level design per layer, ready for the field.</span>
+                <span class="page-card__file">ftth-lld-outputs.html</span>
+              </a>
+              <a class="page-card" href="ftth-lld-results.html" data-keep-project>
+                <span class="page-card__title">LLD results</span>
+                <span class="page-card__desc">Span-by-span LLD output for a run.</span>
+                <span class="page-card__file">ftth-lld-results.html</span>
+              </a>
+              <a class="page-card" href="ftth-lld-review.html" data-keep-project>
+                <span class="page-card__title">LLD review</span>
+                <span class="page-card__desc">The review workspace over a run's LLD output.</span>
+                <span class="page-card__file">ftth-lld-review.html</span>
+              </a>
+              <a class="page-card" href="ftth-lld-versions.html" data-keep-project>
+                <span class="page-card__title">LLD versions</span>
+                <span class="page-card__desc">Every LLD version issued for a run.</span>
+                <span class="page-card__file">ftth-lld-versions.html</span>
+              </a>
+              <a class="page-card" href="ftth-lld-feature-review.html" data-keep-project>
+                <span class="page-card__title">LLD feature review</span>
+                <span class="page-card__desc">One feature's inputs and computed LLD values.</span>
+                <span class="page-card__file">ftth-lld-feature-review.html</span>
+              </a>
+              <a class="page-card" href="ftth-feature-lineage.html" data-keep-project>
+                <span class="page-card__title">Feature lineage</span>
+                <span class="page-card__desc">Where a feature came from, stage by stage.</span>
+                <span class="page-card__file">ftth-feature-lineage.html</span>
+              </a>
+              <a class="page-card" href="project-map-review.html" data-keep-project>
+                <span class="page-card__title">Map review</span>
+                <span class="page-card__desc">Design baseline against as-built, on one map.</span>
+                <span class="page-card__file">project-map-review.html</span>
+              </a>
+              <a class="page-card" href="project-create.html">
+                <span class="page-card__title">Create supervision project</span>
+                <span class="page-card__desc">Turn an imported package into a project supervision runs on.</span>
+                <span class="page-card__file">project-create.html</span>
+              </a>
+              <a class="page-card" href="gpkg-upload.html">
+                <span class="page-card__title">Upload package</span>
+                <span class="page-card__desc">Import a GeoPackage as a project.</span>
+                <span class="page-card__file">gpkg-upload.html</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="pages-group">
+            <h2>Survey &amp; review</h2>
+            <div class="pages-grid">
+              <a class="page-card" href="ftth-survey-changes.html" data-keep-project>
+                <span class="page-card__title">Survey changes</span>
+                <span class="page-card__desc">Engineer edits to the design, awaiting a decision.</span>
+                <span class="page-card__file">ftth-survey-changes.html</span>
+              </a>
+              <a class="page-card" href="ftth-survey-approval.html" data-keep-project>
+                <span class="page-card__title">Survey approval</span>
+                <span class="page-card__desc">Approve a survey or send it back for rework.</span>
+                <span class="page-card__file">ftth-survey-approval.html</span>
+              </a>
+              <a class="page-card" href="project-approval-que.html" data-keep-project>
+                <span class="page-card__title">Supervision approvals</span>
+                <span class="page-card__desc">Features waiting on a supervision decision.</span>
+                <span class="page-card__file">project-approval-que.html</span>
+              </a>
+              <a class="page-card" href="audit-detail.html" data-keep-project>
+                <span class="page-card__title">Audit detail</span>
+                <span class="page-card__desc">One feature: design against what was built.</span>
+                <span class="page-card__file">audit-detail.html</span>
+              </a>
+              <a class="page-card" href="ftth-approved-survey.html" data-keep-project>
+                <span class="page-card__title">Approved survey</span>
+                <span class="page-card__desc">The approved survey version a design is based on.</span>
+                <span class="page-card__file">ftth-approved-survey.html</span>
+              </a>
+              <a class="page-card" href="project-details.html" data-keep-project>
+                <span class="page-card__title">Project overview</span>
+                <span class="page-card__desc">A project's stages, layers and current state.</span>
+                <span class="page-card__file">project-details.html</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="pages-group">
+            <h2>Jobs</h2>
+            <div class="pages-grid">
+              <a class="page-card" href="project-assign.html" data-keep-project>
+                <span class="page-card__title">Assign jobs</span>
+                <span class="page-card__desc"
+                  >Send a survey to the field, or assign supervision by project, layer or span.</span
+                >
+                <span class="page-card__file">project-assign.html</span>
+              </a>
+              <a class="page-card" href="all-jobs.html">
+                <span class="page-card__title">All jobs</span>
+                <span class="page-card__desc">Every assignment, with view, reassign and delete.</span>
+                <span class="page-card__file">all-jobs.html</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="pages-group">
+            <h2>Permits &amp; reports</h2>
+            <div class="pages-grid">
+              <a class="page-card" href="ftth-permits.html" data-keep-project>
+                <span class="page-card__title">Permits</span>
+                <span class="page-card__desc">Permit requests generated from the design.</span>
+                <span class="page-card__file">ftth-permits.html</span>
+              </a>
+              <a class="page-card" href="ftth-permit-copilot.html">
+                <span class="page-card__title">Permit copilot</span>
+                <span class="page-card__desc">Draft the prose a permit application needs.</span>
+                <span class="page-card__file">ftth-permit-copilot.html</span>
+              </a>
+              <a class="page-card" href="reports.html" data-keep-project>
+                <span class="page-card__title">Reports &amp; exports</span>
+                <span class="page-card__desc">Download the numbers behind a project.</span>
+                <span class="page-card__file">reports.html</span>
+              </a>
+            </div>
+          </section>
+
+          <section class="pages-group">
+            <h2>People</h2>
+            <div class="pages-grid">
+              <a class="page-card" href="engineers-list.html">
+                <span class="page-card__title">People</span>
+                <span class="page-card__desc">Engineer accounts and their status.</span>
+                <span class="page-card__file">engineers-list.html</span>
+              </a>
+              <a class="page-card" href="engineers-invite.html">
+                <span class="page-card__title">Invite engineer</span>
+                <span class="page-card__desc">Create an account for a field engineer.</span>
+                <span class="page-card__file">engineers-invite.html</span>
+              </a>
+              <a class="page-card" href="engineer-activity.html">
+                <span class="page-card__title">Engineer activity</span>
+                <span class="page-card__desc">What one engineer has worked on.</span>
+                <span class="page-card__file">engineer-activity.html</span>
+              </a>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script src="partials/sidebar-loader.js"></script>
+    <script>
+      // A page opened from inside a project can hand that project to every
+      // project-scoped link here, so the index lands on the same workspace
+      // instead of resetting to the first project in the list.
+      (function carryProject() {
+        var params = new URLSearchParams(window.location.search);
+        var projectId = params.get('project_id') || params.get('project') || '';
+        if (!projectId) return;
+
+        var note = document.getElementById('projectNote');
+        if (note) note.hidden = false;
+
+        document.querySelectorAll('a[data-keep-project]').forEach(function (link) {
+          var url = new URL(link.getAttribute('href'), window.location.href);
+          url.searchParams.set('project_id', projectId);
+          url.searchParams.set('project', projectId);
+          link.setAttribute('href', url.pathname.split('/').pop() + url.search);
+        });
+      })();
+    </script>
+  </body>
+</html>

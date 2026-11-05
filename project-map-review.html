@@ -370,6 +370,12 @@
         font-weight: 700;
         text-decoration: none;
       }
+      .mr-popup .pop-hint {
+        display: block;
+        color: #6b7280;
+        font-size: 11px;
+        line-height: 1.35;
+      }
     </style>
 
     <link rel="stylesheet" href="css/tokens.css" />
@@ -413,7 +419,6 @@
               </div>
               <div class="mr-focus__actions">
                 <a id="featureFocusAudit" href="#">Open audit review &rarr;</a>
-                <a id="featureFocusDetails" href="#">Feature details &rarr;</a>
                 <button id="featureFocusClear" class="mr-focus__clear" type="button">Clear</button>
               </div>
             </div>
@@ -883,10 +888,12 @@
           '</div>' +
           '<a href="' +
           esc(auditUrl) +
-          '">Audit review &rarr;</a>' +
+          '" title="Planned vs as-built, site photos and the decision history">Audit review &rarr;</a>' +
+          '<span class="pop-hint">Status, evidence and decisions</span>' +
           '<a href="' +
           esc(assignUrl) +
-          '" style="display:block;margin-top:6px">Assign this feature &rarr;</a>' +
+          '" style="display:block;margin-top:6px" title="Opens Assign jobs with this span selected">Assign this feature &rarr;</a>' +
+          '<span class="pop-hint">Opens Assign jobs on this span</span>' +
           '</div>'
         );
       }
@@ -992,11 +999,6 @@
           document.getElementById('featureFocusId').textContent = (props.layer || 'Feature') + ' · ' + shortId(id);
           document.getElementById('featureFocusAudit').href =
             'audit-detail.html?project_id=' + encodeURIComponent(projectId) + '&feature_id=' + encodeURIComponent(id);
-          document.getElementById('featureFocusDetails').href =
-            'feature-details.html?project_id=' +
-            encodeURIComponent(projectId) +
-            '&feature_id=' +
-            encodeURIComponent(id);
           box.hidden = false;
         }
 

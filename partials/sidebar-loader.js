@@ -17,7 +17,7 @@
     {
       key: 'overview',
       page: 'project-details.html',
-      pages: ['project-details', 'ftth-project-overview', 'layer-details', 'feature-details'],
+      pages: ['project-details', 'ftth-project-overview', 'layer-details'],
     },
     {
       key: 'planning',
@@ -45,7 +45,7 @@
     {
       key: 'jobs',
       page: 'project-assign.html',
-      pages: ['project-assign'],
+      pages: ['project-assign', 'job-detail'],
     },
     {
       key: 'review',
