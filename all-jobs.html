@@ -370,9 +370,11 @@
       <td><span class="badge ${statusBadgeClass}">${statusLabel}</span></td>
       <td data-progress-for="${jobId}">
         ${
-          job.scope === 'feature'
-            ? '<span style="color: #5b6472">…</span>'
-            : '<span style="color: #5b6472" title="Readings are recorded on each feature; the Status column rolls this job&apos;s features up.">—</span>'
+          job.field_progress
+            ? fieldProgressCellMarkup(job.field_progress)
+            : job.scope === 'feature'
+              ? '<span style="color: #5b6472">…</span>'
+              : '<span style="color: #5b6472">—</span>'
         }
       </td>
       <td>${created}</td>
@@ -392,6 +394,27 @@
       // every row would cost seconds and megabytes per page.
       const progressCache = {};
 
+      // One renderer for both shapes: the jobs API reports readings and photos
+      // per job (`field_progress`), while the fallback below builds the same
+      // numbers for a single feature from the feature and its gallery.
+      function fieldProgressCellMarkup(progress) {
+        if (!progress) return '<span style="color: #5b6472">—</span>';
+        const aggregate = progress.expected_readings == null;
+        const measured = progress.measured_features || 0;
+        const photos = progress.photos || 0;
+        const started = measured > 0 || photos > 0;
+        const main = aggregate
+          ? `${measured} of ${progress.features || 0} features`
+          : progress.expected_readings
+            ? `${progress.readings || 0} of ${progress.expected_readings} readings`
+            : `${progress.readings || 0} readings`;
+        const secondLine = started ? `${photos} photo${photos === 1 ? '' : 's'}` : 'not started';
+        return (
+          `<span style="font-size: 12px; font-weight: 600; color: ${started ? '#1f2937' : '#5b6472'}">${escapeHtml(main)}</span>` +
+          `<span style="display: block; font-size: 11px; color: #5b6472">${escapeHtml(secondLine)}</span>`
+        );
+      }
+
       function expectedFieldCount(feature) {
         const schema = feature.field_schema;
         if (Array.isArray(schema)) return schema.length;
@@ -406,16 +429,19 @@
           cell.innerHTML = '<span style="color: #5b6472">—</span>';
           return;
         }
-        const readings = progress.expected ? `${progress.measured} of ${progress.expected}` : String(progress.measured);
-        const started = progress.measured > 0 || progress.photos > 0;
-        const secondLine = started ? `${progress.photos} photo${progress.photos === 1 ? '' : 's'}` : 'not started';
-        cell.innerHTML =
-          `<span style="font-size: 12px; font-weight: 600; color: ${started ? '#1f2937' : '#5b6472'}">${escapeHtml(readings)}</span>` +
-          `<span style="display: block; font-size: 11px; color: #5b6472">${escapeHtml(secondLine)}</span>`;
+        cell.innerHTML = fieldProgressCellMarkup({
+          features: 1,
+          measured_features: progress.measured > 0 ? 1 : 0,
+          readings: progress.measured,
+          expected_readings: progress.expected || null,
+          photos: progress.photos,
+        });
       }
 
       async function loadFieldProgress(jobsToShow) {
-        const featureJobs = jobsToShow.filter((job) => job.scope === 'feature' && job.feature && job.feature.id);
+        const featureJobs = jobsToShow.filter(
+          (job) => !job.field_progress && job.scope === 'feature' && job.feature && job.feature.id
+        );
         await Promise.all(
           featureJobs.map(async (job) => {
             const featureId = job.feature.id;
