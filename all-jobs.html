@@ -97,8 +97,10 @@
               <button class="btn btn-outline" onclick="refreshTable()">Refresh</button>
             </div>
             <p style="margin: 0; padding: 0 20px 12px; color: var(--muted); font-size: 12.5px; line-height: 1.45">
-              View opens the job page — engineer, live progress, site photos, measurements and decisions. Reassign moves
-              the job to another engineer; Delete removes it.
+              View opens the job page — engineer, live progress, site photos, measurements and decisions. Field progress
+              shows the readings and photos an engineer has already recorded; for a layer or project job the readings
+              live on each feature, so the Status column carries the roll-up. Reassign moves the job to another
+              engineer; Delete removes it.
             </p>
             <table>
               <thead>
@@ -108,13 +110,18 @@
                   <th>Scope</th>
                   <th>Assigned To</th>
                   <th>Status</th>
+                  <th
+                    title="Readings and site photos the engineer has recorded. Shown for single-feature jobs; a layer or project job's readings live on each of its features."
+                  >
+                    Field progress
+                  </th>
                   <th>Created</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="jobsTableBody">
                 <tr id="loadingRow">
-                  <td colspan="7" class="text-center">Loading jobs...</td>
+                  <td colspan="8" class="text-center">Loading jobs...</td>
                 </tr>
               </tbody>
             </table>
@@ -290,6 +297,7 @@
         const jobsToShow = allJobs.slice(start, end);
 
         tbody.innerHTML = jobsToShow.map((job) => renderJobRow(job)).join('');
+        loadFieldProgress(jobsToShow);
       }
 
       // Render single job row
@@ -360,6 +368,13 @@
         </div>
       </td>
       <td><span class="badge ${statusBadgeClass}">${statusLabel}</span></td>
+      <td data-progress-for="${jobId}">
+        ${
+          job.scope === 'feature'
+            ? '<span style="color: #5b6472">…</span>'
+            : '<span style="color: #5b6472" title="Readings are recorded on each feature; the Status column rolls this job&apos;s features up.">—</span>'
+        }
+      </td>
       <td>${created}</td>
       <td>
         <div class="actions">
@@ -369,6 +384,67 @@
         </div>
       </td>
     </tr>`;
+      }
+
+      // Field progress: the readings and photos already recorded. Only a
+      // single-feature job can be summarised in one cheap call; a layer or
+      // project job's readings live on each feature, and fetching them all for
+      // every row would cost seconds and megabytes per page.
+      const progressCache = {};
+
+      function expectedFieldCount(feature) {
+        const schema = feature.field_schema;
+        if (Array.isArray(schema)) return schema.length;
+        if (schema && typeof schema === 'object') return Object.keys(schema).length;
+        return Object.keys(feature.properties || {}).length;
+      }
+
+      function renderFieldProgress(jobId, progress) {
+        const cell = document.querySelector(`[data-progress-for="${jobId}"]`);
+        if (!cell) return;
+        if (!progress) {
+          cell.innerHTML = '<span style="color: #5b6472">—</span>';
+          return;
+        }
+        const readings = progress.expected ? `${progress.measured} of ${progress.expected}` : String(progress.measured);
+        const started = progress.measured > 0 || progress.photos > 0;
+        const secondLine = started ? `${progress.photos} photo${progress.photos === 1 ? '' : 's'}` : 'not started';
+        cell.innerHTML =
+          `<span style="font-size: 12px; font-weight: 600; color: ${started ? '#1f2937' : '#5b6472'}">${escapeHtml(readings)}</span>` +
+          `<span style="display: block; font-size: 11px; color: #5b6472">${escapeHtml(secondLine)}</span>`;
+      }
+
+      async function loadFieldProgress(jobsToShow) {
+        const featureJobs = jobsToShow.filter((job) => job.scope === 'feature' && job.feature && job.feature.id);
+        await Promise.all(
+          featureJobs.map(async (job) => {
+            const featureId = job.feature.id;
+            if (!(featureId in progressCache)) {
+              const projectId = (job.project && job.project.id) || job.project_id || job.project;
+              progressCache[featureId] = null;
+              try {
+                const detail = await FiberApi.getFeature(projectId, featureId);
+                const feature = detail.feature || detail;
+                const progress = {
+                  measured: Object.keys(feature.field_measurements || {}).length,
+                  expected: expectedFieldCount(feature),
+                  photos: 0,
+                };
+                try {
+                  const photos = await FiberApi.getFeaturePhotos(featureId);
+                  progress.photos =
+                    photos && photos.count != null ? photos.count : ((photos && photos.results) || []).length;
+                } catch (err) {
+                  // A missing photo count does not hide the readings.
+                }
+                progressCache[featureId] = progress;
+              } catch (err) {
+                progressCache[featureId] = null;
+              }
+            }
+            renderFieldProgress(job.id || job.uuid || job.job_id, progressCache[featureId]);
+          })
+        );
       }
 
       // Render pagination with server-side count

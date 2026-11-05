@@ -220,6 +220,95 @@
         font-weight: 700;
         text-decoration: none;
       }
+      .jd-picker {
+        max-width: 900px;
+      }
+      .jd-picker h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .jd-picker input[type='search'] {
+        width: 100%;
+        margin: 18px 0 12px;
+        padding: 10px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #1f2937;
+        background: #ffffff;
+      }
+      .jd-picker input[type='search']:focus {
+        outline: 2px solid #e31837;
+        outline-offset: 1px;
+      }
+      .jd-picker__list {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .jd-picker__row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 15px;
+        border-bottom: 1px solid #f3f4f6;
+        color: inherit;
+        text-decoration: none;
+      }
+      .jd-picker__row:last-child {
+        border-bottom: none;
+      }
+      .jd-picker__row:hover,
+      .jd-picker__row:focus-visible {
+        background: #f9fafb;
+      }
+      .jd-picker__row:focus-visible {
+        outline: 2px solid #e31837;
+        outline-offset: -2px;
+      }
+      .jd-picker__id {
+        flex: 0 0 auto;
+        font-family: 'SF Mono', Menlo, Consolas, monospace;
+        font-size: 11px;
+        color: #5b6472;
+      }
+      .jd-picker__main {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .jd-picker__main strong {
+        display: block;
+        font-size: 13px;
+        color: #1f2937;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .jd-picker__main small {
+        display: block;
+        margin-top: 2px;
+        font-size: 11px;
+        color: #5b6472;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .jd-picker__when {
+        flex: 0 0 auto;
+        font-size: 11px;
+        color: #5b6472;
+        white-space: nowrap;
+      }
+      .jd-picker__empty {
+        padding: 18px 15px;
+        font-size: 13px;
+        color: #5b6472;
+      }
+      @media (max-width: 620px) {
+        .jd-picker__when {
+          display: none;
+        }
+      }
     </style>
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/main.css" />
@@ -363,10 +452,22 @@
             </div>
           </div>
 
-          <div id="emptyState" class="jd-empty" style="display: none">
-            <strong>No job selected</strong>
-            Open this page from the jobs table, not directly.
-            <p style="margin-top: 14px"><a href="all-jobs.html">All jobs</a></p>
+          <div id="emptyState" class="jd-picker" style="display: none">
+            <h1>Choose a job</h1>
+            <p class="jd-sub">
+              Every assignment, newest first. Pick one to see the engineer's progress, photos, measurements and
+              decisions.
+            </p>
+            <input
+              id="pickerSearch"
+              type="search"
+              placeholder="Search job id, engineer, project or layer"
+              aria-label="Search jobs"
+            />
+            <div id="pickerList" class="jd-picker__list">
+              <p class="jd-picker__empty">Loading jobs…</p>
+            </div>
+            <p class="jd-hint">Need filters or reassignment? <a href="all-jobs.html">Open the full jobs table</a>.</p>
           </div>
         </div>
       </main>
@@ -716,9 +817,114 @@
         }
       }
 
+      // ── Job picker (no job_id in the URL) ─────────────────────────────
+      // The page is linked from the all-pages index, which has no single job
+      // to hand it. Rather than a dead end, list the jobs and let one be picked.
+      var pickerJobs = [];
+
+      function pickerJobId(assignment) {
+        return assignment.id || assignment.uuid || assignment.job_id || '';
+      }
+
+      function pickerProject(assignment) {
+        return (
+          (assignment.project && (assignment.project.name || assignment.project.title)) ||
+          assignment.project_name ||
+          '—'
+        );
+      }
+
+      function pickerLayer(assignment) {
+        return (
+          (assignment.feature && (assignment.feature.layer_name || assignment.feature.layer_id)) ||
+          (assignment.layer && (assignment.layer.name || assignment.layer.id)) ||
+          assignment.layer_name ||
+          '—'
+        );
+      }
+
+      function renderPicker() {
+        var box = document.getElementById('pickerList');
+        var term = (document.getElementById('pickerSearch').value || '').trim().toLowerCase();
+        var matches = pickerJobs.filter(function (assignment) {
+          if (!term) return true;
+          var haystack = [
+            pickerJobId(assignment),
+            engineerLabel(assignment),
+            pickerProject(assignment),
+            pickerLayer(assignment),
+            assignment.scope || '',
+          ]
+            .join(' ')
+            .toLowerCase();
+          return haystack.indexOf(term) !== -1;
+        });
+
+        if (!matches.length) {
+          box.innerHTML = '<p class="jd-picker__empty">No jobs match that search.</p>';
+          return;
+        }
+
+        box.innerHTML = matches
+          .map(function (assignment) {
+            var id = pickerJobId(assignment);
+            var style = STATUS_STYLE[assignment.status] || STATUS_STYLE.pending;
+            return (
+              '<a class="jd-picker__row" href="job-detail.html?job_id=' +
+              encodeURIComponent(id) +
+              '">' +
+              '<span class="jd-picker__id">#' +
+              esc(shortId(id)) +
+              '</span>' +
+              '<span class="jd-picker__main"><strong>' +
+              esc(pickerProject(assignment)) +
+              '</strong><small>' +
+              esc(pickerLayer(assignment)) +
+              ' · ' +
+              esc(engineerLabel(assignment)) +
+              '</small></span>' +
+              '<span class="jd-pill" style="background:' +
+              style.bg +
+              ';color:' +
+              style.fg +
+              ';border-color:' +
+              style.border +
+              '">' +
+              esc(style.label) +
+              '</span>' +
+              '<span class="jd-picker__when">' +
+              esc(formatDate(assignment.created_at || assignment.created)) +
+              '</span>' +
+              '</a>'
+            );
+          })
+          .join('');
+      }
+
+      async function loadPicker() {
+        document.getElementById('pickerSearch').addEventListener('input', renderPicker);
+        var box = document.getElementById('pickerList');
+        try {
+          var data = await window.FiberApi.listJobs({ page_size: 100 });
+          pickerJobs = Array.isArray(data) ? data : (data && (data.results || data.data)) || [];
+        } catch (err) {
+          box.innerHTML =
+            '<p class="jd-picker__empty">Could not load jobs: ' +
+            esc(err && err.message ? err.message : String(err)) +
+            '</p>';
+          return;
+        }
+        if (!pickerJobs.length) {
+          box.innerHTML = '<p class="jd-picker__empty">No jobs yet. <a href="project-assign.html">Assign one</a>.</p>';
+          return;
+        }
+        renderPicker();
+      }
+
       async function load() {
         if (!jobId) {
           document.getElementById('emptyState').style.display = 'block';
+          loadPicker();
           return;
         }
 
