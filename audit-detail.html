@@ -504,6 +504,9 @@
                 </tr>
               </table>
               <p class="ad-note-hint" id="progressHint"></p>
+              <p style="margin: 12px 0 0" id="progressJobRow" hidden>
+                <a id="progressJobLink" href="job-detail.html">Open this job's details &rarr;</a>
+              </p>
             </div>
 
             <div class="card" style="margin-top: 18px">
@@ -1092,6 +1095,19 @@
         document.getElementById('progressUpdated').textContent = feature.updated_at
           ? formatDate(feature.updated_at)
           : '—';
+
+        // The reviewer arrived from the job page or the queue and often needs
+        // the assignment record itself (due date, scope, reassignment). Send
+        // them to the job page for the assignment this feature belongs to.
+        var jobRow = document.getElementById('progressJobRow');
+        var jobLink = document.getElementById('progressJobLink');
+        var jobId = assignmentInfo && (assignmentInfo.id || assignmentInfo.job_id || assignmentInfo.uuid);
+        if (jobId) {
+          jobLink.href = 'job-detail.html?job_id=' + encodeURIComponent(jobId);
+          jobRow.hidden = false;
+        } else {
+          jobRow.hidden = true;
+        }
 
         var hint = document.getElementById('progressHint');
         if (feature.status === 'under_review') {
