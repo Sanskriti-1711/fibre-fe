@@ -957,7 +957,7 @@
                   </span>
                   <div>
                     <h2>Field survey</h2>
-                    <p>Pick a completed HLD run and the field engineers who will collect it.</p>
+                    <p>Pick a completed HLD run, the areas to hand over, and the field engineers who will collect them.</p>
                   </div>
                 </div>
 
@@ -979,6 +979,30 @@
                   <div class="selected-run__title" id="surveyRunTitle"></div>
                   <div class="selected-run__copy" id="surveyRunCopy"></div>
                 </div>
+
+                <fieldset class="field" id="surveyAreaField" hidden>
+                  <legend>Assigned areas <span class="hint-inline">(required)</span></legend>
+                  <p class="hint">
+                    Tick the polygons or MFG service areas this engineer may edit. Everything outside them stays
+                    greyed out and read-only for that engineer, so at least one area is required.
+                  </p>
+                  <div class="engineer-picker__bar">
+                    <span class="hint-inline" id="surveyAreaCount">No area selected</span>
+                    <a class="btn btn-outline btn-sm" id="surveyAreaOpenMap" href="ftth-hld-results.html">
+                      Pick on the HLD map
+                    </a>
+                  </div>
+                  <div class="engineer-list" id="surveyAreaList" role="group" aria-label="Assigned areas"></div>
+                  <section class="span-map" id="surveyAreaMapCard" hidden aria-label="Selected areas on the map">
+                    <div class="span-map__head">
+                      <div>
+                        <span class="span-map__eyebrow">On the map</span>
+                        <p class="span-map__caption" id="surveyAreaMapCaption"></p>
+                      </div>
+                    </div>
+                    <div class="span-map__canvas" id="surveyAreaMap"></div>
+                  </section>
+                </fieldset>
 
                 <fieldset class="field">
                   <legend>Field engineers</legend>
@@ -1013,8 +1037,8 @@
                 <div class="assign-note">
                   <strong>What gets created</strong>
                   <ul>
-                    <li>The survey copy is created, or refreshed if it already exists.</li>
-                    <li>Its package is imported and every feature is marked assigned.</li>
+                    <li>The survey copy is created, or reused if it already exists.</li>
+                    <li>Only the features inside the selected areas are marked assigned; the rest is read-only.</li>
                     <li>Each engineer sees the job in the mobile app.</li>
                   </ul>
                 </div>
@@ -1046,7 +1070,7 @@
                   </span>
                   <div>
                     <h2>Site supervision</h2>
-                    <p>Assign a whole project, a layer, or a single feature.</p>
+                    <p>Assign a whole project, a layer, a polygon, or a single feature.</p>
                   </div>
                 </div>
 
@@ -1076,11 +1100,30 @@
                 </div>
 
                 <div class="field">
-                  <label for="featureSelect">Feature <span class="hint-inline">(optional)</span></label>
-                  <select id="featureSelect" disabled>
+                  <label for="polygonSelect">Assigned polygon <span class="hint-inline">(optional)</span></label>
+                  <select id="polygonSelect" disabled>
+                    <option value="">Whole layer / project</option>
+                  </select>
+                  <p class="hint">
+                    Only the features inside this polygon — or carrying its polygon ID — stay editable for the engineer.
+                  </p>
+                </div>
+
+                <div class="field">
+                  <label for="featureSelect">Features <span class="hint-inline">(multiple, optional)</span></label>
+                  <select id="featureSelect" multiple size="7" disabled>
                     <option value="">All features in the layer</option>
                   </select>
-                  <p class="hint">A feature job overrides both the layer and the project.</p>
+                  <div class="engineer-picker__bar" id="featureSelectBar" hidden>
+                    <span class="hint-inline" id="featureSelectCount">No spans selected</span>
+                    <button class="btn btn-outline btn-sm" id="featureSelectAllBtn" type="button">
+                      Select all spans
+                    </button>
+                  </div>
+                  <p class="hint">
+                    A feature job overrides both the layer and the project. Select one or more spans to assign them
+                    together; each gets its own job.
+                  </p>
                 </div>
 
                 <section class="span-map" id="spanMapCard" hidden aria-label="Selected span on the map">
@@ -1149,6 +1192,14 @@
                   <div class="summary-row">
                     <dt>Copy</dt>
                     <dd>—</dd>
+                  </div>
+                  <div class="summary-row summary-row--stack">
+                    <dt>Regions</dt>
+                    <dd id="surveySummaryRegions">Pick the areas to hand over.</dd>
+                  </div>
+                  <div class="summary-row">
+                    <dt>Features</dt>
+                    <dd id="surveySummaryFeatures">—</dd>
                   </div>
                   <div class="summary-row">
                     <dt>Engineers</dt>
@@ -1221,7 +1272,14 @@
         hldRuns: [],
         surveyRunId: '',
         projects: [],
-        target: { projectId: '', layerId: '', featureId: '' },
+        target: {
+          projectId: '',
+          layerId: '',
+          featureId: '',
+          polygonId: '',
+          polygonName: '',
+          polygonGeometry: null,
+        },
         layers: [],
         coverageText: '',
         jobsCache: { projectId: '', index: null, rows: [] },
@@ -1229,6 +1287,10 @@
         bulkSelection: null,
         layerFeatures: [],
         map: { instance: null, ready: false },
+        areasRunId: '',
+        surveyAreas: [],
+        selectedAreas: new Set(),
+        areaMap: { instance: null, ready: false },
       };
 
       const params = getParams();
@@ -1252,7 +1314,10 @@
           .filter(Boolean);
         const assigneeId = search.get('assignee_id') || search.get('engineer_id') || search.get('engineer');
         const runId = search.get('run_id') || search.get('hld_id') || search.get('hld');
-        return { projectId, layerId, featureId, featureIds, assigneeId, runId };
+        const stage = search.get('stage');
+        const areaIds = search.get('area_ids') || search.get('areas') || '';
+        const areaLayer = search.get('area_layer') || '';
+        return { projectId, layerId, featureId, featureIds, assigneeId, runId, stage, areaIds, areaLayer };
       }
 
       function $(id) {
@@ -1610,6 +1675,7 @@
 
         if (!run) {
           card.hidden = true;
+          loadSurveyAreas('');
           return;
         }
 
@@ -1639,6 +1705,280 @@
         } else {
           copy.innerHTML = '<span>No survey copy yet — assigning creates it and imports the package.</span>';
         }
+        loadSurveyAreas(run.project_id);
+      }
+
+      // ── Assigned areas ────────────────────────────────────────────
+      // A planner can hand over polygons / MFG service areas rather than the
+      // whole run. The engineer may then edit only what those areas cover; the
+      // backend computes the coverage from the same geometry
+      // (assignments.coverage), so the map and the edit guard agree.
+
+      function polygonGeometry(feature) {
+        const geom = feature && feature.geometry;
+        if (!geom || (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon')) return null;
+        return geom;
+      }
+
+      function areaLabel(feature) {
+        const props = (feature && feature.properties) || {};
+        return (
+          props.NAME ||
+          props.name ||
+          props.AREA_NAME ||
+          props.MFG_NAME ||
+          props.POLYGON_ID ||
+          props.MFG_ID ||
+          (feature && feature.id) ||
+          'Area'
+        );
+      }
+
+      function areaIdentity(feature) {
+        const props = (feature && feature.properties) || {};
+        const id =
+          props.POLYGON_ID ||
+          props.MFG_ID ||
+          props.POLYGON_I ||
+          props.feature_id ||
+          (feature && feature.id) ||
+          props.id;
+        return id === null || id === undefined || id === '' ? '' : String(id);
+      }
+
+      async function loadSurveyAreas(runId) {
+        if (state.areasRunId === runId) return;
+        state.areasRunId = runId;
+        state.surveyAreas = [];
+        state.selectedAreas = new Set();
+
+        const field = $('surveyAreaField');
+        if (!field) return;
+        const link = $('surveyAreaOpenMap');
+        if (link && runId) {
+          link.href = 'ftth-hld-results.html?project_id=' + encodeURIComponent(runId);
+        }
+        if (!runId) {
+          field.hidden = true;
+          renderSurveyAreas();
+          return;
+        }
+
+        field.hidden = false;
+        const list = $('surveyAreaList');
+        if (list) list.innerHTML = '<div class="engineer-note">Loading polygons and MFG service areas…</div>';
+
+        const seen = new Set();
+        const layerNames = params.areaLayer
+          ? [params.areaLayer, 'mfg_service_areas', 'polygons']
+          : ['mfg_service_areas', 'polygons'];
+        for (const layerName of layerNames) {
+          try {
+            const geojson = await window.FtthApi.getPipelineLayer(runId, layerName);
+            ((geojson && geojson.features) || []).forEach((feature) => {
+              const geometry = polygonGeometry(feature);
+              const id = areaIdentity(feature);
+              if (!geometry || !id || seen.has(id)) return;
+              seen.add(id);
+              state.surveyAreas.push({
+                id,
+                polygon_id: id,
+                name: String(areaLabel(feature)),
+                geometry,
+                layer: layerName,
+              });
+            });
+          } catch (error) {
+            // A run without one of the two layers still has the other.
+          }
+        }
+        state.surveyAreas.sort((a, b) => a.name.localeCompare(b.name));
+
+        // The HLD map hands over the ids it had selected, so the planner lands
+        // on this page with the same areas already ticked.
+        String(params.areaIds || '')
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean)
+          .forEach((id) => {
+            const match = state.surveyAreas.find(
+              (area) => area.id === id || area.polygon_id === id
+            );
+            if (match) state.selectedAreas.add(match.id);
+          });
+
+        if (list && !state.surveyAreas.length) {
+          list.innerHTML =
+            '<div class="engineer-note">This run has no polygons or MFG service areas, so it cannot be assigned from here.</div>';
+        }
+        renderSurveyAreas();
+        updateButtons();
+      }
+
+      function selectedAreaObjects() {
+        return state.surveyAreas.filter((area) => state.selectedAreas.has(area.id));
+      }
+
+      function renderSurveyAreas() {
+        const list = $('surveyAreaList');
+        if (!list) return;
+        if (!state.surveyAreas.length) {
+          updateAreaCount();
+          drawSurveyAreaMap();
+          renderSurveySummary();
+          return;
+        }
+        list.innerHTML = state.surveyAreas
+          .map((area) => {
+            const checked = state.selectedAreas.has(area.id);
+            return (
+              '<label class="engineer-card" data-area-card="' +
+              escapeHtml(area.id) +
+              '">' +
+              '<input type="checkbox" value="' +
+              escapeHtml(area.id) +
+              '" data-area-id="' +
+              escapeHtml(area.id) +
+              '"' +
+              (checked ? ' checked' : '') +
+              ' />' +
+              '<span class="engineer-info">' +
+              '<span class="engineer-name">' +
+              escapeHtml(area.name) +
+              '</span>' +
+              '<span class="engineer-email">' +
+              escapeHtml(area.polygon_id + ' · ' + area.layer) +
+              '</span>' +
+              '</span>' +
+              '<span class="engineer-tick" aria-hidden="true">✓</span>' +
+              '</label>'
+            );
+          })
+          .join('');
+        updateAreaCount();
+        drawSurveyAreaMap();
+        renderSurveySummary();
+      }
+
+      function updateAreaCount() {
+        const count = $('surveyAreaCount');
+        if (!count) return;
+        const total = selectedAreaObjects().length;
+        count.textContent = total
+          ? total + (total === 1 ? ' area selected' : ' areas selected')
+          : 'No area selected';
+      }
+
+      function areaCollection(areas) {
+        return {
+          type: 'FeatureCollection',
+          features: areas.map((area) => ({
+            type: 'Feature',
+            geometry: area.geometry,
+            properties: { id: area.id, name: area.name },
+          })),
+        };
+      }
+
+      function areaMap() {
+        if (state.areaMap.instance) return state.areaMap.instance;
+        if (typeof maplibregl === 'undefined') return null;
+        const container = $('surveyAreaMap');
+        if (!container) return null;
+
+        const map = new maplibregl.Map({
+          container,
+          style: {
+            version: 8,
+            sources: {
+              osm: {
+                type: 'raster',
+                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+              },
+            },
+            layers: [{ id: 'area-basemap', type: 'raster', source: 'osm', minzoom: 0, maxzoom: 19 }],
+          },
+          center: [0, 0],
+          zoom: 2,
+          attributionControl: false,
+        });
+        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+        map.addControl(new maplibregl.AttributionControl({ compact: true }));
+        map.on('load', () => {
+          state.areaMap.ready = true;
+          drawSurveyAreaMap();
+        });
+        if (typeof ResizeObserver !== 'undefined') {
+          new ResizeObserver(() => {
+            if (state.areaMap.instance) state.areaMap.instance.resize();
+          }).observe(container);
+        }
+        state.areaMap.instance = map;
+        return map;
+      }
+
+      function areaBounds(areas) {
+        if (typeof maplibregl === 'undefined') return null;
+        const bounds = new maplibregl.LngLatBounds();
+        let any = false;
+        const visit = (coords) => {
+          if (!Array.isArray(coords)) return;
+          if (typeof coords[0] === 'number') {
+            if (coords.length >= 2) {
+              bounds.extend([coords[0], coords[1]]);
+              any = true;
+            }
+            return;
+          }
+          coords.forEach(visit);
+        };
+        areas.forEach((area) => visit(area.geometry && area.geometry.coordinates));
+        return any ? bounds : null;
+      }
+
+      function drawSurveyAreaMap() {
+        const card = $('surveyAreaMapCard');
+        if (!card) return;
+        const selected = selectedAreaObjects();
+        card.hidden = !selected.length;
+        if (!selected.length) return;
+
+        const caption = $('surveyAreaMapCaption');
+        if (caption) {
+          caption.textContent =
+            selected.length +
+            (selected.length === 1 ? ' area' : ' areas') +
+            ' · only features inside them are editable';
+        }
+
+        const map = areaMap();
+        if (!map || !state.areaMap.ready) return;
+        map.resize();
+        const data = areaCollection(selected);
+        if (map.getSource('survey-area-source')) {
+          map.getSource('survey-area-source').setData(data);
+        } else {
+          map.addSource('survey-area-source', { type: 'geojson', data });
+        }
+        const addLayer = (layer) => {
+          if (!map.getLayer(layer.id)) map.addLayer(layer);
+        };
+        addLayer({
+          id: 'survey-area-fill',
+          type: 'fill',
+          source: 'survey-area-source',
+          paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.18 },
+        });
+        addLayer({
+          id: 'survey-area-line',
+          type: 'line',
+          source: 'survey-area-source',
+          paint: { 'line-color': '#1d4ed8', 'line-width': 2.5, 'line-dasharray': [2, 1] },
+        });
+        const bounds = areaBounds(selected);
+        if (bounds) map.fitBounds(bounds, { padding: 30, maxZoom: 15, duration: 0 });
       }
 
       function renderSurveySummary() {
@@ -1654,9 +1994,11 @@
             : 'Created on assignment'
           : '—';
 
+        const areaCount = selectedAreaObjects().length;
         body.innerHTML =
           summaryRow('HLD run', run ? run.name || run.project_id : 'Not selected') +
           summaryRow('Copy', copyLabel) +
+          summaryRow('Areas', areaCount ? areaCount + ' selected' : 'Pick at least one') +
           summaryRow('Engineers', engineers.length ? engineers.length + ' selected' : 'None selected');
 
         const existing = run && Array.isArray(run.assigned_engineers) ? run.assigned_engineers : [];
@@ -1701,16 +2043,32 @@
           setStatus('survey', 'Select at least one field engineer.', true);
           return;
         }
+        if (!selectedAreaObjects().length) {
+          setStatus('survey', 'Select at least one area to hand over.', true);
+          return;
+        }
+
+        const areas = selectedAreaObjects().map((area) => ({
+          polygon_id: area.polygon_id,
+          name: area.name,
+          geometry: area.geometry,
+        }));
 
         state.busy = true;
-        setStatus('survey', 'Creating the survey copy and importing the package…');
+        setStatus(
+          'survey',
+          areas.length
+            ? 'Creating the survey copy and assigning ' + areas.length + ' area(s)…'
+            : 'Creating the survey copy and importing the package…'
+        );
         showResult('survey', '');
         updateButtons();
 
         try {
           const result = await window.FiberApi.assignHldProject(
             run.project_id,
-            engineers.map((engineer) => engineer.id)
+            engineers.map((engineer) => engineer.id),
+            areas
           );
 
           run.survey_copy_project_id = result.survey_project_id || run.survey_copy_project_id;
@@ -1731,6 +2089,13 @@
               (result.engineers && result.engineers.length === 1 ? ' engineer' : ' engineers') +
               (result.features_created
                 ? ' · ' + Number(result.features_created).toLocaleString() + ' features imported'
+                : '') +
+              (result.scope === 'polygon'
+                ? ' · ' +
+                  (result.areas || []).length +
+                  ' area(s), ' +
+                  Number(result.assigned_feature_count || 0).toLocaleString() +
+                  ' features editable; the rest stays read-only'
                 : '') +
               '. <a href="project-details.html?project_id=' +
               encodeURIComponent(result.survey_project_id || '') +
@@ -1754,6 +2119,19 @@
           updateButtons();
         });
         $('surveyAssignBtn').addEventListener('click', applySurvey);
+
+        const areaList = $('surveyAreaList');
+        if (areaList) {
+          areaList.addEventListener('change', (event) => {
+            const input = event.target.closest('[data-area-id]');
+            if (!input) return;
+            if (input.checked) state.selectedAreas.add(input.value);
+            else state.selectedAreas.delete(input.value);
+            updateAreaCount();
+            drawSurveyAreaMap();
+            renderSurveySummary();
+          });
+        }
       }
 
       // ── Site supervision ──────────────────────────────────────────
@@ -1833,9 +2211,17 @@
         state.target.projectId = projectId;
         state.target.layerId = '';
         state.target.featureId = '';
+        state.target.polygonId = '';
+        state.target.polygonName = '';
+        state.target.polygonGeometry = null;
         state.coverageText = '';
         $('featureSelect').innerHTML = '<option value="">All features in the layer</option>';
         $('featureSelect').disabled = true;
+        const polygonSelect = $('polygonSelect');
+        if (polygonSelect) {
+          polygonSelect.innerHTML = '<option value="">Whole layer / project</option>';
+          polygonSelect.disabled = !projectId;
+        }
 
         if (!projectId) {
           select.innerHTML = '<option value="">All layers</option>';
@@ -1878,6 +2264,8 @@
                 return '<option value="' + escapeHtml(id) + '">' + escapeHtml(name) + '</option>';
               })
               .join('');
+
+          await loadSupervisionPolygons(projectId);
 
           const requested = resolveLayerId(params.layerId, select);
           if (requested) {
@@ -1998,6 +2386,81 @@
         if (layerId && index.byLayer[layerId]) return index.byLayer[layerId] + ' (layer job)';
         if (index.project) return index.project + ' (project job)';
         return '';
+      }
+
+      // A polygon assignment is driven by the polygon feature, not by a layer:
+      // load every polygon-shaped feature in the project once per project switch,
+      // so the planner picks an area instead of typing coordinates.
+      async function loadSupervisionPolygons(projectId) {
+        const select = $('polygonSelect');
+        if (!select) return;
+
+        state.target.polygonId = '';
+        state.target.polygonName = '';
+        state.target.polygonGeometry = null;
+
+        if (!projectId) {
+          select.innerHTML = '<option value="">Whole layer / project</option>';
+          select.disabled = true;
+          return;
+        }
+
+        const projectLayers = state.layers.filter((layer) => layer && typeof layer === 'object');
+        const areaLayers = projectLayers.filter((layer) =>
+          /polygon|area|zone|service|boundary|sector/i.test(
+            String(layer.id || layer.layer_id || layer.name || layer.layer_name || '')
+          )
+        );
+        // Fall back to the first few layers when a project has no obviously
+        // named area layer — better a short scan than no picker at all.
+        const candidates = areaLayers.length ? areaLayers : projectLayers.slice(0, 8);
+
+        select.disabled = true;
+        select.innerHTML = '<option value="">Loading polygons…</option>';
+
+        const polygons = [];
+        const seen = new Set();
+        for (const layer of candidates) {
+          const layerId = layer.id || layer.layer_id || layer.name;
+          if (!layerId) continue;
+          try {
+            const data = await window.FiberApi.getLayerDetail(projectId, layerId);
+            const features = Array.isArray(data && data.features) ? data.features : [];
+            for (const feature of features) {
+              const geometry = feature && feature.geometry;
+              if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) continue;
+              const props = feature.properties || {};
+              const polygonId =
+                props.polygon_id || props.Polygon_ID || props.polygonId || props.id || feature.id;
+              if (!polygonId || seen.has(String(polygonId))) continue;
+              seen.add(String(polygonId));
+              const name =
+                props.name || props.polygon_name || props.Polygon_Name || props.label || polygonId;
+              polygons.push({ polygonId: String(polygonId), name: String(name), geometry });
+            }
+          } catch (error) {
+            // A layer that cannot be read must not hide the others.
+            console.warn('[Supervision] Could not load polygons from layer', layerId, error);
+          }
+        }
+
+        select.disabled = false;
+        select.innerHTML =
+          '<option value="">Whole layer / project</option>' +
+          polygons
+            .map(
+              (polygon) =>
+                '<option value="' +
+                escapeHtml(polygon.polygonId) +
+                '" data-name="' +
+                escapeHtml(polygon.name) +
+                '" data-geometry="' +
+                encodeURIComponent(JSON.stringify(polygon.geometry)) +
+                '">' +
+                escapeHtml(polygon.name) +
+                '</option>'
+            )
+            .join('');
       }
 
       async function loadFeaturesForLayer(projectId, layerId, designFeatureId) {
@@ -2447,7 +2910,13 @@
             email: assignee.email || '',
             scopes: new Set(),
           };
-          entry.scopes.add(row.scope);
+          entry.scopes.add(
+            row.scope === 'polygon' && row.polygon && row.polygon.name
+              ? 'Polygon ' + row.polygon.name
+              : row.scope === 'polygon'
+                ? 'Polygon'
+                : row.scope.charAt(0).toUpperCase() + row.scope.slice(1)
+          );
           byAssignee.set(assignee.id, entry);
         });
 
@@ -2527,12 +2996,21 @@
           return;
         }
 
-        const featureTargets = isBulk
-          ? state.bulkSelection.featureIds.slice()
-          : state.target.featureId
-            ? [state.target.featureId]
-            : [];
-        const scope = featureTargets.length ? 'feature' : state.target.layerId ? 'layer' : 'project';
+        const polygonSelected = !!state.target.polygonId;
+        const featureTargets = polygonSelected
+          ? []
+          : isBulk
+            ? state.bulkSelection.featureIds.slice()
+            : state.target.featureId
+              ? [state.target.featureId]
+              : [];
+        const scope = polygonSelected
+          ? 'polygon'
+          : featureTargets.length
+            ? 'feature'
+            : state.target.layerId
+              ? 'layer'
+              : 'project';
         const targets = featureTargets.length ? featureTargets : [null];
         const total = targets.length * engineers.length;
 
@@ -2547,6 +3025,11 @@
             const payload = { project: projectId, scope, assignee: engineer.id };
             if (scope === 'layer') payload.layer_id = state.target.layerId;
             if (scope === 'feature') payload.feature = featureId;
+            if (scope === 'polygon') {
+              payload.polygon_id = state.target.polygonId;
+              payload.polygon_name = state.target.polygonName || state.target.polygonId;
+              if (state.target.polygonGeometry) payload.polygon = state.target.polygonGeometry;
+            }
             try {
               created.push(await window.FiberApi.createAssignment(payload));
             } catch (error) {
@@ -2572,7 +3055,15 @@
           '<div class="alert alert-success"><strong>' +
             (created.length === 1 ? 'Assignment created.' : created.length + ' assignments created.') +
             '</strong> ' +
-            escapeHtml(scope === 'feature' ? 'Feature' : scope === 'layer' ? 'Layer' : 'Project') +
+            escapeHtml(
+              scope === 'polygon'
+                ? 'Polygon'
+                : scope === 'feature'
+                  ? 'Feature'
+                  : scope === 'layer'
+                    ? 'Layer'
+                    : 'Project'
+            ) +
             " work is now on the engineers' lists." +
             ' <a href="all-jobs.html">View all jobs</a></div>'
         );
@@ -2608,6 +3099,31 @@
           updateButtons();
         });
 
+        $('polygonSelect').addEventListener('change', (event) => {
+          const option = event.target.selectedOptions[0];
+          state.target.polygonId = event.target.value;
+          state.target.polygonName = option ? option.getAttribute('data-name') || '' : '';
+          try {
+            state.target.polygonGeometry = option && option.getAttribute('data-geometry')
+              ? JSON.parse(decodeURIComponent(option.getAttribute('data-geometry')))
+              : null;
+          } catch (error) {
+            state.target.polygonGeometry = null;
+            console.warn('[Supervision] Could not read polygon geometry', error);
+          }
+          // A polygon is its own scope: drop the layer/feature refinements so
+          // the two cannot be sent together and silently disagree.
+          state.target.layerId = '';
+          state.target.featureId = '';
+          $('layerSelect').value = '';
+          $('featureSelect').innerHTML = '<option value="">All features in the layer</option>';
+          $('featureSelect').disabled = true;
+          clearSpanMap();
+          updateCoverage();
+          updateSupervisionSummary();
+          updateButtons();
+        });
+
         $('supervisionAssignBtn').addEventListener('click', applySupervision);
       }
 
@@ -2615,15 +3131,20 @@
 
       function updateButtons() {
         const surveyRun = currentRun();
-        const surveyReady = !state.busy && !!surveyRun && state.selected.survey.size > 0 && !state.engineersError;
+        const surveyReady =
+          !state.busy &&
+          !!surveyRun &&
+          state.selected.survey.size > 0 &&
+          state.selectedAreas.size > 0 &&
+          !state.engineersError;
         const surveyButton = $('surveyAssignBtn');
         if (surveyButton) {
           surveyButton.disabled = !surveyReady;
           surveyButton.textContent = state.busy
             ? 'Assigning…'
             : surveyRun && surveyRun.survey_copy_project_id
-              ? 'Re-assign survey'
-              : 'Create survey copy & assign';
+              ? 'Assign selected areas'
+              : 'Create survey copy & assign areas';
         }
 
         const supervisionReady =
@@ -2665,6 +3186,7 @@
       // ── Boot ──────────────────────────────────────────────────────
 
       function initialStage() {
+        if (params.stage === 'survey' || params.stage === 'supervision') return params.stage;
         const hasSupervisionContext =
           params.projectId || params.layerId || params.featureId || params.featureIds.length;
         return hasSupervisionContext ? 'supervision' : 'survey';
