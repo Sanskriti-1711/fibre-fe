@@ -1200,7 +1200,10 @@
         });
         renderedLayers.push(b.id);
       });
-      fillLayerId = lineBuckets[0].id; // the primary id for click handling
+      // A mixed polygon + line source already owns fillLayerId for the fill.
+      // Keep the fill as the primary layer so the line buckets (which have
+      // their own __b suffixes) do not steal its identity.
+      if (!hasPolygon) fillLayerId = lineBuckets[0].id; // the primary id for click handling
     } else if (hasLine) {
       // `opts.lineWidth` wins: callers that already pass a per-layer weight
       // (the LLD viewer: trench 3, feeder cable 4.5, ducts 3–4.5) were having
@@ -1246,14 +1249,20 @@
       if (palette.lineDash && palette.lineDash.length > 0) {
         linePaint['line-dasharray'] = palette.lineDash;
       }
+      // A FeatureCollection can contain both polygons and lines. The fill
+      // branch above already registered fillLayerId, so adding the line under
+      // that same id makes MapLibre reject it with "Layer ... already exists"
+      // and the line half of the source disappears. Give the line its own id
+      // when a fill is present; a line-only source keeps the familiar id.
+      var lineLayerId = hasPolygon ? fillLayerId + '__line' : fillLayerId;
       map.addLayer({
-        id: fillLayerId,
+        id: lineLayerId,
         type: 'line',
         source: sourceId,
         paint: linePaint,
         layout: { visibility: visible ? 'visible' : 'none' },
       });
-      renderedLayers.push(fillLayerId);
+      renderedLayers.push(lineLayerId);
     }
 
     if (hasPoint) {
@@ -1404,6 +1413,7 @@
       var bottom = _zRank(_layerKey(id)) * 10;
       var kind = 0;
       if (id.indexOf('-outline-') !== -1) kind = 1;
+      else if (id.indexOf('__line') !== -1) kind = 2;
       else if (id.indexOf('-halo-') !== -1) kind = 3;
       else if (id.indexOf('__b') !== -1) kind = 4;
       else if (id.indexOf('-points-') !== -1) kind = 5;
@@ -1508,10 +1518,14 @@
     }
     if (!pick) return null;
 
-    var publicLayerId = pick.layer.id
+    // Bucketed line layers carry a __b0 suffix (and a mixed polygon+line
+    // source carries __line). Those suffixes are rendering details, not part
+    // of the public layer name or its GeoJSON source id.
+    var sourceKey = pick.layer.id
       .replace(/^ftth-(fill|outline|points)-/, '')
-      .replace(/^lld-/, '');
-    var sourceId = 'ftth-source-' + pick.layer.id.replace(/^ftth-(fill|points)-/, '');
+      .replace(/__(?:line|b\d+)$/, '');
+    var publicLayerId = sourceKey.replace(/^lld-/, '');
+    var sourceId = 'ftth-source-' + sourceKey;
     var parts = resolveFullFeatures(sourceId, pick);
     highlightFeatureData(map, parts);
     if (typeof _identifyCallback === 'function') {

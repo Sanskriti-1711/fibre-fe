@@ -498,7 +498,12 @@
         const isFeatures = name === 'features';
         const frame = document.getElementById('featureFrame');
         if (isFeatures && frame.getAttribute('src') === 'about:blank') {
-          frame.setAttribute('src', 'project-approval-que.html?embed=1');
+          const query = new URLSearchParams(location.search);
+          const projectId = query.get('project_id') || query.get('project');
+          frame.setAttribute(
+            'src',
+            'project-approval-que.html?embed=1' + (projectId ? '&project=' + encodeURIComponent(projectId) : '')
+          );
         }
         frame.style.display = isFeatures ? 'block' : 'none';
         document.getElementById('projectsContainer').style.display = isFeatures ? 'none' : '';

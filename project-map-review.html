@@ -28,7 +28,7 @@
       .mr-sub {
         margin: 4px 0 0;
         font-size: 13px;
-        color: #616a75;
+        color: #5b6472;
       }
       .mr-controls {
         display: flex;
@@ -40,7 +40,7 @@
         display: block;
         font-size: 12px;
         font-weight: 600;
-        color: #6b7280;
+        color: #5b6472;
         margin-bottom: 5px;
       }
       .mr-controls select {
@@ -71,7 +71,7 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #6b7280;
+        color: #5b6472;
         margin-bottom: 6px;
       }
       .mr-kpi .value {
@@ -83,7 +83,7 @@
       .mr-kpi .hint {
         margin-top: 4px;
         font-size: 12px;
-        color: #6b7280;
+        color: #5b6472;
       }
 
       .mr-legend {
@@ -139,7 +139,7 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #6b7280;
+        color: #5b6472;
         background: #f9fafb;
         border-bottom: 1px solid #e5e7eb;
         white-space: nowrap;
@@ -185,18 +185,81 @@
         font-variant-numeric: tabular-nums;
       }
       .mr-muted {
-        color: #6b7280;
+        color: #5b6472;
       }
       .mr-mono {
         font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
         font-size: 11px;
-        color: #6b7280;
+        color: #5b6472;
+      }
+
+      /* Review ledger: the decisions that make supervision auditable, on the
+         same page as the map they are about. */
+      .mr-ledger {
+        overflow-x: auto;
+      }
+      .mr-ledger__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+        padding: 14px 16px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .mr-ledger__head h2 {
+        margin: 0;
+        font-size: 15px;
+      }
+      .mr-ledger__head p {
+        margin: 3px 0 0;
+        font-size: 12px;
+        color: #5b6472;
+      }
+      .mr-ledger__head a {
+        color: #b91c1c;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .mr-ledger__head a:hover {
+        text-decoration: underline;
+      }
+      .mr-ledger__badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .mr-ledger__badge.approved {
+        background: #ecfdf5;
+        color: #065f46;
+      }
+      .mr-ledger__badge.approved_with_deviation {
+        background: #fffbeb;
+        color: #92400e;
+      }
+      .mr-ledger__badge.redo {
+        background: #fef2f2;
+        color: #991b1b;
+      }
+      .mr-ledger__open {
+        color: #b91c1c;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      .mr-ledger__open:hover {
+        text-decoration: underline;
       }
 
       .mr-empty {
         text-align: center;
         padding: 60px 20px;
-        color: #6b7280;
+        color: #5b6472;
         font-size: 14px;
       }
       .mr-empty strong {
@@ -219,6 +282,59 @@
         padding: 12px 16px;
         font-size: 13px;
         margin-bottom: 14px;
+      }
+
+      /* The feature a supervision queue link asked this page to show. It
+         sits above the KPIs because it is the answer to "where is it?",
+         not another statistic. */
+      .mr-focus {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 18px;
+        margin: 14px 0 0;
+        padding: 10px 14px;
+        border: 1px solid #bfdbfe;
+        border-radius: 10px;
+        background: #eff6ff;
+        font-size: 13px;
+        color: #1f2937;
+      }
+      .mr-focus[hidden] {
+        display: none;
+      }
+      .mr-focus__label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #1d4ed8;
+      }
+      .mr-focus__actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px;
+        margin-left: auto;
+      }
+      .mr-focus__actions a {
+        color: #1d4ed8;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .mr-focus__actions a:hover {
+        text-decoration: underline;
+      }
+      .mr-focus__clear {
+        padding: 5px 10px;
+        border: 1px solid #bfdbfe;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #1d4ed8;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
       }
 
       .mr-popup {
@@ -254,6 +370,12 @@
         font-weight: 700;
         text-decoration: none;
       }
+      .mr-popup .pop-hint {
+        display: block;
+        color: #6b7280;
+        font-size: 11px;
+        line-height: 1.35;
+      }
     </style>
 
     <link rel="stylesheet" href="css/tokens.css" />
@@ -284,11 +406,22 @@
                   <option value="">Loading projects…</option>
                 </select>
               </div>
+              <a id="assignJobsLink" class="btn btn-secondary" href="project-assign.html">Assign jobs</a>
               <button id="refreshBtn" class="btn btn-secondary" type="button">Refresh</button>
             </div>
           </div>
 
           <div id="reviewBody" style="display: none">
+            <div id="featureFocus" class="mr-focus" hidden>
+              <div>
+                <span class="mr-focus__label">Feature in focus</span>
+                <strong id="featureFocusId">Feature</strong>
+              </div>
+              <div class="mr-focus__actions">
+                <a id="featureFocusAudit" href="#">Open audit review &rarr;</a>
+                <button id="featureFocusClear" class="mr-focus__clear" type="button">Clear</button>
+              </div>
+            </div>
             <div class="mr-kpis">
               <div class="mr-kpi">
                 <span class="label">Approved</span>
@@ -363,6 +496,33 @@
                 </table>
               </div>
             </div>
+
+            <div class="mr-layers mr-ledger" style="margin-top: 16px">
+              <div class="mr-ledger__head">
+                <div>
+                  <h2>Review ledger</h2>
+                  <p>Every review decision recorded on this project, newest first.</p>
+                </div>
+                <a id="ledgerQueueLink" href="project-approval-que.html">Open approval queue &rarr;</a>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Decision</th>
+                    <th>Feature</th>
+                    <th>Layer</th>
+                    <th>Reviewer</th>
+                    <th>When</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="ledgerRows">
+                  <tr>
+                    <td colspan="6" class="mr-empty" style="padding: 22px">Loading review decisions…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <div id="emptyState" class="mr-empty" style="display: none">
@@ -420,6 +580,10 @@
 
       var params = new URLSearchParams(window.location.search);
       var projectId = params.get('project_id') || params.get('project') || '';
+      // Set when a supervision queue (or a feature page) asks this map to show
+      // one feature rather than the whole project.
+      var deepFeatureId = params.get('feature_id') || params.get('fid') || '';
+      var focusedFeature = null;
       var map = null;
       var popup = null;
       var layerGroups = []; // { name, sourceId, ids: [], clickable: [] }
@@ -522,6 +686,7 @@
 
       function clearLayers() {
         if (!map) return;
+        removeHighlightLayers();
         layerGroups.forEach(function (group) {
           group.ids.forEach(function (id) {
             if (map.getLayer(id)) map.removeLayer(id);
@@ -687,8 +852,7 @@
         return any ? bounds : null;
       }
 
-      function openPopup(hit, lngLat) {
-        var props = hit.properties || {};
+      function popupHtml(props) {
         var status = statusOf(props.status);
         var id = props.feature_id || props.id || '';
         var layer = props.layer || '';
@@ -698,30 +862,145 @@
           (layer ? '&layer_id=' + encodeURIComponent(layer) : '') +
           '&feature_id=' +
           encodeURIComponent(id);
+        var assignUrl =
+          'project-assign.html?project_id=' +
+          encodeURIComponent(projectId) +
+          (layer ? '&layer_id=' + encodeURIComponent(layer) : '') +
+          '&feature_id=' +
+          encodeURIComponent(id);
 
+        return (
+          '<div class="mr-popup">' +
+          '<strong>' +
+          esc(layer || 'Feature') +
+          '</strong>' +
+          '<span class="mr-mono">' +
+          esc(id) +
+          '</span>' +
+          '<div class="pop-status" style="background:' +
+          status.bg +
+          ';color:' +
+          status.fg +
+          '"><i></i>' +
+          esc(status.label) +
+          '</div>' +
+          '<a href="' +
+          esc(auditUrl) +
+          '" title="Planned vs as-built, site photos and the decision history">Audit review &rarr;</a>' +
+          '<span class="pop-hint">Status, evidence and decisions</span>' +
+          '<a href="' +
+          esc(assignUrl) +
+          '" style="display:block;margin-top:6px" title="Opens Assign jobs with this span selected">Assign this feature &rarr;</a>' +
+          '<span class="pop-hint">Opens Assign jobs on this span</span>' +
+          '</div>'
+        );
+      }
+
+      function openPopup(hit, lngLat) {
         popup
           .setLngLat(lngLat)
-          .setHTML(
-            '<div class="mr-popup">' +
-              '<strong>' +
-              esc(layer || 'Feature') +
-              '</strong>' +
-              '<span class="mr-mono">' +
-              esc(id) +
-              '</span>' +
-              '<div class="pop-status" style="background:' +
-              status.bg +
-              ';color:' +
-              status.fg +
-              '"><i></i>' +
-              esc(status.label) +
-              '</div>' +
-              '<a href="' +
-              esc(auditUrl) +
-              '">Audit review &rarr;</a>' +
-              '</div>'
-          )
+          .setHTML(popupHtml((hit && hit.properties) || {}))
           .addTo(map);
+      }
+
+      // ── Feature focus ─────────────────────────────────────────────────
+      // The same five status layers answer "what is here?"; this overlay
+      // answers "where is the feature I came from?". It sits above them and
+      // is removed before every redraw so a project switch cannot leave a
+      // stale highlight from the previous project.
+
+      var HIGHLIGHT_LAYERS = ['mr-focus-fill', 'mr-focus-line', 'mr-focus-point'];
+
+      function removeHighlightLayers() {
+        if (!map) return;
+        HIGHLIGHT_LAYERS.forEach(function (id) {
+          if (map.getLayer(id)) map.removeLayer(id);
+        });
+        if (map.getSource('mr-focus')) map.removeSource('mr-focus');
+      }
+
+      function shortId(id) {
+        var s = String(id || '');
+        return s.length > 14 ? s.slice(0, 8) + '…' + s.slice(-4) : s;
+      }
+
+      function clearFeatureFocus(updateUrl) {
+        removeHighlightLayers();
+        focusedFeature = null;
+        deepFeatureId = '';
+        var box = document.getElementById('featureFocus');
+        if (box) box.hidden = true;
+        if (popup) popup.remove();
+        if (!updateUrl) return;
+        var url = new URL(window.location.href);
+        url.searchParams.delete('feature_id');
+        url.searchParams.delete('layer_id');
+        window.history.replaceState({}, '', url);
+      }
+
+      function highlightFeature(mapData) {
+        if (!map || !deepFeatureId) return;
+
+        var wanted = String(deepFeatureId);
+        var target = (mapData.features || []).filter(function (feature) {
+          var props = (feature && feature.properties) || {};
+          return String(props.feature_id || props.id || '') === wanted;
+        })[0];
+
+        if (!target) {
+          toast('That feature is not on this project map.', 'error');
+          clearFeatureFocus(false);
+          return;
+        }
+
+        removeHighlightLayers();
+        map.addSource('mr-focus', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [target] },
+        });
+        map.addLayer({
+          id: 'mr-focus-fill',
+          type: 'fill',
+          source: 'mr-focus',
+          filter: ['==', ['geometry-type'], 'Polygon'],
+          paint: { 'fill-color': '#e31837', 'fill-opacity': 0.18 },
+        });
+        map.addLayer({
+          id: 'mr-focus-line',
+          type: 'line',
+          source: 'mr-focus',
+          filter: ['==', ['geometry-type'], 'LineString'],
+          paint: { 'line-color': '#e31837', 'line-width': 9, 'line-opacity': 0.9 },
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+        });
+        map.addLayer({
+          id: 'mr-focus-point',
+          type: 'circle',
+          source: 'mr-focus',
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: {
+            'circle-color': '#e31837',
+            'circle-radius': 12,
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#ffffff',
+          },
+        });
+
+        focusedFeature = target;
+        var bounds = boundsOf([target]);
+        if (bounds) map.fitBounds(bounds, { padding: 90, maxZoom: 18, duration: 600 });
+
+        var props = target.properties || {};
+        var id = props.feature_id || props.id || '';
+        var box = document.getElementById('featureFocus');
+        if (box) {
+          document.getElementById('featureFocusId').textContent = (props.layer || 'Feature') + ' · ' + shortId(id);
+          document.getElementById('featureFocusAudit').href =
+            'audit-detail.html?project_id=' + encodeURIComponent(projectId) + '&feature_id=' + encodeURIComponent(id);
+          box.hidden = false;
+        }
+
+        if (bounds) openPopup({ properties: props }, bounds.getCenter());
       }
 
       // ── Rendering ─────────────────────────────────────────────────────
@@ -823,6 +1102,87 @@
         });
       }
 
+      var DECISION_LABEL = {
+        approved: 'Approved as designed',
+        approved_with_deviation: 'Approved with deviation',
+        redo: 'Sent back for rework',
+      };
+
+      function whenText(value) {
+        if (!value) return '—';
+        var date = new Date(value);
+        return isNaN(date.getTime()) ? '—' : date.toLocaleString();
+      }
+
+      // The project's review ledger. One row per decision record, so the map
+      // and the audit trail tell the same story: a feature can be approved as
+      // designed, approved with a deviation, or sent back, and each decision
+      // keeps who made it and when.
+      async function loadLedger(id) {
+        var body = document.getElementById('ledgerRows');
+        if (!body) return;
+
+        var queueLink = document.getElementById('ledgerQueueLink');
+        if (queueLink) {
+          queueLink.href = 'project-approval-que.html?project=' + encodeURIComponent(id);
+        }
+
+        try {
+          var data = await window.FiberApi.getProjectDecisions(id, { limit: 20 });
+          var records = (data && data.results) || [];
+
+          if (!records.length) {
+            body.innerHTML =
+              '<tr><td colspan="6" class="mr-empty" style="padding: 22px">' +
+              'No review decisions recorded yet. They appear here as features are approved or sent back.' +
+              '</td></tr>';
+            return;
+          }
+
+          body.innerHTML = records
+            .map(function (record) {
+              var label = DECISION_LABEL[record.decision] || record.decision || 'Decision';
+              var decisionClass = DECISION_LABEL[record.decision] ? record.decision : '';
+              var auditUrl =
+                'audit-detail.html?project_id=' +
+                encodeURIComponent(id) +
+                '&feature_id=' +
+                encodeURIComponent(record.feature_id);
+              return (
+                '<tr>' +
+                '<td><span class="mr-ledger__badge ' +
+                esc(decisionClass) +
+                '">' +
+                esc(label) +
+                '</span></td>' +
+                '<td><span class="mr-mono">' +
+                esc(shortId(record.feature_id)) +
+                '</span></td>' +
+                '<td>' +
+                esc(record.layer_name || record.layer_id || '—') +
+                '</td>' +
+                '<td>' +
+                esc(record.reviewer || '—') +
+                '</td>' +
+                '<td class="mr-muted">' +
+                esc(whenText(record.created_at)) +
+                '</td>' +
+                '<td style="text-align:right"><a class="mr-ledger__open" href="' +
+                esc(auditUrl) +
+                '">Open &rarr;</a></td>' +
+                '</tr>'
+              );
+            })
+            .join('');
+        } catch (err) {
+          body.innerHTML =
+            '<tr><td colspan="6" class="mr-empty" style="padding: 22px">' +
+            'Could not load the review ledger: ' +
+            esc(err && err.message ? err.message : String(err)) +
+            '</td></tr>';
+        }
+      }
+
       function applyAsBuiltToggle() {
         if (!map) return;
         var box = document.getElementById('showAsBuilt');
@@ -876,6 +1236,10 @@
 
           var bounds = boundsOf(mapData.features || []);
           if (bounds) m.fitBounds(bounds, { padding: 48, maxZoom: 17, duration: 0 });
+
+          // A deep-linked feature wins over the whole-project fit: the caller
+          // already knows the project, and came here to see one thing.
+          highlightFeature(mapData);
         };
 
         if (m.loaded()) draw();
@@ -954,12 +1318,18 @@
           document.getElementById('pageSubtitle').textContent =
             (project.name || 'Project') + ' · design baseline against as-built status';
 
+          var assignLink = document.getElementById('assignJobsLink');
+          if (assignLink) {
+            assignLink.href = 'project-assign.html?project_id=' + encodeURIComponent(id);
+          }
+
           reviewBody.style.display = 'block';
           emptyState.style.display = 'none';
 
           renderKpis(completion, mapData);
           drawMap(mapData);
           renderLayerRows(mapData);
+          loadLedger(id);
         } catch (err) {
           showError('Could not load this project map: ' + (err && err.message ? err.message : String(err)));
           reviewBody.style.display = 'none';
@@ -974,8 +1344,13 @@
       projectSelect.addEventListener('change', function () {
         if (busy || !projectSelect.value) return;
         projectId = projectSelect.value;
+        // The focused feature belongs to the previous project, so both the
+        // highlight and its query parameters go with it.
+        clearFeatureFocus(false);
         var url = new URL(window.location.href);
         url.searchParams.set('project_id', projectId);
+        url.searchParams.delete('feature_id');
+        url.searchParams.delete('layer_id');
         window.history.replaceState({}, '', url);
         loadProject();
       });
@@ -990,6 +1365,15 @@
       });
 
       document.getElementById('showBaseline').addEventListener('change', applyBaselineToggle);
+
+      (function wireFeatureFocus() {
+        var clearBtn = document.getElementById('featureFocusClear');
+        if (clearBtn) {
+          clearBtn.addEventListener('click', function () {
+            clearFeatureFocus(true);
+          });
+        }
+      })();
 
       (async function boot() {
         try {

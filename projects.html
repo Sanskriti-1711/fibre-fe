@@ -81,6 +81,10 @@
         </div>
 
         <div class="table-card">
+          <p style="margin: 0 0 12px; color: #6b7280; font-size: 12.5px; line-height: 1.5">
+            View opens that project's results or map &middot; Assign opens Assign jobs on this project &middot; Delete
+            removes the project and the work under it.
+          </p>
           <table>
             <thead>
               <tr>
@@ -374,7 +378,7 @@
             escapeHtml(id) +
             '" data-type="' +
             (isHld ? 'hld' : 'survey') +
-            '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
+            '" title="Removes the project and the survey/design work under it" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Delete</button>'
           : '';
         const badge = isHld
           ? '<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:700;background:#EEF2FF;color:#4F46E5;margin-right:6px;vertical-align:middle;">HLD</span> '
@@ -412,7 +416,7 @@
             (isHld ? 'hld' : 'survey') +
             '" data-name="' +
             escapeHtml(name) +
-            '" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Assign</button>';
+            '" title="Opens Assign jobs on this project" style="cursor:pointer;margin-left:15px;background:none;border:none;padding:0;font:inherit;color:inherit;">Assign</button>';
 
         const tr = document.createElement('tr');
         tr.innerHTML =
@@ -443,9 +447,11 @@
           '</td>' +
           '<td>' +
           (isHld
-            ? '<a class="action-link" href="' + link + '">View</a>'
+            ? '<a class="action-link" href="' + link + '" title="Opens this run\'s results">View</a>'
             : isLld && srcFtth
-              ? '<a class="action-link" href="' + link + '">Review</a>'
+              ? '<a class="action-link" href="' +
+                link +
+                '" title="Opens the LLD review workspace for this run">Review</a>'
               : '<button class="action-link view-survey-btn" data-id="' +
                 escapeHtml(id) +
                 '" style="cursor:pointer;background:none;border:none;padding:0;font:inherit;color:inherit;">View</button>') +

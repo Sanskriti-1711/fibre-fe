@@ -98,7 +98,7 @@
         overflow: hidden;
         padding: 10px;
         text-align: center;
-        color: #6b7280;
+        color: #5b6472;
         font-size: 13px;
         line-height: 1.5;
       }
@@ -107,6 +107,43 @@
         max-height: 320px;
         object-fit: contain;
         display: block;
+      }
+      /* The gallery: several site photos per feature (FeaturePhoto), not the
+         deprecated single image. Thumbnails open the full-size file. */
+      .ad-photo-box--gallery {
+        display: block;
+        min-height: 0;
+        padding: 12px;
+        text-align: left;
+        background: #ffffff;
+        border-style: solid;
+      }
+      .ad-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 10px;
+      }
+      .ad-gallery__item {
+        margin: 0;
+      }
+      .ad-gallery__item img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        display: block;
+      }
+      .ad-gallery__item figcaption {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #5b6472;
+        line-height: 1.35;
+      }
+      .ad-gallery__note {
+        margin: 10px 0 0;
+        font-size: 12px;
+        color: #5b6472;
       }
 
       .ad-meta {
@@ -123,7 +160,7 @@
       }
       .ad-meta td:first-child {
         width: 42%;
-        color: #6b7280;
+        color: #5b6472;
         font-weight: 600;
       }
       .ad-meta tr:last-child td {
@@ -142,7 +179,7 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #6b7280;
+        color: #5b6472;
         border-bottom: 1px solid #e5e7eb;
       }
       .ad-cmp td {
@@ -168,7 +205,7 @@
         color: #047857;
       }
       .ad-muted {
-        color: #6b7280;
+        color: #5b6472;
       }
 
       .ad-note-label {
@@ -177,7 +214,7 @@
         font-weight: 700;
         letter-spacing: 0.05em;
         text-transform: uppercase;
-        color: #6b7280;
+        color: #5b6472;
         margin: 0 0 6px;
       }
       .ad-note {
@@ -194,12 +231,12 @@
       }
       .ad-note:disabled {
         background: #f9fafb;
-        color: #6b7280;
+        color: #5b6472;
       }
       .ad-note-hint {
         margin: 6px 0 0;
         font-size: 12px;
-        color: #6b7280;
+        color: #5b6472;
         line-height: 1.5;
       }
 
@@ -231,22 +268,22 @@
         cursor: not-allowed;
       }
       .ad-btn.approve {
-        background: #10b981;
-        border-color: #10b981;
+        background: #047857;
+        border-color: #047857;
         color: #ffffff;
       }
       .ad-btn.approve:hover:not(:disabled) {
-        background: #059669;
-        border-color: #059669;
+        background: #065f46;
+        border-color: #065f46;
       }
       .ad-btn.redo {
-        background: #f59e0b;
-        border-color: #f59e0b;
+        background: #b45309;
+        border-color: #b45309;
         color: #ffffff;
       }
       .ad-btn.redo:hover:not(:disabled) {
-        background: #d97706;
-        border-color: #d97706;
+        background: #92400e;
+        border-color: #92400e;
       }
       .ad-hint {
         margin: 10px 0 0;
@@ -306,7 +343,7 @@
       }
       .ad-dec-when {
         font-size: 12px;
-        color: #6b7280;
+        color: #5b6472;
       }
       .ad-dec-reason {
         margin: 10px 0 0;
@@ -317,7 +354,7 @@
       .ad-dec-tol {
         margin: 8px 0 0;
         font-size: 12px;
-        color: #6b7280;
+        color: #5b6472;
       }
       .ad-dec .ad-cmp {
         margin-top: 10px;
@@ -338,7 +375,7 @@
       .ad-empty {
         text-align: center;
         padding: 60px 20px;
-        color: #6b7280;
+        color: #5b6472;
         font-size: 14px;
       }
       .ad-empty strong {
@@ -439,6 +476,40 @@
             </div>
 
             <div class="card" style="margin-top: 18px">
+              <h3>Field progress</h3>
+              <p class="ad-map-caption" style="margin-top: 0">
+                What the engineer has recorded so far. It is visible before submission, so a reviewer starts with the
+                work already on the table instead of an empty page.
+              </p>
+              <table class="ad-meta">
+                <tr>
+                  <td>Assigned engineer</td>
+                  <td id="progressEngineer">—</td>
+                </tr>
+                <tr>
+                  <td>Assigned on</td>
+                  <td id="progressAssigned">—</td>
+                </tr>
+                <tr>
+                  <td>Measurements</td>
+                  <td id="progressMeasurements">—</td>
+                </tr>
+                <tr>
+                  <td>Site photos</td>
+                  <td id="progressPhotos">—</td>
+                </tr>
+                <tr>
+                  <td>Last update</td>
+                  <td id="progressUpdated">—</td>
+                </tr>
+              </table>
+              <p class="ad-note-hint" id="progressHint"></p>
+              <p style="margin: 12px 0 0" id="progressJobRow" hidden>
+                <a id="progressJobLink" href="job-detail.html">Open this job's details &rarr;</a>
+              </p>
+            </div>
+
+            <div class="card" style="margin-top: 18px">
               <h3>Planned vs as-built</h3>
               <table class="ad-cmp">
                 <thead>
@@ -461,9 +532,9 @@
             <div class="card" style="margin-top: 18px">
               <h3>Decision history</h3>
               <p class="ad-map-caption" style="margin-top: 0">
-                Every time a reviewer accepted this feature outside its layer's tolerance, with the comparison as it
-                stood at that moment. Append-only — re-approving after a redo adds the next record rather than replacing
-                this one.
+                One record for every review decision — approved as designed, approved with a deviation, or sent back for
+                rework — with the planned-vs-as-built comparison as it stood at that moment. Append-only: re-approving
+                after a redo adds the next record rather than replacing this one.
               </p>
               <div id="decisionHistory">
                 <p class="ad-muted" style="margin: 0">Loading…</p>
@@ -487,7 +558,7 @@
               <div class="ad-actions">
                 <button id="approveBtn" class="ad-btn approve" type="button" disabled>Approve</button>
                 <button id="redoBtn" class="ad-btn redo" type="button" disabled>Request redo</button>
-                <a class="ad-btn" id="mapReviewLink" href="project-map-review.html">Project map review</a>
+                <a class="ad-btn" id="mapReviewLink" href="project-map-review.html">View on map</a>
                 <a class="ad-btn" id="queueLink" href="project-approval-que.html">Back to approval queue</a>
               </div>
               <p class="ad-hint" id="decisionHint" style="display: none"></p>
@@ -526,7 +597,7 @@
       var layerIdParam = params.get('layer_id') || params.get('layer') || '';
 
       var STATUS_STYLE = {
-        pending: { label: 'Pending', bg: '#f3f4f6', fg: '#4b5563', border: '#e5e7eb', map: '#6b7280' },
+        pending: { label: 'Pending', bg: '#f3f4f6', fg: '#4b5563', border: '#e5e7eb', map: '#5b6472' },
         assigned: { label: 'Assigned', bg: '#eff6ff', fg: '#1d4ed8', border: '#bfdbfe', map: '#3b82f6' },
         under_review: { label: 'Under review', bg: '#fffbeb', fg: '#b45309', border: '#fde68a', map: '#f59e0b' },
         approved: { label: 'Approved', bg: '#ecfdf5', fg: '#065f46', border: '#a7f3d0', map: '#10b981' },
@@ -889,22 +960,160 @@
         pill.innerHTML = '<span class="dot"></span>' + esc(style.label);
       }
 
-      function renderPhoto() {
+      var gallery = { featureId: '', photos: [] };
+
+      function renderGallery() {
         var box = document.getElementById('photoBox');
+        if (!box) return;
+
+        if (gallery.photos.length) {
+          box.className = 'ad-photo-box ad-photo-box--gallery';
+          box.innerHTML =
+            '<div class="ad-gallery">' +
+            gallery.photos
+              .map(function (photo, index) {
+                var label = photo.description || 'Site photo ' + (index + 1);
+                var when = photo.uploaded_at ? formatDate(photo.uploaded_at) : '';
+                var by = photo.uploaded_by ? ' · ' + photo.uploaded_by : '';
+                return (
+                  '<figure class="ad-gallery__item">' +
+                  '<a href="' +
+                  esc(photo.url) +
+                  '" target="_blank" rel="noopener">' +
+                  '<img src="' +
+                  esc(photo.url) +
+                  '" alt="' +
+                  esc(label) +
+                  '" loading="lazy" />' +
+                  '</a>' +
+                  '<figcaption>' +
+                  esc(label) +
+                  esc(when ? ' · ' + when : '') +
+                  esc(by) +
+                  '</figcaption>' +
+                  '</figure>'
+                );
+              })
+              .join('') +
+            '</div>' +
+            '<p class="ad-gallery__note">' +
+            gallery.photos.length +
+            ' photo' +
+            (gallery.photos.length === 1 ? '' : 's') +
+            ' attached by the field crew.</p>';
+          return;
+        }
+
         if (feature.photo_url) {
-          box.style.background = '#ffffff';
-          box.style.borderStyle = 'solid';
+          box.className = 'ad-photo-box';
           box.innerHTML =
             '<a href="' +
             esc(feature.photo_url) +
             '" target="_blank" rel="noopener" style="display:block"><img src="' +
             esc(feature.photo_url) +
             '" alt="Field photo for this feature" /></a>';
+          return;
+        }
+
+        box.className = 'ad-photo-box';
+        box.innerHTML =
+          'No site photos attached yet.<br />The engineer adds them from the field app; they appear here as soon as they are uploaded.';
+      }
+
+      async function loadGallery() {
+        var featureId = feature.id;
+        gallery = { featureId: featureId, photos: [] };
+        renderGallery();
+        try {
+          var data = await window.FiberApi.getFeaturePhotos(featureId);
+          // A slower response for a feature the reviewer already moved away
+          // from must not overwrite the current one.
+          if (gallery.featureId !== featureId) return;
+          gallery.photos = (data && data.results) || [];
+        } catch (err) {
+          console.warn('Could not load field photos:', err);
+        }
+        if (gallery.featureId === featureId) renderGallery();
+        renderProgress();
+      }
+
+      // ── Field progress (before submission) ────────────────────────────
+      // Photos and readings arrive while the job is still `assigned`, before
+      // the engineer submits and the decision unlocks. The reviewer needs to
+      // see that work: an evidence card that only filled in at submission read
+      // as if nothing had been done during the whole field visit.
+      var assignmentInfo = null;
+
+      async function loadProgress() {
+        try {
+          var data = await window.FiberApi.listAssignments({
+            project: projectId,
+            feature: feature.id,
+            scope: 'feature',
+          });
+          var list = Array.isArray(data) ? data : (data && data.results) || [];
+          assignmentInfo = list[0] || null;
+        } catch (err) {
+          assignmentInfo = null;
+        }
+        renderProgress();
+      }
+
+      function assignmentEngineer(assignment) {
+        var a = (assignment && assignment.assignee) || {};
+        return (
+          a.full_name ||
+          a.name ||
+          a.email ||
+          (assignment && assignment.assignee_name) ||
+          (typeof a === 'string' ? a : '') ||
+          '—'
+        );
+      }
+
+      function renderProgress() {
+        if (!feature) return;
+
+        var measured = Object.keys(feature.field_measurements || {}).length;
+        var expected = schemaKeys(feature.field_schema).length || comparableKeys().length;
+
+        document.getElementById('progressEngineer').textContent = assignmentInfo
+          ? assignmentEngineer(assignmentInfo)
+          : '—';
+        document.getElementById('progressAssigned').textContent =
+          assignmentInfo && assignmentInfo.created_at ? formatDate(assignmentInfo.created_at) : '—';
+        document.getElementById('progressMeasurements').textContent =
+          measured + (expected ? ' of ' + expected : '') + ' recorded';
+        document.getElementById('progressPhotos').textContent =
+          gallery.featureId === feature.id ? gallery.photos.length + ' attached' : 'Loading…';
+        document.getElementById('progressUpdated').textContent = feature.updated_at
+          ? formatDate(feature.updated_at)
+          : '—';
+
+        // The reviewer arrived from the job page or the queue and often needs
+        // the assignment record itself (due date, scope, reassignment). Send
+        // them to the job page for the assignment this feature belongs to.
+        var jobRow = document.getElementById('progressJobRow');
+        var jobLink = document.getElementById('progressJobLink');
+        var jobId = assignmentInfo && (assignmentInfo.id || assignmentInfo.job_id || assignmentInfo.uuid);
+        if (jobId) {
+          jobLink.href = 'job-detail.html?job_id=' + encodeURIComponent(jobId);
+          jobRow.hidden = false;
         } else {
-          box.style.background = '#f3f4f6';
-          box.style.borderStyle = 'dashed';
-          box.innerHTML =
-            'No field photo uploaded yet.<br />The engineer attaches one from the field app; multi-photo evidence arrives with the gallery (gap G4).';
+          jobRow.hidden = true;
+        }
+
+        var hint = document.getElementById('progressHint');
+        if (feature.status === 'under_review') {
+          hint.textContent =
+            "Submitted for review — this is the engineer's final evidence for the round, and the decision is open below.";
+        } else if (feature.status === 'approved') {
+          hint.textContent = 'Approved. This is the evidence that decision was based on.';
+        } else if (feature.status === 'redo') {
+          hint.textContent = 'Sent back for redo — the engineer is fixing it and will submit again.';
+        } else {
+          hint.textContent =
+            'Still in the field. Photos and readings appear here as the engineer works; the decision stays locked until the work is submitted.';
         }
       }
 
@@ -1055,8 +1264,8 @@
 
         if (!records.length) {
           host.innerHTML =
-            '<p class="ad-muted" style="margin: 0">No decisions recorded yet. A record appears here when a ' +
-            "reviewer accepts work outside the layer's tolerance — approved-as-designed never writes one.</p>";
+            '<p class="ad-muted" style="margin: 0">No review decisions recorded yet. A record is written for ' +
+            'every decision — approved as designed, approved with a deviation, or sent back for rework.</p>';
           return;
         }
 
@@ -1091,9 +1300,11 @@
               esc(toleranceText) +
               ' · layer ' +
               esc(record.layer_name || record.layer_id || '—') +
+              ' · project ' +
+              esc(record.project_name || '—') +
               '</p>' +
               deviationRows(deviation) +
-              revisionAction(record.id, requested[String(record.id)]) +
+              revisionAction(record, requested[String(record.id)]) +
               '</div>'
             );
           })
@@ -1103,7 +1314,12 @@
       // The design-change loop. Supervision cannot fix a wrong design by sending
       // the work back — this asks the LLD stage to raise the next version, which
       // is the only way a deviation is allowed to change anything (§5.2, §5.3).
-      function revisionAction(recordId, request) {
+      function revisionAction(record, request) {
+        // Only an accepted deviation is something the design stage can act on.
+        // An approved-as-designed record has no revision to ask for, and a redo
+        // record is still the engineer's work.
+        if (record.decision !== 'approved_with_deviation') return '';
+        var recordId = record.id;
         if (request) {
           return (
             '<p class="ad-dec-request">' +
@@ -1159,12 +1375,24 @@
           '&layer_id=' +
           encodeURIComponent(feature.layer_id || layerId);
         document.getElementById('crumbFeature').textContent = shortId(feature.id);
+
+        // Open the project map focused on the feature under review, not on
+        // the project's first layer.
+        document.getElementById('mapReviewLink').href =
+          'project-map-review.html?project_id=' +
+          encodeURIComponent(projectId) +
+          '&layer_id=' +
+          encodeURIComponent(feature.layer_id || layerId) +
+          '&feature_id=' +
+          encodeURIComponent(feature.id);
       }
 
       document.getElementById('queueLink').href =
         'project-approval-que.html' + (projectId ? '?project=' + encodeURIComponent(projectId) : '');
       document.getElementById('mapReviewLink').href =
-        'project-map-review.html' + (projectId ? '?project_id=' + encodeURIComponent(projectId) : '');
+        'project-map-review.html' +
+        (projectId ? '?project_id=' + encodeURIComponent(projectId) : '') +
+        (featureId ? (projectId ? '&' : '?') + 'feature_id=' + encodeURIComponent(featureId) : '');
 
       // ── Load + decisions ───────────────────────────────────────────────
 
@@ -1183,7 +1411,8 @@
 
           renderHeader(detail);
           renderPill();
-          renderPhoto();
+          loadGallery();
+          loadProgress();
           renderMeta();
           renderComparison();
           renderPriorNote();
@@ -1202,7 +1431,8 @@
         feature = detail.feature;
         renderHeader(detail);
         renderPill();
-        renderPhoto();
+        renderGallery();
+        loadProgress();
         renderMeta();
         renderComparison();
         renderPriorNote();

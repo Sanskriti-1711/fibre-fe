@@ -718,20 +718,31 @@
         </div>
       </div>
 
-      <!-- Image Upload Card -->
+      <!-- Site Photos Card -->
       <div class="card" id="uploadCard">
-        <div class="card-title">Site Photo</div>
+        <div class="card-title">Site Photos</div>
         <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
           <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17,8 12,3 7,8" />
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <div class="upload-text">Click to upload photo</div>
-          <div class="upload-hint">JPG, PNG up to 10MB</div>
+          <div class="upload-text">Click to add photos</div>
+          <div class="upload-hint">JPG, PNG up to 10MB each · up to 20 photos</div>
         </div>
-        <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileSelect(event)" />
-        <img id="imagePreview" class="image-preview" style="display: none" />
+        <input
+          type="file"
+          id="fileInput"
+          class="file-input"
+          accept="image/*"
+          multiple
+          onchange="handleFileSelect(event)"
+        />
+        <div
+          id="photoGallery"
+          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin-top: 12px"
+        ></div>
+        <div id="photoGalleryStatus" class="upload-hint" style="margin-top: 8px"></div>
       </div>
 
       <!-- Measurements Card -->
@@ -761,6 +772,19 @@
         <div id="manualForm">
           <div id="measurementsForm">
             <!-- Dynamic fields will be inserted here -->
+          </div>
+          <div id="customFields"></div>
+          <button
+            type="button"
+            id="addFieldBtn"
+            class="btn"
+            onclick="addCustomFieldRows()"
+            style="margin-top: 12px; background: #fff; color: var(--blue); border: 1px dashed var(--blue)"
+          >
+            + Add a field
+          </button>
+          <div class="upload-hint" style="margin-top: 6px">
+            Record something the design does not capture — it is saved with your measurements.
           </div>
         </div>
 
@@ -815,7 +839,10 @@
       const engineerId = window.EngineerApi.getUser()?.id;
 
       let currentFeature = null;
-      let uploadedFile = null;
+      let pendingPhotos = [];
+      let existingPhotos = [];
+      let legacyPhotoUrl = '';
+      let photosLocked = false;
       let plannedMeasurements = [];
       let map = null;
 
@@ -966,41 +993,119 @@
         return b;
       }
 
-      async function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+      // ── Site photo gallery (FeaturePhoto) ────────────────────────────
+      // The page used to hold one file and post it to the legacy single-photo
+      // route. It now stages several files, shows the ones already uploaded,
+      // and posts the staged batch to the gallery endpoint on submit.
+      const MAX_PHOTOS = 20;
 
+      function handleFileSelect(event) {
+        const files = Array.from(event.target.files || []);
+        // Clear the input so re-selecting the same file fires `change` again.
+        event.target.value = '';
+        files.forEach(addPendingPhoto);
+      }
+
+      function addPendingPhoto(file) {
         if (!file.type.startsWith('image/')) {
-          await FtthUI.alert({
-            title: 'Wrong file type',
-            message: 'Please select an image file.',
-          });
-          event.target.value = '';
+          FtthUI.alert({ title: 'Wrong file type', message: 'Please select an image file.' });
           return;
         }
-
         if (file.size > 10 * 1024 * 1024) {
-          await FtthUI.alert({
-            title: 'File too large',
-            message: 'File size must be less than 10MB.',
-          });
-          // Clear the input, or re-opening the same picker fires no change
-          // event and the user cannot retry without a page reload.
-          event.target.value = '';
+          FtthUI.alert({ title: 'File too large', message: 'File size must be less than 10MB.' });
           return;
         }
+        if (existingPhotos.length + pendingPhotos.length >= MAX_PHOTOS) {
+          FtthUI.alert({
+            title: 'Photo limit reached',
+            message: `A feature can carry up to ${MAX_PHOTOS} photos.`,
+          });
+          return;
+        }
+        pendingPhotos.push({ file, url: URL.createObjectURL(file) });
+        renderPhotoGallery();
+      }
 
-        uploadedFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const preview = document.getElementById('imagePreview');
-          preview.src = e.target.result;
-          preview.style.display = 'block';
-          document.getElementById('uploadArea').classList.add('has-file');
-          document.querySelector('.upload-text').textContent = file.name;
-          document.querySelector('.upload-hint').textContent = 'Click to change photo';
-        };
-        reader.readAsDataURL(file);
+      function removePendingPhoto(index) {
+        const removed = pendingPhotos.splice(index, 1)[0];
+        if (removed) URL.revokeObjectURL(removed.url);
+        renderPhotoGallery();
+      }
+
+      async function deleteExistingPhoto(photoId) {
+        try {
+          await window.EngineerApi.deleteFeaturePhoto(featureId, photoId);
+          existingPhotos = existingPhotos.filter((photo) => photo.id !== photoId);
+          renderPhotoGallery();
+        } catch (err) {
+          FtthUI.alert({
+            title: 'Could not remove photo',
+            message: FtthUI.humanize(err),
+          });
+        }
+      }
+
+      function photoTileHtml(url, label, kind, id) {
+        return `<div style="position:relative;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#f9fafb">
+          <a href="${escapeHtml(url)}" target="_blank" rel="noopener">
+            <img src="${escapeHtml(url)}" alt="${escapeHtml(label)}"
+                 style="width:100%;height:88px;object-fit:cover;display:block" />
+          </a>
+          ${
+            kind === 'legacy' || photosLocked
+              ? ''
+              : `<button type="button" data-remove data-kind="${kind}" data-id="${escapeHtml(id)}"
+                  title="Remove photo"
+                  style="position:absolute;top:4px;right:4px;width:22px;height:22px;border:0;border-radius:999px;background:rgba(17,24,39,.75);color:#fff;cursor:pointer;line-height:1">×</button>`
+          }
+        </div>`;
+      }
+
+      function renderPhotoGallery() {
+        const gallery = document.getElementById('photoGallery');
+        if (!gallery) return;
+
+        const tiles = [];
+        existingPhotos.forEach(function (photo, index) {
+          tiles.push(photoTileHtml(photo.url, photo.description || `Site photo ${index + 1}`, 'existing', photo.id));
+        });
+        pendingPhotos.forEach(function (photo, index) {
+          tiles.push(photoTileHtml(photo.url, photo.file.name, 'pending', String(index)));
+        });
+        if (legacyPhotoUrl) {
+          tiles.push(photoTileHtml(legacyPhotoUrl, 'Previously uploaded photo', 'legacy', 'legacy'));
+        }
+        gallery.innerHTML = tiles.join('');
+
+        gallery.querySelectorAll('[data-remove]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const kind = btn.getAttribute('data-kind');
+            const id = btn.getAttribute('data-id');
+            if (kind === 'pending') removePendingPhoto(Number(id));
+            else deleteExistingPhoto(id);
+          });
+        });
+
+        const count = existingPhotos.length + pendingPhotos.length + (legacyPhotoUrl ? 1 : 0);
+        document.getElementById('photoGalleryStatus').textContent = count
+          ? `${count} of ${MAX_PHOTOS} photos attached`
+          : 'No photos attached yet.';
+        document.getElementById('uploadArea').classList.toggle('has-file', count > 0);
+      }
+
+      async function loadFeaturePhotos() {
+        try {
+          const data = await window.EngineerApi.getFeaturePhotos(featureId);
+          existingPhotos = (data && data.results) || [];
+        } catch (err) {
+          console.warn('Could not load site photos:', err);
+          existingPhotos = [];
+        }
+        // Features photographed before the gallery existed only have the
+        // deprecated single Feature.photo; show it rather than "no photos".
+        legacyPhotoUrl =
+          !existingPhotos.length && currentFeature && currentFeature.photo_url ? currentFeature.photo_url : '';
+        renderPhotoGallery();
       }
 
       // Read a previously-entered value/unit out of stored field_measurements.
@@ -1040,7 +1145,7 @@
 
         if (editable.length === 0) {
           form.innerHTML =
-            '<div class="empty-state" style="padding:20px;">No engineer-entered fields for this layer.</div>';
+            '<div class="empty-state" style="padding:20px;">No engineer-entered fields for this layer. Use &quot;Add a field&quot; to record what you measured.</div>';
           return;
         }
 
@@ -1288,6 +1393,8 @@
           const plannedSource =
             featureData.properties && Object.keys(featureData.properties).length ? featureData.properties : properties;
           generateMeasurementFields(featureData.field_schema, plannedSource, featureData.field_measurements);
+          renderExistingCustomFields(featureData.field_measurements);
+          loadFeaturePhotos();
 
           // Disable form if feature is not in editable state
           const editableStatuses = ['assigned', 'redo'];
@@ -1300,6 +1407,17 @@
               });
             document.getElementById('uploadArea').style.pointerEvents = 'none';
             document.getElementById('uploadArea').style.opacity = '0.5';
+            // Evidence attached to a submitted feature is not the engineer's to
+            // remove any more.
+            photosLocked = true;
+            renderPhotoGallery();
+            const addFieldBtn = document.getElementById('addFieldBtn');
+            if (addFieldBtn) addFieldBtn.disabled = true;
+            document
+              .querySelectorAll('#customFields input, #customFields select, #customFields button')
+              .forEach((el) => {
+                el.disabled = true;
+              });
             document.getElementById('submitBtn').disabled = true;
             document.getElementById('submitBtn').textContent = 'Feature Locked for Review';
             document.querySelector('.input-mode-toggle').style.pointerEvents = 'none';
@@ -1310,6 +1428,95 @@
           document.querySelector('.container').innerHTML =
             `<div class="error-state">Failed to load feature: ${FtthUI.humanize(err)}</div>`;
         }
+      }
+
+      // ── Engineer-added fields ───────────────────────────────────────
+      // The layer schema is the design's view. If the engineer measured
+      // something it does not carry, they add it here; the value is stored in
+      // `field_measurements` under a `custom_*` key with its own label, so the
+      // review pages show it without needing a schema change.
+      let customRowSeq = 0;
+
+      function slugifyCustomKey(label) {
+        const slug = String(label || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '')
+          .slice(0, 40);
+        return slug ? 'custom_' + slug : '';
+      }
+
+      function addCustomFieldRows(label, value, unit) {
+        const container = document.getElementById('customFields');
+        if (!container) return;
+        customRowSeq += 1;
+
+        const row = document.createElement('div');
+        row.className = 'form-row custom-field-row';
+        row.style.cssText = 'margin-top:12px;align-items:flex-end';
+        row.innerHTML = `
+          <div class="form-group" style="flex:2">
+            <label class="form-label">Field name</label>
+            <input type="text" class="form-input" data-custom-label
+                   placeholder="e.g. Cable slack" value="${escapeHtml(label || '')}">
+          </div>
+          <div class="form-group" style="flex:1">
+            <label class="form-label">Value</label>
+            <input type="text" class="form-input" data-custom-value
+                   placeholder="Enter value" value="${escapeHtml(value == null ? '' : String(value))}">
+          </div>
+          <div class="form-group" style="width:110px">
+            <label class="form-label">Unit</label>
+            <select class="form-input" data-custom-unit>${unitOptions(unit || 'm')}</select>
+          </div>
+          <button type="button" data-custom-remove class="mode-btn" style="margin-bottom:2px">Remove</button>`;
+
+        const remove = row.querySelector('[data-custom-remove]');
+        if (remove) remove.addEventListener('click', () => row.remove());
+        container.appendChild(row);
+      }
+
+      // Re-open saved custom values when the engineer returns to the feature.
+      function renderExistingCustomFields(measurements) {
+        if (!measurements || typeof measurements !== 'object') return;
+        Object.keys(measurements).forEach(function (key) {
+          const entry = measurements[key];
+          const isCustom = key.indexOf('custom_') === 0 || (entry && typeof entry === 'object' && entry.custom);
+          if (!isCustom) return;
+          const label = entry && typeof entry === 'object' && entry.label ? entry.label : key;
+          const value = entry && typeof entry === 'object' ? entry.value : entry;
+          const unit = entry && typeof entry === 'object' ? entry.unit : '';
+          addCustomFieldRows(label, value, unit);
+        });
+      }
+
+      function collectCustomMeasurements(measurements) {
+        const used = new Set(Object.keys(measurements));
+        document.querySelectorAll('#customFields .custom-field-row').forEach(function (row) {
+          const label = (row.querySelector('[data-custom-label]')?.value || '').trim();
+          const rawValue = (row.querySelector('[data-custom-value]')?.value || '').trim();
+          if (!label || !rawValue) return;
+
+          const baseKey = slugifyCustomKey(label);
+          if (!baseKey) return;
+          let key = baseKey;
+          let n = 2;
+          while (used.has(key)) {
+            key = `${baseKey}_${n}`;
+            n += 1;
+          }
+          used.add(key);
+
+          const unit = row.querySelector('[data-custom-unit]')?.value || '';
+          const numeric = Number(rawValue);
+          const entry = {
+            value: Number.isFinite(numeric) && rawValue !== '' ? numeric : rawValue,
+            label,
+            custom: true,
+          };
+          if (unit) entry.unit = unit;
+          measurements[key] = entry;
+        });
       }
 
       async function submitMeasurements() {
@@ -1339,19 +1546,27 @@
             }
           });
 
+          // Fields the engineer added that the layer schema does not carry.
+          collectCustomMeasurements(measurements);
+
           const payload = {
             measurements: measurements,
             notes: document.getElementById('notesInput')?.value || '',
-            has_photo: !!uploadedFile,
+            has_photo: existingPhotos.length + pendingPhotos.length > 0,
           };
 
-          // Upload photo if provided
-          if (uploadedFile) {
+          // Upload the staged site photos to the feature's gallery. A failed
+          // upload must not block the measurements: the photos stay staged so
+          // the engineer can retry after submitting.
+          if (pendingPhotos.length) {
             try {
-              await window.EngineerApi.uploadFeaturePhoto(featureId, uploadedFile);
+              await window.EngineerApi.uploadFeaturePhotos(
+                featureId,
+                pendingPhotos.map((photo) => photo.file)
+              );
+              pendingPhotos = [];
             } catch (uploadErr) {
               console.warn('Photo upload failed:', uploadErr);
-              // Continue with submission even if photo fails
             }
           }
 

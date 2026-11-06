@@ -10,26 +10,86 @@
     window.location.href = 'index.html';
   };
 
+  /* One project, one flow. Each stage collects the pages that belong to it, so
+     whichever page the user is on, the sidebar can say where they are:
+     Overview / Planning / Permits / Jobs / Review / Progress. */
+  var STAGES = [
+    {
+      key: 'overview',
+      page: 'project-details.html',
+      pages: ['project-details', 'ftth-project-overview', 'layer-details'],
+    },
+    {
+      key: 'planning',
+      page: 'ftth-lld-versions.html',
+      pages: [
+        'ftth-hld',
+        'ftth-hld-status',
+        'ftth-hld-results',
+        'ftth-trench-design',
+        'ftth-lld-review',
+        'ftth-lld-results',
+        'ftth-lld-versions',
+        'ftth-lld-outputs',
+        'ftth-approved-survey',
+        'ftth-feature-lineage',
+        'gpkg-upload',
+        'project-create',
+      ],
+    },
+    {
+      key: 'permits',
+      page: 'ftth-permits.html',
+      pages: ['ftth-permits', 'ftth-permit-copilot'],
+    },
+    {
+      key: 'jobs',
+      page: 'project-assign.html',
+      pages: ['project-assign', 'job-detail'],
+    },
+    {
+      key: 'review',
+      page: 'ftth-survey-changes.html',
+      pages: [
+        'project-approval-que',
+        'audit-detail',
+        'ftth-survey-changes',
+        'ftth-survey-approval',
+        'ftth-lld-feature-review',
+      ],
+    },
+    {
+      key: 'progress',
+      page: 'projects-completion.html',
+      pages: ['projects-completion', 'reports'],
+    },
+  ];
+
   function getCurrentPageName() {
     const path = window.location.pathname;
     const filename = path.substring(path.lastIndexOf('/') + 1) || 'index.html';
     return filename.replace('.html', '');
   }
 
-  function setActiveNavItem() {
-    const currentPage = getCurrentPageName();
-    const nav = document.getElementById('sharedNav');
-    if (!nav) return;
+  /* Pages name the open project `project_id`, `proj_id` or `project` — the
+     audit page alone accepts all three. Read all of them so a project opened
+     from any entry point is recognised. */
+  function getProjectId() {
+    var params = new URLSearchParams(window.location.search);
+    var id = params.get('project_id') || params.get('proj_id') || params.get('project') || '';
+    if (id) return id;
 
-    const links = nav.querySelectorAll('a[data-page]');
-    links.forEach(function (link) {
-      const pageAttr = link.getAttribute('data-page');
-      if (pageAttr === currentPage) {
-        link.classList.add('active');
-      } else {
-        link.classList.remove('active');
-      }
-    });
+    if (document.body && document.body.dataset && document.body.dataset.projectId) {
+      return document.body.dataset.projectId;
+    }
+    return '';
+  }
+
+  function stageForPage(currentPage) {
+    for (var i = 0; i < STAGES.length; i++) {
+      if (STAGES[i].pages.indexOf(currentPage) !== -1) return STAGES[i];
+    }
+    return null;
   }
 
   function getSidebarBase() {
@@ -41,6 +101,104 @@
     }
 
     return '';
+  }
+
+  /* Both parameter names are written because the pages disagree: the approval
+     queue reads `project`, the rest read `project_id`. Sending both keeps every
+     in-project link working without a per-page table to drift out of date. */
+  function projectHref(base, page, projectId) {
+    var id = encodeURIComponent(projectId);
+    return base + page + '?project_id=' + id + '&project=' + id;
+  }
+
+  function renderProjectSection(nav, base, currentPage, projectId) {
+    var section = document.getElementById('projectNav');
+    if (!section) return;
+
+    if (!projectId) {
+      section.hidden = true;
+      return;
+    }
+
+    section.hidden = false;
+
+    var nameEl = document.getElementById('projectNavName');
+    if (nameEl) {
+      // The pages render the full project name in their own header; the rail
+      // only needs enough to say which project the flow belongs to.
+      nameEl.textContent = 'Project ' + projectId.slice(0, 8) + '…';
+      nameEl.title = projectId;
+    }
+
+    Array.prototype.forEach.call(section.querySelectorAll('a[data-stage]'), function (link) {
+      var stage = null;
+      for (var i = 0; i < STAGES.length; i++) {
+        if (STAGES[i].key === link.getAttribute('data-stage')) stage = STAGES[i];
+      }
+      if (stage) link.setAttribute('href', projectHref(base, stage.page, projectId));
+    });
+
+    loadProjectName(projectId);
+  }
+
+  /* The rail names the project rather than showing its id: an id in the nav is
+     a debugging aid, not a signpost. Silent on failure — navigation must never
+     be the reason a page looks broken. */
+  function loadProjectName(projectId) {
+    var nameEl = document.getElementById('projectNavName');
+    var base = window.FIBER_BASE_URL || '';
+    var token = '';
+    try {
+      var raw = window.localStorage.getItem('fiber_auth');
+      token = raw ? JSON.parse(raw).access || '' : '';
+    } catch {
+      token = '';
+    }
+    if (!nameEl || !base || !token) return;
+
+    fetch(base.replace(/\/+$/, '') + '/api/projects/' + encodeURIComponent(projectId) + '/', {
+      headers: { Authorization: 'Bearer ' + token },
+    })
+      .then(function (response) {
+        return response.ok ? response.json() : null;
+      })
+      .then(function (project) {
+        if (!project || !project.name) return;
+        nameEl.textContent = project.name;
+        nameEl.title = project.name;
+      })
+      .catch(function () {
+        // Keep the id fallback: a failed name lookup must not empty the rail.
+      });
+  }
+
+  function setActiveNavItem(projectId) {
+    const currentPage = getCurrentPageName();
+    const nav = document.getElementById('sharedNav');
+    if (!nav) return;
+
+    var activeStage = projectId ? stageForPage(currentPage) : null;
+
+    // Clear first: a page that appears both as a stage and as a queue row must
+    // not light up twice.
+    Array.prototype.forEach.call(nav.querySelectorAll('a'), function (link) {
+      link.classList.remove('active', 'active-module');
+    });
+
+    if (activeStage) {
+      // The module entry keeps saying where the page lives while the project
+      // stage stays the primary marker inside the workspace card.
+      Array.prototype.forEach.call(nav.querySelectorAll('a[data-page]'), function (link) {
+        if (link.getAttribute('data-page') === currentPage) link.classList.add('active-module');
+      });
+      var stageLink = nav.querySelector('a[data-stage="' + activeStage.key + '"]');
+      if (stageLink) stageLink.classList.add('active');
+      return;
+    }
+
+    Array.prototype.forEach.call(nav.querySelectorAll('a[data-page]'), function (link) {
+      if (link.getAttribute('data-page') === currentPage) link.classList.add('active');
+    });
   }
 
   /* The bell lives in the sidebar partial, so its styling and behaviour ride
@@ -77,6 +235,8 @@
     }
 
     var base = getSidebarBase();
+    var projectId = getProjectId();
+    var currentPage = getCurrentPageName();
     fetch(base + 'partials/sidebar.html')
       .then(function (response) {
         if (!response.ok) throw new Error('Failed to load sidebar: ' + response.status);
@@ -84,7 +244,11 @@
       })
       .then(function (html) {
         sidebarContainer.innerHTML = html;
-        setActiveNavItem();
+        var nav = document.getElementById('sharedNav');
+        if (nav) {
+          renderProjectSection(nav, base, currentPage, projectId);
+          setActiveNavItem(projectId);
+        }
         initDrawer();
         loadNotificationAssets(base);
       })

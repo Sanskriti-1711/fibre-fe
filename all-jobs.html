@@ -96,6 +96,12 @@
               <span class="table-title">Job Assignments</span>
               <button class="btn btn-outline" onclick="refreshTable()">Refresh</button>
             </div>
+            <p style="margin: 0; padding: 0 20px 12px; color: var(--muted); font-size: 12.5px; line-height: 1.45">
+              View opens the job page — engineer, live progress, site photos, measurements and decisions. Field progress
+              shows the readings and photos an engineer has already recorded; for a layer or project job the readings
+              live on each feature, so the Status column carries the roll-up. Reassign moves the job to another
+              engineer; Delete removes it.
+            </p>
             <table>
               <thead>
                 <tr>
@@ -104,13 +110,18 @@
                   <th>Scope</th>
                   <th>Assigned To</th>
                   <th>Status</th>
+                  <th
+                    title="Readings and site photos the engineer has recorded. Shown for single-feature jobs; a layer or project job's readings live on each of its features."
+                  >
+                    Field progress
+                  </th>
                   <th>Created</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="jobsTableBody">
                 <tr id="loadingRow">
-                  <td colspan="7" class="text-center">Loading jobs...</td>
+                  <td colspan="8" class="text-center">Loading jobs...</td>
                 </tr>
               </tbody>
             </table>
@@ -131,51 +142,6 @@
         <div class="modal-actions">
           <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
           <button class="btn btn-primary" onclick="confirmDelete()">Delete</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- View Details Modal -->
-    <div id="viewModal" class="modal-backdrop">
-      <div class="modal modal-large">
-        <h3>Job Details</h3>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <span class="detail-label">Job ID</span>
-            <span class="detail-value" id="detailJobId">-</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Status</span>
-            <span class="detail-value" id="detailStatus">-</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Project</span>
-            <span class="detail-value" id="detailProject">-</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Scope Level</span>
-            <span class="detail-value" id="detailScope">-</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Layer</span>
-            <span class="detail-value" id="detailLayer">-</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Feature</span>
-            <span class="detail-value" id="detailFeature">-</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Assigned Engineer</span>
-            <span class="detail-value" id="detailEngineer">-</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Created Date</span>
-            <span class="detail-value" id="detailCreated">-</span>
-          </div>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-outline" onclick="closeViewModal()">Close</button>
-          <button class="btn btn-primary" onclick="editCurrentJob()">Edit Job</button>
         </div>
       </div>
     </div>
@@ -331,6 +297,7 @@
         const jobsToShow = allJobs.slice(start, end);
 
         tbody.innerHTML = jobsToShow.map((job) => renderJobRow(job)).join('');
+        loadFieldProgress(jobsToShow);
       }
 
       // Render single job row
@@ -401,15 +368,109 @@
         </div>
       </td>
       <td><span class="badge ${statusBadgeClass}">${statusLabel}</span></td>
+      <td data-progress-for="${jobId}">
+        ${
+          job.field_progress
+            ? fieldProgressCellMarkup(job.field_progress)
+            : job.scope === 'feature'
+              ? '<span style="color: #5b6472">…</span>'
+              : '<span style="color: #5b6472">—</span>'
+        }
+      </td>
       <td>${created}</td>
       <td>
         <div class="actions">
-          <button class="action-btn" onclick="viewJob('${jobId}')">View</button>
-          <button class="action-btn" onclick="openReassign('${jobId}')">Reassign</button>
-          <button class="action-btn" onclick="deleteJob('${jobId}')">Delete</button>
+          <a class="action-btn" href="job-detail.html?job_id=${encodeURIComponent(jobId)}" title="Opens the job page: engineer, live progress, photos and measurements" style="text-decoration: none; display: inline-block">View</a>
+          <button class="action-btn" onclick="openReassign('${jobId}')" title="Moves this job to another engineer">Reassign</button>
+          <button class="action-btn" onclick="deleteJob('${jobId}')" title="Removes this job assignment">Delete</button>
         </div>
       </td>
     </tr>`;
+      }
+
+      // Field progress: the readings and photos already recorded. Only a
+      // single-feature job can be summarised in one cheap call; a layer or
+      // project job's readings live on each feature, and fetching them all for
+      // every row would cost seconds and megabytes per page.
+      const progressCache = {};
+
+      // One renderer for both shapes: the jobs API reports readings and photos
+      // per job (`field_progress`), while the fallback below builds the same
+      // numbers for a single feature from the feature and its gallery.
+      function fieldProgressCellMarkup(progress) {
+        if (!progress) return '<span style="color: #5b6472">—</span>';
+        const aggregate = progress.expected_readings == null;
+        const measured = progress.measured_features || 0;
+        const photos = progress.photos || 0;
+        const started = measured > 0 || photos > 0;
+        const main = aggregate
+          ? `${measured} of ${progress.features || 0} features`
+          : progress.expected_readings
+            ? `${progress.readings || 0} of ${progress.expected_readings} readings`
+            : `${progress.readings || 0} readings`;
+        const secondLine = started ? `${photos} photo${photos === 1 ? '' : 's'}` : 'not started';
+        return (
+          `<span style="font-size: 12px; font-weight: 600; color: ${started ? '#1f2937' : '#5b6472'}">${escapeHtml(main)}</span>` +
+          `<span style="display: block; font-size: 11px; color: #5b6472">${escapeHtml(secondLine)}</span>`
+        );
+      }
+
+      function expectedFieldCount(feature) {
+        const schema = feature.field_schema;
+        if (Array.isArray(schema)) return schema.length;
+        if (schema && typeof schema === 'object') return Object.keys(schema).length;
+        return Object.keys(feature.properties || {}).length;
+      }
+
+      function renderFieldProgress(jobId, progress) {
+        const cell = document.querySelector(`[data-progress-for="${jobId}"]`);
+        if (!cell) return;
+        if (!progress) {
+          cell.innerHTML = '<span style="color: #5b6472">—</span>';
+          return;
+        }
+        cell.innerHTML = fieldProgressCellMarkup({
+          features: 1,
+          measured_features: progress.measured > 0 ? 1 : 0,
+          readings: progress.measured,
+          expected_readings: progress.expected || null,
+          photos: progress.photos,
+        });
+      }
+
+      async function loadFieldProgress(jobsToShow) {
+        const featureJobs = jobsToShow.filter(
+          (job) => !job.field_progress && job.scope === 'feature' && job.feature && job.feature.id
+        );
+        await Promise.all(
+          featureJobs.map(async (job) => {
+            const featureId = job.feature.id;
+            if (!(featureId in progressCache)) {
+              const projectId = (job.project && job.project.id) || job.project_id || job.project;
+              progressCache[featureId] = null;
+              try {
+                const detail = await FiberApi.getFeature(projectId, featureId);
+                const feature = detail.feature || detail;
+                const progress = {
+                  measured: Object.keys(feature.field_measurements || {}).length,
+                  expected: expectedFieldCount(feature),
+                  photos: 0,
+                };
+                try {
+                  const photos = await FiberApi.getFeaturePhotos(featureId);
+                  progress.photos =
+                    photos && photos.count != null ? photos.count : ((photos && photos.results) || []).length;
+                } catch (err) {
+                  // A missing photo count does not hide the readings.
+                }
+                progressCache[featureId] = progress;
+              } catch (err) {
+                progressCache[featureId] = null;
+              }
+            }
+            renderFieldProgress(job.id || job.uuid || job.job_id, progressCache[featureId]);
+          })
+        );
       }
 
       // Render pagination with server-side count
@@ -486,51 +547,6 @@
       function refreshTable() {
         currentPage = 1;
         loadJobs();
-      }
-
-      async function viewJob(jobId) {
-        try {
-          const job = await FiberApi.getAssignment(jobId);
-          if (!job) return;
-
-          document.getElementById('detailJobId').textContent = jobId;
-          // Handle nested project object
-          const project = job.project?.name || job.project_name || job.project || 'N/A';
-          document.getElementById('detailProject').textContent = project;
-          // API now includes layer_name inside feature object
-          const layer = job.feature?.layer_name || job.layer?.name || job.layer_name || '-';
-          document.getElementById('detailLayer').textContent = layer;
-          const feature =
-            job.feature?.name || job.feature_name || (job.feature?.id ? 'Feature ' + job.feature.id.slice(0, 8) : '-');
-          document.getElementById('detailFeature').textContent = feature;
-          document.getElementById('detailScope').textContent =
-            (job.scope || 'Project').charAt(0).toUpperCase() + (job.scope || 'Project').slice(1);
-          // Handle nested assignee object
-          const assignee = job.assignee || {};
-          const engineer = assignee.email || job.assignee_name || job.engineer || 'Unassigned';
-          document.getElementById('detailEngineer').textContent = engineer;
-          document.getElementById('detailStatus').textContent = (job.status || 'under_review')
-            .replace('_', ' ')
-            .replace(/\b\w/g, (l) => l.toUpperCase());
-          document.getElementById('detailCreated').textContent = formatDate(job.created_at || job.created);
-
-          currentJobId = jobId;
-          document.getElementById('viewModal').style.display = 'flex';
-        } catch (err) {
-          alert('Failed to load job details: ' + FtthUI.humanize(err));
-        }
-      }
-
-      function closeViewModal() {
-        document.getElementById('viewModal').style.display = 'none';
-        currentJobId = null;
-      }
-
-      function editCurrentJob() {
-        closeViewModal();
-        if (currentJobId) {
-          openReassign(currentJobId);
-        }
       }
 
       function openReassign(jobId) {

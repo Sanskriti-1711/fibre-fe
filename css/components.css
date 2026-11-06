@@ -154,6 +154,13 @@ textarea:focus-visible {
   font-weight: var(--weight-semibold);
 }
 
+/* A module entry stays lit while a project stage is the primary marker. No
+   background: two filled rows would read as two current pages. */
+.nav a.active-module {
+  color: #fff;
+  font-weight: var(--weight-semibold);
+}
+
 /* An active-state indicator, not a card accent — 3px, absolute,
    and only ever rendered on the one current page. */
 .nav a.active::before {
