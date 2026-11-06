@@ -957,7 +957,9 @@
                   </span>
                   <div>
                     <h2>Field survey</h2>
-                    <p>Pick a completed HLD run, the areas to hand over, and the field engineers who will collect them.</p>
+                    <p>
+                      Pick a completed HLD run, the areas to hand over, and the field engineers who will collect them.
+                    </p>
                   </div>
                 </div>
 
@@ -983,8 +985,8 @@
                 <fieldset class="field" id="surveyAreaField" hidden>
                   <legend>Assigned areas <span class="hint-inline">(required)</span></legend>
                   <p class="hint">
-                    Tick the polygons or MFG service areas this engineer may edit. Everything outside them stays
-                    greyed out and read-only for that engineer, so at least one area is required.
+                    Tick the polygons or MFG service areas this engineer may edit. Everything outside them stays greyed
+                    out and read-only for that engineer, so at least one area is required.
                   </p>
                   <div class="engineer-picker__bar">
                     <span class="hint-inline" id="surveyAreaCount">No area selected</span>
@@ -1801,9 +1803,7 @@
           .map((id) => id.trim())
           .filter(Boolean)
           .forEach((id) => {
-            const match = state.surveyAreas.find(
-              (area) => area.id === id || area.polygon_id === id
-            );
+            const match = state.surveyAreas.find((area) => area.id === id || area.polygon_id === id);
             if (match) state.selectedAreas.add(match.id);
           });
 
@@ -1864,9 +1864,7 @@
         const count = $('surveyAreaCount');
         if (!count) return;
         const total = selectedAreaObjects().length;
-        count.textContent = total
-          ? total + (total === 1 ? ' area selected' : ' areas selected')
-          : 'No area selected';
+        count.textContent = total ? total + (total === 1 ? ' area selected' : ' areas selected') : 'No area selected';
       }
 
       function areaCollection(areas) {
@@ -2430,12 +2428,10 @@
               const geometry = feature && feature.geometry;
               if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) continue;
               const props = feature.properties || {};
-              const polygonId =
-                props.polygon_id || props.Polygon_ID || props.polygonId || props.id || feature.id;
+              const polygonId = props.polygon_id || props.Polygon_ID || props.polygonId || props.id || feature.id;
               if (!polygonId || seen.has(String(polygonId))) continue;
               seen.add(String(polygonId));
-              const name =
-                props.name || props.polygon_name || props.Polygon_Name || props.label || polygonId;
+              const name = props.name || props.polygon_name || props.Polygon_Name || props.label || polygonId;
               polygons.push({ polygonId: String(polygonId), name: String(name), geometry });
             }
           } catch (error) {
@@ -3104,9 +3100,10 @@
           state.target.polygonId = event.target.value;
           state.target.polygonName = option ? option.getAttribute('data-name') || '' : '';
           try {
-            state.target.polygonGeometry = option && option.getAttribute('data-geometry')
-              ? JSON.parse(decodeURIComponent(option.getAttribute('data-geometry')))
-              : null;
+            state.target.polygonGeometry =
+              option && option.getAttribute('data-geometry')
+                ? JSON.parse(decodeURIComponent(option.getAttribute('data-geometry')))
+                : null;
           } catch (error) {
             state.target.polygonGeometry = null;
             console.warn('[Supervision] Could not read polygon geometry', error);
