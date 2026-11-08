@@ -363,6 +363,10 @@
                     <td id="metaScope">—</td>
                   </tr>
                   <tr>
+                    <td>Span</td>
+                    <td id="metaSpan">—</td>
+                  </tr>
+                  <tr>
                     <td>Assigned on</td>
                     <td id="metaCreated">—</td>
                   </tr>
@@ -432,6 +436,14 @@
               <p class="jd-hint" id="comparisonCaption"></p>
             </div>
 
+            <div class="card" id="spanInspectionCard" style="margin-top: 18px; display: none">
+              <h3>Span inspection</h3>
+              <p class="jd-hint" style="margin-top: 0">
+                The inspector&rsquo;s span record, including the LLD and construction checks and their remarks.
+              </p>
+              <div id="spanInspectionBody"></div>
+            </div>
+
             <div class="card" style="margin-top: 18px">
               <h3>Decisions</h3>
               <div id="decisionBox">
@@ -477,6 +489,7 @@
     <script src="js/ftth-ui.js"></script>
     <script src="js/ftth-config.js"></script>
     <script src="fiber-api.js"></script>
+    <script src="js/span-inspection.js"></script>
     <script>
       window.FiberAuth.requireLogin();
 
@@ -565,11 +578,20 @@
         });
         document.getElementById('metaCreated').textContent = formatDate(job.created_at || job.created);
 
+        var spanId = job.span_id || (job.span && job.span.id) || '';
+        var spanCount = Array.isArray(job.covered_feature_ids)
+          ? job.covered_feature_ids.length
+          : (job.span && job.span.feature_count) || 0;
+        document.getElementById('metaSpan').textContent = spanId
+          ? spanId + (spanCount ? ' · ' + spanCount + ' components' : '')
+          : '—';
+
         var projectName =
           (job.project && (job.project.name || job.project.title)) || job.project_name || shortId(projectId) || '—';
         document.getElementById('metaProject').textContent = projectName;
         document.getElementById('metaLayer').textContent =
           (job.feature && (job.feature.layer_name || job.feature.layer_id)) ||
+          (feature && (feature.layer_name || feature.layer_id)) ||
           (job.layer && (job.layer.name || job.layer.id)) ||
           layerId ||
           '—';
@@ -582,6 +604,7 @@
           'project-details.html?project_id=' + encodeURIComponent(projectId);
         document.getElementById('crumbLayer').textContent =
           (job.feature && (job.feature.layer_name || job.feature.layer_id)) ||
+          (feature && (feature.layer_name || feature.layer_id)) ||
           (job.layer && (job.layer.name || job.layer.id)) ||
           layerId ||
           'Layer';
@@ -614,7 +637,11 @@
       }
 
       function renderProgress() {
-        var measured = feature ? Object.keys(feature.field_measurements || {}).length : 0;
+        var measured = feature
+          ? Object.keys(feature.field_measurements || {}).filter(function (key) {
+              return !(window.SpanInspection && window.SpanInspection.isInspectionKey(key));
+            }).length
+          : 0;
         var expected = feature
           ? (Array.isArray(feature.field_schema) ? feature.field_schema.length : 0) ||
             Object.keys(feature.properties || {}).length
@@ -712,6 +739,7 @@
         };
         return keys.filter(function (key) {
           if (key === 'id' || key === 'feature_id' || key === 'layer' || key === 'status') return false;
+          if (window.SpanInspection && window.SpanInspection.isInspectionKey(key)) return false;
           return hasValue(props[key]) || hasValue(measured[key]);
         });
       }
@@ -758,10 +786,24 @@
           })
           .join('');
 
-        var count = Object.keys(measured).length;
+        var count = Object.keys(measured).filter(function (key) {
+          return !(window.SpanInspection && window.SpanInspection.isInspectionKey(key));
+        }).length;
         document.getElementById('comparisonCaption').textContent = count
           ? count + ' field(s) recorded by the engineer. Anything still dashed has not been measured yet.'
           : 'The engineer has not recorded any measurements for this feature yet.';
+      }
+
+      function renderSpanInspection() {
+        var card = document.getElementById('spanInspectionCard');
+        var body = document.getElementById('spanInspectionBody');
+        if (!feature || !window.SpanInspection || !window.SpanInspection.hasInspection(feature)) {
+          card.style.display = 'none';
+          body.innerHTML = '';
+          return;
+        }
+        body.innerHTML = window.SpanInspection.render(feature);
+        card.style.display = '';
       }
 
       function decisionLabel(decision) {
@@ -942,7 +984,11 @@
         var projectRef = job.project;
         projectId =
           typeof projectRef === 'string' ? projectRef : (projectRef && (projectRef.id || projectRef.uuid)) || '';
-        featureId = (job.feature && job.feature.id) || '';
+        var coveredFeatures = Array.isArray(job.covered_feature_ids) ? job.covered_feature_ids : [];
+        featureId =
+          (job.feature && job.feature.id) ||
+          (job.scope === 'span' && coveredFeatures.length ? coveredFeatures[0] : '') ||
+          '';
         layerId =
           (job.feature && (job.feature.layer_id || job.feature.layer_name)) ||
           (typeof job.layer === 'string' ? job.layer : job.layer && (job.layer.id || job.layer.name)) ||
@@ -951,14 +997,18 @@
         renderJob();
         renderProgress();
         renderComparison();
+        renderSpanInspection();
 
         if (!featureId) return;
 
         try {
           var detail = await window.FiberApi.getFeature(projectId, featureId);
           feature = detail.feature;
+          layerId = feature.layer_id || layerId;
+          renderJob();
           renderProgress();
           renderComparison();
+          renderSpanInspection();
           loadPhotos();
           loadDecisions();
         } catch (err) {

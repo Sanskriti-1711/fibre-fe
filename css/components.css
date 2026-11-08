@@ -1773,3 +1773,150 @@ div:has(> table) > table {
     min-height: 44px;
   }
 }
+
+/* ── Span inspection (review screens) ───────────────────────────── */
+
+.si {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.si-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.si-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #f9fafb;
+}
+
+.si-stat__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #5b6472;
+}
+
+.si-stat__value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.si-stat__hint {
+  font-size: 11px;
+  color: #5b6472;
+}
+
+.si-section__title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #5b6472;
+}
+
+.si-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0 22px;
+}
+
+.si-item {
+  min-width: 0;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.si-item__label {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #5b6472;
+}
+
+.si-item__value {
+  display: block;
+  font-size: 13px;
+  color: #1f2937;
+  overflow-wrap: anywhere;
+}
+
+.si-item__value.is-empty {
+  color: #9ca3af;
+}
+
+.si-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0 24px;
+}
+
+.si-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.si-check__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #374151;
+}
+
+.si-badge {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.si-badge.pass {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.si-badge.fail {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.si-badge.pending {
+  background: #f3f4f6;
+  color: #5b6472;
+  border: 1px solid #e5e7eb;
+}
+
+.si-remarks {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #374151;
+  white-space: pre-line;
+}
+
+.si-empty {
+  margin: 0;
+  font-size: 13px;
+  color: #5b6472;
+}

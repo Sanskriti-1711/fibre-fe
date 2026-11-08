@@ -475,6 +475,15 @@
               </div>
             </div>
 
+            <div class="card" id="spanInspectionCard" style="margin-top: 18px; display: none">
+              <h3>Span inspection</h3>
+              <p class="ad-map-caption" style="margin-top: 0">
+                What the field inspector recorded for this span: the LLD checks, the as-built trench capture, the
+                construction checks and the engineer&rsquo;s remarks.
+              </p>
+              <div id="spanInspectionBody"></div>
+            </div>
+
             <div class="card" style="margin-top: 18px">
               <h3>Field progress</h3>
               <p class="ad-map-caption" style="margin-top: 0">
@@ -493,6 +502,10 @@
                 <tr>
                   <td>Measurements</td>
                   <td id="progressMeasurements">—</td>
+                </tr>
+                <tr>
+                  <td>Span inspection</td>
+                  <td id="progressInspection">—</td>
                 </tr>
                 <tr>
                   <td>Site photos</td>
@@ -588,6 +601,7 @@
       window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
     </script>
     <script src="fiber-api.js"></script>
+    <script src="js/span-inspection.js"></script>
     <script>
       window.FiberAuth.requireLogin();
 
@@ -863,6 +877,7 @@
           if (k === 'id' || k === 'feature_id' || k === 'layer' || k === 'status') {
             return false;
           }
+          if (window.SpanInspection && window.SpanInspection.isInspectionKey(k)) return false;
           // A field the design left empty and nobody measured has nothing to
           // compare; it used to render as a row of three dashes.
           return hasValue(props[k]) || hasValue(measured[k]);
@@ -941,7 +956,9 @@
 
         document.getElementById('comparisonBody').innerHTML = rows.join('');
 
-        var measuredCount = Object.keys(measured).length;
+        var measuredCount = Object.keys(measured).filter(function (key) {
+          return !(window.SpanInspection && window.SpanInspection.isInspectionKey(key));
+        }).length;
         document.getElementById('comparisonCaption').textContent = measuredCount
           ? measuredCount +
             ' field(s) recorded by the engineer. Δ is planned minus as-built; amber means the two differ.'
@@ -1080,8 +1097,11 @@
       function renderProgress() {
         if (!feature) return;
 
-        var measured = Object.keys(feature.field_measurements || {}).length;
+        var measured = Object.keys(feature.field_measurements || {}).filter(function (key) {
+          return !(window.SpanInspection && window.SpanInspection.isInspectionKey(key));
+        }).length;
         var expected = schemaKeys(feature.field_schema).length || comparableKeys().length;
+        var inspection = window.SpanInspection ? window.SpanInspection.summary(feature) : null;
 
         document.getElementById('progressEngineer').textContent = assignmentInfo
           ? assignmentEngineer(assignmentInfo)
@@ -1090,6 +1110,17 @@
           assignmentInfo && assignmentInfo.created_at ? formatDate(assignmentInfo.created_at) : '—';
         document.getElementById('progressMeasurements').textContent =
           measured + (expected ? ' of ' + expected : '') + ' recorded';
+        document.getElementById('progressInspection').textContent =
+          inspection && inspection.has
+            ? inspection.checksPassed +
+              ' / ' +
+              inspection.checksTotal +
+              ' checks passed · ' +
+              inspection.fieldsRecorded +
+              ' / ' +
+              inspection.fieldsTotal +
+              ' fields recorded'
+            : '—';
         document.getElementById('progressPhotos').textContent =
           gallery.featureId === feature.id ? gallery.photos.length + ' attached' : 'Loading…';
         document.getElementById('progressUpdated').textContent = feature.updated_at
@@ -1144,8 +1175,26 @@
           : 'Never edited — still the imported design geometry';
       }
 
+      function renderSpanInspection() {
+        var card = document.getElementById('spanInspectionCard');
+        var body = document.getElementById('spanInspectionBody');
+        if (!feature || !window.SpanInspection || !window.SpanInspection.hasInspection(feature)) {
+          card.style.display = 'none';
+          body.innerHTML = '';
+          return;
+        }
+        body.innerHTML = window.SpanInspection.render(feature);
+        card.style.display = '';
+      }
+
       function renderPriorNote() {
         var host = document.getElementById('priorNote');
+        // The span card already prints the engineer's remarks; a second copy
+        // under a different label only made reviewers think there were two.
+        if (window.SpanInspection && window.SpanInspection.hasInspection(feature)) {
+          host.innerHTML = '';
+          return;
+        }
         if (feature.comparison_notes) {
           host.innerHTML =
             '<div class="ad-prior-note"><strong>Previous reviewer note</strong><br />' +
@@ -1421,6 +1470,7 @@
           loadProgress();
           renderMeta();
           renderComparison();
+          renderSpanInspection();
           renderPriorNote();
           renderDecision();
           loadDecisionHistory();

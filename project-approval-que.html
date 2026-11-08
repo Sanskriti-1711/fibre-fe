@@ -647,6 +647,7 @@
       window.FIBER_BASE_URL = window.FIBER_BASE_URL || 'http://localhost:8000';
     </script>
     <script src="fiber-api.js"></script>
+    <script src="js/span-inspection.js"></script>
     <script>
       window.FiberAuth.requireLogin();
 
@@ -783,14 +784,24 @@
         };
         schemaKeys(feature.field_schema).forEach(push);
         Object.keys(feature.properties || {}).forEach(push);
-        Object.keys(feature.field_measurements || {}).forEach(push);
+        Object.keys(feature.field_measurements || {})
+          .filter(function (key) {
+            return !(window.SpanInspection && window.SpanInspection.isInspectionKey(key));
+          })
+          .forEach(push);
         return out;
       }
 
       function asBuiltSummary(feature) {
         var measurements = feature.field_measurements || {};
-        var keys = Object.keys(measurements);
-        if (!keys.length) return '<span class="aq-muted">Not recorded</span>';
+        var keys = Object.keys(measurements).filter(function (key) {
+          return !(window.SpanInspection && window.SpanInspection.isInspectionKey(key));
+        });
+        if (!keys.length) {
+          return window.SpanInspection && window.SpanInspection.hasInspection(feature)
+            ? '<span class="aq-muted">Span inspection recorded</span>'
+            : '<span class="aq-muted">Not recorded</span>';
+        }
         return (
           '<span class="aq-mono">' +
           esc(
@@ -1112,6 +1123,43 @@
 
       // ── Review modal ───────────────────────────────────────────────────
 
+      var reviewPhotoRequest = 0;
+
+      async function loadReviewPhotos(featureId) {
+        var request = ++reviewPhotoRequest;
+        var box = document.getElementById('reviewPhotos');
+        if (!box) return;
+        try {
+          var data = await window.FiberApi.getFeaturePhotos(featureId);
+          if (request !== reviewPhotoRequest) return;
+          var photos = (data && data.results) || [];
+          if (!photos.length) {
+            box.innerHTML = '<p class="aq-muted" style="margin:0;font-size:13px">No site photos attached yet.</p>';
+            return;
+          }
+          box.innerHTML =
+            '<div style="display:flex;flex-wrap:wrap;gap:10px">' +
+            photos
+              .map(function (photo, index) {
+                var label = photo.description || 'Site photo ' + (index + 1);
+                return (
+                  '<a class="aq-photo" href="' +
+                  esc(photo.url) +
+                  '" target="_blank" rel="noopener"><img src="' +
+                  esc(photo.url) +
+                  '" alt="' +
+                  esc(label) +
+                  '" loading="lazy" /></a>'
+                );
+              })
+              .join('') +
+            '</div>';
+        } catch (err) {
+          if (request !== reviewPhotoRequest) return;
+          box.innerHTML = '<p class="aq-muted" style="margin:0;font-size:13px">Could not load the site photos.</p>';
+        }
+      }
+
       function openReview(featureId) {
         reviewRow = rows.filter(function (row) {
           return row.feature.id === featureId;
@@ -1151,7 +1199,11 @@
           })
           .join('');
 
+        var inspection =
+          window.SpanInspection && window.SpanInspection.hasInspection(f) ? window.SpanInspection.render(f) : '';
+
         var body =
+          (inspection ? '<p class="aq-section-title">Span inspection</p>' + inspection : '') +
           '<p class="aq-section-title">Planned vs as-built</p>' +
           (comparison
             ? '<table class="aq-cmp"><thead><tr><th>Field</th><th>Planned</th><th>As-built</th></tr></thead><tbody>' +
@@ -1165,23 +1217,17 @@
           esc(formatDate(f.updated_at)) +
           '</span></p>';
 
-        if (f.comparison_notes) {
+        if (f.comparison_notes && !inspection) {
           body +=
-            '<p class="aq-section-title">Reviewer note</p>' +
+            '<p class="aq-section-title">Engineer remarks</p>' +
             '<p style="margin:0 0 16px;font-size:13px;color:#374151">' +
             esc(f.comparison_notes) +
             '</p>';
         }
 
-        if (f.photo_url) {
-          body +=
-            '<p class="aq-section-title">Field photo</p>' +
-            '<a class="aq-photo" href="' +
-            esc(f.photo_url) +
-            '" target="_blank" rel="noopener"><img src="' +
-            esc(f.photo_url) +
-            '" alt="Field photo" /></a>';
-        }
+        body +=
+          '<p class="aq-section-title">Site photos</p>' +
+          '<div id="reviewPhotos"><p class="aq-muted" style="margin:0;font-size:13px">Loading photos…</p></div>';
 
         body +=
           '<p style="margin:18px 0 0">' +
@@ -1194,6 +1240,7 @@
           '</p>';
 
         document.getElementById('reviewBody').innerHTML = body;
+        loadReviewPhotos(f.id);
 
         var footer = document.getElementById('reviewFooter');
         if (f.status === 'under_review') {
