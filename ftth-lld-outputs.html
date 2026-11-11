@@ -320,6 +320,140 @@
         margin-bottom: 16px;
       }
 
+      /* Select (tick rows into a batch) and Inspect (View Output) are two
+         different actions; the checkbox column is the only selection UI. */
+      .lld-select-col {
+        width: 38px;
+        text-align: center;
+      }
+      .lld-select-col input {
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        accent-color: #e31837;
+      }
+      .lld-select-col input:disabled {
+        cursor: not-allowed;
+        opacity: 0.35;
+      }
+
+      .lld-selection-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        color: #312e81;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 13px;
+        margin-bottom: 14px;
+      }
+      .lld-selection-bar[hidden] {
+        display: none;
+      }
+      .lld-selection-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .lld-action-btn.assign {
+        border-color: #4338ca;
+        background: #4338ca;
+        color: #ffffff;
+      }
+      .lld-action-btn.assign:hover {
+        background: #3730a3;
+        border-color: #3730a3;
+      }
+
+      .lld-modal.lld-modal-wide {
+        max-width: 560px;
+      }
+      .lld-assign-sub {
+        margin: 0 0 14px;
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.55;
+      }
+      .lld-eng-search {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 10px;
+      }
+      .lld-eng-list {
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 6px;
+      }
+      .lld-eng-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .lld-eng-row:hover {
+        background: #f9fafb;
+      }
+      .lld-eng-row input {
+        accent-color: #e31837;
+      }
+      .lld-eng-row .name {
+        display: block;
+        font-weight: 600;
+        color: #1f2937;
+      }
+      .lld-eng-row .email {
+        display: block;
+        font-size: 11px;
+        color: #6b7280;
+      }
+      .lld-eng-note {
+        padding: 14px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      .lld-assign-count {
+        margin-top: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #374151;
+      }
+      .lld-assign-result {
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+      .lld-assign-result.is-error {
+        color: #991b1b;
+      }
+      .lld-assign-result.is-ok {
+        color: #065f46;
+      }
+
+      .lld-modal .modal-btn-assign {
+        background: #4338ca;
+        color: #ffffff;
+      }
+      .lld-modal .modal-btn-assign:hover {
+        background: #3730a3;
+      }
+      .lld-modal .modal-btn-assign:disabled {
+        background: #c7d2fe;
+        cursor: not-allowed;
+      }
+
       @keyframes ftth-spin {
         to {
           transform: rotate(360deg);
@@ -350,7 +484,10 @@
             <div class="lld-outputs-header">
               <div>
                 <h1>LLD Outputs</h1>
-                <p class="sub">Final detailed designs produced by the LLD engine across all projects</p>
+                <p class="sub">
+                  Final detailed designs produced by the LLD engine across all projects. Tick rows to hand them to
+                  engineers for supervision; <strong>View Output</strong> only opens one for inspection.
+                </p>
               </div>
               <button id="refreshBtn" class="lld-refresh-btn" type="button">
                 <span class="spin">&#x21bb;</span> Refresh
@@ -358,6 +495,19 @@
             </div>
 
             <div id="errorState" class="lld-error"></div>
+
+            <div id="selectionBar" class="lld-selection-bar" hidden>
+              <div>
+                <strong id="selectionCount">0</strong>
+                <span id="selectionNoun">outputs</span> selected for supervision
+              </div>
+              <div class="lld-selection-actions">
+                <button id="clearSelectionBtn" class="lld-action-btn" type="button">Clear</button>
+                <button id="assignSelectedBtn" class="lld-action-btn assign" type="button">
+                  Assign for supervision
+                </button>
+              </div>
+            </div>
 
             <div id="emptyState" class="lld-empty" style="display: none">
               <div class="icon">&#x1F5C2;&#xFE0F;</div>
@@ -373,6 +523,14 @@
               <table class="lld-table">
                 <thead>
                   <tr>
+                    <th class="lld-select-col">
+                      <input
+                        type="checkbox"
+                        id="selectAllRuns"
+                        aria-label="Select all completed outputs"
+                        title="Select all completed outputs"
+                      />
+                    </th>
                     <th>Project</th>
                     <th>LLD Version</th>
                     <th>Approved Survey</th>
@@ -401,6 +559,31 @@
         <div class="modal-actions">
           <button class="modal-btn modal-btn-cancel" id="deleteModalCancel" type="button">Cancel</button>
           <button class="modal-btn modal-btn-delete" id="deleteModalConfirm" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="assignModal" class="lld-modal-overlay">
+      <div class="lld-modal lld-modal-wide">
+        <h3>&#x1F477; Assign for supervision</h3>
+        <p class="lld-assign-sub" id="assignSummary">—</p>
+        <p class="lld-assign-sub">
+          Each engineer gets one project-scope supervision job per output. Re-assigning the same engineer replaces
+          their existing job instead of duplicating it.
+        </p>
+        <input
+          id="assignEngineerSearch"
+          class="lld-eng-search"
+          type="search"
+          placeholder="Search engineers by name or email"
+          aria-label="Search engineers"
+        />
+        <div id="assignEngineerList" class="lld-eng-list"></div>
+        <div class="lld-assign-count" id="assignEngineerCount">0 engineers selected</div>
+        <div id="assignResult" class="lld-assign-result"></div>
+        <div class="modal-actions">
+          <button class="modal-btn modal-btn-cancel" id="assignCancel" type="button">Cancel</button>
+          <button class="modal-btn modal-btn-assign" id="assignConfirm" type="button" disabled>Assign</button>
         </div>
       </div>
     </div>
@@ -533,13 +716,25 @@
           }
 
           runsBody.innerHTML = '';
+          runsCache = runs;
           runs.forEach(function (r) {
             var completed = r.status === 'completed';
+            var key = runKey(r);
             var layerCount = r.outputs != null ? r.outputs : r.layers ? r.layers.length : '—';
             var pct = completed ? 100 : Number(r.progress) || 0;
             var tr = document.createElement('tr');
             tr.innerHTML =
               '' +
+              '<td class="lld-select-col">' +
+              '<input type="checkbox" class="lld-row-check" data-key="' +
+              esc(key) +
+              '"' +
+              (selectedRuns.has(key) ? ' checked' : '') +
+              (completed ? '' : ' disabled title="Only a completed output can be assigned"') +
+              ' aria-label="Select ' +
+              esc((r.project_name || r.project_id) + ' ' + r.lld_version) +
+              '" />' +
+              '</td>' +
               '<td>' +
               '<div class="lld-proj-name">' +
               esc(r.project_name) +
@@ -606,6 +801,344 @@
           refreshBtn.classList.remove('loading');
           scheduleAutoRefresh([]);
         }
+      }
+
+      // ----------------------------------------------------------------
+      // Select is separate from Inspect.
+      //
+      // Ticking a row builds a batch; it never opens or changes anything.
+      // "View Output" is the inspect action and leaves the batch alone. The
+      // batch is handed to engineers the same way the survey areas are: pick
+      // the people, apply, and each selected output's supervision project gets
+      // one project-scope job per engineer.
+      // ----------------------------------------------------------------
+
+      var selectedRuns = new Map();
+      var runsCache = [];
+      var assignEngineers = [];
+      var assignEngineersLoaded = false;
+      var selectedEngineers = new Set();
+
+      var selectionBar = document.getElementById('selectionBar');
+      var selectionCountEl = document.getElementById('selectionCount');
+      var selectionNounEl = document.getElementById('selectionNoun');
+      var clearSelectionBtn = document.getElementById('clearSelectionBtn');
+      var assignSelectedBtn = document.getElementById('assignSelectedBtn');
+      var selectAllRuns = document.getElementById('selectAllRuns');
+
+      function runKey(run) {
+        return String(run.project_id || '') + ':' + String(run.lld_version || '');
+      }
+
+      function runLabel(run) {
+        return (run.project_name || run.project_id || 'Output') + ' \u00b7 ' + (run.lld_version || '');
+      }
+
+      function renderSelectionBar() {
+        var count = selectedRuns.size;
+        if (selectionBar) selectionBar.hidden = count === 0;
+        if (selectionCountEl) selectionCountEl.textContent = String(count);
+        if (selectionNounEl) selectionNounEl.textContent = count === 1 ? 'output' : 'outputs';
+        updateSelectAllState();
+      }
+
+      function selectableRows() {
+        return Array.prototype.slice.call(runsBody.querySelectorAll('.lld-row-check:not(:disabled)'));
+      }
+
+      function updateSelectAllState() {
+        if (!selectAllRuns) return;
+        var boxes = selectableRows();
+        var checked = boxes.filter(function (box) {
+          return box.checked;
+        }).length;
+        selectAllRuns.checked = boxes.length > 0 && checked === boxes.length;
+        selectAllRuns.indeterminate = checked > 0 && checked < boxes.length;
+      }
+
+      function setRowChecked(box, checked) {
+        box.checked = checked;
+        var key = box.getAttribute('data-key');
+        if (checked) {
+          var run = runsCache.filter(function (row) {
+            return runKey(row) === key;
+          })[0];
+          if (run) selectedRuns.set(key, run);
+        } else {
+          selectedRuns.delete(key);
+        }
+      }
+
+      runsBody.addEventListener('change', function (e) {
+        var box = e.target && e.target.closest ? e.target.closest('.lld-row-check') : null;
+        if (!box) return;
+        setRowChecked(box, box.checked);
+        renderSelectionBar();
+      });
+
+      if (selectAllRuns) {
+        selectAllRuns.addEventListener('change', function () {
+          var checked = selectAllRuns.checked;
+          selectableRows().forEach(function (box) {
+            setRowChecked(box, checked);
+          });
+          renderSelectionBar();
+        });
+      }
+
+      if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener('click', function () {
+          selectedRuns.clear();
+          Array.prototype.forEach.call(runsBody.querySelectorAll('.lld-row-check'), function (box) {
+            box.checked = false;
+          });
+          renderSelectionBar();
+        });
+      }
+
+      // ---- Assign-for-supervision dialog -------------------------------
+
+      var assignModal = document.getElementById('assignModal');
+      var assignSummary = document.getElementById('assignSummary');
+      var assignSearch = document.getElementById('assignEngineerSearch');
+      var assignEngineerList = document.getElementById('assignEngineerList');
+      var assignEngineerCount = document.getElementById('assignEngineerCount');
+      var assignResult = document.getElementById('assignResult');
+      var assignCancel = document.getElementById('assignCancel');
+      var assignConfirm = document.getElementById('assignConfirm');
+
+      function engineerName(row) {
+        return row.full_name || row.name || row.email || 'Engineer';
+      }
+
+      function engineerId(row) {
+        return String(row.uuid || row.id || row.user_uuid || row.pk || '');
+      }
+
+      async function loadAssignEngineers() {
+        if (assignEngineersLoaded) {
+          renderAssignEngineers();
+          return;
+        }
+        assignEngineerList.innerHTML = '<div class="lld-eng-note">Loading engineer accounts\u2026</div>';
+        try {
+          var data = await window.FiberApi.listEngineers();
+          var rows = Array.isArray(data) ? data : data && Array.isArray(data.results) ? data.results : [];
+          assignEngineers = rows
+            .filter(function (row) {
+              return row && (!row.role || String(row.role).toUpperCase() === 'ENGINEER');
+            })
+            .filter(function (row) {
+              return row.is_active !== false;
+            })
+            .map(function (row) {
+              return { id: engineerId(row), name: engineerName(row), email: row.email || '' };
+            })
+            .filter(function (row) {
+              return row.id;
+            })
+            .sort(function (a, b) {
+              return a.name.localeCompare(b.name);
+            });
+          assignEngineersLoaded = true;
+          renderAssignEngineers();
+        } catch (err) {
+          assignEngineerList.innerHTML =
+            '<div class="lld-eng-note">Could not load engineers: ' + esc(FtthUI.humanize(err)) + '</div>';
+        }
+      }
+
+      function renderAssignEngineers() {
+        var term = (assignSearch.value || '').trim().toLowerCase();
+        var rows = assignEngineers.filter(function (eng) {
+          return !term || (eng.name + ' ' + eng.email).toLowerCase().indexOf(term) !== -1;
+        });
+        if (!rows.length) {
+          assignEngineerList.innerHTML = '<div class="lld-eng-note">No engineer accounts match.</div>';
+        } else {
+          assignEngineerList.innerHTML = rows
+            .map(function (eng) {
+              return (
+                '<label class="lld-eng-row"><input type="checkbox" class="lld-eng-check" value="' +
+                esc(eng.id) +
+                '"' +
+                (selectedEngineers.has(eng.id) ? ' checked' : '') +
+                ' /><span><span class="name">' +
+                esc(eng.name) +
+                '</span><span class="email">' +
+                esc(eng.email) +
+                '</span></span></label>'
+              );
+            })
+            .join('');
+        }
+        updateAssignButton();
+      }
+
+      function updateAssignButton() {
+        if (!assignEngineerCount) return;
+        var count = selectedEngineers.size;
+        assignEngineerCount.textContent = count + (count === 1 ? ' engineer selected' : ' engineers selected');
+        assignConfirm.disabled = count === 0 || selectedRuns.size === 0;
+      }
+
+      if (assignSearch) {
+        assignSearch.addEventListener('input', function () {
+          renderAssignEngineers();
+        });
+      }
+      if (assignEngineerList) {
+        assignEngineerList.addEventListener('change', function (e) {
+          var box = e.target && e.target.closest ? e.target.closest('.lld-eng-check') : null;
+          if (!box) return;
+          if (box.checked) selectedEngineers.add(box.value);
+          else selectedEngineers.delete(box.value);
+          updateAssignButton();
+        });
+      }
+
+      function openAssignModal() {
+        if (!selectedRuns.size) return;
+        assignResult.textContent = '';
+        assignResult.className = 'lld-assign-result';
+        assignSearch.value = '';
+        var runs = Array.from(selectedRuns.values());
+        assignSummary.innerHTML =
+          '<strong>' +
+          runs.length +
+          (runs.length === 1 ? ' output' : ' outputs') +
+          '</strong> for supervision:<br>' +
+          runs
+            .map(function (run) {
+              return esc(runLabel(run));
+            })
+            .join('<br>');
+        assignModal.classList.add('visible');
+        updateAssignButton();
+        loadAssignEngineers();
+      }
+
+      function closeAssignModal() {
+        assignModal.classList.remove('visible');
+        assignConfirm.textContent = 'Assign';
+      }
+
+      if (assignCancel) assignCancel.addEventListener('click', closeAssignModal);
+      if (assignModal) {
+        assignModal.addEventListener('click', function (e) {
+          if (e.target === assignModal) closeAssignModal();
+        });
+      }
+      if (assignSelectedBtn) assignSelectedBtn.addEventListener('click', openAssignModal);
+      if (assignConfirm) {
+        assignConfirm.addEventListener('click', function () {
+          applyAssignments();
+        });
+      }
+
+      async function applyAssignments() {
+        var runs = Array.from(selectedRuns.values());
+        var engineerIds = Array.from(selectedEngineers);
+        if (!runs.length || !engineerIds.length) return;
+
+        assignConfirm.disabled = true;
+        assignConfirm.textContent = 'Assigning\u2026';
+        assignResult.className = 'lld-assign-result';
+        assignResult.textContent = 'Resolving supervision projects\u2026';
+
+        var created = 0;
+        var failed = 0;
+        var skipped = [];
+
+        try {
+          var data = await window.FiberApi.listProjects();
+          var projects = Array.isArray(data) ? data : data && Array.isArray(data.results) ? data.results : [];
+          var byRef = {};
+          projects.forEach(function (project) {
+            if (project && project.source_lld_run_id) {
+              byRef[String(project.source_lld_run_id)] = project;
+            }
+          });
+
+          for (var i = 0; i < runs.length; i += 1) {
+            var run = runs[i];
+            var supervisionProject = byRef[runKey(run)] || null;
+            if (!supervisionProject) {
+              // Older handoffs only stored the HLD run id; that bridge is
+              // still a supervision copy of this output.
+              supervisionProject =
+                projects.filter(function (project) {
+                  return (
+                    project &&
+                    project.source_lld_run_id &&
+                    String(project.source_ftth_project_id || '') === String(run.project_id || '')
+                  );
+                })[0] || null;
+            }
+            if (!supervisionProject) {
+              skipped.push(runLabel(run));
+              continue;
+            }
+
+            for (var j = 0; j < engineerIds.length; j += 1) {
+              try {
+                await window.FiberApi.createAssignment({
+                  project: supervisionProject.id,
+                  scope: 'project',
+                  assignee: engineerIds[j],
+                });
+                created += 1;
+              } catch (err) {
+                failed += 1;
+              }
+            }
+          }
+        } catch (err) {
+          assignResult.className = 'lld-assign-result is-error';
+          assignResult.textContent = 'Could not load supervision projects: ' + FtthUI.humanize(err);
+          assignConfirm.textContent = 'Assign';
+          updateAssignButton();
+          return;
+        }
+
+        var message = [];
+        if (created) {
+          message.push(
+            created === 1 ? '1 assignment created.' : created + ' assignments created.'
+          );
+        }
+        if (skipped.length) {
+          message.push(
+            'No supervision copy exists for ' +
+              skipped.length +
+              (skipped.length === 1 ? ' output' : ' outputs') +
+              ' (' +
+              skipped.join(', ') +
+              '). Open the output first so its supervision copy is created.'
+          );
+        }
+        if (failed) {
+          message.push(failed + (failed === 1 ? ' assignment failed.' : ' assignments failed.'));
+        }
+
+        assignResult.className = 'lld-assign-result ' + (created && !failed ? 'is-ok' : 'is-error');
+        assignResult.textContent = message.join(' ') || 'Nothing to assign.';
+        assignConfirm.textContent = 'Assign';
+        updateAssignButton();
+
+        if (created) {
+          FtthUI.toast(
+            created === 1 ? 'Output assigned for supervision' : created + ' assignments created',
+            'success'
+          );
+          selectedRuns.clear();
+          Array.prototype.forEach.call(runsBody.querySelectorAll('.lld-row-check'), function (box) {
+            box.checked = false;
+          });
+          renderSelectionBar();
+          loadRuns(true);
+        }
+        if (!skipped.length && !failed) closeAssignModal();
       }
 
       // ----------------------------------------------------------------
