@@ -385,6 +385,28 @@
     return body;
   }
 
+  /**
+   * How many features the selected areas cover, before the assignment is saved.
+   *
+   * `areas` are the same objects the assignment sends ({polygon_id, name,
+   * geometry}). The backend measures the survey copy when it exists, otherwise
+   * the run's stored field layers, so the assign page can show the real count
+   * without creating anything.
+   */
+  async function previewAreaCoverage(projectId, areas) {
+    var id = encodeURIComponent(projectId);
+    var url = buildUrl(API_PREFIX + '/projects/' + id + '/areas/coverage/');
+    var response = await authFetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ areas: areas || [] }),
+    });
+    var body = await parseBody(response);
+    if (!response.ok) {
+      throw new Error((body && body.detail) || response.statusText);
+    }
+    return body;
+  }
+
   async function getPipelineLayer(projectId, layerName) {
     var id = encodeURIComponent(projectId);
     var name = encodeURIComponent(layerName);
@@ -805,6 +827,7 @@
     classifySurfaceSpan: classifySurfaceSpan,
     previewSurfaceImagery: previewSurfaceImagery,
     getPipelineLayer: getPipelineLayer,
+    previewAreaCoverage: previewAreaCoverage,
     getProjectPermits: getProjectPermits,
     getDownloadUrl: getDownloadUrl,
     downloadFile: downloadFile,

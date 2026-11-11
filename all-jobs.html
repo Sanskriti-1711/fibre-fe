@@ -346,6 +346,13 @@
       </div>`;
         }
 
+        if (scope === 'span' && job.span && job.span.id) {
+          hierarchyHtml += `<div class="hierarchy-item">
+        <svg class="hierarchy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12h16M8 8v8M16 8v8M12 4v16"/></svg>
+        Span ${escapeHtml(job.span.id)} (${job.span.feature_count || 0} components)
+      </div>`;
+        }
+
         if (scope === 'feature' && feature !== '-') {
           hierarchyHtml += `<div class="hierarchy-item">
         <svg class="hierarchy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>

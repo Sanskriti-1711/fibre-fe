@@ -406,14 +406,20 @@
   }
 
   // Assign a completed HLD run to one or more field engineers for the survey.
-  // The backend creates the Survey copy (auto-imported survey package) +
-  // one project-scope job per engineer. Accepts a single id or an array.
-  async function assignHldProject(projectId, engineerIds) {
+  // The backend creates the Survey copy (auto-imported survey package) and one
+  // job per engineer: project-scope for the whole run, or one polygon-scope job
+  // per selected area (polygon / MFG service area) so the engineer may edit only
+  // what those areas cover. Accepts a single id or an array.
+  async function assignHldProject(projectId, engineerIds, areas) {
     const ids = Array.isArray(engineerIds) ? engineerIds : [engineerIds];
+    const body = { engineer_ids: ids };
+    if (Array.isArray(areas) && areas.length) {
+      body.areas = areas;
+    }
     return apiFetch(`/api/ftth/hld/projects/${encodeURIComponent(projectId)}/assign/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ engineer_ids: ids }),
+      body: JSON.stringify(body),
     });
   }
 

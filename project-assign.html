@@ -937,7 +937,7 @@
               <span class="stage-option__body">
                 <span class="stage-option__title">Site supervision</span>
                 <span class="stage-option__desc">
-                  Assign a project, one layer, or a single feature so an engineer can record as-built work.
+                  Assign a project, a layer, a span or a single feature so an engineer can record as-built work.
                 </span>
               </span>
               <span class="stage-option__check" aria-hidden="true">✓</span>
@@ -1072,7 +1072,7 @@
                   </span>
                   <div>
                     <h2>Site supervision</h2>
-                    <p>Assign a whole project, a layer, a polygon, or a single feature.</p>
+                    <p>Assign a whole project, a layer, a span, or a single feature.</p>
                   </div>
                 </div>
 
@@ -1102,12 +1102,14 @@
                 </div>
 
                 <div class="field">
-                  <label for="polygonSelect">Assigned polygon <span class="hint-inline">(optional)</span></label>
-                  <select id="polygonSelect" disabled>
+                  <label for="spanSelect">Span <span class="hint-inline">(optional)</span></label>
+                  <select id="spanSelect" disabled>
                     <option value="">Whole layer / project</option>
                   </select>
                   <p class="hint">
-                    Only the features inside this polygon — or carrying its polygon ID — stay editable for the engineer.
+                    One layer at a time: choose a layer above to assign its cables, ducts or trenches, or pick a span
+                    below. Every feature in that one layer carrying the same span ID is assigned together, chamber to
+                    chamber.
                   </p>
                 </div>
 
@@ -1117,13 +1119,13 @@
                     <option value="">All features in the layer</option>
                   </select>
                   <div class="engineer-picker__bar" id="featureSelectBar" hidden>
-                    <span class="hint-inline" id="featureSelectCount">No spans selected</span>
+                    <span class="hint-inline" id="featureSelectCount">No features selected</span>
                     <button class="btn btn-outline btn-sm" id="featureSelectAllBtn" type="button">
-                      Select all spans
+                      Select all features
                     </button>
                   </div>
                   <p class="hint">
-                    A feature job overrides both the layer and the project. Select one or more spans to assign them
+                    A feature job overrides both the layer and the project. Select one or more features to assign them
                     together; each gets its own job.
                   </p>
                 </div>
@@ -1278,11 +1280,15 @@
           projectId: '',
           layerId: '',
           featureId: '',
-          polygonId: '',
-          polygonName: '',
-          polygonGeometry: null,
+          featureIds: new Set(),
+          spanId: '',
+          spanName: '',
+          spanLayerId: '',
+          spanFeatureIds: [],
+          spanLayers: [],
         },
         layers: [],
+        spans: [],
         coverageText: '',
         jobsCache: { projectId: '', index: null, rows: [] },
         layerSummaryCache: { projectId: '', layers: [] },
@@ -1292,6 +1298,7 @@
         areasRunId: '',
         surveyAreas: [],
         selectedAreas: new Set(),
+        areaCoverage: { key: '', areas: {}, total: 0, source: '', loading: false },
         areaMap: { instance: null, ready: false },
       };
 
@@ -1753,6 +1760,7 @@
         state.areasRunId = runId;
         state.surveyAreas = [];
         state.selectedAreas = new Set();
+        state.areaCoverage = { key: '', areas: {}, total: 0, source: '', loading: false };
 
         const field = $('surveyAreaField');
         if (!field) return;
@@ -1831,6 +1839,12 @@
         list.innerHTML = state.surveyAreas
           .map((area) => {
             const checked = state.selectedAreas.has(area.id);
+            const count = state.areaCoverage.areas[area.id];
+            const meta =
+              area.polygon_id +
+              ' · ' +
+              area.layer +
+              (count === undefined ? '' : ' · ' + count + (count === 1 ? ' feature' : ' features'));
             return (
               '<label class="engineer-card" data-area-card="' +
               escapeHtml(area.id) +
@@ -1847,7 +1861,7 @@
               escapeHtml(area.name) +
               '</span>' +
               '<span class="engineer-email">' +
-              escapeHtml(area.polygon_id + ' · ' + area.layer) +
+              escapeHtml(meta) +
               '</span>' +
               '</span>' +
               '<span class="engineer-tick" aria-hidden="true">✓</span>' +
@@ -1979,6 +1993,61 @@
         if (bounds) map.fitBounds(bounds, { padding: 30, maxZoom: 15, duration: 0 });
       }
 
+      function coverageKey(run, areas) {
+        return (
+          (run ? run.project_id : '') +
+          '|' +
+          areas
+            .map((area) => area.id)
+            .sort()
+            .join(',')
+        );
+      }
+
+      // Counts the features the selected areas cover, without writing anything.
+      // The backend measures the survey copy when it exists and the HLD run's
+      // stored field layers before that, which is exactly what the assignment
+      // will hand the engineer.
+      async function loadAreaCoverage(run, areas) {
+        if (!run || !areas.length) {
+          state.areaCoverage = { key: '', areas: {}, total: 0, source: '', loading: false };
+          return;
+        }
+        const key = coverageKey(run, areas);
+        if (state.areaCoverage.key === key) return;
+
+        state.areaCoverage = { key, areas: {}, total: 0, source: '', loading: true };
+        renderSurveySummary();
+        try {
+          const data = await window.FtthApi.previewAreaCoverage(
+            run.project_id,
+            areas.map((area) => ({
+              polygon_id: area.polygon_id,
+              name: area.name,
+              geometry: area.geometry,
+            }))
+          );
+          if (state.areaCoverage.key !== key) return;
+          const perArea = {};
+          (data.areas || []).forEach((row) => {
+            perArea[String(row.polygon_id)] = Number(row.feature_count || 0);
+          });
+          state.areaCoverage = {
+            key,
+            areas: perArea,
+            total: Number(data.feature_count || 0),
+            source: data.source || '',
+            loading: false,
+          };
+          renderSurveyAreas();
+          renderSurveySummary();
+        } catch (error) {
+          if (state.areaCoverage.key !== key) return;
+          state.areaCoverage = { key, areas: {}, total: null, source: '', loading: false };
+          renderSurveySummary();
+        }
+      }
+
       function renderSurveySummary() {
         const body = $('surveySummaryBody');
         const team = $('surveySummaryTeam');
@@ -1992,12 +2061,35 @@
             : 'Created on assignment'
           : '—';
 
-        const areaCount = selectedAreaObjects().length;
+        const areas = selectedAreaObjects();
+        const areaCount = areas.length;
+        const names = areas.map((area) => area.name);
+        const regions = names.length
+          ? names.length > 3
+            ? names.slice(0, 3).join(', ') + ' +' + (names.length - 3) + ' more'
+            : names.join(', ')
+          : 'Pick the areas to hand over.';
+        const coverage = state.areaCoverage;
+        const features = !areaCount
+          ? '—'
+          : coverage.loading
+            ? 'Counting…'
+            : coverage.key === coverageKey(run, areas)
+              ? coverage.total === null
+                ? 'Count unavailable'
+                : Number(coverage.total || 0).toLocaleString() +
+                  (coverage.source === 'survey' ? ' editable features' : ' features in the selected areas')
+              : '…';
+
         body.innerHTML =
           summaryRow('HLD run', run ? run.name || run.project_id : 'Not selected') +
           summaryRow('Copy', copyLabel) +
           summaryRow('Areas', areaCount ? areaCount + ' selected' : 'Pick at least one') +
+          summaryRow('Regions', regions) +
+          summaryRow('Features', features) +
           summaryRow('Engineers', engineers.length ? engineers.length + ' selected' : 'None selected');
+
+        loadAreaCoverage(run, areas);
 
         const existing = run && Array.isArray(run.assigned_engineers) ? run.assigned_engineers : [];
         if (!run) {
@@ -2074,6 +2166,21 @@
           run.assigned_engineers = Array.isArray(result.engineers) ? result.engineers : engineers;
           run.assigned_engineer = run.assigned_engineers[0] || null;
 
+          const assignedAreas = result.areas || [];
+          if (result.scope === 'polygon' && assignedAreas.length) {
+            const perArea = {};
+            assignedAreas.forEach((area) => {
+              perArea[String(area.polygon_id)] = Number(area.feature_count || 0);
+            });
+            state.areaCoverage = {
+              key: coverageKey(run, selectedAreaObjects()),
+              areas: perArea,
+              total: Number(result.assigned_feature_count || 0),
+              source: 'survey',
+              loading: false,
+            };
+          }
+
           state.jobsCache = { projectId: '', index: null, rows: [] };
           renderRunOptions();
           renderSurveySummary();
@@ -2128,6 +2235,7 @@
             updateAreaCount();
             drawSurveyAreaMap();
             renderSurveySummary();
+            updateButtons();
           });
         }
       }
@@ -2209,16 +2317,20 @@
         state.target.projectId = projectId;
         state.target.layerId = '';
         state.target.featureId = '';
-        state.target.polygonId = '';
-        state.target.polygonName = '';
-        state.target.polygonGeometry = null;
+        state.target.featureIds = new Set();
+        state.target.spanId = '';
+        state.target.spanName = '';
+        state.target.spanFeatureIds = [];
+        state.target.spanLayers = [];
+        state.target.spanLayerId = '';
         state.coverageText = '';
+        updateFeatureSelectCount();
         $('featureSelect').innerHTML = '<option value="">All features in the layer</option>';
         $('featureSelect').disabled = true;
-        const polygonSelect = $('polygonSelect');
-        if (polygonSelect) {
-          polygonSelect.innerHTML = '<option value="">Whole layer / project</option>';
-          polygonSelect.disabled = !projectId;
+        const spanSelect = $('spanSelect');
+        if (spanSelect) {
+          spanSelect.innerHTML = '<option value="">Whole layer / project</option>';
+          spanSelect.disabled = !projectId;
         }
 
         if (!projectId) {
@@ -2263,7 +2375,7 @@
               })
               .join('');
 
-          await loadSupervisionPolygons(projectId);
+          await loadSupervisionSpans(projectId);
 
           const requested = resolveLayerId(params.layerId, select);
           if (requested) {
@@ -2309,10 +2421,45 @@
         updateCoverage();
       }
 
+      function syncSelectedFeatureIds() {
+        const select = $('featureSelect');
+        if (!select) return new Set();
+        const ids = Array.from(select.selectedOptions || [])
+          .map((option) => option.value)
+          .filter(Boolean);
+        state.target.featureIds = new Set(ids);
+        state.target.featureId = ids[0] || '';
+        updateFeatureSelectCount();
+        return state.target.featureIds;
+      }
+
+      function updateFeatureSelectCount() {
+        const bar = $('featureSelectBar');
+        const count = $('featureSelectCount');
+        const total = state.target.featureIds ? state.target.featureIds.size : 0;
+        if (bar) bar.hidden = total === 0;
+        if (count) {
+          count.textContent = total
+            ? total + (total === 1 ? ' span selected' : ' spans selected')
+            : 'No spans selected';
+        }
+      }
+
       function layerKey(value) {
         return String(value || '')
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '');
+      }
+
+      function layerIdOf(layer) {
+        return (layer && (layer.layer_id || layer.id || layer.name)) || '';
+      }
+
+      function layerDisplayName(layerId) {
+        const wanted = String(layerId || '');
+        if (!wanted) return '';
+        const layer = (state.layers || []).find((row) => row && layerIdOf(row) === wanted);
+        return (layer && (layer.layer_name || layer.name || layer.title)) || wanted;
       }
 
       function resolveLayerId(requested, select) {
@@ -2357,7 +2504,7 @@
 
         const data = await window.FiberApi.listJobs({ project: projectId, page_size: 500 });
         const rows = asList(data);
-        const index = { byFeature: {}, byLayer: {}, project: '' };
+        const index = { byFeature: {}, byLayer: {}, bySpan: {}, project: '' };
 
         rows.forEach((row) => {
           const assignee = row && row.assignee;
@@ -2365,6 +2512,12 @@
           if (!who) return;
           if (row.scope === 'feature' && row.feature && row.feature.id) {
             index.byFeature[row.feature.id] = who;
+          } else if (row.scope === 'span') {
+            // A span job holds all its components, so every one of them is
+            // covered even though no feature job exists for it.
+            (row.covered_feature_ids || []).forEach((featureId) => {
+              index.bySpan[featureId] = who;
+            });
           } else if (row.scope === 'layer' && row.layer && row.layer.id) {
             index.byLayer[row.layer.id] = who;
           } else if (row.scope === 'project') {
@@ -2380,22 +2533,40 @@
         if (!index) return '';
         const id = pickFeatureId(feature);
         if (id && index.byFeature[id]) return index.byFeature[id] + ' (feature job)';
+        if (id && index.bySpan[id]) return index.bySpan[id] + ' (span job)';
         const layerId = feature && feature.layer_id;
         if (layerId && index.byLayer[layerId]) return index.byLayer[layerId] + ' (layer job)';
         if (index.project) return index.project + ' (project job)';
         return '';
       }
 
-      // A polygon assignment is driven by the polygon feature, not by a layer:
-      // load every polygon-shaped feature in the project once per project switch,
-      // so the planner picks an area instead of typing coordinates.
-      async function loadSupervisionPolygons(projectId) {
-        const select = $('polygonSelect');
+      // A supervision span is the chamber-to-chamber unit of work: the trench,
+      // every duct laid in it, its chambers and any component carrying the same
+      // SPAN_ID. Older packages predate SPAN_ID, so TRENCH_ID / PARENT_TRENCH is
+      // the fallback key for civil features.
+      function spanKeyForFeature(feature) {
+        const props = (feature && feature.properties) || {};
+        const raw =
+          props.SPAN_ID ||
+          props.span_id ||
+          props.TRENCH_ID ||
+          props.trench_id ||
+          props.PARENT_TRENCH ||
+          props.parent_trench ||
+          '';
+        return String(raw).trim();
+      }
+
+      async function loadSupervisionSpans(projectId) {
+        const select = $('spanSelect');
         if (!select) return;
 
-        state.target.polygonId = '';
-        state.target.polygonName = '';
-        state.target.polygonGeometry = null;
+        state.spans = [];
+        state.target.spanId = '';
+        state.target.spanName = '';
+        state.target.spanLayerId = '';
+        state.target.spanFeatureIds = [];
+        state.target.spanLayers = [];
 
         if (!projectId) {
           select.innerHTML = '<option value="">Whole layer / project</option>';
@@ -2403,57 +2574,76 @@
           return;
         }
 
-        const projectLayers = state.layers.filter((layer) => layer && typeof layer === 'object');
-        const areaLayers = projectLayers.filter((layer) =>
-          /polygon|area|zone|service|boundary|sector/i.test(
-            String(layer.id || layer.layer_id || layer.name || layer.layer_name || '')
-          )
-        );
-        // Fall back to the first few layers when a project has no obviously
-        // named area layer — better a short scan than no picker at all.
-        const candidates = areaLayers.length ? areaLayers : projectLayers.slice(0, 8);
-
         select.disabled = true;
-        select.innerHTML = '<option value="">Loading polygons…</option>';
+        select.innerHTML = '<option value="">Loading spans…</option>';
 
-        const polygons = [];
-        const seen = new Set();
-        for (const layer of candidates) {
-          const layerId = layer.id || layer.layer_id || layer.name;
-          if (!layerId) continue;
-          try {
-            const data = await window.FiberApi.getLayerDetail(projectId, layerId);
-            const features = Array.isArray(data && data.features) ? data.features : [];
-            for (const feature of features) {
-              const geometry = feature && feature.geometry;
-              if (!geometry || (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon')) continue;
-              const props = feature.properties || {};
-              const polygonId = props.polygon_id || props.Polygon_ID || props.polygonId || props.id || feature.id;
-              if (!polygonId || seen.has(String(polygonId))) continue;
-              seen.add(String(polygonId));
-              const name = props.name || props.polygon_name || props.Polygon_Name || props.label || polygonId;
-              polygons.push({ polygonId: String(polygonId), name: String(name), geometry });
+        // A span is a unit of work inside ONE layer (cables, ducts or trenches),
+        // never a bundle of every layer that happens to share the span id: the
+        // API rejects a span whose components come from two layers. When a layer
+        // is picked above, only that layer's spans are listed.
+        const scopedLayerId = state.target.layerId || '';
+        const projectLayers = state.layers
+          .filter((layer) => layer && typeof layer === 'object')
+          .filter((layer) => !scopedLayerId || layerIdOf(layer) === scopedLayerId);
+        const groups = new Map();
+        await Promise.all(
+          projectLayers.map(async (layer) => {
+            const layerId = layer.layer_id || layer.id || layer.name;
+            if (!layerId) return;
+            try {
+              const data = await window.FiberApi.getProjectLayerDetails(projectId, layerId);
+              const features = Array.isArray(data && data.features) ? data.features : [];
+              features.forEach((feature) => {
+                const featureId = pickFeatureId(feature);
+                const key = spanKeyForFeature(feature);
+                if (!featureId || !key) return;
+                const groupKey = layerId + '::' + key;
+                const group = groups.get(groupKey) || {
+                  key: groupKey,
+                  id: key,
+                  layerId,
+                  featureIds: [],
+                  layers: new Set(),
+                };
+                group.featureIds.push(featureId);
+                group.layers.add(layerId);
+                groups.set(groupKey, group);
+              });
+            } catch (error) {
+              // A layer that cannot be read must not hide the other spans.
+              console.warn('[Supervision] Could not read spans from layer', layerId, error);
             }
-          } catch (error) {
-            // A layer that cannot be read must not hide the others.
-            console.warn('[Supervision] Could not load polygons from layer', layerId, error);
-          }
-        }
+          })
+        );
 
-        select.disabled = false;
+        state.spans = Array.from(groups.values())
+          .map((group) => ({
+            key: group.key,
+            id: group.id,
+            layerId: group.layerId,
+            layerName: layerDisplayName(group.layerId),
+            featureIds: group.featureIds,
+            layers: Array.from(group.layers),
+          }))
+          .sort((a, b) => a.layerName.localeCompare(b.layerName) || a.id.localeCompare(b.id));
+
+        select.disabled = !state.spans.length;
         select.innerHTML =
-          '<option value="">Whole layer / project</option>' +
-          polygons
+          '<option value="">' +
+          (state.spans.length ? 'Whole layer / project' : 'No span IDs in this project') +
+          '</option>' +
+          state.spans
             .map(
-              (polygon) =>
+              (span) =>
                 '<option value="' +
-                escapeHtml(polygon.polygonId) +
-                '" data-name="' +
-                escapeHtml(polygon.name) +
-                '" data-geometry="' +
-                encodeURIComponent(JSON.stringify(polygon.geometry)) +
+                escapeHtml(span.key) +
                 '">' +
-                escapeHtml(polygon.name) +
+                escapeHtml(span.layerName) +
+                ' · ' +
+                escapeHtml(span.id) +
+                ' · ' +
+                span.featureIds.length +
+                (span.featureIds.length === 1 ? ' component' : ' components') +
                 '</option>'
             )
             .join('');
@@ -2463,9 +2653,22 @@
         const select = $('featureSelect');
         if (!select) return;
 
+        // Choosing a layer refines the assignment down from a span.
+        if (state.target.spanId) {
+          state.target.spanId = '';
+          state.target.spanName = '';
+          state.target.spanFeatureIds = [];
+          state.target.spanLayers = [];
+          const spanSelect = $('spanSelect');
+          if (spanSelect) spanSelect.value = '';
+        }
+
         if (!projectId || !layerId) {
           select.disabled = false;
           select.innerHTML = '<option value="">All features in the layer</option>';
+          state.target.featureId = '';
+          state.target.featureIds = new Set();
+          updateFeatureSelectCount();
           updateCoverage();
           return;
         }
@@ -2484,7 +2687,11 @@
           state.layerFeatures = features;
 
           const isBulk = !!(state.bulkSelection && state.bulkSelection.designIds.length);
-          const wantedIds = isBulk ? state.bulkSelection.designIds : designFeatureId ? [designFeatureId] : [];
+          const wantedIds = isBulk
+            ? state.bulkSelection.designIds
+            : designFeatureId
+              ? [designFeatureId]
+              : params.featureIds;
           const wanted = new Set(wantedIds.map((id) => String(id).trim().toLowerCase()));
           const matchedIds = [];
           const matchedFeatures = [];
@@ -2516,6 +2723,7 @@
             state.bulkSelection.layerId = layerId;
             state.bulkSelection.featureIds = matchedIds;
             state.bulkSelection.features = matchedFeatures;
+            state.target.featureIds = new Set(matchedIds);
             $('projectSelect').disabled = true;
             $('layerSelect').disabled = true;
             select.disabled = true;
@@ -2534,12 +2742,11 @@
           }
 
           select.disabled = false;
-          if (designFeatureId && firstMatch) {
-            select.value = firstMatch;
-            state.target.featureId = firstMatch;
-          } else {
-            state.target.featureId = '';
-          }
+          const selectedIds = matchedIds.length ? matchedIds : designFeatureId && firstMatch ? [firstMatch] : [];
+          Array.from(select.options || []).forEach((option) => {
+            option.selected = selectedIds.includes(option.value);
+          });
+          syncSelectedFeatureIds();
           renderSpanMap();
           updateCoverage();
         } catch (error) {
@@ -2575,6 +2782,20 @@
           return;
         }
 
+        if (state.target.spanId) {
+          const count = state.target.spanFeatureIds.length;
+          const layerName = layerDisplayName(state.target.spanLayerId);
+          state.coverageText =
+            'Covers span ' +
+            state.target.spanId +
+            (layerName ? ' in ' + layerName : '') +
+            ': ' +
+            count +
+            (count === 1 ? ' component' : ' components') +
+            ' of that one layer. Only pending components move to assigned.';
+          return;
+        }
+
         if (state.bulkSelection && state.bulkSelection.designIds.length) {
           const count = state.bulkSelection.featureIds.length;
           state.coverageText = count
@@ -2584,6 +2805,17 @@
               '. Only pending features move to assigned.' +
               (engineers > 1 ? ' ' + engineers + ' engineers will each get ' + count + ' jobs.' : '')
             : 'None of the selected features matched this layer. Go back to the map and check the selection.';
+          return;
+        }
+
+        const featureIds = state.target.featureIds ? Array.from(state.target.featureIds) : [];
+        if (featureIds.length) {
+          state.coverageText =
+            'Covers ' +
+            featureIds.length +
+            (featureIds.length === 1 ? ' feature' : ' features') +
+            '. Only pending features move to assigned.' +
+            (engineers > 1 ? ' ' + engineers + ' engineers will each get ' + featureIds.length + ' jobs.' : '');
           return;
         }
 
@@ -2633,7 +2865,17 @@
       }
 
       function targetName() {
+        if (state.target.spanId) {
+          return state.target.spanId;
+        }
         const select = $('featureSelect');
+        const selected = select ? Array.from(select.selectedOptions || []) : [];
+        if (selected.length > 1) {
+          const names = selected.map((option) => option.textContent.split(' — ')[0]);
+          return names.length > 2
+            ? names.slice(0, 2).join(', ') + ' +' + (names.length - 2) + ' more'
+            : names.join(', ');
+        }
         if (state.target.featureId && select) {
           const option = Array.from(select.options).find((candidate) => candidate.value === state.target.featureId);
           if (option) return option.textContent.split(' — ')[0];
@@ -2746,9 +2988,11 @@
         const focusIds =
           state.bulkSelection && state.bulkSelection.featureIds.length
             ? state.bulkSelection.featureIds.map(String)
-            : state.target.featureId
-              ? [String(state.target.featureId)]
-              : [];
+            : state.target.featureIds && state.target.featureIds.size
+              ? Array.from(state.target.featureIds)
+              : state.target.featureId
+                ? [String(state.target.featureId)]
+                : [];
 
         if (!state.target.projectId || !features.length) {
           card.hidden = true;
@@ -2856,17 +3100,53 @@
 
         const project = state.projects.find((row) => row.id === state.target.projectId);
         const count = state.selected.supervision.size;
-        const scope = state.target.featureId
-          ? 'Feature'
-          : state.target.layerId
-            ? 'Layer'
-            : state.target.projectId
-              ? 'Whole project'
-              : '—';
+        // A span is the unit of supervision work, so the summary says how many
+        // features (trench, ducts, chambers) that span carries — not just that
+        // one target was picked.
+        const spanFeatureCount = state.target.spanFeatureIds.length;
+        const featureCount = spanFeatureCount || (state.target.featureIds ? state.target.featureIds.size : 0);
+        const scope = spanFeatureCount
+          ? 'Span'
+          : featureCount
+            ? featureCount > 1
+              ? featureCount + ' features'
+              : 'Feature'
+            : state.target.layerId
+              ? 'Layer'
+              : state.target.projectId
+                ? 'Whole project'
+                : '—';
+
+        let featuresLabel = '—';
+        if (spanFeatureCount) {
+          featuresLabel =
+            spanFeatureCount +
+            (spanFeatureCount === 1 ? ' feature in span ' : ' features in span ') +
+            state.target.spanId +
+            (state.target.spanLayerId ? ' (' + layerDisplayName(state.target.spanLayerId) + ')' : '');
+        } else if (featureCount) {
+          featuresLabel = featureCount + (featureCount === 1 ? ' feature' : ' features');
+        } else if (state.target.projectId) {
+          const layers =
+            state.layerSummaryCache.projectId === state.target.projectId ? state.layerSummaryCache.layers : [];
+          const scoped = state.target.layerId
+            ? layers.filter(
+                (layer) =>
+                  layer.layer_id === state.target.layerId ||
+                  layer.layer_name === state.target.layerId ||
+                  layer.id === state.target.layerId
+              )
+            : layers;
+          const totals = layerTotals(scoped);
+          if (totals.features) {
+            featuresLabel = totals.features + (totals.features === 1 ? ' feature' : ' features');
+          }
+        }
 
         body.innerHTML =
           summaryRow('Project', project ? project.name : 'Not selected') +
           summaryRow('Scope', scope) +
+          summaryRow('Features', featuresLabel) +
           summaryRow('Target', state.target.projectId ? targetName() : '—') +
           summaryRow('Engineers', count ? count + ' selected' : 'None selected') +
           '<div class="summary-row summary-row--stack"><dt>Coverage</dt><dd>' +
@@ -2992,22 +3272,28 @@
           return;
         }
 
-        const polygonSelected = !!state.target.polygonId;
-        const featureTargets = polygonSelected
-          ? []
+        const spanSelected = state.target.spanFeatureIds.length > 0;
+        const featureTargets = spanSelected
+          ? state.target.spanFeatureIds.slice()
           : isBulk
             ? state.bulkSelection.featureIds.slice()
-            : state.target.featureId
-              ? [state.target.featureId]
-              : [];
-        const scope = polygonSelected
-          ? 'polygon'
+            : state.target.featureIds && state.target.featureIds.size
+              ? Array.from(state.target.featureIds)
+              : state.target.featureId
+                ? [state.target.featureId]
+                : [];
+        // A span is ONE unit of work: one job over every component that shares
+        // the span id. Creating a feature job per component (the old behaviour)
+        // turned a 78-component span into 78 rows on the engineers' lists, and
+        // deleting one of them left the span only partly assigned.
+        const scope = spanSelected
+          ? 'span'
           : featureTargets.length
             ? 'feature'
             : state.target.layerId
               ? 'layer'
               : 'project';
-        const targets = featureTargets.length ? featureTargets : [null];
+        const targets = scope === 'span' ? [null] : featureTargets.length ? featureTargets : [null];
         const total = targets.length * engineers.length;
 
         state.busy = true;
@@ -3021,10 +3307,12 @@
             const payload = { project: projectId, scope, assignee: engineer.id };
             if (scope === 'layer') payload.layer_id = state.target.layerId;
             if (scope === 'feature') payload.feature = featureId;
-            if (scope === 'polygon') {
-              payload.polygon_id = state.target.polygonId;
-              payload.polygon_name = state.target.polygonName || state.target.polygonId;
-              if (state.target.polygonGeometry) payload.polygon = state.target.polygonGeometry;
+            if (scope === 'span') {
+              payload.span_id = state.target.spanId;
+              // The layer is part of the span: it is never one layer's cables
+              // plus another's ducts, and the API requires the layer id.
+              payload.layer_id = state.target.spanLayerId || state.target.layerId;
+              payload.feature_ids = featureTargets;
             }
             try {
               created.push(await window.FiberApi.createAssignment(payload));
@@ -3052,8 +3340,8 @@
             (created.length === 1 ? 'Assignment created.' : created.length + ' assignments created.') +
             '</strong> ' +
             escapeHtml(
-              scope === 'polygon'
-                ? 'Polygon'
+              spanSelected
+                ? 'Span ' + state.target.spanId
                 : scope === 'feature'
                   ? 'Feature'
                   : scope === 'layer'
@@ -3076,43 +3364,68 @@
         });
 
         $('layerSelect').addEventListener('change', async (event) => {
+          state.target.spanId = '';
+          state.target.spanName = '';
+          state.target.spanFeatureIds = [];
+          state.target.spanLayers = [];
+          state.target.spanLayerId = '';
+          const spanSelect = $('spanSelect');
+          if (spanSelect) spanSelect.value = '';
           state.target.layerId = event.target.value;
           state.target.featureId = '';
+          state.target.featureIds = new Set();
+          updateFeatureSelectCount();
           clearSpanMap();
           setStatus('supervision', 'Loading features…');
           await loadFeaturesForLayer(state.target.projectId, state.target.layerId);
+          // The span list follows the layer: picking cables, ducts or trenches
+          // shows only that layer's spans.
+          await loadSupervisionSpans(state.target.projectId);
           setStatus('supervision', '');
           updateSupervisionSummary();
           renderSupervisionTeam();
           updateButtons();
         });
 
-        $('featureSelect').addEventListener('change', (event) => {
-          state.target.featureId = event.target.value;
+        $('featureSelect').addEventListener('change', () => {
+          syncSelectedFeatureIds();
           renderSpanMap();
           updateCoverage();
           updateSupervisionSummary();
           updateButtons();
         });
 
-        $('polygonSelect').addEventListener('change', (event) => {
-          const option = event.target.selectedOptions[0];
-          state.target.polygonId = event.target.value;
-          state.target.polygonName = option ? option.getAttribute('data-name') || '' : '';
-          try {
-            state.target.polygonGeometry =
-              option && option.getAttribute('data-geometry')
-                ? JSON.parse(decodeURIComponent(option.getAttribute('data-geometry')))
-                : null;
-          } catch (error) {
-            state.target.polygonGeometry = null;
-            console.warn('[Supervision] Could not read polygon geometry', error);
-          }
-          // A polygon is its own scope: drop the layer/feature refinements so
-          // the two cannot be sent together and silently disagree.
-          state.target.layerId = '';
+        const featureSelectAllBtn = $('featureSelectAllBtn');
+        if (featureSelectAllBtn) {
+          featureSelectAllBtn.addEventListener('click', () => {
+            const select = $('featureSelect');
+            if (!select) return;
+            Array.from(select.options || []).forEach((option) => {
+              if (option.value) option.selected = true;
+            });
+            syncSelectedFeatureIds();
+            renderSpanMap();
+            updateCoverage();
+            updateSupervisionSummary();
+            updateButtons();
+          });
+        }
+
+        $('spanSelect').addEventListener('change', (event) => {
+          const span = state.spans.find((row) => row.key === event.target.value);
+          state.target.spanId = span ? span.id : '';
+          state.target.spanName = span ? span.id : '';
+          state.target.spanLayerId = span ? span.layerId : '';
+          state.target.spanFeatureIds = span ? span.featureIds.slice() : [];
+          state.target.spanLayers = span ? [span.layerId] : [];
+          // A span lives in exactly one layer, so that layer becomes the scope:
+          // keep it on the layer select (the request must name it) and drop the
+          // feature refinements that would otherwise disagree with it.
+          state.target.layerId = span ? span.layerId : '';
           state.target.featureId = '';
-          $('layerSelect').value = '';
+          state.target.featureIds = new Set();
+          updateFeatureSelectCount();
+          $('layerSelect').value = state.target.layerId;
           $('featureSelect').innerHTML = '<option value="">All features in the layer</option>';
           $('featureSelect').disabled = true;
           clearSpanMap();
