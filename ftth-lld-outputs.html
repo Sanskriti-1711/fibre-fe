@@ -568,8 +568,8 @@
         <h3>&#x1F477; Assign for supervision</h3>
         <p class="lld-assign-sub" id="assignSummary">—</p>
         <p class="lld-assign-sub">
-          Each engineer gets one project-scope supervision job per output. Re-assigning the same engineer replaces
-          their existing job instead of duplicating it.
+          Each engineer gets one project-scope supervision job per output. Re-assigning the same engineer replaces their
+          existing job instead of duplicating it.
         </p>
         <input
           id="assignEngineerSearch"
@@ -1103,9 +1103,7 @@
 
         var message = [];
         if (created) {
-          message.push(
-            created === 1 ? '1 assignment created.' : created + ' assignments created.'
-          );
+          message.push(created === 1 ? '1 assignment created.' : created + ' assignments created.');
         }
         if (skipped.length) {
           message.push(
@@ -1127,10 +1125,7 @@
         updateAssignButton();
 
         if (created) {
-          FtthUI.toast(
-            created === 1 ? 'Output assigned for supervision' : created + ' assignments created',
-            'success'
-          );
+          FtthUI.toast(created === 1 ? 'Output assigned for supervision' : created + ' assignments created', 'success');
           selectedRuns.clear();
           Array.prototype.forEach.call(runsBody.querySelectorAll('.lld-row-check'), function (box) {
             box.checked = false;
