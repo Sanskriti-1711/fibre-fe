@@ -107,7 +107,8 @@ and a System group:
 | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Projects                                      | Dashboard, All projects, Project progress                                                                     |
 | Project workspace (only with an open project) | Overview, Planning & design, Permits, Jobs, Review, Progress                                                  |
-| Planning                                      | Create project (`ftth-hld.html`), HLD outputs, LLD outputs, Map review, Survey changes, Supervision approvals |     | Jobs | Assign jobs, All jobs, Form fields |
+| Planning                                      | Create project (`ftth-hld.html`), HLD outputs, LLD outputs, Map review, Survey changes, Supervision approvals |
+| Jobs                                          | Assign jobs, All jobs                                                                                         |
 | Reports & permits                             | Permits, Permit copilot, Reports & exports                                                                    |
 | Engineer management                           | People, Invite engineer, Engineer activity                                                                    |
 | System                                        | All pages, Logout                                                                                             |
@@ -324,8 +325,9 @@ stale responses.
 | `project-approval-que.html`    | Approval Queue               | Features waiting on a supervision decision                                                                                                                                            |
 | `audit-detail.html`            | Audit review                 | One feature: design vs as-built                                                                                                                                                       |
 | `project-map-review.html`      | Map review                   | Baseline vs as-built on one map                                                                                                                                                       |
-| `project-assign.html`          | Assign jobs                  | Assign by project / layer / feature                                                                                                                                                   |     | `all-jobs.html` | All Jobs | Every assignment: view, reassign, delete |
-| `form-fields.html`             | Form fields                  | Add engineer form fields for a layer type, scoped to one project or all projects; preview what the app renders                                                                        |
+| `project-assign.html`          | Assign jobs                  | Assign by project / layer / feature                                                                                                                                                   |
+| `all-jobs.html`                | All Jobs                     | Every assignment: view, reassign, delete                                                                                                                                              |
+| `form-fields.html`             | Form fields                  | Opened from **All jobs → Manage form fields**; add fields for a layer type, scoped to one project or all projects, and preview what the app renders                                   |
 | `job-detail.html`              | Job details                  | Engineer, field progress, photos, measurements, decisions                                                                                                                             |
 | `ftth-permits.html`            | Permits                      | Tabs: Overview, Permits, Submissions, Copilot; classification, QA, expiry, sync                                                                                                       |
 | `ftth-permit-copilot.html`     | —                            | 19-line redirect to `ftth-permits.html?tab=copilot`                                                                                                                                   |
@@ -480,7 +482,7 @@ endpoint every 45 s. Endpoints: `GET /api/notifications/`,
 
 ### 8.7 Form fields (planner → engineer)
 
-`form-fields.html` (Jobs) lets a planner add fields for a **layer type** and
+`form-fields.html` (from **All jobs → Manage form fields**) lets a planner add fields for a **layer type** and
 choose the scope: **All projects** or **one project**. A planner can also add
 one straight from **Job details** — the Measurements card has an **Add field**
 control with the same scope choice, and the table refreshes as soon as it is

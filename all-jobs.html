@@ -27,7 +27,9 @@
               <p>Manage and track all job assignments across projects</p>
             </div>
             <div class="header-actions">
-              <button class="btn btn-outline" onclick="exportData()">Export</button>
+              <a class="btn btn-outline" id="manageFormFields" href="form-fields.html" style="display: none"
+                >Manage form fields</a
+              >
               <button class="btn btn-primary" onclick="openCreateJob()">+ New Job</button>
             </div>
           </div>
@@ -183,6 +185,7 @@
       // Initialize
       document.addEventListener('DOMContentLoaded', function () {
         FiberAuth.requireLogin();
+        showManageFormFields();
         loadProjects();
         loadEngineers();
         loadJobs();
@@ -537,18 +540,17 @@
         return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
       }
 
+      // Form fields is a planner tool: show its entry point only to users who
+      // can actually open the page, rather than sending engineers into a redirect.
+      function showManageFormFields() {
+        const link = document.getElementById('manageFormFields');
+        const user = window.FiberAuth && window.FiberAuth.getUser ? window.FiberAuth.getUser() : null;
+        if (link && user && user.role === 'SUBADMIN') link.style.display = 'inline-flex';
+      }
+
       // Actions
       function openCreateJob() {
         window.location.href = 'project-assign.html';
-      }
-
-      async function exportData() {
-        // Unimplemented control, kept as-is. The wording stays blunt rather
-        // than being dressed up as a real export flow.
-        await FtthUI.alert({
-          title: 'Export',
-          message: 'Export functionality would download CSV here',
-        });
       }
 
       function refreshTable() {

@@ -1,7 +1,8 @@
 # Form fields — planner-added engineer fields
 
 The planner can extend the field engineer's form without touching the design
-data. This page is under **Jobs → Form fields** (`form-fields.html`).
+data. Open this page from **All jobs → Manage form fields**, or from **Form
+fields** on a job's Measurements card (`form-fields.html`).
 
 ## What it does
 

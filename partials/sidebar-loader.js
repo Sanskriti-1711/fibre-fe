@@ -92,6 +92,14 @@
     return null;
   }
 
+  /* Form fields is managed from All jobs now. Keep that module lit while the
+     planner is on its subpage, instead of leaving the rail with no location. */
+  var NAV_PAGE_ALIASES = { 'form-fields': 'all-jobs' };
+
+  function navPageFor(currentPage) {
+    return NAV_PAGE_ALIASES[currentPage] || currentPage;
+  }
+
   function getSidebarBase() {
     var script = document.querySelector('script[data-sidebar-base]');
     if (script) return script.getAttribute('data-sidebar-base') || '';
@@ -174,6 +182,7 @@
 
   function setActiveNavItem(projectId) {
     const currentPage = getCurrentPageName();
+    const navPage = navPageFor(currentPage);
     const nav = document.getElementById('sharedNav');
     if (!nav) return;
 
@@ -189,7 +198,7 @@
       // The module entry keeps saying where the page lives while the project
       // stage stays the primary marker inside the workspace card.
       Array.prototype.forEach.call(nav.querySelectorAll('a[data-page]'), function (link) {
-        if (link.getAttribute('data-page') === currentPage) link.classList.add('active-module');
+        if (link.getAttribute('data-page') === navPage) link.classList.add('active-module');
       });
       var stageLink = nav.querySelector('a[data-stage="' + activeStage.key + '"]');
       if (stageLink) stageLink.classList.add('active');
@@ -197,7 +206,7 @@
     }
 
     Array.prototype.forEach.call(nav.querySelectorAll('a[data-page]'), function (link) {
-      if (link.getAttribute('data-page') === currentPage) link.classList.add('active');
+      if (link.getAttribute('data-page') === navPage) link.classList.add('active');
     });
   }
 

@@ -1850,6 +1850,17 @@ tr:hover {
   gap: 12px;
 }
 
+@media (width <= 640px) {
+  .all-jobs .header {
+    flex-wrap: wrap;
+    row-gap: 14px;
+  }
+
+  .all-jobs .header-actions {
+    width: 100%;
+  }
+}
+
 .all-jobs .btn {
   padding: 10px 16px;
   border: none;
