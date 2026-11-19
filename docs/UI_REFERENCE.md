@@ -481,11 +481,13 @@ endpoint every 45 s. Endpoints: `GET /api/notifications/`,
 ### 8.7 Form fields (planner → engineer)
 
 `form-fields.html` (Jobs) lets a planner add fields for a **layer type** and
-choose the scope: **All projects** or **one project**. The backend appends them
-to the layer's `field_schema`, which the app and `job-detail.html` already
-render, so no client change is needed. Span and feature jobs inherit their
-layer's fields — the job decides which rows are editable, not which form they
-render. Per-layer overrides stay in Layer Details → Field Configuration.
+choose the scope: **All projects** or **one project**. A planner can also add
+one straight from **Job details** — the Measurements card has an **Add field**
+control with the same scope choice, and the table refreshes as soon as it is
+saved. The backend appends the field to the layer's `field_schema`, which the
+app renders dynamically. Span and feature jobs inherit their layer's fields —
+the job decides which rows are editable, not which form they render. Per-layer
+overrides stay in Layer Details → Field Configuration.
 See `docs/FORM_FIELDS.md`.
 
 ---

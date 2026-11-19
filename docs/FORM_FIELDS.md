@@ -26,6 +26,14 @@ whole delivery path; no client change is required.
 planned value and no measurement yet (both columns show `—`), so a saved field
 is visible immediately after the planner adds it.
 
+## Adding from a job
+
+A planner viewing **Job details** can use **Add field** on the Measurements
+card. It saves to the same layer-type form, for this project by default or for
+all projects, and refreshes the table immediately so the new field is visible
+before anyone measures it. The separate **Form fields** page remains the place
+to see every scope and to remove a saved template.
+
 ## Scope and precedence
 
 | Layer has…                                               | Result                                                                                                          |

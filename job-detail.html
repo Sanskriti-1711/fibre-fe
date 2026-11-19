@@ -122,6 +122,44 @@
         color: #5b6472;
         line-height: 1.5;
       }
+      .jd-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+      .jd-card-head h3 {
+        margin: 0;
+      }
+      .jd-add-field {
+        margin-top: 12px;
+        padding-top: 12px;
+      }
+      .jd-add-field[hidden] {
+        display: none;
+      }
+      .jd-add-field__row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .jd-add-field label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #5b6472;
+      }
+      .jd-add-field input[type='text'],
+      .jd-add-field select {
+        width: 100%;
+      }
+      .jd-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
       .jd-cmp {
         width: 100%;
         border-collapse: collapse;
@@ -418,7 +456,10 @@
             </div>
 
             <div class="card" style="margin-top: 18px">
-              <h3>Measurements</h3>
+              <div class="jd-card-head">
+                <h3>Measurements</h3>
+                <button id="addFieldBtn" class="jd-btn" type="button" style="display: none">Add field</button>
+              </div>
               <table class="jd-cmp">
                 <thead>
                   <tr>
@@ -435,9 +476,47 @@
               </table>
               <p class="jd-hint" id="comparisonCaption"></p>
               <p class="jd-hint">
-                These fields come from the layer's form. A planner adds or scopes them under
+                These fields come from the layer's form. A planner can add one here, or manage every scope under
                 <a href="form-fields.html">Jobs &rarr; Form fields</a>.
               </p>
+
+              <form id="addFieldPanel" class="jd-add-field" hidden>
+                <div class="jd-add-field__row">
+                  <div>
+                    <label for="newFieldLabel">Field label</label>
+                    <input
+                      id="newFieldLabel"
+                      type="text"
+                      maxlength="80"
+                      placeholder="e.g. Clearance"
+                      autocomplete="off"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label for="newFieldType">Input</label>
+                    <select id="newFieldType">
+                      <option value="number">Number + unit</option>
+                      <option value="text">Text / QC</option>
+                      <option value="location">Location (X, Y)</option>
+                      <option value="textarea">Notes (long text)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="newFieldScope">Applies to</label>
+                    <select id="newFieldScope">
+                      <option value="project">This project</option>
+                      <option value="global">All projects</option>
+                    </select>
+                  </div>
+                </div>
+                <p class="jd-hint" id="newFieldHint"></p>
+                <div class="jd-actions" style="margin: 6px 0 0">
+                  <button id="saveFieldBtn" class="jd-btn primary" type="submit">Add field</button>
+                  <button id="cancelFieldBtn" class="jd-btn" type="button">Cancel</button>
+                </div>
+                <p class="jd-hint" id="addFieldStatus" role="status" aria-live="polite"></p>
+              </form>
             </div>
 
             <div class="card" id="spanInspectionCard" style="margin-top: 18px; display: none">
@@ -514,6 +593,17 @@
       var projectId = '';
       var layerId = '';
       var featureId = '';
+      var currentUser = window.FiberAuth.getUser && window.FiberAuth.getUser();
+      var canEditFields = Boolean(currentUser && currentUser.role === 'SUBADMIN');
+      var LAYER_KIND_LABELS = {
+        trench: 'Trench',
+        duct: 'Duct',
+        cable: 'Cable',
+        chamber: 'Chamber',
+        pole: 'Pole',
+        premise: 'Premise',
+        other: 'Other',
+      };
 
       function esc(value) {
         return String(value === undefined || value === null ? '' : value)
@@ -638,6 +728,8 @@
           document.getElementById('noFeatureProgress').href =
             'projects-completion.html?project_id=' + encodeURIComponent(projectId);
         }
+
+        syncAddFieldVisibility();
       }
 
       function renderProgress() {
@@ -735,6 +827,188 @@
           labels[field.key || field.name] = field.label || field.key || field.name;
         });
         return labels;
+      }
+
+      function inferLayerKind(layer) {
+        // Only a fallback: the API sends feature.layer_kind. Kept in step with
+        // projects/layer_rules.py so a stale API still targets the right form.
+        var normalised = String(layer || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '');
+        if (normalised.indexOf('trench') !== -1) return 'trench';
+        if (normalised.indexOf('duct') !== -1) return 'duct';
+        if (/cable|fibre|fiber/.test(normalised)) return 'cable';
+        if (/chamber|handhole|manhole/.test(normalised)) return 'chamber';
+        if (normalised.indexOf('pole') !== -1) return 'pole';
+        if (/object|premise|building|address|household/.test(normalised)) return 'premise';
+        return 'other';
+      }
+
+      function currentLayerKind() {
+        return (feature && feature.layer_kind) || inferLayerKind(layerId);
+      }
+
+      function storedFieldType(field) {
+        if (field.type) return field.type;
+        if (field.role === 'measurement_text') return 'location';
+        if (field.role === 'note' || field.widget === 'textarea') return 'textarea';
+        if (field.role === 'measurement' || field.widget === 'number') return 'number';
+        return 'text';
+      }
+
+      function newFieldKey(label) {
+        var used = {};
+        schemaEntries().forEach(function (field) {
+          used[field.key || field.name] = true;
+        });
+        Object.keys((feature && feature.properties) || {}).forEach(function (key) {
+          used[key] = true;
+        });
+        Object.keys((feature && feature.field_measurements) || {}).forEach(function (key) {
+          used[key] = true;
+        });
+
+        var slug = String(label || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '_')
+          .replace(/^_+|_+$/g, '')
+          .slice(0, 40);
+        var base = 'custom_' + (slug || 'field');
+        var key = base;
+        var suffix = 2;
+        while (used[key]) {
+          key = base + '_' + suffix;
+          suffix += 1;
+        }
+        return key;
+      }
+
+      function hideAddField() {
+        var panel = document.getElementById('addFieldPanel');
+        if (panel) panel.hidden = true;
+        var status = document.getElementById('addFieldStatus');
+        if (status) status.textContent = '';
+      }
+
+      function syncAddFieldVisibility() {
+        var button = document.getElementById('addFieldBtn');
+        if (!button) return;
+        var allowed = canEditFields && Boolean(feature);
+        button.style.display = allowed ? '' : 'none';
+        if (!allowed) hideAddField();
+      }
+
+      function updateAddFieldHint() {
+        var hint = document.getElementById('newFieldHint');
+        if (!hint) return;
+        var kind = currentLayerKind();
+        var label = LAYER_KIND_LABELS[kind] || kind || 'layer';
+        var scope = document.getElementById('newFieldScope').value;
+        var project = document.getElementById('metaProject').textContent || 'this project';
+        hint.textContent =
+          scope === 'global'
+            ? 'Adds a field to the ' + label + ' form for every project, on all ' + label.toLowerCase() + ' layers.'
+            : 'Adds a field to the ' +
+              label +
+              ' form for ' +
+              project +
+              ', on every ' +
+              label.toLowerCase() +
+              ' layer in this project.';
+      }
+
+      async function refreshFeature() {
+        var detail = await window.FiberApi.getFeature(projectId, featureId);
+        feature = detail.feature;
+        layerId = feature.layer_id || layerId;
+        renderJob();
+        renderProgress();
+        renderComparison();
+        renderSpanInspection();
+      }
+
+      async function addFieldFromJob(event) {
+        event.preventDefault();
+        if (!feature) return;
+
+        var status = document.getElementById('addFieldStatus');
+        var labelInput = document.getElementById('newFieldLabel');
+        var label = labelInput.value.trim();
+        if (!label) {
+          status.style.color = 'var(--danger, #991b1b)';
+          status.textContent = 'Give the field a label first.';
+          labelInput.focus();
+          return;
+        }
+
+        var kind = currentLayerKind();
+        var scope = document.getElementById('newFieldScope').value;
+        var type = document.getElementById('newFieldType').value;
+        var saveButton = document.getElementById('saveFieldBtn');
+        saveButton.disabled = true;
+        status.style.color = '';
+        status.textContent = 'Saving…';
+
+        try {
+          var query = projectId ? '?project=' + encodeURIComponent(projectId) : '';
+          var data = await window.FiberApi.apiFetch('/api/field-templates/' + query);
+          var templates = (data && data.templates) || [];
+          var template = templates.find(function (item) {
+            if (item.layer_kind !== kind || item.scope !== scope) return false;
+            if (scope === 'global') return true;
+            return String(item.project) === String(projectId);
+          });
+
+          // PUT replaces the whole template, so re-send the existing fields
+          // with their original input types. Otherwise a number field would
+          // come back as text after adding one field here.
+          var fields = ((template && template.fields) || [])
+            .filter(function (item) {
+              return item && item.key;
+            })
+            .map(function (item, index) {
+              return Object.assign({}, item, {
+                label: item.label || item.key,
+                type: storedFieldType(item),
+                editable: true,
+                order: index,
+              });
+            });
+          fields.push({
+            key: newFieldKey(label),
+            label: label,
+            type: type,
+            editable: true,
+            order: fields.length,
+          });
+
+          var body = { scope: scope, layer_kind: kind, fields: fields };
+          if (scope === 'project') body.project = projectId;
+          await window.FiberApi.apiFetch('/api/field-templates/', {
+            method: 'PUT',
+            body: JSON.stringify(body),
+          });
+
+          try {
+            await refreshFeature();
+          } catch (_) {
+            // The save succeeded; the next page load still shows the field.
+          }
+          labelInput.value = '';
+          status.style.color = '';
+          status.textContent = 'Added. "' + label + '" is on the ' + (LAYER_KIND_LABELS[kind] || kind) + ' form now.';
+          labelInput.focus();
+        } catch (error) {
+          var message =
+            window.FtthUI && typeof window.FtthUI.humanize === 'function'
+              ? window.FtthUI.humanize(error)
+              : String((error && error.message) || error);
+          status.style.color = 'var(--danger, #991b1b)';
+          status.textContent = 'Could not add the field: ' + message;
+        } finally {
+          saveButton.disabled = false;
+        }
       }
 
       function fieldKeys() {
@@ -1043,6 +1317,19 @@
           showError('Could not load the field data for this job: ' + (err && err.message ? err.message : String(err)));
         }
       }
+
+      document.getElementById('addFieldBtn').addEventListener('click', function () {
+        var panel = document.getElementById('addFieldPanel');
+        panel.hidden = false;
+        updateAddFieldHint();
+        document.getElementById('newFieldLabel').focus();
+      });
+      document.getElementById('newFieldScope').addEventListener('change', updateAddFieldHint);
+      document.getElementById('cancelFieldBtn').addEventListener('click', function () {
+        hideAddField();
+        document.getElementById('newFieldLabel').value = '';
+      });
+      document.getElementById('addFieldPanel').addEventListener('submit', addFieldFromJob);
 
       load();
     </script>
