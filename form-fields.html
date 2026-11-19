@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Form fields | Tech Mahindra</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .ff-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+      }
+
+      .ff-bar label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .ff-bar select {
+        min-width: 180px;
+      }
+
+      .ff-note {
+        margin: 8px 0 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .ff-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .ff-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .ff-list li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      .ff-list li:last-child {
+        border-bottom: none;
+      }
+
+      .ff-key {
+        color: var(--muted);
+        font-family: var(--font-data);
+        font-size: 11px;
+      }
+
+      .ff-empty {
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0;
+      }
+
+      .ff-extra td {
+        vertical-align: middle;
+      }
+
+      .ff-extra input[type='text'] {
+        width: 100%;
+      }
+
+      .ff-preview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .ff-preview label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      .ff-preview input,
+      .ff-preview textarea {
+        width: 100%;
+      }
+
+      .ff-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+    </style>
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+  </head>
+  <body class="form-fields">
+    <div class="layout">
+      <div id="sidebarContainer"></div>
+
+      <main class="content">
+        <div class="container">
+          <div class="header">
+            <h1>Form fields</h1>
+            <p class="project-description">
+              Add the fields a field engineer fills in. Choose the layer type they belong to, then whether they apply to
+              one project or every project. Span and feature jobs inherit their layer's fields, so there is nothing else
+              to configure.
+            </p>
+          </div>
+
+          <div class="section">
+            <div class="ff-bar">
+              <div>
+                <label for="layerKind">Layer type</label>
+                <select id="layerKind">
+                  <option value="trench">Trench</option>
+                  <option value="duct">Duct</option>
+                  <option value="cable">Cable</option>
+                  <option value="chamber">Chamber</option>
+                  <option value="pole">Pole</option>
+                  <option value="premise">Premise</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="scopeSelect">Applies to</label>
+                <select id="scopeSelect">
+                  <option value="global">All projects</option>
+                  <option value="project">One project</option>
+                </select>
+              </div>
+
+              <div id="projectWrap" hidden>
+                <label for="projectSelect">Project</label>
+                <select id="projectSelect"></select>
+              </div>
+
+              <div class="ff-actions">
+                <button id="reloadBtn" class="btn btn-outline" type="button">Reload</button>
+                <button id="deleteBtn" class="btn btn-outline" type="button" hidden>Remove saved fields</button>
+                <button id="saveBtn" class="btn" type="button">Save fields</button>
+              </div>
+            </div>
+            <p class="ff-note" id="status" role="status" aria-live="polite"></p>
+          </div>
+
+          <div class="ff-grid">
+            <div class="section">
+              <h3 style="margin-top: 0">Fields from the design</h3>
+              <p class="ff-note">
+                These come from the layer's own attributes. To change whether the engineer fills one in, or its input
+                type, use Layer Details &rarr; Field Configuration.
+              </p>
+              <ul id="baseFields" class="ff-list">
+                <li>Loading&hellip;</li>
+              </ul>
+            </div>
+
+            <div class="section">
+              <div style="display: flex; justify-content: space-between; gap: 12px; align-items: center">
+                <h3 style="margin: 0">Extra fields</h3>
+                <button id="addFieldBtn" class="btn btn-outline btn-sm" type="button">Add field</button>
+              </div>
+              <p class="ff-note">
+                Added to every feature of this layer type at the scope you chose. They never replace a design field.
+              </p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th>Key</th>
+                    <th>Input</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="extraFields">
+                  <tr>
+                    <td colspan="4" class="ff-empty">No extra fields yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section" style="margin-top: 16px">
+            <h3 style="margin-top: 0">What the engineer sees</h3>
+            <p class="ff-note" id="previewMeta">Preview</p>
+            <div id="previewFields" class="ff-preview"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="partials/sidebar-loader.js"></script>
+    <script src="js/ftth-ui.js"></script>
+    <script src="js/ftth-config.js"></script>
+    <script src="fiber-api.js"></script>
+    <script src="js/form-fields.js"></script>
+  </body>
+</html>

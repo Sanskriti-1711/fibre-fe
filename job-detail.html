@@ -434,6 +434,10 @@
                 </tbody>
               </table>
               <p class="jd-hint" id="comparisonCaption"></p>
+              <p class="jd-hint">
+                These fields come from the layer's form. A planner adds or scopes them under
+                <a href="form-fields.html">Jobs &rarr; Form fields</a>.
+              </p>
             </div>
 
             <div class="card" id="spanInspectionCard" style="margin-top: 18px; display: none">
@@ -718,17 +722,37 @@
         return String(entry);
       }
 
+      function schemaEntries() {
+        if (!feature || !Array.isArray(feature.field_schema)) return [];
+        return feature.field_schema.filter(function (field) {
+          return field && typeof field === 'object' && (field.key || field.name);
+        });
+      }
+
+      function schemaLabels() {
+        var labels = {};
+        schemaEntries().forEach(function (field) {
+          labels[field.key || field.name] = field.label || field.key || field.name;
+        });
+        return labels;
+      }
+
       function fieldKeys() {
         if (!feature) return [];
         var keys = [];
         var add = function (key) {
           if (key && keys.indexOf(key) === -1) keys.push(key);
         };
-        if (Array.isArray(feature.field_schema)) {
-          feature.field_schema.forEach(function (field) {
-            add(field && typeof field === 'object' ? field.key || field.name : field);
-          });
-        }
+
+        // A configured field is always listed, even before anyone measured it:
+        // the planner added it on purpose, and hiding it until it has a value
+        // makes the saved form look like it did not reach the field.
+        var fromSchema = {};
+        schemaEntries().forEach(function (field) {
+          var key = field.key || field.name;
+          fromSchema[key] = true;
+          add(key);
+        });
         Object.keys(feature.properties || {}).forEach(add);
         Object.keys(feature.field_measurements || {}).forEach(add);
 
@@ -740,6 +764,7 @@
         return keys.filter(function (key) {
           if (key === 'id' || key === 'feature_id' || key === 'layer' || key === 'status') return false;
           if (window.SpanInspection && window.SpanInspection.isInspectionKey(key)) return false;
+          if (fromSchema[key]) return true;
           return hasValue(props[key]) || hasValue(measured[key]);
         });
       }
@@ -762,6 +787,7 @@
 
         var props = feature.properties || {};
         var measured = feature.field_measurements || {};
+        var labels = schemaLabels();
         body.innerHTML = keys
           .map(function (key) {
             var planned = props[key];
@@ -773,8 +799,10 @@
                   : String(planned);
             var hasAsBuilt = key in measured;
             return (
-              '<tr><td class="field">' +
+              '<tr><td class="field" title="' +
               esc(key) +
+              '">' +
+              esc(labels[key] || key) +
               '</td><td>' +
               esc(plannedText) +
               '</td><td class="' +
