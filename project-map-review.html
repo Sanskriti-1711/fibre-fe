@@ -86,39 +86,108 @@
         color: #5b6472;
       }
 
-      .mr-legend {
+      .mr-map-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 236px;
+        gap: 12px;
+        align-items: stretch;
+      }
+      .mr-map-stage {
+        min-width: 0;
+      }
+      .mr-filter-panel {
         display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        align-items: center;
-        padding: 12px 14px;
-        background: #ffffff;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0;
+        max-height: 520px;
+        overflow-y: auto;
+        padding: 14px 12px;
+        background: #f9fafb;
         border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        margin-bottom: 16px;
-        font-size: 12px;
-        color: #4b5563;
+        border-radius: 10px;
       }
-      .mr-legend .swatch {
-        display: inline-flex;
+      .mr-filter-panel__head h2 {
+        margin: 0;
+        font-size: 14px;
+      }
+      .mr-filter-panel__head p {
+        margin: 3px 0 0;
+        font-size: 11px;
+        line-height: 1.4;
+        color: #5b6472;
+      }
+      .mr-filter-group__title {
+        margin-bottom: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+      .mr-filter-row {
+        display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        min-height: 30px;
+        margin: 0 -7px;
+        padding: 5px 7px;
+        border-radius: 6px;
+        font-size: 12px;
+        color: #374151;
+        cursor: pointer;
       }
-      .mr-legend i {
-        width: 18px;
+      .mr-filter-row:hover {
+        background: #ffffff;
+      }
+      .mr-filter-row input {
+        flex: none;
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        cursor: pointer;
+      }
+      .mr-filter-row .swatch {
+        flex: none;
+        width: 20px;
         height: 4px;
         border-radius: 2px;
-        display: inline-block;
       }
-      .mr-legend .spacer {
-        margin-left: auto;
+      .mr-filter-row .swatch--dashed {
+        background: repeating-linear-gradient(90deg, #b45309 0 4px, transparent 4px 7px);
       }
-      .mr-legend .toggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
+      .mr-filter-actions {
+        display: flex;
+        gap: 6px;
+        margin: 0 0 7px;
+      }
+      .mr-filter-actions button {
+        padding: 4px 9px;
+        border: 1px solid #d1d5db;
+        border-radius: 5px;
+        background: #ffffff;
+        color: #374151;
+        font-size: 11px;
         font-weight: 600;
         cursor: pointer;
+      }
+      .mr-filter-actions button:hover {
+        border-color: #9ca3af;
+        background: #f3f4f6;
+      }
+      .mr-filter-note {
+        margin: 8px 0 0;
+        font-size: 11px;
+        color: #6b7280;
+      }
+      @media (max-width: 860px) {
+        .mr-map-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .mr-filter-panel {
+          max-height: none;
+          order: -1;
+        }
       }
 
       .mr-layers {
@@ -445,34 +514,50 @@
               </div>
             </div>
 
-            <div class="mr-legend">
-              <span class="swatch"><i style="background: #94a3b8"></i>Design baseline</span>
-              <span class="swatch">
-                <i style="background: repeating-linear-gradient(90deg, #b45309 0 4px, transparent 4px 7px)"></i>
-                As-built
-              </span>
-              <span class="swatch"><i style="background: #10b981"></i>Approved</span>
-              <span class="swatch"><i style="background: #f59e0b"></i>Under review</span>
-              <span class="swatch"><i style="background: #ef4444"></i>Redo</span>
-              <span class="swatch"><i style="background: #3b82f6"></i>Assigned</span>
-              <span class="swatch"><i style="background: #9ca3af"></i>Pending</span>
-              <span class="spacer"></span>
-              <label class="toggle" for="showBaseline">
-                <input type="checkbox" id="showBaseline" checked />
-                Show design baseline
-              </label>
-              <label class="toggle" for="showAsBuilt">
-                <input type="checkbox" id="showAsBuilt" checked />
-                Show as-built
-              </label>
-            </div>
-
             <div class="card" style="padding: 12px">
-              <div id="reviewMap" aria-label="Planned and as-built feature map"></div>
+              <div class="mr-map-layout">
+                <div class="mr-map-stage">
+                  <div id="reviewMap" aria-label="Planned and as-built feature map"></div>
+                </div>
+
+                <aside class="mr-filter-panel" aria-label="Map filters">
+                  <div class="mr-filter-panel__head">
+                    <h2>Map filters</h2>
+                    <p>Choose what appears on the map.</p>
+                  </div>
+
+                  <div class="mr-filter-group">
+                    <div class="mr-filter-group__title">Geometry</div>
+                    <label class="mr-filter-row" for="showBaseline">
+                      <input type="checkbox" id="showBaseline" checked />
+                      <i class="swatch" style="background: #94a3b8" aria-hidden="true"></i>
+                      <span>Design baseline</span>
+                    </label>
+                    <label class="mr-filter-row" for="showAsBuilt">
+                      <input type="checkbox" id="showAsBuilt" checked />
+                      <i class="swatch swatch--dashed" aria-hidden="true"></i>
+                      <span>As-built</span>
+                    </label>
+                  </div>
+
+                  <div class="mr-filter-group">
+                    <div class="mr-filter-group__title">Status</div>
+                    <div class="mr-filter-actions">
+                      <button id="statusAll" type="button">All</button>
+                      <button id="statusNone" type="button">None</button>
+                    </div>
+                    <div id="statusFilterRows"></div>
+                    <p class="mr-filter-note" id="statusFilterNote" role="status" aria-live="polite">
+                      All statuses shown
+                    </p>
+                  </div>
+                </aside>
+              </div>
+
               <p class="mr-sub" style="margin: 10px 0 0">
                 Lines and points are coloured by the engineer's verification status; the grey underlay is the design
                 geometry from the imported package, and the dashed amber line is where the crew recorded the span as
-                laid. Click a feature to open its audit review.
+                laid. Use the filter panel to isolate a status, then click a feature to open its audit review.
               </p>
             </div>
 
@@ -557,25 +642,122 @@
         assigned: { label: 'Assigned', color: '#3b82f6', bg: '#eff6ff', fg: '#1d4ed8' },
         pending: { label: 'Pending', color: '#9ca3af', bg: '#f3f4f6', fg: '#4b5563' },
       };
+      var selectedStatuses = Object.keys(STATUS);
 
       function statusOf(value) {
         return STATUS[String(value || '').toLowerCase()] || STATUS.pending;
       }
 
       function statusColorExpression() {
+        // An engineer assigned to one polygon sees the rest of the project
+        // greyed out: the backend already refuses those edits
+        // (projects.api.layers.editable_feature_ids), so the map must not paint
+        // them as work they can do. A planner gets no `editable: false` at all.
         return [
-          'match',
-          ['get', 'status'],
-          'approved',
-          STATUS.approved.color,
-          'under_review',
-          STATUS.under_review.color,
-          'redo',
-          STATUS.redo.color,
-          'assigned',
-          STATUS.assigned.color,
-          STATUS.pending.color,
+          'case',
+          ['==', ['get', 'editable'], false],
+          '#9ca3af',
+          [
+            'match',
+            ['get', 'status'],
+            'approved',
+            STATUS.approved.color,
+            'under_review',
+            STATUS.under_review.color,
+            'redo',
+            STATUS.redo.color,
+            'assigned',
+            STATUS.assigned.color,
+            STATUS.pending.color,
+          ],
         ];
+      }
+
+      // A feature without a recognisable status is treated as pending, the
+      // same way statusOf() and the colour expression treat it.
+      function statusFilterExpression() {
+        if (!selectedStatuses.length) return ['==', ['get', 'status'], '__no_status_selected__'];
+        var expression = ['match', ['coalesce', ['get', 'status'], 'pending']];
+        selectedStatuses.forEach(function (status) {
+          expression.push(status, true);
+        });
+        expression.push(false);
+        return expression;
+      }
+
+      function statusLayerFilter(geometryType) {
+        return ['all', ['==', ['geometry-type'], geometryType], statusFilterExpression()];
+      }
+
+      function applyStatusFilter() {
+        if (map) {
+          layerGroups.forEach(function (group) {
+            (group.statusLayers || []).concat(group.asBuiltStatusLayers || []).forEach(function (entry) {
+              if (!map.getLayer(entry.id)) return;
+              map.setFilter(entry.id, statusLayerFilter(entry.geometry));
+            });
+          });
+        }
+        updateStatusFilterNote();
+      }
+
+      function updateStatusFilterNote() {
+        var note = document.getElementById('statusFilterNote');
+        if (!note) return;
+        if (!selectedStatuses.length) {
+          note.textContent = 'No statuses selected — no features shown.';
+          return;
+        }
+        if (selectedStatuses.length === Object.keys(STATUS).length) {
+          note.textContent = 'All statuses shown';
+          return;
+        }
+        if (selectedStatuses.length === 1) {
+          note.textContent = STATUS[selectedStatuses[0]].label + ' only';
+          return;
+        }
+        note.textContent = selectedStatuses.length + ' statuses shown';
+      }
+
+      function renderStatusFilterRows() {
+        var host = document.getElementById('statusFilterRows');
+        if (!host) return;
+        host.innerHTML = Object.keys(STATUS)
+          .map(function (status) {
+            var meta = STATUS[status];
+            return (
+              '<label class="mr-filter-row">' +
+              '<input type="checkbox" data-status="' +
+              esc(status) +
+              '" checked />' +
+              '<i class="swatch" style="background: ' +
+              meta.color +
+              '" aria-hidden="true"></i>' +
+              '<span>' +
+              esc(meta.label) +
+              '</span>' +
+              '</label>'
+            );
+          })
+          .join('');
+
+        host.querySelectorAll('input[data-status]').forEach(function (checkbox) {
+          checkbox.addEventListener('change', function () {
+            var status = checkbox.getAttribute('data-status');
+            var index = selectedStatuses.indexOf(status);
+            if (checkbox.checked && index === -1) selectedStatuses.push(status);
+            if (!checkbox.checked && index !== -1) selectedStatuses.splice(index, 1);
+            applyStatusFilter();
+          });
+        });
+      }
+
+      function setAllStatuses(checked) {
+        document.querySelectorAll('#statusFilterRows input[data-status]').forEach(function (checkbox) {
+          checkbox.checked = checked;
+        });
+        selectedStatuses = checked ? Object.keys(STATUS) : [];
+        applyStatusFilter();
       }
 
       var params = new URLSearchParams(window.location.search);
@@ -686,6 +868,7 @@
 
       function clearLayers() {
         if (!map) return;
+        clearAssignmentAreas();
         removeHighlightLayers();
         layerGroups.forEach(function (group) {
           group.ids.forEach(function (id) {
@@ -706,6 +889,7 @@
 
         var ids = [];
         var clickable = [];
+        var statusLayers = [];
 
         var designId = sourceId + '-design';
         map.addLayer({
@@ -737,30 +921,32 @@
           id: fillId,
           type: 'fill',
           source: sourceId,
-          filter: ['==', ['geometry-type'], 'Polygon'],
+          filter: statusLayerFilter('Polygon'),
           paint: { 'fill-color': statusColorExpression(), 'fill-opacity': 0.25 },
         });
         ids.push(fillId);
         clickable.push(fillId);
+        statusLayers.push({ id: fillId, geometry: 'Polygon' });
 
         var lineId = sourceId + '-line';
         map.addLayer({
           id: lineId,
           type: 'line',
           source: sourceId,
-          filter: ['==', ['geometry-type'], 'LineString'],
+          filter: statusLayerFilter('LineString'),
           paint: { 'line-color': statusColorExpression(), 'line-width': 3, 'line-opacity': 0.95 },
           layout: { 'line-cap': 'round', 'line-join': 'round' },
         });
         ids.push(lineId);
         clickable.push(lineId);
+        statusLayers.push({ id: lineId, geometry: 'LineString' });
 
         var pointId = sourceId + '-point';
         map.addLayer({
           id: pointId,
           type: 'circle',
           source: sourceId,
-          filter: ['==', ['geometry-type'], 'Point'],
+          filter: statusLayerFilter('Point'),
           paint: {
             'circle-color': statusColorExpression(),
             'circle-radius': 6,
@@ -770,6 +956,7 @@
         });
         ids.push(pointId);
         clickable.push(pointId);
+        statusLayers.push({ id: pointId, geometry: 'Point' });
 
         // As-built geometry lives in its own source and is drawn as a dashed
         // amber overline. Separate source, not a colour override on the design
@@ -777,6 +964,7 @@
         // take the other with it. Deliberately not clickable — the popup
         // resolves to the feature whose status the reviewer is judging.
         var asBuiltIds = [];
+        var asBuiltStatusLayers = [];
         var laidFeatures = (asBuiltCollection && asBuiltCollection.features) || [];
         if (laidFeatures.length) {
           var laidSourceId = sourceId + '-asbuilt';
@@ -787,7 +975,7 @@
             id: laidLineId,
             type: 'line',
             source: laidSourceId,
-            filter: ['==', ['geometry-type'], 'LineString'],
+            filter: statusLayerFilter('LineString'),
             paint: {
               'line-color': '#b45309',
               'line-width': 4,
@@ -797,13 +985,14 @@
             layout: { 'line-cap': 'butt', 'line-join': 'round' },
           });
           asBuiltIds.push(laidLineId);
+          asBuiltStatusLayers.push({ id: laidLineId, geometry: 'LineString' });
 
           var laidPointId = laidSourceId + '-point';
           map.addLayer({
             id: laidPointId,
             type: 'circle',
             source: laidSourceId,
-            filter: ['==', ['geometry-type'], 'Point'],
+            filter: statusLayerFilter('Point'),
             paint: {
               'circle-color': '#b45309',
               'circle-radius': 5,
@@ -812,6 +1001,7 @@
             },
           });
           asBuiltIds.push(laidPointId);
+          asBuiltStatusLayers.push({ id: laidPointId, geometry: 'Point' });
 
           ids = ids.concat(asBuiltIds);
         }
@@ -821,6 +1011,9 @@
           sourceId: sourceId,
           ids: ids,
           clickable: clickable,
+          statusLayers: statusLayers,
+          asBuiltStatusLayers: asBuiltStatusLayers,
+          baselineIds: [designId, designPointId],
           asBuiltIds: asBuiltIds,
           visible: true,
         });
@@ -1208,15 +1401,70 @@
 
       function applyBaselineToggle() {
         if (!map) return;
-        var visible = document.getElementById('showBaseline').checked;
+        var box = document.getElementById('showBaseline');
+        var visible = !box || box.checked;
         layerGroups.forEach(function (group) {
           // A layer its checkbox has hidden stays hidden; this toggle must not
           // bring half of it back.
           if (group.visible === false) return;
-          group.ids.slice(0, 2).forEach(function (id) {
+          (group.baselineIds || []).forEach(function (id) {
             if (!map.getLayer(id)) return;
             map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
           });
+        });
+      }
+
+      // The areas the engineer was assigned, drawn over the site the way the
+      // jobs pages preview a span. The backend serves them only to an engineer
+      // holding a polygon job, so a planner's map has none.
+      function clearAssignmentAreas() {
+        if (!map) return;
+        ['mr-assigned-areas-fill', 'mr-assigned-areas-line'].forEach(function (id) {
+          if (map.getLayer(id)) map.removeLayer(id);
+        });
+        if (map.getSource('mr-assigned-areas')) map.removeSource('mr-assigned-areas');
+      }
+
+      function drawAssignmentAreas(mapData) {
+        if (!map) return;
+        clearAssignmentAreas();
+        var areas = (mapData && mapData.assignment_polygons) || [];
+        if (!areas.length) return;
+        map.addSource('mr-assigned-areas', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: areas
+              .filter(function (area) {
+                return area && area.geometry;
+              })
+              .map(function (area) {
+                return {
+                  type: 'Feature',
+                  geometry: area.geometry,
+                  properties: {
+                    name: area.name || area.polygon_id || 'Assigned area',
+                    feature_count: area.feature_count || 0,
+                  },
+                };
+              }),
+          },
+        });
+        map.addLayer({
+          id: 'mr-assigned-areas-fill',
+          type: 'fill',
+          source: 'mr-assigned-areas',
+          paint: { 'fill-color': '#2563eb', 'fill-opacity': 0.07 },
+        });
+        map.addLayer({
+          id: 'mr-assigned-areas-line',
+          type: 'line',
+          source: 'mr-assigned-areas',
+          paint: {
+            'line-color': '#1d4ed8',
+            'line-width': 2,
+            'line-dasharray': [3, 2],
+          },
         });
       }
 
@@ -1234,7 +1482,11 @@
             addLayerGroup(layer, collection, (mapData.as_built_geojson || {})[layer.name]);
           });
 
+          applyStatusFilter();
           applyBaselineToggle();
+          applyAsBuiltToggle();
+
+          drawAssignmentAreas(mapData);
 
           var bounds = boundsOf(mapData.features || []);
           if (bounds) m.fitBounds(bounds, { padding: 48, maxZoom: 17, duration: 0 });
@@ -1367,6 +1619,23 @@
       });
 
       document.getElementById('showBaseline').addEventListener('change', applyBaselineToggle);
+
+      (function wireStatusFilters() {
+        renderStatusFilterRows();
+        var all = document.getElementById('statusAll');
+        var none = document.getElementById('statusNone');
+        if (all) {
+          all.addEventListener('click', function () {
+            setAllStatuses(true);
+          });
+        }
+        if (none) {
+          none.addEventListener('click', function () {
+            setAllStatuses(false);
+          });
+        }
+        updateStatusFilterNote();
+      })();
 
       (function wireFeatureFocus() {
         var clearBtn = document.getElementById('featureFocusClear');
