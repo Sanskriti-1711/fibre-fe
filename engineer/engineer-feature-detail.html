@@ -1396,9 +1396,19 @@
           renderExistingCustomFields(featureData.field_measurements);
           loadFeaturePhotos();
 
-          // Disable form if feature is not in editable state
+          // Disable form if feature is not in editable state. The backend
+          // answers 403 for a row outside the engineer's assigned area, so the
+          // form has to read as read-only rather than fail on save.
           const editableStatuses = ['assigned', 'redo'];
-          if (!editableStatuses.includes(status)) {
+          const outsideArea = featureData.editable === false;
+          if (outsideArea) {
+            const banner = document.createElement('div');
+            banner.className = 'error-state';
+            banner.style.marginBottom = '16px';
+            banner.textContent = 'This feature is outside your assigned area. You can inspect it, but it is read-only.';
+            document.getElementById('measurementsForm').before(banner);
+          }
+          if (outsideArea || !editableStatuses.includes(status)) {
             document
               .getElementById('measurementsForm')
               .querySelectorAll('input, textarea, select')

@@ -87,6 +87,7 @@
                 <option value="">All Scopes</option>
                 <option value="project">Project</option>
                 <option value="layer">Layer</option>
+                <option value="span">Span</option>
                 <option value="feature">Feature</option>
               </select>
             </div>
@@ -99,10 +100,10 @@
               <button class="btn btn-outline" onclick="refreshTable()">Refresh</button>
             </div>
             <p style="margin: 0; padding: 0 20px 12px; color: var(--muted); font-size: 12.5px; line-height: 1.45">
-              View opens the job page — engineer, live progress, site photos, measurements and decisions. Field progress
-              shows the readings and photos an engineer has already recorded; for a layer or project job the readings
-              live on each feature, so the Status column carries the roll-up. Reassign moves the job to another
-              engineer; Delete removes it.
+              View opens the job page — engineer, live progress, site photos, measurements and decisions. Project and
+              layer jobs list the spans they cover, grouped by layer, beneath the job. Field progress shows the readings
+              and photos an engineer has already recorded; for a layer or project job the readings live on each feature,
+              so the Status column carries the roll-up. Reassign moves the job to another engineer; Delete removes it.
             </p>
             <table>
               <thead>
@@ -301,6 +302,7 @@
 
         tbody.innerHTML = jobsToShow.map((job) => renderJobRow(job)).join('');
         loadFieldProgress(jobsToShow);
+        loadSpanAllocations(jobsToShow);
       }
 
       // Render single job row
@@ -350,9 +352,10 @@
         }
 
         if (scope === 'span' && job.span && job.span.id) {
+          const spanLayer = job.span.layer_id || job.layer?.id || '';
           hierarchyHtml += `<div class="hierarchy-item">
         <svg class="hierarchy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 12h16M8 8v8M16 8v8M12 4v16"/></svg>
-        Span ${escapeHtml(job.span.id)} (${job.span.feature_count || 0} components)
+        Span ${escapeHtml(job.span.id)} (${job.span.feature_count || 0} component${job.span.feature_count === 1 ? '' : 's'}${spanLayer ? ` · ${escapeHtml(spanLayer)}` : ''})
       </div>`;
         }
 
@@ -365,7 +368,13 @@
 
         hierarchyHtml += '</div>';
 
-        return `<tr>
+        const spanAllocationRow =
+          scope === 'project' || scope === 'layer'
+            ? `<tr class="job-spans-row" data-span-allocation="${jobId}"><td colspan="8"><div class="job-spans__loading">Loading allocated spans…</div></td></tr>`
+            : '';
+        const rowClass = spanAllocationRow ? ' class="has-span-allocation"' : '';
+
+        return `<tr${rowClass}>
       <td><span class="job-id">#${jobId.slice(0, 12)}</span></td>
       <td>${hierarchyHtml}</td>
       <td><span class="badge badge-scope">${scope.charAt(0).toUpperCase() + scope.slice(1)}</span></td>
@@ -395,7 +404,7 @@
           <button class="action-btn" onclick="deleteJob('${jobId}')" title="Removes this job assignment">Delete</button>
         </div>
       </td>
-    </tr>`;
+    </tr>${spanAllocationRow}`;
       }
 
       // Field progress: the readings and photos already recorded. Only a
@@ -479,6 +488,136 @@
               }
             }
             renderFieldProgress(job.id || job.uuid || job.job_id, progressCache[featureId]);
+          })
+        );
+      }
+
+      // A project or layer job covers every span in its scope, but the job row
+      // only names the project or layer. Load the project's features once and
+      // show the span allocation under the hierarchy, so "All jobs" answers
+      // "which spans does this engineer hold", not just "which project".
+      const projectMapCache = {};
+
+      function spanKeyForProperties(props) {
+        if (!props || typeof props !== 'object') return '';
+        const raw =
+          props.SPAN_ID ||
+          props.span_id ||
+          props.span ||
+          props.SPANID ||
+          props.spanid ||
+          props.TRENCH_ID ||
+          props.trench_id ||
+          props.PARENT_TRENCH ||
+          props.parent_trench ||
+          '';
+        return String(raw).trim();
+      }
+
+      async function loadProjectMap(projectId) {
+        if (!projectId) return { features: [] };
+        if (!projectMapCache[projectId]) {
+          projectMapCache[projectId] = FiberApi.apiFetch(`/api/projects/${encodeURIComponent(projectId)}/map-data/`, {
+            method: 'GET',
+          }).catch(() => ({ features: [] }));
+        }
+        return projectMapCache[projectId];
+      }
+
+      function buildSpanAllocation(features, layerName) {
+        const spans = new Map();
+        let withoutSpan = 0;
+        (features || []).forEach((feature) => {
+          const props = (feature && feature.properties) || {};
+          const layer = props.layer || (feature && feature.layer) || '';
+          if (layerName && layer !== layerName) return;
+          const spanId = spanKeyForProperties(props);
+          if (!spanId) {
+            withoutSpan += 1;
+            return;
+          }
+          const key = layer + '::' + spanId;
+          const entry = spans.get(key) || { id: spanId, layer, count: 0 };
+          entry.count += 1;
+          spans.set(key, entry);
+        });
+        return {
+          spans: Array.from(spans.values()).sort((a, b) => a.layer.localeCompare(b.layer) || a.id.localeCompare(b.id)),
+          withoutSpan,
+        };
+      }
+
+      function renderSpanAllocation(jobId, allocation) {
+        const host = document.querySelector(`tr[data-span-allocation="${jobId}"]`);
+        if (!host) return;
+        const cell = host.cells[0] || host.querySelector('td');
+        if (!cell) return;
+        if (!allocation || !allocation.spans.length) {
+          if (allocation && allocation.withoutSpan) {
+            cell.innerHTML =
+              '<div class="job-spans"><div class="job-spans__empty">Allocated features have no span ID.</div></div>';
+          } else {
+            const parentRow = host.previousElementSibling;
+            if (parentRow) parentRow.classList.remove('has-span-allocation');
+            host.remove();
+          }
+          return;
+        }
+        const count = allocation.spans.length;
+        const byLayer = new Map();
+        allocation.spans.forEach((span) => {
+          const layer = span.layer || 'Layer not set';
+          if (!byLayer.has(layer)) byLayer.set(layer, []);
+          byLayer.get(layer).push(span);
+        });
+        const layerBlocks = Array.from(byLayer.entries())
+          .map(([layer, spans]) => {
+            const chips = spans
+              .map(
+                (span) =>
+                  `<span class="job-span" title="${escapeHtml(layer)} · ${escapeHtml(span.id)} — ${span.count} component${span.count === 1 ? '' : 's'}">` +
+                  `<span class="job-span__id">${escapeHtml(span.id)}</span>` +
+                  `<span class="job-span__meta">${span.count} component${span.count === 1 ? '' : 's'}</span>` +
+                  '</span>'
+              )
+              .join('');
+            return (
+              '<div class="job-spans__layer">' +
+              `<div class="job-spans__layer-head"><span class="job-spans__layer-name">${escapeHtml(layer)}</span><span class="job-spans__layer-count">${spans.length} span${spans.length === 1 ? '' : 's'}</span></div>` +
+              `<div class="job-spans__layer-list">${chips}</div>` +
+              '</div>'
+            );
+          })
+          .join('');
+        const note = allocation.withoutSpan
+          ? `<div class="job-spans__note">${allocation.withoutSpan} allocated feature${allocation.withoutSpan === 1 ? '' : 's'} without a span ID are not listed.</div>`
+          : '';
+        cell.innerHTML =
+          '<div class="job-spans">' +
+          `<div class="job-spans__head">Allocated spans <span class="job-spans__count">${count}</span></div>` +
+          `<div class="job-spans__layers">${layerBlocks}</div>` +
+          note +
+          '</div>';
+      }
+
+      async function loadSpanAllocations(jobsToShow) {
+        const allocationJobs = jobsToShow.filter(
+          (job) =>
+            (job.scope === 'project' || job.scope === 'layer') &&
+            (job.project && job.project.id ? true : job.project_id)
+        );
+        await Promise.all(
+          allocationJobs.map(async (job) => {
+            const jobId = job.id || job.uuid || job.job_id;
+            const projectId = (job.project && job.project.id) || job.project_id;
+            try {
+              const data = await loadProjectMap(projectId);
+              const layerName =
+                job.scope === 'layer' ? (job.layer && (job.layer.id || job.layer.name)) || job.layer_id || '' : '';
+              renderSpanAllocation(jobId, buildSpanAllocation(data.features || [], layerName));
+            } catch (err) {
+              renderSpanAllocation(jobId, null);
+            }
           })
         );
       }

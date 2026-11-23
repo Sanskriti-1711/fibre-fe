@@ -156,6 +156,11 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
     }
   });
 
+  // A feature outside the engineer's assigned area arrives with
+  // `editable: false` (projects.api.layers serves it); paint it grey so the
+  // map reads the same as the edit guard that refuses the change.
+  const featureColor = ['case', ['==', ['get', 'editable'], false], '#9ca3af', color];
+
   const addLayers = function () {
     if (!map || map.getSource(sourceId)) return;
 
@@ -168,7 +173,7 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
         id: lineLayerId,
         type: 'line',
         source: sourceId,
-        paint: { 'line-color': color, 'line-width': 3, 'line-opacity': 0.8 },
+        paint: { 'line-color': featureColor, 'line-width': 3, 'line-opacity': 0.8 },
       });
       group.layerIds.push(lineLayerId);
     }
@@ -180,7 +185,7 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
         source: sourceId,
         paint: {
           'circle-radius': 6,
-          'circle-color': color,
+          'circle-color': featureColor,
           'circle-opacity': 0.85,
           'circle-stroke-color': '#FFFFFF',
           'circle-stroke-width': 1,
@@ -195,13 +200,13 @@ function renderGeoJSONFeature(featureListData, layerInfo, index) {
         id: fillLayerId,
         type: 'fill',
         source: sourceId,
-        paint: { 'fill-color': color, 'fill-opacity': 0.3 },
+        paint: { 'fill-color': featureColor, 'fill-opacity': 0.3 },
       });
       map.addLayer({
         id: outlineLayerId,
         type: 'line',
         source: sourceId,
-        paint: { 'line-color': color, 'line-width': 2 },
+        paint: { 'line-color': featureColor, 'line-width': 2 },
       });
       group.layerIds.push(fillLayerId, outlineLayerId);
     }

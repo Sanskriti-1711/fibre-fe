@@ -1107,9 +1107,8 @@
                     <option value="">Whole layer / project</option>
                   </select>
                   <p class="hint">
-                    One layer at a time: choose a layer above to assign its cables, ducts or trenches, or pick a span
-                    below. Every feature in that one layer carrying the same span ID is assigned together, chamber to
-                    chamber.
+                    A span belongs to one layer only. Its trenches, ducts or cables are separate span options, even when
+                    they share a span ID; each carries only the components of that layer.
                   </p>
                 </div>
 
@@ -2382,6 +2381,8 @@
             select.value = requested;
             state.target.layerId = requested;
             await loadFeaturesForLayer(projectId, requested, params.featureId);
+            // Now that the layer is known, show only its span options.
+            await loadSupervisionSpans(projectId);
           } else if (params.featureId) {
             // The feature is in a layer we still have to find: search the
             // layers for it rather than silently dropping the handoff.
@@ -2462,6 +2463,16 @@
         return (layer && (layer.layer_name || layer.name || layer.title)) || wanted;
       }
 
+      // Trenches, ducts, cables and dedicated span layers form supervision
+      // spans. Chambers and other point layers can share PARENT_TRENCH, but they
+      // are not a span of their own and would otherwise flood the chooser with
+      // point-only jobs.
+      function isSpanLayer(layer) {
+        const id = String(layerIdOf(layer));
+        const name = String((layer && (layer.layer_name || layer.name || layer.title)) || '');
+        return /trench|duct|cable|span/i.test(id + ' ' + name);
+      }
+
       function resolveLayerId(requested, select) {
         if (!select) return '';
         const wanted = String(requested || '').trim();
@@ -2540,15 +2551,19 @@
         return '';
       }
 
-      // A supervision span is the chamber-to-chamber unit of work: the trench,
-      // every duct laid in it, its chambers and any component carrying the same
-      // SPAN_ID. Older packages predate SPAN_ID, so TRENCH_ID / PARENT_TRENCH is
-      // the fallback key for civil features.
+      // A supervision span is one layer's unit of work: the trench span, the
+      // duct span or the cable span carrying the same SPAN_ID. Older packages
+      // predate SPAN_ID, so TRENCH_ID / PARENT_TRENCH is the fallback key for
+      // civil features. The layer is part of the span identity: the same key in
+      // another layer is a separate job.
       function spanKeyForFeature(feature) {
         const props = (feature && feature.properties) || {};
         const raw =
           props.SPAN_ID ||
           props.span_id ||
+          props.SPANID ||
+          props.spanid ||
+          props.span ||
           props.TRENCH_ID ||
           props.trench_id ||
           props.PARENT_TRENCH ||
@@ -2584,6 +2599,7 @@
         const scopedLayerId = state.target.layerId || '';
         const projectLayers = state.layers
           .filter((layer) => layer && typeof layer === 'object')
+          .filter(isSpanLayer)
           .filter((layer) => !scopedLayerId || layerIdOf(layer) === scopedLayerId);
         const groups = new Map();
         await Promise.all(
@@ -2628,25 +2644,39 @@
           .sort((a, b) => a.layerName.localeCompare(b.layerName) || a.id.localeCompare(b.id));
 
         select.disabled = !state.spans.length;
+        const spansByLayer = new Map();
+        state.spans.forEach((span) => {
+          const layerName = span.layerName || span.layerId || 'Layer';
+          if (!spansByLayer.has(layerName)) spansByLayer.set(layerName, []);
+          spansByLayer.get(layerName).push(span);
+        });
+        const spanOptions = Array.from(spansByLayer.entries())
+          .map(
+            ([layerName, spans]) =>
+              '<optgroup label="' +
+              escapeHtml(layerName) +
+              '">' +
+              spans
+                .map(
+                  (span) =>
+                    '<option value="' +
+                    escapeHtml(span.key) +
+                    '">' +
+                    escapeHtml(span.id) +
+                    ' · ' +
+                    span.featureIds.length +
+                    (span.featureIds.length === 1 ? ' component' : ' components') +
+                    '</option>'
+                )
+                .join('') +
+              '</optgroup>'
+          )
+          .join('');
         select.innerHTML =
           '<option value="">' +
           (state.spans.length ? 'Whole layer / project' : 'No span IDs in this project') +
           '</option>' +
-          state.spans
-            .map(
-              (span) =>
-                '<option value="' +
-                escapeHtml(span.key) +
-                '">' +
-                escapeHtml(span.layerName) +
-                ' · ' +
-                escapeHtml(span.id) +
-                ' · ' +
-                span.featureIds.length +
-                (span.featureIds.length === 1 ? ' component' : ' components') +
-                '</option>'
-            )
-            .join('');
+          spanOptions;
       }
 
       async function loadFeaturesForLayer(projectId, layerId, designFeatureId) {
@@ -2657,6 +2687,7 @@
         if (state.target.spanId) {
           state.target.spanId = '';
           state.target.spanName = '';
+          state.target.spanLayerId = '';
           state.target.spanFeatureIds = [];
           state.target.spanLayers = [];
           const spanSelect = $('spanSelect');
@@ -2866,7 +2897,9 @@
 
       function targetName() {
         if (state.target.spanId) {
-          return state.target.spanId;
+          return (
+            state.target.spanId + (state.target.spanLayerId ? ' · ' + layerDisplayName(state.target.spanLayerId) : '')
+          );
         }
         const select = $('featureSelect');
         const selected = select ? Array.from(select.selectedOptions || []) : [];
@@ -2985,8 +3018,9 @@
         if (!card) return;
 
         const features = state.layerFeatures || [];
-        const focusIds =
-          state.bulkSelection && state.bulkSelection.featureIds.length
+        const focusIds = state.target.spanFeatureIds.length
+          ? state.target.spanFeatureIds.map(String)
+          : state.bulkSelection && state.bulkSelection.featureIds.length
             ? state.bulkSelection.featureIds.map(String)
             : state.target.featureIds && state.target.featureIds.size
               ? Array.from(state.target.featureIds)
@@ -2999,14 +3033,20 @@
           return;
         }
 
-        const focused = features.filter((feature) => focusIds.includes(String(feature.id)));
+        const focused = features.filter((feature) => {
+          const id = pickFeatureId(feature);
+          return Boolean(id) && focusIds.includes(String(id));
+        });
         card.hidden = false;
 
         const link = $('spanMapOpen');
         if (link) {
           const query = new URLSearchParams({ project_id: state.target.projectId });
           if (state.target.layerId) query.set('layer_id', state.target.layerId);
-          if (focused.length === 1) query.set('feature_id', focused[0].id);
+          if (focused.length === 1) {
+            const focusedId = pickFeatureId(focused[0]);
+            if (focusedId) query.set('feature_id', focusedId);
+          }
           link.href = 'project-map-review.html?' + query.toString();
         }
 
@@ -3094,15 +3134,37 @@
         if (bounds) map.fitBounds(bounds, { padding: 36, maxZoom: 17, duration: 0 });
       }
 
+      async function loadSpanLayerFeatures(span) {
+        const projectId = state.target.projectId;
+        if (!projectId || !span || !span.layerId) return;
+        try {
+          const data = await window.FiberApi.getProjectLayerDetails(projectId, span.layerId);
+          if (
+            state.target.projectId !== projectId ||
+            state.target.spanId !== span.id ||
+            state.target.layerId !== span.layerId
+          ) {
+            return;
+          }
+          state.layerFeatures = Array.isArray(data && data.features) ? data.features : [];
+          renderSpanMap();
+        } catch (error) {
+          console.warn('[Supervision] Could not draw span layer', span.layerId, error);
+          if (state.target.spanId === span.id && state.target.layerId === span.layerId) {
+            clearSpanMap();
+          }
+        }
+      }
+
       function updateSupervisionSummary() {
         const body = $('supervisionSummaryBody');
         if (!body) return;
 
         const project = state.projects.find((row) => row.id === state.target.projectId);
         const count = state.selected.supervision.size;
-        // A span is the unit of supervision work, so the summary says how many
-        // features (trench, ducts, chambers) that span carries — not just that
-        // one target was picked.
+        // A span is one layer's unit of supervision work, so the summary says
+        // how many features of that layer it carries — not every layer sharing
+        // the span id.
         const spanFeatureCount = state.target.spanFeatureIds.length;
         const featureCount = spanFeatureCount || (state.target.featureIds ? state.target.featureIds.size : 0);
         const scope = spanFeatureCount
@@ -3428,7 +3490,15 @@
           $('layerSelect').value = state.target.layerId;
           $('featureSelect').innerHTML = '<option value="">All features in the layer</option>';
           $('featureSelect').disabled = true;
-          clearSpanMap();
+          if (span) {
+            // Draw only this span's layer; the component ids stay in red on
+            // top of the rest of that layer.
+            state.layerFeatures = [];
+            renderSpanMap();
+            void loadSpanLayerFeatures(span);
+          } else {
+            clearSpanMap();
+          }
           updateCoverage();
           updateSupervisionSummary();
           updateButtons();

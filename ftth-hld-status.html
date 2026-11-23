@@ -244,43 +244,27 @@
                 Checking assignment state…
               </p>
               <div id="surveyAssignEngineers" style="font-size: 12px; margin-bottom: 10px"></div>
-              <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 6px"
-                >Assign engineer(s) for field survey</label
-              >
-              <select
-                id="surveyAssignSelect"
-                multiple
+              <p style="margin: 0 0 10px; font-size: 12px; color: #6b7280">
+                Survey assignment is area-based: pick polygons / MFG service areas on the results map, then choose the
+                engineers on Assign jobs. The engineer may edit only what those areas cover.
+              </p>
+              <a
+                id="surveyAssignLink"
+                href="ftth-hld-results.html"
                 style="
-                  width: 100%;
-                  min-height: 88px;
-                  padding: 8px;
-                  border-radius: 6px;
-                  border: 1px solid #d1d5db;
-                  font-size: 13px;
-                  margin-bottom: 10px;
-                "
-              >
-                <option value="">Loading engineers…</option>
-              </select>
-              <button
-                id="surveyAssignBtn"
-                type="button"
-                style="
-                  width: 100%;
+                  display: block;
+                  text-align: center;
                   padding: 10px 14px;
                   background: linear-gradient(135deg, #059669, #047857);
-                  border: none;
                   border-radius: 8px;
                   color: #fff;
                   font-size: 13px;
                   font-weight: 700;
-                  cursor: pointer;
-                  transition: all 0.15s ease;
+                  text-decoration: none;
                 "
               >
-                Create Survey Copy &amp; Assign
-              </button>
-              <p id="surveyAssignMsg" style="margin: 10px 0 0; font-size: 12px; color: #6b7280"></p>
+                Pick survey areas →
+              </a>
             </div>
 
             <!-- Progress bar -->
@@ -359,9 +343,10 @@
       const surveyAssignBadge = document.getElementById('surveyAssignBadge');
       const surveyAssignStatus = document.getElementById('surveyAssignStatus');
       const surveyAssignEngineers = document.getElementById('surveyAssignEngineers');
-      const surveyAssignSelect = document.getElementById('surveyAssignSelect');
-      const surveyAssignBtn = document.getElementById('surveyAssignBtn');
-      const surveyAssignMsg = document.getElementById('surveyAssignMsg');
+      const surveyAssignLink = document.getElementById('surveyAssignLink');
+      if (surveyAssignLink) {
+        surveyAssignLink.href = 'ftth-hld-results.html?project_id=' + encodeURIComponent(projectId);
+      }
 
       // ----------------------------------------------------------------
       // Setup
@@ -455,9 +440,14 @@
           logViewer._append('Pipeline completed successfully ✓', 'success');
         } else {
           // Failed
+          // The run row carries the reason once the engine marks it failed;
+          // "Unknown error" only ever meant this poll arrived before that field
+          // did. Say what actually happened instead of inventing a message.
+          var failReason = data.error || data.error_message || data.message;
           failedBanner.classList.add('show');
-          failedMessage.textContent = data.error || data.message || 'Pipeline failed unexpectedly';
-          logViewer._append('Pipeline failed: ' + (data.error || data.message || 'Unknown error'), 'error');
+          failedMessage.textContent =
+            failReason || 'Pipeline failed (the run returned no error detail — re-run it and check the log below)';
+          logViewer._append('Pipeline failed: ' + (failReason || 'no error detail returned'), 'error');
         }
       }
 
@@ -491,7 +481,6 @@
       // ----------------------------------------------------------------
       // Survey Assignment (admin/subadmin) — visible when run is completed
       // ----------------------------------------------------------------
-      let engineersList = [];
 
       function renderSurveyAssignment(survey) {
         if (!surveyAssignCard) return;
@@ -499,7 +488,7 @@
         if (!survey || !survey.status) {
           surveyAssignBadge.textContent = 'Not assigned';
           surveyAssignStatus.textContent =
-            'This run has no survey copy yet. Assign one or more engineers below to create it.';
+            'This run has no survey copy yet. Pick the areas on the results map, then choose engineers on Assign jobs.';
           surveyAssignEngineers.innerHTML = '';
           return;
         }
@@ -525,71 +514,6 @@
           ? 'Survey copy: ' + survey.copy_name + ' (status: ' + cap + ')'
           : 'Survey copy exists (status: ' + cap + ')';
       }
-
-      async function loadEngineersForStatusAssign() {
-        try {
-          const data = await window.FiberApi.listEngineers();
-          const list = Array.isArray(data) ? data : (data && data.results) || [];
-          engineersList = list;
-          surveyAssignSelect.innerHTML = '';
-          if (!list.length) {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = 'No engineers found';
-            surveyAssignSelect.appendChild(opt);
-            return;
-          }
-          list.forEach(function (e) {
-            const o = document.createElement('option');
-            o.value = e.id;
-            o.textContent = e.full_name || e.name || e.email || 'Engineer';
-            surveyAssignSelect.appendChild(o);
-          });
-        } catch (err) {
-          surveyAssignMsg.textContent = 'Could not load engineers: ' + FtthUI.humanize(err);
-        }
-      }
-
-      if (surveyAssignBtn) {
-        surveyAssignBtn.addEventListener('click', async function () {
-          const ids = Array.prototype.slice.call(surveyAssignSelect.selectedOptions || []).map(function (o) {
-            return o.value;
-          });
-          if (!ids.length) {
-            surveyAssignMsg.textContent = 'Select at least one engineer.';
-            return;
-          }
-          surveyAssignBtn.disabled = true;
-          surveyAssignMsg.textContent = 'Creating survey copy and assigning… this may take a minute.';
-          try {
-            const res = await window.FiberApi.assignHldProject(projectId, ids);
-            surveyAssignMsg.style.color = '#047857';
-            surveyAssignMsg.innerHTML =
-              'Survey copy created: <strong>' +
-              escapeHtml(res.survey_project_name || '') +
-              '</strong> for ' +
-              (res.engineers || [])
-                .map(function (e) {
-                  return escapeHtml(e.full_name || e.email);
-                })
-                .join(', ') +
-              '. It will appear in the projects panel and on the engineer’s app.';
-            renderSurveyAssignment({
-              copy_project_id: res.survey_project_id,
-              copy_name: res.survey_project_name,
-              status: res.survey_status,
-              assigned_engineers: res.engineers,
-            });
-          } catch (err) {
-            surveyAssignMsg.style.color = '#B91C1C';
-            surveyAssignMsg.textContent = 'Assignment failed: ' + FtthUI.humanize(err);
-          } finally {
-            surveyAssignBtn.disabled = false;
-          }
-        });
-      }
-
-      loadEngineersForStatusAssign();
     </script>
   </body>
 </html>

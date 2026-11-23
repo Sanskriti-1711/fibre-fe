@@ -347,6 +347,222 @@
           display: none;
         }
       }
+
+      /* ── In-page detail drawer ───────────────────────────────────────
+         The job page is the workspace. Project-wide tools open here instead
+         of navigating away, and each view fetches its own data on demand. */
+      body.jd-drawer-open {
+        overflow: hidden;
+      }
+      .jd-drawer {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+      }
+      .jd-drawer.open {
+        display: block;
+      }
+      .jd-drawer__scrim {
+        position: absolute;
+        inset: 0;
+        background: rgb(9 12 18 / 55%);
+      }
+      .jd-drawer__panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: min(760px, 100vw);
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -20px 0 50px rgb(17 24 39 / 22%);
+      }
+      .jd-drawer.wide .jd-drawer__panel {
+        width: min(1180px, 100vw);
+      }
+      .jd-drawer__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      .jd-drawer__title {
+        margin: 0;
+        font-size: 18px;
+        color: #111827;
+      }
+      .jd-drawer__sub {
+        margin: 4px 0 0;
+        font-size: 12.5px;
+        color: #5b6472;
+      }
+      .jd-drawer__close {
+        width: 38px;
+        height: 38px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #374151;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        flex: 0 0 auto;
+      }
+      .jd-drawer__body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        padding: 20px;
+      }
+      .jd-drawer__body iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 600px;
+        border: 0;
+        border-radius: 10px;
+        background: #f9fafb;
+      }
+      .jd-drawer__loading {
+        color: #5b6472;
+        font-size: 13px;
+        padding: 14px 0;
+      }
+      .jd-drawer__error {
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: #991b1b;
+        border-radius: 10px;
+        padding: 12px 14px;
+        font-size: 13px;
+      }
+      .jd-drawer__section + .jd-drawer__section {
+        margin-top: 18px;
+      }
+      .jd-drawer__section h4 {
+        margin: 0 0 8px;
+        font-size: 14px;
+        color: #111827;
+      }
+      .jd-drawer__section h4 small {
+        color: #5b6472;
+        font-size: 11px;
+        font-weight: 500;
+      }
+      .jd-drawer__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+      }
+      .jd-drawer__stat {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px 14px;
+      }
+      .jd-drawer__stat span {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #5b6472;
+      }
+      .jd-drawer__stat strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 20px;
+        color: #111827;
+      }
+      .jd-drawer__table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      .jd-drawer__table th {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #5b6472;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+      .jd-drawer__table td {
+        padding: 9px 10px;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: top;
+      }
+      .jd-drawer__table tr:last-child td {
+        border-bottom: none;
+      }
+      .jd-drawer__field-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 13px;
+      }
+      .jd-drawer__field-row:last-child {
+        border-bottom: none;
+      }
+      .jd-drawer__field-row small {
+        color: #5b6472;
+      }
+      .jd-drawer__empty {
+        padding: 18px;
+        border: 1px dashed #d1d5db;
+        border-radius: 10px;
+        color: #5b6472;
+        font-size: 13px;
+        text-align: center;
+      }
+      .jd-drawer__actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 16px;
+      }
+      .jd-drawer__actions .jd-btn.primary {
+        border: 0;
+        cursor: pointer;
+      }
+      .jd-drawer__label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #5b6472;
+      }
+      .jd-drawer select,
+      .jd-drawer input[type='text'] {
+        width: 100%;
+        padding: 9px 11px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #1f2937;
+        background: #ffffff;
+      }
+      .jd-drawer__status {
+        margin: 10px 0 0;
+        font-size: 12.5px;
+        color: #5b6472;
+        min-height: 18px;
+      }
+      @media (max-width: 700px) {
+        .jd-drawer__panel {
+          width: 100vw;
+        }
+        .jd-drawer__body {
+          padding: 16px;
+        }
+      }
     </style>
     <link rel="stylesheet" href="css/tokens.css" />
     <link rel="stylesheet" href="css/main.css" />
@@ -376,9 +592,9 @@
             </div>
 
             <div class="jd-actions">
-              <a id="editLink" class="jd-btn primary" href="project-assign.html">Edit assignment</a>
-              <a id="auditLink" class="jd-btn" href="audit-detail.html" style="display: none">Open audit review</a>
-              <a id="mapLink" class="jd-btn" href="project-map-review.html" style="display: none">View on map</a>
+              <button id="editLink" class="jd-btn primary" type="button">Edit assignment</button>
+              <button id="auditLink" class="jd-btn" type="button" style="display: none">Open audit review</button>
+              <button id="mapLink" class="jd-btn" type="button" style="display: none">View on map</button>
               <a class="jd-btn" href="all-jobs.html">Back to all jobs</a>
             </div>
 
@@ -450,6 +666,25 @@
               </div>
             </div>
 
+            <div class="card" id="spanSummaryCard" style="margin-top: 18px; display: none">
+              <h3>Assigned span</h3>
+              <div class="jd-kpis">
+                <div class="jd-kpi">
+                  <span class="label">Span ID</span>
+                  <span class="value" id="spanSummaryId">—</span>
+                </div>
+                <div class="jd-kpi">
+                  <span class="label">Layer</span>
+                  <span class="value" id="spanSummaryLayer">—</span>
+                </div>
+                <div class="jd-kpi">
+                  <span class="label">Components</span>
+                  <span class="value" id="spanSummaryCount">—</span>
+                </div>
+              </div>
+              <p class="jd-hint">One job covers every component that carries this span ID in the layer.</p>
+            </div>
+
             <div class="card" style="margin-top: 18px">
               <h3>Site photos</h3>
               <div id="photoBox" class="jd-muted">No site photos attached yet.</div>
@@ -463,9 +698,9 @@
               <table class="jd-cmp">
                 <thead>
                   <tr>
-                    <th style="width: 46%">Field</th>
-                    <th style="width: 27%">Planned</th>
-                    <th style="width: 27%">As-built</th>
+                    <th id="cmpColField" style="width: 46%">Field</th>
+                    <th id="cmpColPlanned" style="width: 27%">Planned</th>
+                    <th id="cmpColAsBuilt" style="width: 27%">As-built</th>
                   </tr>
                 </thead>
                 <tbody id="comparisonBody">
@@ -485,6 +720,18 @@
 
               <form id="addFieldPanel" class="jd-add-field" hidden>
                 <div class="jd-add-field__row">
+                  <div>
+                    <label for="newFieldKind">Layer type</label>
+                    <select id="newFieldKind">
+                      <option value="trench">Trench</option>
+                      <option value="duct">Duct</option>
+                      <option value="cable">Cable</option>
+                      <option value="chamber">Chamber</option>
+                      <option value="pole">Pole</option>
+                      <option value="premise">Premise</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
                   <div>
                     <label for="newFieldLabel">Field label</label>
                     <input
@@ -538,14 +785,14 @@
             </div>
 
             <div id="noFeatureNote" class="card" style="margin-top: 18px; display: none">
-              <h3>Scope covers no single feature</h3>
+              <h3 id="noFeatureTitle">Scope covers no single feature</h3>
               <p class="jd-hint" style="margin-top: 0">
                 This job assigns the whole <span id="noFeatureScope">project</span>, so there is no single feature to
                 show evidence for. Open the project map or the completion report to see the work it covers.
               </p>
               <div class="jd-actions" style="margin-bottom: 0">
-                <a id="noFeatureMap" class="jd-btn" href="project-map-review.html">Open project map</a>
-                <a id="noFeatureProgress" class="jd-btn" href="projects-completion.html">Project progress</a>
+                <button id="noFeatureMap" class="jd-btn" type="button">Open project map</button>
+                <button id="noFeatureProgress" class="jd-btn" type="button">Project progress</button>
               </div>
             </div>
           </div>
@@ -569,6 +816,20 @@
           </div>
         </div>
       </main>
+    </div>
+
+    <div id="jobDrawer" class="jd-drawer" aria-hidden="true">
+      <div class="jd-drawer__scrim" data-jd-close></div>
+      <aside class="jd-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="jobDrawerTitle">
+        <div class="jd-drawer__head">
+          <div>
+            <h2 id="jobDrawerTitle" class="jd-drawer__title">Job details</h2>
+            <p id="jobDrawerSub" class="jd-drawer__sub"></p>
+          </div>
+          <button id="jobDrawerClose" class="jd-drawer__close" type="button" aria-label="Close panel">&times;</button>
+        </div>
+        <div id="jobDrawerBody" class="jd-drawer__body"></div>
+      </aside>
     </div>
 
     <script src="partials/sidebar-loader.js"></script>
@@ -596,6 +857,10 @@
       var projectId = '';
       var layerId = '';
       var featureId = '';
+      var projectFieldGroups = [];
+      var projectFieldsState = 'idle';
+      var projectFieldsError = '';
+      var addFieldKindTouched = false;
       var currentUser = window.FiberAuth.getUser && window.FiberAuth.getUser();
       var canEditFields = Boolean(currentUser && currentUser.role === 'SUBADMIN');
       var LAYER_KIND_LABELS = {
@@ -636,6 +901,292 @@
         var box = document.getElementById('errorState');
         box.style.display = message ? 'block' : 'none';
         box.textContent = message || '';
+      }
+
+      /* ── In-page drawer ───────────────────────────────────────────── */
+      var drawerSequence = 0;
+      var drawerReturnFocus = null;
+
+      function drawerRoot() {
+        return document.getElementById('jobDrawer');
+      }
+
+      function drawerBody() {
+        return document.getElementById('jobDrawerBody');
+      }
+
+      function drawerReady(seq) {
+        var root = drawerRoot();
+        return Boolean(root && seq === drawerSequence && root.classList.contains('open'));
+      }
+
+      function drawerFriendlyError(error) {
+        return window.FtthUI && typeof window.FtthUI.humanize === 'function'
+          ? window.FtthUI.humanize(error)
+          : String((error && error.message) || error || 'Something went wrong.');
+      }
+
+      function openJobDrawer(title, subtitle, wide) {
+        var root = drawerRoot();
+        var body = drawerBody();
+        drawerSequence += 1;
+        drawerReturnFocus = document.activeElement;
+        document.getElementById('jobDrawerTitle').textContent = title;
+        document.getElementById('jobDrawerSub').textContent = subtitle || '';
+        body.innerHTML = '<p class="jd-drawer__loading">Loading…</p>';
+        root.classList.toggle('wide', Boolean(wide));
+        root.classList.add('open');
+        root.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('jd-drawer-open');
+        document.getElementById('jobDrawerClose').focus();
+        return drawerSequence;
+      }
+
+      function closeJobDrawer() {
+        var root = drawerRoot();
+        if (!root || !root.classList.contains('open')) return;
+        drawerSequence += 1;
+        var target = drawerReturnFocus;
+        drawerReturnFocus = null;
+        // Move focus out before hiding the dialog. Setting aria-hidden on an
+        // ancestor of the focused button makes the browser block the update and
+        // log an accessibility warning.
+        if (document.activeElement && root.contains(document.activeElement) && document.activeElement.blur) {
+          document.activeElement.blur();
+        }
+        root.classList.remove('open', 'wide');
+        root.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('jd-drawer-open');
+        drawerBody().innerHTML = '';
+        if (target && document.contains(target) && !root.contains(target)) target.focus();
+      }
+
+      function drawerFail(seq, error, retry) {
+        if (!drawerReady(seq)) return;
+        drawerBody().innerHTML =
+          '<div class="jd-drawer__error"><strong>Could not load this panel.</strong>' +
+          '<p style="margin: 6px 0 0">' +
+          esc(drawerFriendlyError(error)) +
+          '</p>' +
+          (retry
+            ? '<div class="jd-drawer__actions"><button type="button" class="jd-btn" id="drawerRetry">Try again</button></div>'
+            : '') +
+          '</div>';
+        var button = document.getElementById('drawerRetry');
+        if (button) button.addEventListener('click', retry);
+      }
+
+      function drawerEmpty(seq, text) {
+        if (!drawerReady(seq)) return;
+        drawerBody().innerHTML = '<div class="jd-drawer__empty">' + esc(text) + '</div>';
+      }
+
+      function drawerStat(label, value) {
+        return '<div class="jd-drawer__stat"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong></div>';
+      }
+
+      function drawerMeasurement(value) {
+        if (value && typeof value === 'object' && 'value' in value) {
+          return String(value.value) + (value.unit ? ' ' + value.unit : '');
+        }
+        if (value === undefined || value === null || value === '') return '—';
+        if (typeof value === 'object') return JSON.stringify(value);
+        return String(value);
+      }
+
+      async function openAssignmentDrawer() {
+        var seq = openJobDrawer('Edit assignment', 'Change the engineer on this job without leaving it.');
+        try {
+          var data = await window.FiberApi.listEngineers();
+          if (!drawerReady(seq)) return;
+          var rows = Array.isArray(data) ? data : (data && data.results) || [];
+          var engineers = rows
+            .filter(function (row) {
+              return row && row.id && row.is_active !== false;
+            })
+            .map(function (row) {
+              return { id: String(row.id), name: row.full_name || row.email || String(row.id) };
+            });
+          var current = job && job.assignee && job.assignee.id ? String(job.assignee.id) : '';
+          if (
+            current &&
+            !engineers.some(function (row) {
+              return row.id === current;
+            })
+          ) {
+            engineers.unshift({
+              id: current,
+              name: (job.assignee && (job.assignee.full_name || job.assignee.email)) || 'Current assignee',
+            });
+          }
+          if (!engineers.length) {
+            drawerEmpty(seq, 'No engineer accounts are available.');
+            return;
+          }
+          drawerBody().innerHTML =
+            '<label class="jd-drawer__label" for="drawerEngineer">Assigned engineer</label>' +
+            '<select id="drawerEngineer">' +
+            engineers
+              .map(function (row) {
+                return (
+                  '<option value="' +
+                  esc(row.id) +
+                  '"' +
+                  (row.id === current ? ' selected' : '') +
+                  '>' +
+                  esc(row.name) +
+                  '</option>'
+                );
+              })
+              .join('') +
+            '</select>' +
+            '<p class="jd-drawer__status" id="drawerAssignStatus" role="status" aria-live="polite"></p>' +
+            '<div class="jd-drawer__actions"><button type="button" class="jd-btn primary" id="drawerSaveAssignment">Save assignment</button></div>';
+
+          var select = document.getElementById('drawerEngineer');
+          var save = document.getElementById('drawerSaveAssignment');
+          var status = document.getElementById('drawerAssignStatus');
+          save.addEventListener('click', async function () {
+            if (!select.value) return;
+            save.disabled = true;
+            status.textContent = 'Saving…';
+            try {
+              await window.FiberApi.updateAssignment(jobId, { assignee: select.value });
+              job = await window.FiberApi.getAssignment(jobId);
+              renderJob();
+              closeJobDrawer();
+              if (window.FtthUI && window.FtthUI.toast) window.FtthUI.toast('Assignment updated', 'success');
+            } catch (error) {
+              status.textContent = 'Could not save: ' + drawerFriendlyError(error);
+              save.disabled = false;
+            }
+          });
+        } catch (error) {
+          drawerFail(seq, error, openAssignmentDrawer);
+        }
+      }
+
+      async function openProgressDrawer() {
+        var projectName = (document.getElementById('metaProject').textContent || 'this project').trim();
+        var seq = openJobDrawer('Project progress', projectName);
+        try {
+          var completion = await window.FiberApi.getProjectCompletion(projectId);
+          if (!drawerReady(seq)) return;
+          var standard = Number(completion.standard_completion || 0);
+          var dynamic = Number(completion.dynamic_completion || 0);
+          var total = Number(completion.total_features || 0);
+          var approved = Number(completion.approved_features || 0);
+          var layers = Array.isArray(completion.layers) ? completion.layers : [];
+          var html =
+            '<div class="jd-drawer__grid">' +
+            drawerStat('Standard completion', standard.toFixed(1) + '%') +
+            drawerStat('Approved features', approved + ' of ' + total) +
+            (completion.weights_defined ? drawerStat('Weighted completion', dynamic.toFixed(1) + '%') : '') +
+            '</div>';
+          if (!layers.length) {
+            html +=
+              '<div class="jd-drawer__empty" style="margin-top: 16px">This project has no features to measure yet.</div>';
+          } else {
+            html +=
+              '<section class="jd-drawer__section"><h4>Layer breakdown</h4>' +
+              '<table class="jd-drawer__table"><thead><tr><th>Layer</th><th>Approved</th><th>Progress</th><th>Weight</th></tr></thead><tbody>' +
+              layers
+                .map(function (layer) {
+                  return (
+                    '<tr><td>' +
+                    esc(layer.layer_name || layer.layer_id || '—') +
+                    '</td><td>' +
+                    esc(String(layer.approved_features || 0) + ' / ' + String(layer.total_features || 0)) +
+                    '</td><td>' +
+                    esc(Number(layer.progress_percentage || 0).toFixed(1) + '%') +
+                    '</td><td>' +
+                    esc(Number(layer.weight || 0).toFixed(1) + '%') +
+                    '</td></tr>'
+                  );
+                })
+                .join('') +
+              '</tbody></table></section>';
+          }
+          drawerBody().innerHTML = html;
+        } catch (error) {
+          drawerFail(seq, error, openProgressDrawer);
+        }
+      }
+
+      function openMapDrawer() {
+        if (!projectId) {
+          var missing = openJobDrawer('Project map', 'No project is attached to this job.');
+          drawerEmpty(missing, 'A project map is not available for this job.');
+          return;
+        }
+        var projectName = (document.getElementById('metaProject').textContent || 'Project').trim();
+        var seq = openJobDrawer('Project map', projectName, true);
+        var query = new URLSearchParams({ project_id: projectId });
+        if (layerId) query.set('layer_id', layerId);
+        if (featureId) query.set('feature_id', featureId);
+        if (!drawerReady(seq)) return;
+        drawerBody().innerHTML =
+          '<iframe title="Project map" src="project-map-review.html?' + esc(query.toString()) + '"></iframe>';
+      }
+
+      async function openAuditDrawer() {
+        if (!featureId) {
+          var emptySeq = openJobDrawer('Audit review', 'No single feature is attached to this job.');
+          drawerEmpty(emptySeq, 'This job covers the whole project, so there is no feature-level audit record.');
+          return;
+        }
+        var seq = openJobDrawer('Audit review', 'Feature evidence and decision history.');
+        try {
+          var results = await Promise.all([
+            window.FiberApi.getFeature(projectId, featureId),
+            window.FiberApi.getFeatureDecisions(featureId),
+          ]);
+          if (!drawerReady(seq)) return;
+          var current = (results[0] && results[0].feature) || {};
+          var decisionData = results[1] || {};
+          var records = decisionData.results || [];
+          var measurements = current.field_measurements || {};
+          var measurementRows = Object.keys(measurements)
+            .map(function (key) {
+              return '<tr><td>' + esc(key) + '</td><td>' + esc(drawerMeasurement(measurements[key])) + '</td></tr>';
+            })
+            .join('');
+          var decisionHtml = records.length
+            ? records
+                .map(function (record) {
+                  return (
+                    '<div class="jd-dec"><strong>' +
+                    esc(decisionLabel(record.decision)) +
+                    '</strong> <span class="when">' +
+                    esc(formatDate(record.created_at)) +
+                    ' · ' +
+                    esc(record.reviewer || 'reviewer unknown') +
+                    '</span>' +
+                    (record.reason ? '<p>' + esc(record.reason) + '</p>' : '') +
+                    '</div>'
+                  );
+                })
+                .join('')
+            : '<div class="jd-drawer__empty">No decision recorded yet.</div>';
+          drawerBody().innerHTML =
+            '<div class="jd-drawer__grid">' +
+            drawerStat('Status', statusLabel(current.status)) +
+            drawerStat('Layer', current.layer_name || current.layer_id || '—') +
+            drawerStat('Last update', formatDate(current.updated_at)) +
+            '</div>' +
+            '<section class="jd-drawer__section"><h4>Measurements</h4>' +
+            (measurementRows
+              ? '<table class="jd-drawer__table"><thead><tr><th>Field</th><th>As-built</th></tr></thead><tbody>' +
+                measurementRows +
+                '</tbody></table>'
+              : '<div class="jd-drawer__empty">No measurements recorded yet.</div>') +
+            '</section>' +
+            '<section class="jd-drawer__section"><h4>Decision history</h4>' +
+            decisionHtml +
+            '</section>';
+        } catch (error) {
+          drawerFail(seq, error, openAuditDrawer);
+        }
       }
 
       function engineerLabel(assignment) {
@@ -679,9 +1230,22 @@
         var spanCount = Array.isArray(job.covered_feature_ids)
           ? job.covered_feature_ids.length
           : (job.span && job.span.feature_count) || 0;
+        var spanLayer =
+          (job.span && job.span.layer_id) || job.layer_id || (job.layer && (job.layer.name || job.layer.id)) || '';
         document.getElementById('metaSpan').textContent = spanId
-          ? spanId + (spanCount ? ' · ' + spanCount + ' components' : '')
+          ? spanId + (spanCount ? ' · ' + spanCount + (spanCount === 1 ? ' component' : ' components') : '')
           : '—';
+        var spanCard = document.getElementById('spanSummaryCard');
+        if (spanCard) {
+          spanCard.style.display = spanId ? 'block' : 'none';
+          if (spanId) {
+            document.getElementById('spanSummaryId').textContent = spanId;
+            document.getElementById('spanSummaryLayer').textContent = spanLayer || '—';
+            document.getElementById('spanSummaryCount').textContent = spanCount
+              ? spanCount + (spanCount === 1 ? ' component' : ' components')
+              : '—';
+          }
+        }
 
         var projectName =
           (job.project && (job.project.name || job.project.title)) || job.project_name || shortId(projectId) || '—';
@@ -726,7 +1290,10 @@
           auditLink.style.display = 'none';
           mapLink.style.display = 'none';
           document.getElementById('noFeatureNote').style.display = 'block';
-          document.getElementById('noFeatureScope').textContent = job.scope || 'project';
+          document.getElementById('noFeatureTitle').textContent =
+            job.scope === 'span' ? 'This job covers a span' : 'Scope covers no single feature';
+          document.getElementById('noFeatureScope').textContent =
+            job.scope === 'span' && spanId ? 'span ' + spanId : job.scope || 'project';
           document.getElementById('noFeatureMap').href = 'project-map-review.html?' + query.toString();
           document.getElementById('noFeatureProgress').href =
             'projects-completion.html?project_id=' + encodeURIComponent(projectId);
@@ -852,6 +1419,203 @@
         return (feature && feature.layer_kind) || inferLayerKind(layerId);
       }
 
+      function selectedFieldKind() {
+        var select = document.getElementById('newFieldKind');
+        return (select && select.value) || currentLayerKind() || 'other';
+      }
+
+      function setAddFieldKind(kind) {
+        if (addFieldKindTouched || !kind || !LAYER_KIND_LABELS[kind]) return;
+        var select = document.getElementById('newFieldKind');
+        if (select && select.value !== kind) {
+          select.value = kind;
+          updateAddFieldHint();
+        }
+      }
+
+      function fieldInputLabel(field) {
+        if (!field) return '—';
+        if (field.role === 'reference' || field.widget === 'readonly') return 'Reference (read-only)';
+        var type = storedFieldType(field);
+        if (type === 'number') return field.unit === false ? 'Number' : 'Number + unit';
+        if (type === 'location') return 'Location (X, Y)';
+        if (type === 'textarea') return 'Notes (long text)';
+        return 'Text / QC';
+      }
+
+      function renderProjectFields() {
+        var body = document.getElementById('comparisonBody');
+        var caption = document.getElementById('comparisonCaption');
+        if (!body || !caption) return;
+
+        document.getElementById('cmpColField').textContent = 'Field';
+        document.getElementById('cmpColPlanned').textContent = 'Layer type';
+        document.getElementById('cmpColAsBuilt').textContent = 'Form input';
+
+        if (projectFieldsState === 'idle' || projectFieldsState === 'loading') {
+          body.innerHTML =
+            '<tr><td colspan="3" class="jd-muted" style="padding: 18px">Loading form fields for this project…</td></tr>';
+          caption.textContent = '';
+          return;
+        }
+
+        if (projectFieldsState === 'error') {
+          body.innerHTML =
+            '<tr><td colspan="3" class="jd-muted" style="padding: 18px">Could not load the project’s form fields. ' +
+            esc(projectFieldsError || 'Try refreshing the page.') +
+            '</td></tr>';
+          caption.textContent = '';
+          return;
+        }
+
+        var total = projectFieldGroups.reduce(function (count, group) {
+          return count + group.fields.length;
+        }, 0);
+        if (!total) {
+          body.innerHTML =
+            '<tr><td colspan="3" class="jd-muted" style="padding: 18px">No form fields are configured for this project yet. Use <strong>Add field</strong> below to create one.</td></tr>';
+          caption.textContent = '';
+          return;
+        }
+
+        body.innerHTML = projectFieldGroups
+          .map(function (group) {
+            var layerNames = group.layerNames.length ? group.layerNames.join(', ') : group.label;
+            var heading =
+              '<tr><td colspan="3" style="padding: 10px 12px; background: #f9fafb; border-bottom: 1px solid #e5e7eb">' +
+              '<strong>' +
+              esc(group.label) +
+              '</strong> <span class="jd-muted">· ' +
+              esc(layerNames) +
+              ' · ' +
+              group.fields.length +
+              ' field(s)</span></td></tr>';
+            var rows = group.fields
+              .map(function (field) {
+                var key = field.key || field.name;
+                return (
+                  '<tr><td class="field" title="' +
+                  esc(key) +
+                  '">' +
+                  esc(field.label || key) +
+                  '</td><td>' +
+                  esc(group.label) +
+                  '</td><td>' +
+                  esc(fieldInputLabel(field)) +
+                  '</td></tr>'
+                );
+              })
+              .join('');
+            return heading + rows;
+          })
+          .join('');
+
+        caption.textContent =
+          total +
+          ' field(s) on ' +
+          projectFieldGroups.length +
+          ' layer type(s). Readings are recorded per feature; open a feature job to compare planned and as-built.';
+      }
+
+      async function loadProjectFieldGroups() {
+        if (!projectId) {
+          projectFieldsState = 'error';
+          projectFieldsError = 'No project is attached to this job.';
+          renderProjectFields();
+          return;
+        }
+
+        projectFieldsState = 'loading';
+        renderProjectFields();
+
+        try {
+          var layerData = await window.FiberApi.listProjectLayers(projectId);
+          var layers = (layerData && layerData.layers) || [];
+          var byKind = {};
+
+          layers.forEach(function (layer) {
+            var kind = inferLayerKind(layer.layer_id || layer.layer_name);
+            if (!byKind[kind]) {
+              byKind[kind] = {
+                kind: kind,
+                label: LAYER_KIND_LABELS[kind] || kind,
+                layerNames: [],
+                layerIds: [],
+                featureCount: 0,
+              };
+            }
+            var name = layer.layer_name || layer.layer_id;
+            if (name && byKind[kind].layerNames.indexOf(name) === -1) {
+              byKind[kind].layerNames.push(name);
+            }
+            if (layer.layer_id) byKind[kind].layerIds.push(layer.layer_id);
+            byKind[kind].featureCount += Number(layer.feature_count || 0);
+          });
+
+          var groups = Object.keys(LAYER_KIND_LABELS)
+            .filter(function (kind) {
+              return byKind[kind];
+            })
+            .map(function (kind) {
+              return byKind[kind];
+            });
+
+          var results = await Promise.all(
+            groups.map(async function (group) {
+              var fields = [];
+              try {
+                var preview = await window.FiberApi.apiFetch(
+                  '/api/field-templates/preview/?layer_kind=' +
+                    encodeURIComponent(group.kind) +
+                    (projectId ? '&project=' + encodeURIComponent(projectId) : '')
+                );
+                fields =
+                  (preview && Array.isArray(preview.schema) && preview.schema.length
+                    ? preview.schema
+                    : preview && preview.base) || [];
+              } catch (previewError) {
+                // The preview is planner-only. A reviewer can still read the
+                // layer's own field config; only template extras are absent.
+                try {
+                  var layerIdForFields = group.layerIds[0];
+                  var config = await window.FiberApi.apiFetch(
+                    '/api/projects/' +
+                      encodeURIComponent(projectId) +
+                      '/layers/' +
+                      encodeURIComponent(layerIdForFields) +
+                      '/field-config/'
+                  );
+                  fields =
+                    (config && Array.isArray(config.schema) && config.schema.length
+                      ? config.schema
+                      : config && config.derived) || [];
+                } catch (configError) {
+                  fields = [];
+                }
+              }
+
+              return Object.assign({}, group, {
+                fields: (fields || []).filter(function (field) {
+                  return field && (field.key || field.name);
+                }),
+              });
+            })
+          );
+
+          projectFieldGroups = results;
+          projectFieldsState = 'ready';
+          if (results.length) setAddFieldKind(results[0].kind);
+          renderProjectFields();
+        } catch (error) {
+          projectFieldsState = 'error';
+          projectFieldsError =
+            window.FtthUI && typeof window.FtthUI.humanize === 'function'
+              ? window.FtthUI.humanize(error)
+              : String((error && error.message) || error || 'Something went wrong.');
+          renderProjectFields();
+        }
+      }
+
       function storedFieldType(field) {
         if (field.type) return field.type;
         if (field.role === 'measurement_text') return 'location';
@@ -860,10 +1624,16 @@
         return 'text';
       }
 
-      function newFieldKey(label) {
+      function newFieldKey(label, kind) {
         var used = {};
         schemaEntries().forEach(function (field) {
           used[field.key || field.name] = true;
+        });
+        (projectFieldGroups || []).forEach(function (group) {
+          if (kind && group.kind !== kind) return;
+          (group.fields || []).forEach(function (field) {
+            used[field.key || field.name] = true;
+          });
         });
         Object.keys((feature && feature.properties) || {}).forEach(function (key) {
           used[key] = true;
@@ -897,7 +1667,7 @@
       function syncAddFieldVisibility() {
         var button = document.getElementById('addFieldBtn');
         if (!button) return;
-        var allowed = canEditFields && Boolean(feature);
+        var allowed = canEditFields && Boolean(projectId);
         button.style.display = allowed ? '' : 'none';
         if (!allowed) hideAddField();
       }
@@ -905,7 +1675,7 @@
       function updateAddFieldHint() {
         var hint = document.getElementById('newFieldHint');
         if (!hint) return;
-        var kind = currentLayerKind();
+        var kind = selectedFieldKind();
         var label = LAYER_KIND_LABELS[kind] || kind || 'layer';
         var scope = document.getElementById('newFieldScope').value;
         var project = document.getElementById('metaProject').textContent || 'this project';
@@ -925,6 +1695,7 @@
         var detail = await window.FiberApi.getFeature(projectId, featureId);
         feature = detail.feature;
         layerId = feature.layer_id || layerId;
+        setAddFieldKind(feature.layer_kind);
         renderJob();
         renderProgress();
         renderComparison();
@@ -933,7 +1704,7 @@
 
       async function addFieldFromJob(event) {
         event.preventDefault();
-        if (!feature) return;
+        if (!projectId) return;
 
         var status = document.getElementById('addFieldStatus');
         var labelInput = document.getElementById('newFieldLabel');
@@ -945,7 +1716,7 @@
           return;
         }
 
-        var kind = currentLayerKind();
+        var kind = selectedFieldKind();
         var scope = document.getElementById('newFieldScope').value;
         var type = document.getElementById('newFieldType').value;
         var saveButton = document.getElementById('saveFieldBtn');
@@ -979,7 +1750,7 @@
               });
             });
           fields.push({
-            key: newFieldKey(label),
+            key: newFieldKey(label, kind),
             label: label,
             type: type,
             editable: true,
@@ -994,7 +1765,11 @@
           });
 
           try {
-            await refreshFeature();
+            if (feature) {
+              await refreshFeature();
+            } else {
+              await loadProjectFieldGroups();
+            }
           } catch (_) {
             // The save succeeded; the next page load still shows the field.
           }
@@ -1047,12 +1822,15 @@
       }
 
       function renderComparison() {
-        var body = document.getElementById('comparisonBody');
         if (!feature) {
-          body.innerHTML =
-            '<tr><td colspan="3" class="jd-muted" style="padding: 18px">No single feature is attached to this job.</td></tr>';
+          renderProjectFields();
           return;
         }
+
+        var body = document.getElementById('comparisonBody');
+        document.getElementById('cmpColField').textContent = 'Field';
+        document.getElementById('cmpColPlanned').textContent = 'Planned';
+        document.getElementById('cmpColAsBuilt').textContent = 'As-built';
 
         var keys = fieldKeys();
         if (!keys.length) {
@@ -1304,12 +2082,21 @@
         renderComparison();
         renderSpanInspection();
 
-        if (!featureId) return;
+        if (!featureId) {
+          var decisionBox = document.getElementById('decisionBox');
+          if (decisionBox) {
+            decisionBox.innerHTML =
+              '<p class="jd-muted" style="margin: 0">No decision recorded — this job covers the whole project, so there is no single feature to review.</p>';
+          }
+          await loadProjectFieldGroups();
+          return;
+        }
 
         try {
           var detail = await window.FiberApi.getFeature(projectId, featureId);
           feature = detail.feature;
           layerId = feature.layer_id || layerId;
+          setAddFieldKind(feature.layer_kind);
           renderJob();
           renderProgress();
           renderComparison();
@@ -1327,12 +2114,61 @@
         updateAddFieldHint();
         document.getElementById('newFieldLabel').focus();
       });
+      document.getElementById('newFieldKind').addEventListener('change', function () {
+        addFieldKindTouched = true;
+        updateAddFieldHint();
+      });
       document.getElementById('newFieldScope').addEventListener('change', updateAddFieldHint);
       document.getElementById('cancelFieldBtn').addEventListener('click', function () {
         hideAddField();
         document.getElementById('newFieldLabel').value = '';
       });
       document.getElementById('addFieldPanel').addEventListener('submit', addFieldFromJob);
+
+      document.getElementById('editLink').addEventListener('click', function (event) {
+        event.preventDefault();
+        openAssignmentDrawer();
+      });
+      document.getElementById('auditLink').addEventListener('click', function (event) {
+        event.preventDefault();
+        openAuditDrawer();
+      });
+      document.getElementById('mapLink').addEventListener('click', function (event) {
+        event.preventDefault();
+        openMapDrawer();
+      });
+      document.getElementById('noFeatureMap').addEventListener('click', function (event) {
+        event.preventDefault();
+        openMapDrawer();
+      });
+      document.getElementById('noFeatureProgress').addEventListener('click', function (event) {
+        event.preventDefault();
+        openProgressDrawer();
+      });
+      document.getElementById('jobDrawerClose').addEventListener('click', closeJobDrawer);
+      document.querySelector('[data-jd-close]').addEventListener('click', closeJobDrawer);
+      document.addEventListener('keydown', function (event) {
+        var root = drawerRoot();
+        if (!root || !root.classList.contains('open')) return;
+        if (event.key === 'Escape') {
+          closeJobDrawer();
+          return;
+        }
+        if (event.key !== 'Tab') return;
+        var focusable = root.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusable.length) return;
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      });
 
       load();
     </script>

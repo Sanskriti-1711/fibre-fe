@@ -1966,7 +1966,7 @@ tr:hover {
   background: var(--tm-white);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .all-jobs .table-header {
@@ -2069,6 +2069,123 @@ tr:hover {
   width: 14px;
   height: 14px;
   opacity: 0.6;
+}
+
+.all-jobs tr.has-span-allocation > td {
+  border-bottom: 0;
+}
+
+.all-jobs .job-spans-row > td {
+  padding: 0 16px 14px 24px;
+  background: var(--tm-light);
+}
+
+.all-jobs .job-spans {
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px dashed var(--border);
+}
+
+.all-jobs .job-spans-row .job-spans {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.all-jobs .job-spans-row .job-spans__layers {
+  max-height: 180px;
+}
+
+.all-jobs .job-spans__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tm-gray);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.all-jobs .job-spans__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--info-soft);
+  color: var(--info-deep);
+  font-size: 10px;
+}
+
+.all-jobs .job-spans__layers {
+  display: grid;
+  gap: 7px;
+  margin-top: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.all-jobs .job-spans__layer {
+  display: grid;
+  gap: 4px;
+}
+
+.all-jobs .job-spans__layer-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.all-jobs .job-spans__layer-name {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.all-jobs .job-spans__layer-count {
+  color: var(--tm-gray);
+  font-size: 10px;
+}
+
+.all-jobs .job-spans__layer-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.all-jobs .job-span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--tm-white);
+  color: var(--ink-soft);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.all-jobs .job-span__id {
+  font-weight: 600;
+}
+
+.all-jobs .job-span__meta {
+  color: var(--tm-gray);
+  font-size: 10px;
+}
+
+.all-jobs .job-spans__note,
+.all-jobs .job-spans__empty,
+.all-jobs .job-spans__loading {
+  margin-top: 5px;
+  color: var(--tm-gray);
+  font-size: 10.5px;
+  line-height: 1.4;
 }
 
 .all-jobs .engineer {

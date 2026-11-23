@@ -767,6 +767,7 @@
             class="ftth-identify-btn ftth-multiselect-btn"
             id="multiSelectBtn"
             type="button"
+            aria-pressed="false"
             title="Select several features from one layer to assign together"
           >
             <span class="icon">&#x2611;</span><span class="label">Select</span>
@@ -776,6 +777,7 @@
             class="ftth-identify-btn"
             id="identifyBtn"
             type="button"
+            aria-pressed="false"
             title="Turn on to click a cable, trench or any component and view its full attributes"
           >
             <span class="icon">&#x1F3AF;</span><span class="label">Inspect</span>
@@ -1065,9 +1067,24 @@
         drop_ducts: { fill: '#EC4899', outline: '#9D174D', lineWidth: 2.5 },
         coupleurs: { fill: '#14B8A6', outline: '#0F766E', pointRadius: 6 },
         chambers: { fill: '#92400E', outline: '#78350F', opacity: 0.8 },
+        poles: { fill: '#B45309', outline: '#78350F', opacity: 0.9 },
         existing_infrastructure: { fill: '#64748B', outline: '#475569', lineWidth: 2.5 },
         existing_infrastructure_points: { fill: '#94A3B8', outline: '#334155', opacity: 0.8 },
       };
+
+      // The LLD panel reviews the DESIGN, not the existing-infrastructure echo
+      // the survey package imported alongside it. Brownfield layers stay in the
+      // run's output (download, lineage and BOQ still see them) but are not
+      // fetched into this page or listed as design layers.
+      var LLD_NON_PANEL_LAYERS = {
+        brownfield: 1,
+        existing_infrastructure: 1,
+        existing_infrastructure_points: 1,
+      };
+
+      function isPanelLayer(name) {
+        return !LLD_NON_PANEL_LAYERS[String(name || '').toLowerCase()];
+      }
 
       function colorFor(name) {
         return LLD_COLORS[name] || { fill: '#616A75', outline: '#374151', opacity: 0.5 };
@@ -1169,7 +1186,9 @@
         }
         try {
           var status = await window.FtthLldApi.getRunStatus(projectId, lldVersion);
-          var layers = (status && status.layers) || [];
+          var layers = ((status && status.layers) || []).filter(function (l) {
+            return isPanelLayer(l && l.name ? l.name : l);
+          });
           var runState = (status && status.status) || '';
           var runProgress = status && typeof status.progress === 'number' ? status.progress : 0;
           if (runState === 'running') {
@@ -1893,18 +1912,11 @@
           });
       }
 
+      // Closing the attribute table is an Inspect action: it releases the
+      // highlight and the change-list row but leaves a batch built with the
+      // Select tool alone.
       function clearInspector() {
-        if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
-        clearSelectedFeatures();
-        inspectorPanel.style.display = 'none';
-        // Clearing the selection also releases the change-list row, so the list
-        // never claims a change is selected when nothing is highlighted.
-        if (surveyChangeListEl) {
-          Array.prototype.forEach.call(surveyChangeListEl.querySelectorAll('.ftth-change-row.is-active'), function (r) {
-            r.classList.remove('is-active');
-            r.removeAttribute('aria-current');
-          });
-        }
+        hideInspectorPanel();
       }
 
       function designFeatureId(feature) {
@@ -1999,25 +2011,52 @@
         }
       }
 
+      // Selecting and inspecting are two separate tools. A select click only
+      // adds or removes the feature from the batch; an inspect click only opens
+      // the attribute table. They share the map's click hook, so the hook is on
+      // whenever either tool is on and the mode decides what a click means.
       function onIdentifyFeature(feature, layerName, coords) {
-        if (multiSelectOn) addFeatureToSelection(feature, layerName);
+        if (multiSelectOn) {
+          addFeatureToSelection(feature, layerName);
+          return;
+        }
         showInspector(feature, layerName, coords);
+      }
+
+      function syncPointerMode() {
+        window.FtthMap.setIdentifyActive(map, identifyOn || multiSelectOn, onIdentifyFeature);
       }
 
       function setIdentifyMode(on) {
         identifyOn = !!on;
         if (identifyBtn) {
           identifyBtn.classList.toggle('active', identifyOn);
+          identifyBtn.setAttribute('aria-pressed', identifyOn ? 'true' : 'false');
           identifyBtn.title = identifyOn
             ? 'Click any component on the map to view its full attributes'
             : 'Turn on to click a cable, trench or any component and view its full attributes';
         }
-        window.FtthMap.setIdentifyActive(map, identifyOn, onIdentifyFeature);
-        if (!identifyOn) {
-          multiSelectOn = false;
-          if (multiSelectBtn) multiSelectBtn.classList.remove('active');
-          clearInspector();
+        if (identifyOn) {
+          // The attribute table belongs to Inspect; hide the batch tray's
+          // prompt but keep the selection, it is the other tool's state.
+          inspectorPanel.style.display = 'none';
+        } else {
+          hideInspectorPanel();
         }
+        syncPointerMode();
+      }
+
+      // Close the attribute table without touching the batch selection.
+      function hideInspectorPanel() {
+        if (inspectorPanel) inspectorPanel.style.display = 'none';
+        if (surveyChangeListEl) {
+          Array.prototype.forEach.call(surveyChangeListEl.querySelectorAll('.ftth-change-row.is-active'), function (r) {
+            r.classList.remove('is-active');
+            r.removeAttribute('aria-current');
+          });
+        }
+        if (multiSelectOn) renderSelectionTray();
+        else if (window.FtthMap.clearHighlight) window.FtthMap.clearHighlight(map);
       }
 
       if (identifyBtn) {
@@ -2029,10 +2068,14 @@
         multiSelectBtn.addEventListener('click', function () {
           multiSelectOn = !multiSelectOn;
           multiSelectBtn.classList.toggle('active', multiSelectOn);
+          multiSelectBtn.setAttribute('aria-pressed', multiSelectOn ? 'true' : 'false');
           multiSelectBtn.title = multiSelectOn
             ? 'Click features from one layer to add or remove them from the batch'
             : 'Select several features from one layer to assign together';
-          if (multiSelectOn && !identifyOn) setIdentifyMode(true);
+          // Inspect stays independently on/off: choosing Select closes the
+          // attribute table, it does not switch the Inspect tool on.
+          if (multiSelectOn) hideInspectorPanel();
+          syncPointerMode();
           if (multiSelectOn && supervisionLookup.state === 'idle') {
             resolveSupervisionProject().then(renderSelectionTray);
           }
